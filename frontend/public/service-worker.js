@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sasl-v2';
+const CACHE_NAME = 'sasl-v1';
 const urlsToCache = [
   '/',
   '/index.html',

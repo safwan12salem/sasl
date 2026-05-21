@@ -48156,3 +48156,1834 @@ DEBUG 2026-05-21 15:21:52,718 http_protocol 10288 22060 HTTP 200 response starte
 DEBUG 2026-05-21 15:21:52,719 http_protocol 10288 22060 HTTP close for ['127.0.0.1', 52738]
 DEBUG 2026-05-21 15:21:52,724 http_protocol 10288 22060 HTTP response complete for ['127.0.0.1', 52738]
 INFO 2026-05-21 15:21:52,726 runserver 10288 22060 [mHTTP GET /admin/jsi18n/ 200 [0.04, 127.0.0.1:52738][0m
+DEBUG 2026-05-21 17:17:18,722 selector_events 13988 24384 Using selector: SelectSelector
+DEBUG 2026-05-21 17:17:30,091 selector_events 7152 5632 Using selector: SelectSelector
+INFO 2026-05-21 17:17:36,036 autoreload 7152 5632 Watching for file changes with StatReloader
+INFO 2026-05-21 17:17:42,294 server 7152 13848 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-21 17:17:42,295 server 7152 13848 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-21 17:17:42,297 server 7152 13848 Listening on TCP address 127.0.0.1:8000
+DEBUG 2026-05-21 17:22:13,398 http_protocol 7152 13848 HTTP b'GET' request for ['127.0.0.1', 50467]
+WARNING 2026-05-21 17:22:13,543 log 7152 15916 Not Found: /
+DEBUG 2026-05-21 17:22:13,545 http_protocol 7152 13848 HTTP 404 response started for ['127.0.0.1', 50467]
+DEBUG 2026-05-21 17:22:13,554 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 50467]
+DEBUG 2026-05-21 17:22:13,555 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 50467]
+WARNING 2026-05-21 17:22:13,556 runserver 7152 13848 [33mHTTP GET / 404 [0.16, 127.0.0.1:50467][0m
+DEBUG 2026-05-21 17:22:14,719 http_protocol 7152 13848 HTTP b'GET' request for ['127.0.0.1', 50467]
+WARNING 2026-05-21 17:22:14,737 log 7152 15916 Not Found: /favicon.ico
+DEBUG 2026-05-21 17:22:14,738 http_protocol 7152 13848 HTTP 404 response started for ['127.0.0.1', 50467]
+DEBUG 2026-05-21 17:22:14,738 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 50467]
+DEBUG 2026-05-21 17:22:14,739 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 50467]
+WARNING 2026-05-21 17:22:14,739 runserver 7152 13848 [33mHTTP GET /favicon.ico 404 [0.02, 127.0.0.1:50467][0m
+DEBUG 2026-05-21 17:23:37,699 http_protocol 7152 13848 HTTP b'GET' request for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:37,852 http_protocol 7152 13848 HTTP 302 response started for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:37,853 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:37,853 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 62240]
+INFO 2026-05-21 17:23:37,854 runserver 7152 13848 [32mHTTP GET /admin/ 302 [0.16, 127.0.0.1:62240][0m
+DEBUG 2026-05-21 17:23:38,741 http_protocol 7152 13848 HTTP b'GET' request for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:38,970 http_protocol 7152 13848 HTTP 200 response started for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:38,971 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:38,973 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 62240]
+INFO 2026-05-21 17:23:38,974 runserver 7152 13848 [mHTTP GET /admin/login/?next=/admin/ 200 [0.23, 127.0.0.1:62240][0m
+DEBUG 2026-05-21 17:23:39,477 http_protocol 7152 13848 HTTP b'GET' request for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:39,516 http_protocol 7152 13848 HTTP b'GET' request for ['127.0.0.1', 53190]
+DEBUG 2026-05-21 17:23:39,866 http_protocol 7152 13848 HTTP 200 response started for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:39,869 http_protocol 7152 13848 HTTP response chunk for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:39,870 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:39,872 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 62240]
+INFO 2026-05-21 17:23:39,873 runserver 7152 13848 [mHTTP GET /static/admin/css/dark_mode.css 200 [0.40, 127.0.0.1:62240][0m
+DEBUG 2026-05-21 17:23:39,883 http_protocol 7152 13848 HTTP 200 response started for ['127.0.0.1', 53190]
+DEBUG 2026-05-21 17:23:39,887 http_protocol 7152 13848 HTTP response chunk for ['127.0.0.1', 53190]
+DEBUG 2026-05-21 17:23:39,888 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 53190]
+DEBUG 2026-05-21 17:23:39,891 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 53190]
+INFO 2026-05-21 17:23:39,892 runserver 7152 13848 [mHTTP GET /static/admin/css/base.css 200 [0.38, 127.0.0.1:53190][0m
+DEBUG 2026-05-21 17:23:40,115 http_protocol 7152 13848 HTTP b'GET' request for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:40,123 http_protocol 7152 13848 HTTP 200 response started for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:40,127 http_protocol 7152 13848 HTTP response chunk for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:40,128 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:40,129 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 62240]
+INFO 2026-05-21 17:23:40,130 runserver 7152 13848 [mHTTP GET /static/admin/js/theme.js 200 [0.02, 127.0.0.1:62240][0m
+DEBUG 2026-05-21 17:23:40,339 http_protocol 7152 13848 HTTP b'GET' request for ['127.0.0.1', 53190]
+DEBUG 2026-05-21 17:23:40,348 http_protocol 7152 13848 HTTP 200 response started for ['127.0.0.1', 53190]
+DEBUG 2026-05-21 17:23:40,351 http_protocol 7152 13848 HTTP response chunk for ['127.0.0.1', 53190]
+DEBUG 2026-05-21 17:23:40,352 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 53190]
+DEBUG 2026-05-21 17:23:40,353 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 53190]
+INFO 2026-05-21 17:23:40,353 runserver 7152 13848 [mHTTP GET /static/admin/js/nav_sidebar.js 200 [0.01, 127.0.0.1:53190][0m
+DEBUG 2026-05-21 17:23:40,372 http_protocol 7152 13848 HTTP b'GET' request for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:40,381 http_protocol 7152 13848 HTTP 200 response started for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:40,384 http_protocol 7152 13848 HTTP response chunk for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:40,385 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 62240]
+DEBUG 2026-05-21 17:23:40,386 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 62240]
+INFO 2026-05-21 17:23:40,387 runserver 7152 13848 [mHTTP GET /static/admin/css/responsive.css 200 [0.01, 127.0.0.1:62240][0m
+DEBUG 2026-05-21 17:23:41,138 http_protocol 7152 13848 HTTP b'GET' request for ['127.0.0.1', 55992]
+DEBUG 2026-05-21 17:23:41,146 http_protocol 7152 13848 HTTP 200 response started for ['127.0.0.1', 55992]
+DEBUG 2026-05-21 17:23:41,149 http_protocol 7152 13848 HTTP response chunk for ['127.0.0.1', 55992]
+DEBUG 2026-05-21 17:23:41,150 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 55992]
+DEBUG 2026-05-21 17:23:41,151 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 55992]
+INFO 2026-05-21 17:23:41,152 runserver 7152 13848 [mHTTP GET /static/admin/css/nav_sidebar.css 200 [0.01, 127.0.0.1:55992][0m
+DEBUG 2026-05-21 17:23:41,850 http_protocol 7152 13848 HTTP b'GET' request for ['127.0.0.1', 55996]
+DEBUG 2026-05-21 17:23:41,860 http_protocol 7152 13848 HTTP 200 response started for ['127.0.0.1', 55996]
+DEBUG 2026-05-21 17:23:41,863 http_protocol 7152 13848 HTTP response chunk for ['127.0.0.1', 55996]
+DEBUG 2026-05-21 17:23:41,864 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 55996]
+DEBUG 2026-05-21 17:23:41,866 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 55996]
+INFO 2026-05-21 17:23:41,866 runserver 7152 13848 [mHTTP GET /static/admin/css/login.css 200 [0.02, 127.0.0.1:55996][0m
+DEBUG 2026-05-21 17:23:42,351 http_protocol 7152 13848 HTTP b'GET' request for ['127.0.0.1', 53190]
+WARNING 2026-05-21 17:23:42,400 log 7152 15916 Not Found: /favicon.ico
+DEBUG 2026-05-21 17:23:42,404 http_protocol 7152 13848 HTTP 404 response started for ['127.0.0.1', 53190]
+DEBUG 2026-05-21 17:23:42,406 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 53190]
+DEBUG 2026-05-21 17:23:42,407 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 53190]
+WARNING 2026-05-21 17:23:42,409 runserver 7152 13848 [33mHTTP GET /favicon.ico 404 [0.06, 127.0.0.1:53190][0m
+DEBUG 2026-05-21 17:24:00,819 http_protocol 7152 13848 HTTP b'POST' request for ['127.0.0.1', 53190]
+WARNING 2026-05-21 17:24:00,826 log 7152 10844 Forbidden (Origin checking failed - https://honest-games-cheer.loca.lt does not match any trusted origins.): /admin/login/
+DEBUG 2026-05-21 17:24:00,831 http_protocol 7152 13848 HTTP 403 response started for ['127.0.0.1', 53190]
+DEBUG 2026-05-21 17:24:00,831 http_protocol 7152 13848 HTTP close for ['127.0.0.1', 53190]
+DEBUG 2026-05-21 17:24:00,832 http_protocol 7152 13848 HTTP response complete for ['127.0.0.1', 53190]
+WARNING 2026-05-21 17:24:00,832 runserver 7152 13848 [31;1mHTTP POST /admin/login/?next=/admin/ 403 [0.01, 127.0.0.1:53190][0m
+INFO 2026-05-21 17:30:46,510 autoreload 7152 5632 C:\Users\leno\sasl\backend\sasl\settings.py changed, reloading.
+DEBUG 2026-05-21 17:30:54,295 selector_events 9624 17692 Using selector: SelectSelector
+INFO 2026-05-21 17:31:07,851 autoreload 9624 17692 Watching for file changes with StatReloader
+INFO 2026-05-21 17:31:11,191 server 9624 12076 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-21 17:31:11,192 server 9624 12076 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-21 17:31:11,195 server 9624 12076 Listening on TCP address 127.0.0.1:8000
+DEBUG 2026-05-21 17:31:29,913 selector_events 6340 24464 Using selector: SelectSelector
+DEBUG 2026-05-21 17:31:37,615 selector_events 26444 13728 Using selector: SelectSelector
+INFO 2026-05-21 17:31:42,004 autoreload 26444 13728 Watching for file changes with StatReloader
+INFO 2026-05-21 17:31:46,629 server 26444 16180 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-21 17:31:46,630 server 26444 16180 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-21 17:31:46,632 server 26444 16180 Listening on TCP address 127.0.0.1:8000
+DEBUG 2026-05-21 17:40:30,809 selector_events 13384 17144 Using selector: SelectSelector
+DEBUG 2026-05-21 17:41:36,292 selector_events 23600 21176 Using selector: SelectSelector
+DEBUG 2026-05-21 17:41:44,327 selector_events 1708 17476 Using selector: SelectSelector
+INFO 2026-05-21 17:41:49,827 autoreload 1708 17476 Watching for file changes with StatReloader
+INFO 2026-05-21 17:41:55,656 server 1708 26392 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-21 17:41:55,657 server 1708 26392 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-21 17:41:55,659 server 1708 26392 Listening on TCP address 127.0.0.1:8000
+DEBUG 2026-05-21 17:44:26,146 selector_events 1652 13008 Using selector: SelectSelector
+DEBUG 2026-05-21 17:50:47,850 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 59321]
+WARNING 2026-05-21 17:50:47,982 log 1708 5164 Not Found: /
+DEBUG 2026-05-21 17:50:47,983 http_protocol 1708 26392 HTTP 404 response started for ['127.0.0.1', 59321]
+DEBUG 2026-05-21 17:50:47,984 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 59321]
+DEBUG 2026-05-21 17:50:47,985 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 59321]
+WARNING 2026-05-21 17:50:47,985 runserver 1708 26392 [33mHTTP GET / 404 [0.14, 127.0.0.1:59321][0m
+DEBUG 2026-05-21 17:50:48,676 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 59321]
+WARNING 2026-05-21 17:50:48,693 log 1708 5164 Not Found: /favicon.ico
+DEBUG 2026-05-21 17:50:48,695 http_protocol 1708 26392 HTTP 404 response started for ['127.0.0.1', 59321]
+DEBUG 2026-05-21 17:50:48,695 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 59321]
+DEBUG 2026-05-21 17:50:48,696 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 59321]
+WARNING 2026-05-21 17:50:48,696 runserver 1708 26392 [33mHTTP GET /favicon.ico 404 [0.02, 127.0.0.1:59321][0m
+DEBUG 2026-05-21 17:59:36,176 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 58996]
+DEBUG 2026-05-21 17:59:36,342 http_protocol 1708 26392 HTTP 302 response started for ['127.0.0.1', 58996]
+DEBUG 2026-05-21 17:59:36,343 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 58996]
+DEBUG 2026-05-21 17:59:36,344 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 58996]
+INFO 2026-05-21 17:59:36,344 runserver 1708 26392 [32mHTTP GET /admin/ 302 [0.17, 127.0.0.1:58996][0m
+DEBUG 2026-05-21 18:00:11,018 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:11,029 http_protocol 1708 26392 HTTP 302 response started for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:11,029 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:11,030 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 55828]
+INFO 2026-05-21 18:00:11,030 runserver 1708 26392 [32mHTTP GET /admin/ 302 [0.01, 127.0.0.1:55828][0m
+DEBUG 2026-05-21 18:00:11,444 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:11,619 http_protocol 1708 26392 HTTP 200 response started for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:11,619 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:11,620 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 55828]
+INFO 2026-05-21 18:00:11,621 runserver 1708 26392 [mHTTP GET /admin/login/?next=/admin/ 200 [0.18, 127.0.0.1:55828][0m
+DEBUG 2026-05-21 18:00:12,070 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:12,249 http_protocol 1708 26392 HTTP 200 response started for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:12,252 http_protocol 1708 26392 HTTP response chunk for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:12,252 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:12,253 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 55828]
+INFO 2026-05-21 18:00:12,254 runserver 1708 26392 [mHTTP GET /static/admin/css/base.css 200 [0.18, 127.0.0.1:55828][0m
+DEBUG 2026-05-21 18:00:12,978 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:12,984 http_protocol 1708 26392 HTTP 200 response started for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:12,986 http_protocol 1708 26392 HTTP response chunk for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:12,987 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 55828]
+DEBUG 2026-05-21 18:00:12,987 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 55828]
+INFO 2026-05-21 18:00:12,988 runserver 1708 26392 [mHTTP GET /static/admin/js/nav_sidebar.js 200 [0.01, 127.0.0.1:55828][0m
+DEBUG 2026-05-21 18:00:14,321 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 55026]
+DEBUG 2026-05-21 18:00:14,326 http_protocol 1708 26392 HTTP 200 response started for ['127.0.0.1', 55026]
+DEBUG 2026-05-21 18:00:14,329 http_protocol 1708 26392 HTTP response chunk for ['127.0.0.1', 55026]
+DEBUG 2026-05-21 18:00:14,330 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 55026]
+DEBUG 2026-05-21 18:00:14,331 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 55026]
+INFO 2026-05-21 18:00:14,332 runserver 1708 26392 [mHTTP GET /static/admin/css/dark_mode.css 200 [0.01, 127.0.0.1:55026][0m
+DEBUG 2026-05-21 18:00:14,560 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 55028]
+DEBUG 2026-05-21 18:00:14,563 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 55029]
+DEBUG 2026-05-21 18:00:14,569 http_protocol 1708 26392 HTTP 200 response started for ['127.0.0.1', 55028]
+DEBUG 2026-05-21 18:00:14,570 http_protocol 1708 26392 HTTP 200 response started for ['127.0.0.1', 55029]
+DEBUG 2026-05-21 18:00:14,571 http_protocol 1708 26392 HTTP response chunk for ['127.0.0.1', 55028]
+DEBUG 2026-05-21 18:00:14,572 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 55028]
+DEBUG 2026-05-21 18:00:14,573 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 55028]
+INFO 2026-05-21 18:00:14,573 runserver 1708 26392 [mHTTP GET /static/admin/css/nav_sidebar.css 200 [0.01, 127.0.0.1:55028][0m
+DEBUG 2026-05-21 18:00:14,575 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 55030]
+DEBUG 2026-05-21 18:00:14,580 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 55031]
+DEBUG 2026-05-21 18:00:14,581 http_protocol 1708 26392 HTTP response chunk for ['127.0.0.1', 55029]
+DEBUG 2026-05-21 18:00:14,583 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 55029]
+DEBUG 2026-05-21 18:00:14,583 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 55029]
+INFO 2026-05-21 18:00:14,584 runserver 1708 26392 [mHTTP GET /static/admin/css/login.css 200 [0.02, 127.0.0.1:55029][0m
+DEBUG 2026-05-21 18:00:14,591 http_protocol 1708 26392 HTTP 200 response started for ['127.0.0.1', 55030]
+DEBUG 2026-05-21 18:00:14,592 http_protocol 1708 26392 HTTP 200 response started for ['127.0.0.1', 55031]
+DEBUG 2026-05-21 18:00:14,594 http_protocol 1708 26392 HTTP response chunk for ['127.0.0.1', 55030]
+DEBUG 2026-05-21 18:00:14,595 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 55030]
+DEBUG 2026-05-21 18:00:14,595 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 55030]
+INFO 2026-05-21 18:00:14,595 runserver 1708 26392 [mHTTP GET /static/admin/css/responsive.css 200 [0.02, 127.0.0.1:55030][0m
+DEBUG 2026-05-21 18:00:14,596 http_protocol 1708 26392 HTTP response chunk for ['127.0.0.1', 55031]
+DEBUG 2026-05-21 18:00:14,597 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 55031]
+DEBUG 2026-05-21 18:00:14,597 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 55031]
+INFO 2026-05-21 18:00:14,598 runserver 1708 26392 [mHTTP GET /static/admin/js/theme.js 200 [0.02, 127.0.0.1:55031][0m
+DEBUG 2026-05-21 18:00:15,336 http_protocol 1708 26392 HTTP b'GET' request for ['127.0.0.1', 55030]
+WARNING 2026-05-21 18:00:15,360 log 1708 5164 Not Found: /favicon.ico
+DEBUG 2026-05-21 18:00:15,361 http_protocol 1708 26392 HTTP 404 response started for ['127.0.0.1', 55030]
+DEBUG 2026-05-21 18:00:15,361 http_protocol 1708 26392 HTTP close for ['127.0.0.1', 55030]
+DEBUG 2026-05-21 18:00:15,362 http_protocol 1708 26392 HTTP response complete for ['127.0.0.1', 55030]
+WARNING 2026-05-21 18:00:15,362 runserver 1708 26392 [33mHTTP GET /favicon.ico 404 [0.03, 127.0.0.1:55030][0m
+DEBUG 2026-05-21 23:07:02,792 selector_events 11848 22164 Using selector: SelectSelector
+DEBUG 2026-05-21 23:07:19,123 selector_events 25196 25076 Using selector: SelectSelector
+INFO 2026-05-21 23:07:25,720 autoreload 25196 25076 Watching for file changes with StatReloader
+INFO 2026-05-21 23:07:33,729 server 25196 6604 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-21 23:07:33,733 server 25196 6604 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-21 23:07:33,737 server 25196 6604 Listening on TCP address 127.0.0.1:8000
+DEBUG 2026-05-21 23:08:55,744 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:55,748 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:55,751 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:55,752 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:55,753 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:08:55,754 runserver 25196 6604 [mHTTP OPTIONS /api/users/profile/ 200 [0.01, 127.0.0.1:53612][0m
+DEBUG 2026-05-21 23:08:55,755 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:55,756 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:55,758 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 50461]
+INFO 2026-05-21 23:08:55,761 runserver 25196 6604 [mHTTP OPTIONS /api/users/profile/ 200 [0.01, 127.0.0.1:50461][0m
+DEBUG 2026-05-21 23:08:55,768 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:56,029 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:56,030 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:56,031 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:08:56,031 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.26, 127.0.0.1:53612][0m
+DEBUG 2026-05-21 23:08:56,036 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:57,293 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:57,294 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:57,295 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:08:57,295 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [1.26, 127.0.0.1:53612][0m
+DEBUG 2026-05-21 23:08:58,084 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:58,089 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,091 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:08:58,097 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:58,099 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:58,099 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:08:58,101 runserver 25196 6604 [mHTTP OPTIONS /api/content/notifications/ 200 [0.02, 127.0.0.1:53612][0m
+DEBUG 2026-05-21 23:08:58,103 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,104 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,105 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 50461]
+INFO 2026-05-21 23:08:58,106 runserver 25196 6604 [mHTTP OPTIONS /api/gigs/gigs/?status=open 200 [0.02, 127.0.0.1:50461][0m
+DEBUG 2026-05-21 23:08:58,141 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:08:58,142 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:08:58,144 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:08:58,145 runserver 25196 6604 [mHTTP OPTIONS /api/gigs/gigs/portfolio/ 200 [0.05, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:08:58,149 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:58,159 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,162 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:08:58,168 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:08:58,179 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:08:58,199 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:08:58,199 runserver 25196 6604 [mHTTP OPTIONS /api/gigs/gigs/?status=open 200 [0.04, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:08:58,200 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,201 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,202 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 50461]
+INFO 2026-05-21 23:08:58,203 runserver 25196 6604 [mHTTP OPTIONS /api/content/notifications/ 200 [0.04, 127.0.0.1:50461][0m
+DEBUG 2026-05-21 23:08:58,204 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:58,205 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:58,205 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:08:58,206 runserver 25196 6604 [mHTTP OPTIONS /api/gigs/gigs/my_badges/ 200 [0.06, 127.0.0.1:53612][0m
+DEBUG 2026-05-21 23:08:58,233 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,239 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:08:58,241 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:58,261 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,266 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,268 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 50461]
+INFO 2026-05-21 23:08:58,269 runserver 25196 6604 [mHTTP OPTIONS /api/gigs/gigs/portfolio/ 200 [0.04, 127.0.0.1:50461][0m
+DEBUG 2026-05-21 23:08:58,279 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:58,280 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:58,281 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:08:58,281 runserver 25196 6604 [mHTTP OPTIONS /api/gigs/gigs/my_badges/ 200 [0.04, 127.0.0.1:53612][0m
+DEBUG 2026-05-21 23:08:58,283 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,314 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:08:58,401 runserver 25196 6604 WebSocket HANDSHAKING /ws/notifications/ [127.0.0.1:51286]
+DEBUG 2026-05-21 23:08:58,408 http_protocol 25196 6604 Upgraded connection ['127.0.0.1', 51286] to WebSocket
+DEBUG 2026-05-21 23:08:58,492 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 60955]
+DEBUG 2026-05-21 23:08:58,587 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:58,588 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:58,589 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:08:58,589 runserver 25196 6604 [mHTTP GET /api/gigs/gigs/portfolio/ 200 [0.28, 127.0.0.1:53612][0m
+DEBUG 2026-05-21 23:08:58,598 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:58,606 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,608 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,609 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 50461]
+INFO 2026-05-21 23:08:58,610 runserver 25196 6604 [mHTTP GET /api/gigs/gigs/?status=open 200 [0.33, 127.0.0.1:50461][0m
+DEBUG 2026-05-21 23:08:58,631 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 51286] open and established
+INFO 2026-05-21 23:08:58,643 runserver 25196 6604 WebSocket CONNECT /ws/notifications/ [127.0.0.1:51286]
+DEBUG 2026-05-21 23:08:58,692 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 51286] accepted by application
+INFO 2026-05-21 23:08:58,693 consumers 25196 6604 WebSocket connected: user safwan
+DEBUG 2026-05-21 23:08:58,698 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:58,729 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:08:58,744 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:08:58,748 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:08:58,748 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.51, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:08:58,795 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:08:58,859 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 60955]
+DEBUG 2026-05-21 23:08:58,860 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 60955]
+DEBUG 2026-05-21 23:08:58,861 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 60955]
+INFO 2026-05-21 23:08:58,862 runserver 25196 6604 [mHTTP GET /api/gigs/gigs/my_badges/ 200 [0.37, 127.0.0.1:60955][0m
+DEBUG 2026-05-21 23:08:58,897 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 60955]
+DEBUG 2026-05-21 23:08:59,013 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:59,015 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:08:59,016 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:08:59,020 runserver 25196 6604 [mHTTP GET /api/gigs/gigs/portfolio/ 200 [0.42, 127.0.0.1:53612][0m
+DEBUG 2026-05-21 23:08:59,079 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:59,114 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:08:59,117 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 50461]
+INFO 2026-05-21 23:08:59,121 runserver 25196 6604 [mHTTP GET /api/gigs/gigs/?status=open 200 [0.42, 127.0.0.1:50461][0m
+DEBUG 2026-05-21 23:08:59,176 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 60955]
+DEBUG 2026-05-21 23:08:59,177 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 60955]
+DEBUG 2026-05-21 23:08:59,178 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 60955]
+INFO 2026-05-21 23:08:59,181 runserver 25196 6604 [mHTTP GET /api/gigs/gigs/my_badges/ 200 [0.28, 127.0.0.1:60955][0m
+DEBUG 2026-05-21 23:08:59,218 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:08:59,220 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:08:59,221 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:08:59,222 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.43, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:09:32,964 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:09:32,968 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:09:32,969 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 60955]
+DEBUG 2026-05-21 23:09:32,975 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 62028]
+DEBUG 2026-05-21 23:09:32,977 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 60125]
+DEBUG 2026-05-21 23:09:32,978 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:09:33,036 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:09:33,037 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:09:33,039 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 50461]
+INFO 2026-05-21 23:09:33,040 runserver 25196 6604 [mHTTP OPTIONS /api/content/stories/ 200 [0.07, 127.0.0.1:50461][0m
+DEBUG 2026-05-21 23:09:33,042 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 60955]
+DEBUG 2026-05-21 23:09:33,046 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 60955]
+DEBUG 2026-05-21 23:09:33,048 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 60955]
+INFO 2026-05-21 23:09:33,051 runserver 25196 6604 [mHTTP OPTIONS /api/content/posts/?page=1 200 [0.08, 127.0.0.1:60955][0m
+DEBUG 2026-05-21 23:09:33,110 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:09:33,112 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:09:33,113 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:09:33,118 runserver 25196 6604 [mHTTP OPTIONS /api/monetization/ads/serve_ad/ 200 [0.15, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:09:33,119 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 62028]
+DEBUG 2026-05-21 23:09:33,121 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 62028]
+DEBUG 2026-05-21 23:09:33,122 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 62028]
+INFO 2026-05-21 23:09:33,123 runserver 25196 6604 [mHTTP OPTIONS /api/monetization/ads/serve_ad/ 200 [0.15, 127.0.0.1:62028][0m
+DEBUG 2026-05-21 23:09:33,125 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 60125]
+DEBUG 2026-05-21 23:09:33,127 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 60125]
+DEBUG 2026-05-21 23:09:33,128 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 60125]
+INFO 2026-05-21 23:09:33,129 runserver 25196 6604 [mHTTP OPTIONS /api/content/stories/ 200 [0.15, 127.0.0.1:60125][0m
+DEBUG 2026-05-21 23:09:33,131 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:09:33,133 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:09:33,134 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:09:33,135 runserver 25196 6604 [mHTTP OPTIONS /api/users/suggested/ 200 [0.16, 127.0.0.1:53612][0m
+DEBUG 2026-05-21 23:09:33,189 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:09:33,195 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 60125]
+DEBUG 2026-05-21 23:09:33,197 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:09:33,199 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:09:33,251 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 62028]
+DEBUG 2026-05-21 23:09:33,254 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:09:33,256 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 50461]
+DEBUG 2026-05-21 23:09:33,257 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 50461]
+INFO 2026-05-21 23:09:33,279 runserver 25196 6604 [mHTTP OPTIONS /api/users/suggested/ 200 [0.09, 127.0.0.1:50461][0m
+DEBUG 2026-05-21 23:09:33,619 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 62028]
+DEBUG 2026-05-21 23:09:33,624 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 62028]
+DEBUG 2026-05-21 23:09:33,629 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 62028]
+INFO 2026-05-21 23:09:33,634 runserver 25196 6604 [mHTTP GET /api/users/suggested/ 200 [0.38, 127.0.0.1:62028][0m
+DEBUG 2026-05-21 23:09:33,750 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 62028]
+DEBUG 2026-05-21 23:09:33,780 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:09:33,814 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:09:33,828 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:09:33,834 runserver 25196 6604 [mHTTP GET /api/content/stories/ 200 [0.64, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:09:33,845 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 60125]
+DEBUG 2026-05-21 23:09:33,882 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 60125]
+DEBUG 2026-05-21 23:09:33,898 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 60125]
+INFO 2026-05-21 23:09:33,906 runserver 25196 6604 [mHTTP GET /api/content/posts/?page=1 200 [0.71, 127.0.0.1:60125][0m
+DEBUG 2026-05-21 23:09:33,968 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:09:33,977 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:09:33,989 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:09:33,993 runserver 25196 6604 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.79, 127.0.0.1:53612][0m
+DEBUG 2026-05-21 23:09:33,999 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:09:34,013 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:09:34,327 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:09:34,331 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:09:34,333 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:09:34,334 runserver 25196 6604 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.32, 127.0.0.1:53612][0m
+DEBUG 2026-05-21 23:09:34,352 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 62028]
+DEBUG 2026-05-21 23:09:34,373 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 62028]
+DEBUG 2026-05-21 23:09:34,378 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 62028]
+INFO 2026-05-21 23:09:34,403 runserver 25196 6604 [mHTTP GET /api/users/suggested/ 200 [0.65, 127.0.0.1:62028][0m
+DEBUG 2026-05-21 23:09:34,427 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:09:34,436 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:09:34,455 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:09:34,474 runserver 25196 6604 [mHTTP GET /api/content/stories/ 200 [0.47, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:10:10,438 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:10,443 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:10,444 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:10,445 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:10:10,446 runserver 25196 6604 [mHTTP OPTIONS /api/content/posts/ 200 [0.01, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:10:10,459 http_protocol 25196 6604 HTTP b'POST' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:10,700 http_protocol 25196 6604 HTTP 201 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:10,701 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:10,702 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:10:10,703 runserver 25196 6604 [mHTTP POST /api/content/posts/ 201 [0.24, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:10:36,078 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:36,082 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:36,083 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:36,086 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:10:36,087 runserver 25196 6604 [mHTTP OPTIONS /api/marketplace/categories/ 200 [0.01, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:10:36,093 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:36,122 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:36,123 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:36,124 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:10:36,125 runserver 25196 6604 [mHTTP OPTIONS /api/marketplace/categories/ 200 [0.03, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:10:36,128 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:36,207 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:36,208 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:36,208 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:10:36,209 runserver 25196 6604 [mHTTP GET /api/marketplace/categories/ 200 [0.08, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:10:36,213 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:36,277 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:36,278 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:36,278 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:10:36,279 runserver 25196 6604 [mHTTP GET /api/marketplace/categories/ 200 [0.07, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:10:36,447 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:10:36,457 http_protocol 25196 6604 HTTP 304 response started for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:10:36,457 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53612]
+DEBUG 2026-05-21 23:10:36,458 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53612]
+INFO 2026-05-21 23:10:36,458 runserver 25196 6604 [36mHTTP GET /media/products/dragonfly-fulvio-pellegrini.jpg 304 [0.01, 127.0.0.1:53612][0m
+DEBUG 2026-05-21 23:10:49,680 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:49,684 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:49,685 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:49,686 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:10:49,687 runserver 25196 6604 [mHTTP OPTIONS /api/marketplace/products/8a80d782-7edb-41e4-be88-520a3537af9f/review/ 200 [0.01, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:10:49,696 http_protocol 25196 6604 HTTP b'POST' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:49,876 http_protocol 25196 6604 HTTP 201 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:49,878 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:10:49,879 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:10:49,879 runserver 25196 6604 [mHTTP POST /api/marketplace/products/8a80d782-7edb-41e4-be88-520a3537af9f/review/ 201 [0.18, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:11:17,105 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:17,107 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:17,111 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:17,111 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:17,112 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:11:17,112 runserver 25196 6604 [mHTTP OPTIONS /api/groupchat/groups/ 200 [0.01, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:11:17,114 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:17,115 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:17,116 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:17,120 runserver 25196 6604 [mHTTP OPTIONS /api/groupchat/groups/ 200 [0.01, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:17,130 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:17,256 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:17,256 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:17,258 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:11:17,258 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/ 200 [0.13, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:11:17,263 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:17,319 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:17,320 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:17,321 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:11:17,321 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/ 200 [0.06, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:11:27,143 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:27,146 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:27,152 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:27,153 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:27,155 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:11:27,155 runserver 25196 6604 [mHTTP OPTIONS /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.01, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:11:27,186 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:27,360 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:27,361 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:27,362 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:11:27,362 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.18, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:11:27,367 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:27,371 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:27,375 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:27,383 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/ 200 [0.24, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:32,156 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:32,230 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:32,232 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:32,233 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:32,234 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.08, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:37,150 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:37,218 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:37,219 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:37,220 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:37,223 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.07, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:40,339 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:40,343 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:40,343 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:40,344 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:40,344 runserver 25196 6604 [mHTTP OPTIONS /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/send_message/ 200 [0.00, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:40,348 http_protocol 25196 6604 HTTP b'POST' request for ['127.0.0.1', 52136]
+WARNING 2026-05-21 23:11:40,391 log 25196 14080 Bad Request: /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/send_message/
+DEBUG 2026-05-21 23:11:40,392 http_protocol 25196 6604 HTTP 400 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:40,393 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:40,398 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+WARNING 2026-05-21 23:11:40,419 runserver 25196 6604 [31;1mHTTP POST /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/send_message/ 400 [0.07, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:42,146 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:42,194 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:42,195 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:42,195 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:42,196 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.05, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:46,891 http_protocol 25196 6604 HTTP b'POST' request for ['127.0.0.1', 52136]
+WARNING 2026-05-21 23:11:46,921 log 25196 14080 Bad Request: /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/send_message/
+DEBUG 2026-05-21 23:11:46,925 http_protocol 25196 6604 HTTP 400 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:46,926 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:46,927 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+WARNING 2026-05-21 23:11:46,928 runserver 25196 6604 [31;1mHTTP POST /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/send_message/ 400 [0.04, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:47,151 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:47,199 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:47,200 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:47,200 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:47,201 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.05, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:52,157 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:52,195 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:52,202 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:52,207 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:52,207 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.05, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:53,835 http_protocol 25196 6604 HTTP b'POST' request for ['127.0.0.1', 52136]
+WARNING 2026-05-21 23:11:53,869 log 25196 14080 Bad Request: /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/send_message/
+DEBUG 2026-05-21 23:11:53,872 http_protocol 25196 6604 HTTP 400 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:53,874 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:53,874 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+WARNING 2026-05-21 23:11:53,875 runserver 25196 6604 [31;1mHTTP POST /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/send_message/ 400 [0.04, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:57,151 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:57,173 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:57,175 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:57,176 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:57,178 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.03, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:58,537 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,540 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,543 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,544 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,544 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:58,544 runserver 25196 6604 [mHTTP OPTIONS /api/tutoring/sessions/? 200 [0.01, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:58,545 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,546 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,546 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:11:58,547 runserver 25196 6604 [mHTTP OPTIONS /api/tutoring/profiles/ 200 [0.01, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:11:58,550 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,553 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,559 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,560 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,578 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:58,582 runserver 25196 6604 [mHTTP OPTIONS /api/tutoring/sessions/my_certificates/ 200 [0.03, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:58,583 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,584 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,585 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:11:58,585 runserver 25196 6604 [mHTTP OPTIONS /api/tutoring/sessions/? 200 [0.03, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:11:58,591 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,598 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,648 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,649 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,650 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:58,651 runserver 25196 6604 [mHTTP OPTIONS /api/tutoring/profiles/ 200 [0.06, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:58,652 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,654 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,655 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:11:58,655 runserver 25196 6604 [mHTTP OPTIONS /api/tutoring/sessions/my_certificates/ 200 [0.06, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:11:58,661 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,667 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,748 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,749 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,750 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:11:58,750 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.08, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:11:58,754 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,762 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,762 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,763 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:58,763 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.10, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:58,776 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,848 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,850 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,851 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:11:58,852 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.10, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:11:58,857 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:11:58,862 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:58,876 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,877 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:11:58,881 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:11:58,891 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.12, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:11:59,022 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:59,024 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:11:59,026 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:11:59,029 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.17, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:11:59,065 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:11:59,068 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:11:59,077 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:11:59,102 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.24, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:12:03,626 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:03,630 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:03,631 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:03,632 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:12:03,633 runserver 25196 6604 [mHTTP OPTIONS /api/tutoring/sessions/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/confirm/ 200 [0.01, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:12:03,638 http_protocol 25196 6604 HTTP b'POST' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:03,786 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:03,787 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:03,788 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:12:03,789 runserver 25196 6604 [mHTTP POST /api/tutoring/sessions/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/confirm/ 200 [0.15, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:12:03,801 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:03,917 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:03,918 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:03,919 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:12:03,920 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.12, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:12:20,103 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:20,160 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:20,161 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:20,162 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:12:20,162 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.06, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:12:27,027 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:27,029 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:27,030 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:12:27,033 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 55102]
+DEBUG 2026-05-21 23:12:27,045 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:27,065 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:27,066 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:12:27,067 runserver 25196 6604 [mHTTP OPTIONS /api/streaming/streams/?is_live=true 200 [0.04, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:12:27,069 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:12:27,070 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52136]
+DEBUG 2026-05-21 23:12:27,071 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52136]
+INFO 2026-05-21 23:12:27,071 runserver 25196 6604 [mHTTP OPTIONS /api/streaming/streams/?is_live=true 200 [0.04, 127.0.0.1:52136][0m
+DEBUG 2026-05-21 23:12:27,072 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 55102]
+DEBUG 2026-05-21 23:12:27,073 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 55102]
+DEBUG 2026-05-21 23:12:27,074 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 55102]
+INFO 2026-05-21 23:12:27,074 runserver 25196 6604 [mHTTP OPTIONS /api/streaming/schedules/upcoming/ 200 [0.04, 127.0.0.1:55102][0m
+DEBUG 2026-05-21 23:12:27,075 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:27,076 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:27,077 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:12:27,078 runserver 25196 6604 [mHTTP OPTIONS /api/streaming/schedules/upcoming/ 200 [0.05, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:12:27,081 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:27,125 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:27,268 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:27,269 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:27,271 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:12:27,272 runserver 25196 6604 [mHTTP GET /api/streaming/schedules/upcoming/ 200 [0.15, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:12:27,278 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:27,305 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:27,314 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:27,314 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:12:27,315 runserver 25196 6604 [mHTTP GET /api/streaming/streams/?is_live=true 200 [0.23, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:12:27,320 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:27,407 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:27,407 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:27,408 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:12:27,409 runserver 25196 6604 [mHTTP GET /api/streaming/schedules/upcoming/ 200 [0.13, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:12:27,439 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:27,439 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:27,440 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:12:27,444 runserver 25196 6604 [mHTTP GET /api/streaming/streams/?is_live=true 200 [0.12, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:12:56,241 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:56,243 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:56,246 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:56,247 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:12:56,247 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:12:56,248 runserver 25196 6604 [mHTTP OPTIONS /api/content/reels/ 200 [0.01, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:12:56,249 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:56,250 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:56,251 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:12:56,251 runserver 25196 6604 [mHTTP OPTIONS /api/content/reels/ 200 [0.01, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:12:56,297 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:56,378 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:56,378 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:56,379 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:12:56,380 runserver 25196 6604 [mHTTP GET /api/content/reels/ 200 [0.08, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:12:56,383 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:56,430 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:56,431 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:12:56,432 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:12:56,432 runserver 25196 6604 [mHTTP GET /api/content/reels/ 200 [0.05, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:13:28,922 http_protocol 25196 6604 HTTP b'POST' request for ['127.0.0.1', 53615]
+ERROR 2026-05-21 23:13:29,376 log 25196 14080 Internal Server Error: /api/content/reels/
+Traceback (most recent call last):
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\mixins.py", line 20, in create
+    headers = self.get_success_headers(serializer.data)
+                                       ^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\serializers.py", line 555, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\serializers.py", line 253, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\serializers.py", line 522, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\fields.py", line 1838, in to_representation
+    return method(value)
+  File "C:\Users\leno\sasl\backend\content\serializers.py", line 130, in get_liked_by_me
+    return ReelLike.objects.filter(reel=obj, user=request.user).exists()
+           ^^^^^^^^
+NameError: name 'ReelLike' is not defined
+DEBUG 2026-05-21 23:13:29,392 http_protocol 25196 6604 HTTP 500 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:29,393 http_protocol 25196 6604 HTTP response chunk for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:29,393 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:29,397 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+ERROR 2026-05-21 23:13:29,397 runserver 25196 6604 [35;1mHTTP POST /api/content/reels/ 500 [0.47, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:13:35,434 http_protocol 25196 6604 HTTP b'POST' request for ['127.0.0.1', 53615]
+ERROR 2026-05-21 23:13:35,782 log 25196 14080 Internal Server Error: /api/content/reels/
+Traceback (most recent call last):
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\django\core\handlers\exception.py", line 42, in inner
+    response = await get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\asgiref\sync.py", line 555, in thread_handler
+    raise exc_info[1]
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\django\core\handlers\base.py", line 253, in _get_response_async
+    response = await wrapped_callback(
+               ^^^^^^^^^^^^^^^^^^^^^^^
+        request, *callback_args, **callback_kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\asgiref\sync.py", line 504, in __call__
+    ret = await asyncio.shield(exec_coro)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\asgiref\current_thread_executor.py", line 40, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\asgiref\sync.py", line 559, in thread_handler
+    return func(*args, **kwargs)
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\mixins.py", line 20, in create
+    headers = self.get_success_headers(serializer.data)
+                                       ^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\serializers.py", line 555, in data
+    ret = super().data
+          ^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\serializers.py", line 253, in data
+    self._data = self.to_representation(self.instance)
+                 ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\serializers.py", line 522, in to_representation
+    ret[field.field_name] = field.to_representation(attribute)
+                            ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\rest_framework\fields.py", line 1838, in to_representation
+    return method(value)
+  File "C:\Users\leno\sasl\backend\content\serializers.py", line 130, in get_liked_by_me
+    return ReelLike.objects.filter(reel=obj, user=request.user).exists()
+           ^^^^^^^^
+NameError: name 'ReelLike' is not defined
+DEBUG 2026-05-21 23:13:35,792 http_protocol 25196 6604 HTTP 500 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:35,793 http_protocol 25196 6604 HTTP response chunk for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:35,794 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:35,799 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+ERROR 2026-05-21 23:13:35,799 runserver 25196 6604 [35;1mHTTP POST /api/content/reels/ 500 [0.37, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:13:39,665 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,670 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,676 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,682 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,698 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:13:39,701 runserver 25196 6604 [mHTTP OPTIONS /api/snaps/snaps/inbox/ 200 [0.04, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:13:39,705 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,706 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,707 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:13:39,707 runserver 25196 6604 [mHTTP OPTIONS /api/snaps/snaps/streaks/ 200 [0.04, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:13:39,710 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,712 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,717 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,717 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,718 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:13:39,719 runserver 25196 6604 [mHTTP OPTIONS /api/snaps/snaps/stories/ 200 [0.01, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:13:39,720 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,721 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,727 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:13:39,746 runserver 25196 6604 [mHTTP OPTIONS /api/snaps/snaps/recent_contacts/ 200 [0.03, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:13:39,756 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,758 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,761 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,762 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,763 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:13:39,763 runserver 25196 6604 [mHTTP OPTIONS /api/snaps/snaps/inbox/ 200 [0.01, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:13:39,764 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,765 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,766 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:13:39,766 runserver 25196 6604 [mHTTP OPTIONS /api/snaps/snaps/streaks/ 200 [0.01, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:13:39,802 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,805 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,808 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,809 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,810 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:13:39,810 runserver 25196 6604 [mHTTP OPTIONS /api/snaps/snaps/stories/ 200 [0.01, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:13:39,812 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,812 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,814 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:13:39,815 runserver 25196 6604 [mHTTP OPTIONS /api/snaps/snaps/recent_contacts/ 200 [0.01, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:13:39,833 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,836 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,909 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,910 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,910 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:13:39,911 runserver 25196 6604 [mHTTP GET /api/snaps/snaps/inbox/ 200 [0.08, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:13:39,912 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,913 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,914 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:13:39,915 runserver 25196 6604 [mHTTP GET /api/snaps/snaps/streaks/ 200 [0.08, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:13:39,921 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:39,932 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:39,972 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 60573]
+DEBUG 2026-05-21 23:13:39,985 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52358]
+DEBUG 2026-05-21 23:13:40,081 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:40,082 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:40,084 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:13:40,088 runserver 25196 6604 [mHTTP GET /api/snaps/snaps/stories/ 200 [0.16, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:13:40,108 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:40,124 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:40,125 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:40,126 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:13:40,126 runserver 25196 6604 [mHTTP GET /api/snaps/snaps/recent_contacts/ 200 [0.21, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:13:40,131 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:40,151 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 60573]
+DEBUG 2026-05-21 23:13:40,156 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 60573]
+DEBUG 2026-05-21 23:13:40,160 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 60573]
+INFO 2026-05-21 23:13:40,164 runserver 25196 6604 [mHTTP GET /api/snaps/snaps/inbox/ 200 [0.19, 127.0.0.1:60573][0m
+DEBUG 2026-05-21 23:13:40,167 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52358]
+DEBUG 2026-05-21 23:13:40,168 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52358]
+DEBUG 2026-05-21 23:13:40,169 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52358]
+INFO 2026-05-21 23:13:40,171 runserver 25196 6604 [mHTTP GET /api/snaps/snaps/streaks/ 200 [0.19, 127.0.0.1:52358][0m
+DEBUG 2026-05-21 23:13:40,247 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:40,251 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:13:40,253 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:13:40,254 runserver 25196 6604 [mHTTP GET /api/snaps/snaps/stories/ 200 [0.15, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:13:40,262 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:40,265 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:13:40,266 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:13:40,266 runserver 25196 6604 [mHTTP GET /api/snaps/snaps/recent_contacts/ 200 [0.14, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:14:09,556 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:14:09,560 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:14:09,568 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:14:09,569 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:14:09,570 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:14:09,571 runserver 25196 6604 [mHTTP OPTIONS /api/analytics/dashboard/?range=30d 200 [0.02, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:14:09,583 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:14:09,607 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 53615]
+DEBUG 2026-05-21 23:14:09,617 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 53615]
+INFO 2026-05-21 23:14:09,619 runserver 25196 6604 [mHTTP OPTIONS /api/analytics/dashboard/?range=30d 200 [0.06, 127.0.0.1:53615][0m
+DEBUG 2026-05-21 23:14:09,623 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:14:09,935 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:14:09,936 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:14:09,937 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:14:09,938 runserver 25196 6604 [mHTTP GET /api/analytics/dashboard/?range=30d 200 [0.32, 127.0.0.1:57586][0m
+DEBUG 2026-05-21 23:14:09,944 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:14:10,233 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:14:10,234 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 57586]
+DEBUG 2026-05-21 23:14:10,235 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 57586]
+INFO 2026-05-21 23:14:10,236 runserver 25196 6604 [mHTTP GET /api/analytics/dashboard/?range=30d 200 [0.29, 127.0.0.1:57586][0m
+INFO 2026-05-21 23:14:33,508 runserver 25196 6604 WebSocket HANDSHAKING /ws/video/sasl-mesh-chat/ [127.0.0.1:57559]
+DEBUG 2026-05-21 23:14:33,509 http_protocol 25196 6604 Upgraded connection ['127.0.0.1', 57559] to WebSocket
+ERROR 2026-05-21 23:14:34,018 server 25196 6604 Exception inside application: No route found for path 'ws/video/sasl-mesh-chat/'.
+Traceback (most recent call last):
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\django\contrib\staticfiles\handlers.py", line 101, in __call__
+    return await self.application(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\routing.py", line 62, in __call__
+    return await application(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\sessions.py", line 47, in __call__
+    return await self.inner(dict(scope, cookies=cookies), receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\sessions.py", line 263, in __call__
+    return await self.inner(wrapper.scope, receive, wrapper.send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\auth.py", line 185, in __call__
+    return await super().__call__(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\middleware.py", line 24, in __call__
+    return await self.inner(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\routing.py", line 134, in __call__
+    raise ValueError("No route found for path %r." % path)
+ValueError: No route found for path 'ws/video/sasl-mesh-chat/'.
+DEBUG 2026-05-21 23:14:34,034 ws_protocol 25196 6604 WebSocket closed for ['127.0.0.1', 57559]
+INFO 2026-05-21 23:14:34,035 runserver 25196 6604 WebSocket DISCONNECT /ws/video/sasl-mesh-chat/ [127.0.0.1:57559]
+DEBUG 2026-05-21 23:16:23,734 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:23,798 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:23,799 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:23,800 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:23,801 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.07, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:23,808 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:23,887 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:23,888 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:23,889 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:23,890 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.08, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:23,895 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:23,901 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:23,902 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:23,903 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:23,904 runserver 25196 6604 [mHTTP OPTIONS /api/content/posts/?author=safwan 200 [0.01, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:23,944 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:23,960 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:23,961 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:23,963 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:23,964 runserver 25196 6604 [mHTTP OPTIONS /api/content/posts/?author=safwan 200 [0.02, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:23,970 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:24,101 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:24,102 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:24,103 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:24,103 runserver 25196 6604 [mHTTP GET /api/content/posts/?author=safwan 200 [0.13, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:24,110 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:24,247 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:24,248 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:24,249 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:24,249 runserver 25196 6604 [mHTTP GET /api/content/posts/?author=safwan 200 [0.14, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:34,868 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:34,870 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 54714]
+DEBUG 2026-05-21 23:16:34,873 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:34,874 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:34,875 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:34,875 runserver 25196 6604 [mHTTP OPTIONS /api/users/wallet/ 200 [0.01, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:34,876 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54714]
+DEBUG 2026-05-21 23:16:34,877 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54714]
+DEBUG 2026-05-21 23:16:34,877 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54714]
+INFO 2026-05-21 23:16:34,888 runserver 25196 6604 [mHTTP OPTIONS /api/users/wallet/ 200 [0.02, 127.0.0.1:54714][0m
+DEBUG 2026-05-21 23:16:34,909 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:34,956 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:34,956 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:34,957 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:34,957 runserver 25196 6604 [mHTTP GET /api/users/wallet/ 200 [0.05, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:34,961 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:34,965 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 54714]
+DEBUG 2026-05-21 23:16:34,968 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54714]
+DEBUG 2026-05-21 23:16:34,969 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54714]
+DEBUG 2026-05-21 23:16:34,969 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54714]
+INFO 2026-05-21 23:16:34,974 runserver 25196 6604 [mHTTP OPTIONS /api/monetization/transactions/ 200 [0.01, 127.0.0.1:54714][0m
+DEBUG 2026-05-21 23:16:34,996 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54714]
+DEBUG 2026-05-21 23:16:35,077 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54714]
+DEBUG 2026-05-21 23:16:35,082 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54714]
+DEBUG 2026-05-21 23:16:35,083 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54714]
+INFO 2026-05-21 23:16:35,084 runserver 25196 6604 [mHTTP GET /api/monetization/transactions/ 200 [0.09, 127.0.0.1:54714][0m
+DEBUG 2026-05-21 23:16:35,087 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:35,087 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:35,088 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:35,089 runserver 25196 6604 [mHTTP GET /api/users/wallet/ 200 [0.13, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:35,130 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:35,184 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:35,184 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:35,185 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:35,185 runserver 25196 6604 [mHTTP GET /api/monetization/transactions/ 200 [0.06, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:37,072 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:37,074 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:37,075 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:37,075 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:37,076 runserver 25196 6604 [mHTTP OPTIONS /api/monetization/withdraw/ 200 [0.00, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:37,079 http_protocol 25196 6604 HTTP b'POST' request for ['127.0.0.1', 52664]
+WARNING 2026-05-21 23:16:37,209 log 25196 14080 Not Found: /api/monetization/withdraw/
+DEBUG 2026-05-21 23:16:37,210 http_protocol 25196 6604 HTTP 404 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:37,210 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:37,210 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+WARNING 2026-05-21 23:16:37,211 runserver 25196 6604 [33mHTTP POST /api/monetization/withdraw/ 404 [0.13, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:40,656 http_protocol 25196 6604 HTTP b'POST' request for ['127.0.0.1', 52664]
+WARNING 2026-05-21 23:16:40,697 log 25196 14080 Not Found: /api/monetization/withdraw/
+DEBUG 2026-05-21 23:16:40,699 http_protocol 25196 6604 HTTP 404 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:40,699 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:40,700 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+WARNING 2026-05-21 23:16:40,700 runserver 25196 6604 [33mHTTP POST /api/monetization/withdraw/ 404 [0.04, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:56,053 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:56,057 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 54714]
+DEBUG 2026-05-21 23:16:56,060 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 49880]
+DEBUG 2026-05-21 23:16:56,068 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54714]
+DEBUG 2026-05-21 23:16:56,083 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54714]
+DEBUG 2026-05-21 23:16:56,091 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54714]
+INFO 2026-05-21 23:16:56,095 runserver 25196 6604 [mHTTP OPTIONS /api/monetization/revenue/my_earnings/ 200 [0.04, 127.0.0.1:54714][0m
+DEBUG 2026-05-21 23:16:56,102 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:56,110 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:56,111 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:56,112 runserver 25196 6604 [mHTTP OPTIONS /api/monetization/revenue/my_earnings/ 200 [0.06, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:56,119 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:56,239 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49880]
+DEBUG 2026-05-21 23:16:56,241 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49880]
+DEBUG 2026-05-21 23:16:56,242 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49880]
+INFO 2026-05-21 23:16:56,244 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.18, 127.0.0.1:49880][0m
+DEBUG 2026-05-21 23:16:56,256 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 49880]
+DEBUG 2026-05-21 23:16:56,285 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:56,294 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:56,297 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:56,298 runserver 25196 6604 [mHTTP GET /api/monetization/revenue/my_earnings/ 200 [0.18, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:16:56,311 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:56,456 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49880]
+DEBUG 2026-05-21 23:16:56,457 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49880]
+DEBUG 2026-05-21 23:16:56,458 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49880]
+INFO 2026-05-21 23:16:56,459 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.21, 127.0.0.1:49880][0m
+DEBUG 2026-05-21 23:16:56,466 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:56,467 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:16:56,468 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:16:56,469 runserver 25196 6604 [mHTTP GET /api/monetization/revenue/my_earnings/ 200 [0.16, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:17:04,959 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:17:04,986 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:17:04,988 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:17:04,991 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:17:04,993 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.03, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:17:05,004 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:17:05,058 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:17:05,058 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 52664]
+DEBUG 2026-05-21 23:17:05,059 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 52664]
+INFO 2026-05-21 23:17:05,059 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.06, 127.0.0.1:52664][0m
+DEBUG 2026-05-21 23:17:05,366 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 62956]
+DEBUG 2026-05-21 23:17:05,377 http_protocol 25196 6604 HTTP 304 response started for ['127.0.0.1', 62956]
+DEBUG 2026-05-21 23:17:05,378 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 62956]
+DEBUG 2026-05-21 23:17:05,379 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 62956]
+INFO 2026-05-21 23:17:05,379 runserver 25196 6604 [36mHTTP GET /media/avatars/64dc1ed3a926ddaf9d6eecab_importance-of-editing_qJgQtxg.jpg 304 [0.01, 127.0.0.1:62956][0m
+DEBUG 2026-05-21 23:19:22,215 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:22,217 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:22,218 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:19:22,281 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:22,282 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:22,282 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:19:22,282 runserver 25196 6604 [mHTTP GET /api/gigs/gigs/portfolio/ 200 [0.07, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:19:22,286 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:22,299 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:19:22,318 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:19:22,319 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49909]
+INFO 2026-05-21 23:19:22,319 runserver 25196 6604 [mHTTP GET /api/gigs/gigs/my_badges/ 200 [0.10, 127.0.0.1:49909][0m
+DEBUG 2026-05-21 23:19:22,325 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:19:22,340 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:22,358 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:22,361 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54905]
+INFO 2026-05-21 23:19:22,362 runserver 25196 6604 [mHTTP GET /api/gigs/gigs/?status=open 200 [0.15, 127.0.0.1:54905][0m
+DEBUG 2026-05-21 23:19:22,366 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:22,435 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:22,436 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:22,436 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:19:22,436 runserver 25196 6604 [mHTTP GET /api/gigs/gigs/portfolio/ 200 [0.15, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:19:22,441 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:19:22,442 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:19:22,443 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49909]
+INFO 2026-05-21 23:19:22,444 runserver 25196 6604 [mHTTP GET /api/gigs/gigs/my_badges/ 200 [0.12, 127.0.0.1:49909][0m
+DEBUG 2026-05-21 23:19:22,488 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:22,489 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:22,490 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54905]
+INFO 2026-05-21 23:19:22,490 runserver 25196 6604 [mHTTP GET /api/gigs/gigs/?status=open 200 [0.12, 127.0.0.1:54905][0m
+DEBUG 2026-05-21 23:19:24,508 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:24,512 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:19:24,515 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:24,524 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:24,536 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:24,546 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54905]
+INFO 2026-05-21 23:19:24,546 runserver 25196 6604 [mHTTP OPTIONS /api/marketplace/products/?ordering=-created_at 200 [0.04, 127.0.0.1:54905][0m
+DEBUG 2026-05-21 23:19:24,548 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:19:24,549 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:19:24,550 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49909]
+INFO 2026-05-21 23:19:24,550 runserver 25196 6604 [mHTTP OPTIONS /api/marketplace/products/?ordering=-created_at 200 [0.04, 127.0.0.1:49909][0m
+DEBUG 2026-05-21 23:19:24,552 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:24,597 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:24,620 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:24,623 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:19:24,624 runserver 25196 6604 [mHTTP GET /api/marketplace/categories/ 200 [0.11, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:19:24,628 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:24,663 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:24,684 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:24,689 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54905]
+INFO 2026-05-21 23:19:24,690 runserver 25196 6604 [mHTTP GET /api/marketplace/products/?ordering=-created_at 200 [0.14, 127.0.0.1:54905][0m
+DEBUG 2026-05-21 23:19:24,699 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:24,741 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:24,743 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:24,745 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:19:24,747 runserver 25196 6604 [mHTTP GET /api/marketplace/categories/ 200 [0.12, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:19:24,857 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:24,858 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:24,858 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54905]
+INFO 2026-05-21 23:19:24,859 runserver 25196 6604 [mHTTP GET /api/marketplace/products/?ordering=-created_at 200 [0.16, 127.0.0.1:54905][0m
+DEBUG 2026-05-21 23:19:29,153 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:29,199 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:29,199 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:29,200 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54905]
+INFO 2026-05-21 23:19:29,200 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/ 200 [0.05, 127.0.0.1:54905][0m
+DEBUG 2026-05-21 23:19:29,203 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:29,251 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:29,251 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:29,252 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54905]
+INFO 2026-05-21 23:19:29,252 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/ 200 [0.05, 127.0.0.1:54905][0m
+DEBUG 2026-05-21 23:19:34,164 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:34,165 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:34,245 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:34,245 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:19:34,246 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54905]
+INFO 2026-05-21 23:19:34,246 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.08, 127.0.0.1:54905][0m
+DEBUG 2026-05-21 23:19:34,253 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:34,253 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:34,254 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:19:34,254 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/ 200 [0.09, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:19:39,168 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:39,191 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:39,193 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:39,195 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:19:39,211 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.04, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:19:40,596 http_protocol 25196 6604 HTTP b'POST' request for ['127.0.0.1', 64525]
+WARNING 2026-05-21 23:19:40,646 log 25196 14080 Bad Request: /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/send_message/
+DEBUG 2026-05-21 23:19:40,647 http_protocol 25196 6604 HTTP 400 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:40,647 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:40,647 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+WARNING 2026-05-21 23:19:40,648 runserver 25196 6604 [31;1mHTTP POST /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/send_message/ 400 [0.05, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:19:44,178 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:44,201 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:44,207 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:44,209 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:19:44,211 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.03, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:19:49,986 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:50,033 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:50,036 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:50,037 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:19:50,039 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.05, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:19:54,983 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:55,009 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:55,011 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:19:55,012 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:19:55,013 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.03, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:19:59,977 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:00,029 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:00,029 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:00,030 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:20:00,030 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.05, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:20:04,982 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:05,027 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:05,030 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:05,036 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:20:05,036 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.05, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:20:09,976 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:10,027 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:10,028 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:10,029 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:20:10,029 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.05, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:20:14,977 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:15,018 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:15,020 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:15,021 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:20:15,023 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.05, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:20:19,165 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:19,190 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:19,197 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:19,198 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:20:19,201 runserver 25196 6604 [mHTTP GET /api/groupchat/groups/2dd6b2bf-e233-4c8b-813a-7a171c8e1c17/messages/ 200 [0.04, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:20:19,640 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:19,642 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:20:19,643 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:19,709 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:19,710 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:19,710 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49909]
+INFO 2026-05-21 23:20:19,711 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.07, 127.0.0.1:49909][0m
+DEBUG 2026-05-21 23:20:19,711 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:20:19,712 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:20:19,713 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54905]
+INFO 2026-05-21 23:20:19,713 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.07, 127.0.0.1:54905][0m
+DEBUG 2026-05-21 23:20:19,714 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:19,714 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:19,715 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:20:19,715 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.07, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:20:19,724 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:20:19,751 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:19,752 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:19,837 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:19,838 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:19,838 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:20:19,839 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.09, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:20:19,841 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:20:19,842 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:20:19,842 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54905]
+INFO 2026-05-21 23:20:19,843 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.12, 127.0.0.1:54905][0m
+DEBUG 2026-05-21 23:20:19,880 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:19,881 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:19,882 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49909]
+INFO 2026-05-21 23:20:19,882 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.13, 127.0.0.1:49909][0m
+INFO 2026-05-21 23:20:23,814 runserver 25196 6604 WebSocket HANDSHAKING /ws/video/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/ [127.0.0.1:62404]
+DEBUG 2026-05-21 23:20:23,815 http_protocol 25196 6604 Upgraded connection ['127.0.0.1', 62404] to WebSocket
+ERROR 2026-05-21 23:20:24,470 server 25196 6604 Exception inside application: No route found for path 'ws/video/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/'.
+Traceback (most recent call last):
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\django\contrib\staticfiles\handlers.py", line 101, in __call__
+    return await self.application(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\routing.py", line 62, in __call__
+    return await application(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\sessions.py", line 47, in __call__
+    return await self.inner(dict(scope, cookies=cookies), receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\sessions.py", line 263, in __call__
+    return await self.inner(wrapper.scope, receive, wrapper.send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\auth.py", line 185, in __call__
+    return await super().__call__(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\middleware.py", line 24, in __call__
+    return await self.inner(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\routing.py", line 134, in __call__
+    raise ValueError("No route found for path %r." % path)
+ValueError: No route found for path 'ws/video/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/'.
+DEBUG 2026-05-21 23:20:24,473 ws_protocol 25196 6604 WebSocket closed for ['127.0.0.1', 62404]
+INFO 2026-05-21 23:20:24,474 runserver 25196 6604 WebSocket DISCONNECT /ws/video/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/ [127.0.0.1:62404]
+INFO 2026-05-21 23:20:28,635 runserver 25196 6604 WebSocket HANDSHAKING /ws/video/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/ [127.0.0.1:51382]
+DEBUG 2026-05-21 23:20:28,636 http_protocol 25196 6604 Upgraded connection ['127.0.0.1', 51382] to WebSocket
+ERROR 2026-05-21 23:20:29,496 server 25196 6604 Exception inside application: No route found for path 'ws/video/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/'.
+Traceback (most recent call last):
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\django\contrib\staticfiles\handlers.py", line 101, in __call__
+    return await self.application(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\routing.py", line 62, in __call__
+    return await application(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\sessions.py", line 47, in __call__
+    return await self.inner(dict(scope, cookies=cookies), receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\sessions.py", line 263, in __call__
+    return await self.inner(wrapper.scope, receive, wrapper.send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\auth.py", line 185, in __call__
+    return await super().__call__(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\middleware.py", line 24, in __call__
+    return await self.inner(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\routing.py", line 134, in __call__
+    raise ValueError("No route found for path %r." % path)
+ValueError: No route found for path 'ws/video/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/'.
+DEBUG 2026-05-21 23:20:29,498 ws_protocol 25196 6604 WebSocket closed for ['127.0.0.1', 51382]
+INFO 2026-05-21 23:20:29,499 runserver 25196 6604 WebSocket DISCONNECT /ws/video/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/ [127.0.0.1:51382]
+DEBUG 2026-05-21 23:20:32,462 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:32,465 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:32,465 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:32,466 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49909]
+INFO 2026-05-21 23:20:32,466 runserver 25196 6604 [mHTTP OPTIONS /api/tutoring/sessions/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/whiteboard/ 200 [0.00, 127.0.0.1:49909][0m
+DEBUG 2026-05-21 23:20:32,469 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:32,558 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:32,559 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:32,560 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49909]
+INFO 2026-05-21 23:20:32,560 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/whiteboard/ 200 [0.09, 127.0.0.1:49909][0m
+INFO 2026-05-21 23:20:35,897 runserver 25196 6604 WebSocket HANDSHAKING /ws/video/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/ [127.0.0.1:65069]
+DEBUG 2026-05-21 23:20:35,897 http_protocol 25196 6604 Upgraded connection ['127.0.0.1', 65069] to WebSocket
+ERROR 2026-05-21 23:20:36,542 server 25196 6604 Exception inside application: No route found for path 'ws/video/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/'.
+Traceback (most recent call last):
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\django\contrib\staticfiles\handlers.py", line 101, in __call__
+    return await self.application(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\routing.py", line 62, in __call__
+    return await application(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\sessions.py", line 47, in __call__
+    return await self.inner(dict(scope, cookies=cookies), receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\sessions.py", line 263, in __call__
+    return await self.inner(wrapper.scope, receive, wrapper.send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\auth.py", line 185, in __call__
+    return await super().__call__(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\middleware.py", line 24, in __call__
+    return await self.inner(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\leno\Miniconda3\Lib\site-packages\channels\routing.py", line 134, in __call__
+    raise ValueError("No route found for path %r." % path)
+ValueError: No route found for path 'ws/video/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/'.
+DEBUG 2026-05-21 23:20:36,547 ws_protocol 25196 6604 WebSocket closed for ['127.0.0.1', 65069]
+INFO 2026-05-21 23:20:36,548 runserver 25196 6604 WebSocket DISCONNECT /ws/video/b2b959a3-379f-4f1e-b9d9-952a9f3852f6/ [127.0.0.1:65069]
+DEBUG 2026-05-21 23:20:45,723 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:45,725 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:20:45,726 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:45,730 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:45,731 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:45,733 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49909]
+INFO 2026-05-21 23:20:45,750 runserver 25196 6604 [mHTTP OPTIONS /api/tutoring/sessions/?status=ongoing 200 [0.03, 127.0.0.1:49909][0m
+DEBUG 2026-05-21 23:20:45,765 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:45,830 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:20:45,833 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54905]
+DEBUG 2026-05-21 23:20:45,837 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54905]
+INFO 2026-05-21 23:20:45,840 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.12, 127.0.0.1:54905][0m
+DEBUG 2026-05-21 23:20:45,874 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:45,875 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 64525]
+DEBUG 2026-05-21 23:20:45,876 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 64525]
+INFO 2026-05-21 23:20:45,876 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.15, 127.0.0.1:64525][0m
+DEBUG 2026-05-21 23:20:45,886 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:45,893 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49909]
+DEBUG 2026-05-21 23:20:45,902 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49909]
+INFO 2026-05-21 23:20:45,911 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/?status=ongoing 200 [0.15, 127.0.0.1:49909][0m
+DEBUG 2026-05-21 23:22:46,418 ws_protocol 25196 6604 WebSocket closed for ['127.0.0.1', 51286]
+INFO 2026-05-21 23:22:46,419 runserver 25196 6604 WebSocket DISCONNECT /ws/notifications/ [127.0.0.1:51286]
+INFO 2026-05-21 23:22:46,425 consumers 25196 6604 WebSocket disconnected: user safwan
+DEBUG 2026-05-21 23:22:47,368 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:47,409 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:47,410 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:47,410 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:22:47,411 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.04, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:22:47,415 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:47,450 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:47,451 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:47,452 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:22:47,452 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.04, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:22:50,084 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:50,086 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:22:50,144 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:22:50,145 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:22:50,145 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:22:50,146 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.06, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:22:50,148 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:50,149 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:50,150 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:22:50,150 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.07, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:22:50,152 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:22:50,158 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:50,193 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:22:50,194 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:22:50,194 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:22:50,195 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.04, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:22:50,199 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:22:50,203 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:50,204 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:50,205 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:22:50,205 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.05, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:22:50,210 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:50,273 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:22:50,274 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:22:50,275 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:22:50,276 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.08, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:22:50,281 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:22:50,295 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:50,296 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:50,296 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:22:50,297 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.09, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:22:50,301 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:50,330 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:22:50,331 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:22:50,332 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:22:50,333 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.05, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:22:50,345 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:50,346 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:22:50,347 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:22:50,347 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.05, 127.0.0.1:58721][0m
+INFO 2026-05-21 23:22:50,391 runserver 25196 6604 WebSocket HANDSHAKING /ws/notifications/ [127.0.0.1:50460]
+DEBUG 2026-05-21 23:22:50,392 http_protocol 25196 6604 Upgraded connection ['127.0.0.1', 50460] to WebSocket
+DEBUG 2026-05-21 23:22:50,406 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 50460] open and established
+INFO 2026-05-21 23:22:50,407 runserver 25196 6604 WebSocket CONNECT /ws/notifications/ [127.0.0.1:50460]
+DEBUG 2026-05-21 23:22:50,407 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 50460] accepted by application
+INFO 2026-05-21 23:22:50,408 consumers 25196 6604 WebSocket connected: user safwan
+DEBUG 2026-05-21 23:23:29,788 ws_protocol 25196 6604 WebSocket closed for ['127.0.0.1', 50460]
+INFO 2026-05-21 23:23:29,791 runserver 25196 6604 WebSocket DISCONNECT /ws/notifications/ [127.0.0.1:50460]
+INFO 2026-05-21 23:23:29,793 consumers 25196 6604 WebSocket disconnected: user safwan
+DEBUG 2026-05-21 23:23:30,220 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:23:30,246 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:23:30,247 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:23:30,247 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:23:30,247 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.03, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:23:30,250 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:23:30,274 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:23:30,274 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:23:30,275 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:23:30,275 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.02, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:23:33,084 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:23:33,087 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:23:33,088 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:23:33,092 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:23:33,156 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:23:33,156 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:23:33,158 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54399]
+INFO 2026-05-21 23:23:33,158 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.07, 127.0.0.1:54399][0m
+DEBUG 2026-05-21 23:23:33,165 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:23:33,166 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:23:33,168 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:23:33,170 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:23:33,171 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.08, 127.0.0.1:51142][0m
+DEBUG 2026-05-21 23:23:33,173 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:23:33,173 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:23:33,174 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:23:33,175 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.09, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:23:33,180 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:23:33,182 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:23:33,200 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:23:33,203 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:23:33,203 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:23:33,204 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.12, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:23:33,210 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:23:33,260 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:23:33,261 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:23:33,262 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54399]
+INFO 2026-05-21 23:23:33,263 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.10, 127.0.0.1:54399][0m
+DEBUG 2026-05-21 23:23:33,272 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:23:33,273 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:23:33,278 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:23:33,279 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.10, 127.0.0.1:51142][0m
+DEBUG 2026-05-21 23:23:33,293 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:23:33,294 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:23:33,297 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:23:33,300 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.12, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:23:33,314 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:23:33,315 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:23:33,315 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:23:33,316 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.11, 127.0.0.1:58721][0m
+INFO 2026-05-21 23:23:33,371 runserver 25196 6604 WebSocket HANDSHAKING /ws/notifications/ [127.0.0.1:53239]
+DEBUG 2026-05-21 23:23:33,372 http_protocol 25196 6604 Upgraded connection ['127.0.0.1', 53239] to WebSocket
+DEBUG 2026-05-21 23:23:33,387 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 53239] open and established
+INFO 2026-05-21 23:23:33,388 runserver 25196 6604 WebSocket CONNECT /ws/notifications/ [127.0.0.1:53239]
+DEBUG 2026-05-21 23:23:33,388 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 53239] accepted by application
+INFO 2026-05-21 23:23:33,389 consumers 25196 6604 WebSocket connected: user safwan
+DEBUG 2026-05-21 23:24:10,565 ws_protocol 25196 6604 WebSocket closed for ['127.0.0.1', 53239]
+INFO 2026-05-21 23:24:10,566 runserver 25196 6604 WebSocket DISCONNECT /ws/notifications/ [127.0.0.1:53239]
+INFO 2026-05-21 23:24:10,568 consumers 25196 6604 WebSocket disconnected: user safwan
+DEBUG 2026-05-21 23:24:11,135 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:11,169 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:11,169 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:11,170 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:24:11,171 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.04, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:24:11,175 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:11,202 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:11,203 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:11,204 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:24:11,205 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.03, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:24:14,022 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:14,025 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:24:14,027 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:24:14,030 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:24:14,115 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:24:14,116 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:24:14,117 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:24:14,119 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.09, 127.0.0.1:51142][0m
+DEBUG 2026-05-21 23:24:14,126 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:24:14,130 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:24:14,131 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:24:14,132 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54399]
+INFO 2026-05-21 23:24:14,133 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.10, 127.0.0.1:54399][0m
+DEBUG 2026-05-21 23:24:14,138 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:24:14,145 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:24:14,146 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:24:14,147 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:24:14,148 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.12, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:24:14,153 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:24:14,165 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:14,169 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:14,170 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:24:14,171 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.15, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:24:14,178 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:14,225 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:24:14,226 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:24:14,227 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:24:14,229 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.10, 127.0.0.1:51142][0m
+DEBUG 2026-05-21 23:24:14,239 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:24:14,241 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:24:14,242 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54399]
+INFO 2026-05-21 23:24:14,245 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.11, 127.0.0.1:54399][0m
+DEBUG 2026-05-21 23:24:14,272 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:24:14,275 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:24:14,276 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:24:14,277 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.12, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:24:14,288 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:14,289 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:14,290 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:24:14,291 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.11, 127.0.0.1:58721][0m
+INFO 2026-05-21 23:24:14,324 runserver 25196 6604 WebSocket HANDSHAKING /ws/notifications/ [127.0.0.1:51137]
+DEBUG 2026-05-21 23:24:14,325 http_protocol 25196 6604 Upgraded connection ['127.0.0.1', 51137] to WebSocket
+DEBUG 2026-05-21 23:24:14,348 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 51137] open and established
+INFO 2026-05-21 23:24:14,348 runserver 25196 6604 WebSocket CONNECT /ws/notifications/ [127.0.0.1:51137]
+DEBUG 2026-05-21 23:24:14,349 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 51137] accepted by application
+INFO 2026-05-21 23:24:14,349 consumers 25196 6604 WebSocket connected: user safwan
+DEBUG 2026-05-21 23:24:46,351 ws_protocol 25196 6604 WebSocket closed for ['127.0.0.1', 51137]
+INFO 2026-05-21 23:24:46,353 runserver 25196 6604 WebSocket DISCONNECT /ws/notifications/ [127.0.0.1:51137]
+INFO 2026-05-21 23:24:46,356 consumers 25196 6604 WebSocket disconnected: user safwan
+DEBUG 2026-05-21 23:24:46,852 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:46,889 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:46,890 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:46,891 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:24:46,892 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.04, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:24:46,897 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:46,937 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:46,938 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:46,939 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:24:46,939 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.04, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:24:50,013 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:50,016 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:24:50,016 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:24:50,017 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:24:50,070 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:24:50,071 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:24:50,075 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:24:50,075 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.06, 127.0.0.1:51142][0m
+DEBUG 2026-05-21 23:24:50,083 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:24:50,095 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:24:50,096 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:24:50,096 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54399]
+INFO 2026-05-21 23:24:50,097 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.08, 127.0.0.1:54399][0m
+DEBUG 2026-05-21 23:24:50,101 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:24:50,106 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:24:50,107 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:24:50,108 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:24:50,108 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.09, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:24:50,113 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:24:50,120 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:50,121 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:50,122 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:24:50,123 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.11, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:24:50,128 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:50,147 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:24:50,148 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:24:50,149 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:24:50,150 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.07, 127.0.0.1:51142][0m
+DEBUG 2026-05-21 23:24:50,168 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:24:50,173 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:24:50,174 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54399]
+INFO 2026-05-21 23:24:50,175 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.07, 127.0.0.1:54399][0m
+DEBUG 2026-05-21 23:24:50,195 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:24:50,198 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:24:50,199 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:24:50,199 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.09, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:24:50,205 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:50,205 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:24:50,206 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:24:50,206 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.08, 127.0.0.1:58721][0m
+INFO 2026-05-21 23:24:50,309 runserver 25196 6604 WebSocket HANDSHAKING /ws/notifications/ [127.0.0.1:59776]
+DEBUG 2026-05-21 23:24:50,310 http_protocol 25196 6604 Upgraded connection ['127.0.0.1', 59776] to WebSocket
+DEBUG 2026-05-21 23:24:50,330 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 59776] open and established
+INFO 2026-05-21 23:24:50,330 runserver 25196 6604 WebSocket CONNECT /ws/notifications/ [127.0.0.1:59776]
+DEBUG 2026-05-21 23:24:50,331 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 59776] accepted by application
+INFO 2026-05-21 23:24:50,332 consumers 25196 6604 WebSocket connected: user safwan
+DEBUG 2026-05-21 23:25:18,832 ws_protocol 25196 6604 WebSocket closed for ['127.0.0.1', 59776]
+INFO 2026-05-21 23:25:18,834 runserver 25196 6604 WebSocket DISCONNECT /ws/notifications/ [127.0.0.1:59776]
+INFO 2026-05-21 23:25:18,836 consumers 25196 6604 WebSocket disconnected: user safwan
+DEBUG 2026-05-21 23:25:19,432 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:19,477 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:19,478 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:19,479 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:25:19,479 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.05, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:25:19,483 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:19,515 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:19,516 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:19,517 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:25:19,517 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.03, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:25:22,019 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:22,022 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:25:22,023 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:25:22,023 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:25:22,728 runserver 25196 6604 WebSocket HANDSHAKING /ws/notifications/ [127.0.0.1:50460]
+DEBUG 2026-05-21 23:25:22,733 http_protocol 25196 6604 Upgraded connection ['127.0.0.1', 50460] to WebSocket
+DEBUG 2026-05-21 23:25:22,799 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:25:22,802 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:25:22,803 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54399]
+INFO 2026-05-21 23:25:22,804 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.78, 127.0.0.1:54399][0m
+DEBUG 2026-05-21 23:25:22,812 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:25:22,827 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:25:22,828 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:25:22,829 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:25:22,831 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.81, 127.0.0.1:51142][0m
+DEBUG 2026-05-21 23:25:22,837 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 50460] open and established
+INFO 2026-05-21 23:25:22,839 runserver 25196 6604 WebSocket CONNECT /ws/notifications/ [127.0.0.1:50460]
+DEBUG 2026-05-21 23:25:22,841 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 50460] accepted by application
+INFO 2026-05-21 23:25:22,841 consumers 25196 6604 WebSocket connected: user safwan
+DEBUG 2026-05-21 23:25:22,844 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:25:22,863 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:25:22,864 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:25:22,866 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:25:22,866 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.84, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:25:22,871 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:25:22,875 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:22,878 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:22,879 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:25:22,880 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.86, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:25:22,890 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:22,914 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:25:22,917 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:25:22,917 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54399]
+INFO 2026-05-21 23:25:22,920 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.11, 127.0.0.1:54399][0m
+DEBUG 2026-05-21 23:25:22,966 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:25:22,967 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:25:22,968 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:25:22,970 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.13, 127.0.0.1:51142][0m
+DEBUG 2026-05-21 23:25:22,993 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:25:22,993 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:25:22,994 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:25:22,994 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.12, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:25:22,999 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:23,000 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:23,001 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:25:23,002 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.11, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:25:46,674 ws_protocol 25196 6604 WebSocket closed for ['127.0.0.1', 50460]
+INFO 2026-05-21 23:25:46,675 runserver 25196 6604 WebSocket DISCONNECT /ws/notifications/ [127.0.0.1:50460]
+INFO 2026-05-21 23:25:46,679 consumers 25196 6604 WebSocket disconnected: user safwan
+DEBUG 2026-05-21 23:25:47,217 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:47,257 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:47,258 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:47,259 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:25:47,259 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.04, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:25:47,264 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:47,298 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:47,299 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:47,299 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:25:47,300 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.04, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:25:50,034 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:50,037 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:25:50,040 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:25:50,041 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:25:50,101 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:25:50,102 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:25:50,109 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54399]
+INFO 2026-05-21 23:25:50,116 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.08, 127.0.0.1:54399][0m
+DEBUG 2026-05-21 23:25:50,123 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:25:50,140 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:25:50,141 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:25:50,143 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:25:50,143 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.10, 127.0.0.1:51142][0m
+DEBUG 2026-05-21 23:25:50,149 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:25:50,159 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:25:50,160 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:25:50,161 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:25:50,161 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.12, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:25:50,164 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:25:50,177 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:50,178 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:50,178 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:25:50,179 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.15, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:25:50,185 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:50,200 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:25:50,201 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:25:50,204 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54399]
+INFO 2026-05-21 23:25:50,205 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.08, 127.0.0.1:54399][0m
+DEBUG 2026-05-21 23:25:50,238 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:25:50,239 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:25:50,243 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:25:50,246 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.10, 127.0.0.1:51142][0m
+DEBUG 2026-05-21 23:25:50,270 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:25:50,271 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:25:50,271 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:25:50,272 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.11, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:25:50,278 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:50,279 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:25:50,280 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:25:50,280 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.10, 127.0.0.1:58721][0m
+INFO 2026-05-21 23:25:50,348 runserver 25196 6604 WebSocket HANDSHAKING /ws/notifications/ [127.0.0.1:61497]
+DEBUG 2026-05-21 23:25:50,348 http_protocol 25196 6604 Upgraded connection ['127.0.0.1', 61497] to WebSocket
+DEBUG 2026-05-21 23:25:50,368 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 61497] open and established
+INFO 2026-05-21 23:25:50,368 runserver 25196 6604 WebSocket CONNECT /ws/notifications/ [127.0.0.1:61497]
+DEBUG 2026-05-21 23:25:50,369 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 61497] accepted by application
+INFO 2026-05-21 23:25:50,370 consumers 25196 6604 WebSocket connected: user safwan
+DEBUG 2026-05-21 23:26:08,689 ws_protocol 25196 6604 WebSocket closed for ['127.0.0.1', 61497]
+INFO 2026-05-21 23:26:08,692 runserver 25196 6604 WebSocket DISCONNECT /ws/notifications/ [127.0.0.1:61497]
+INFO 2026-05-21 23:26:08,695 consumers 25196 6604 WebSocket disconnected: user safwan
+DEBUG 2026-05-21 23:26:09,271 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:26:09,302 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:26:09,303 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:26:09,303 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:26:09,303 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.03, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:26:09,308 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:26:09,341 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:26:09,342 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:26:09,343 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:26:09,343 runserver 25196 6604 [mHTTP GET /api/users/profile/ 200 [0.04, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:26:12,041 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:26:12,043 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:26:12,044 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:26:12,045 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:26:12,100 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:26:12,104 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:26:12,106 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54399]
+INFO 2026-05-21 23:26:12,109 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.06, 127.0.0.1:54399][0m
+DEBUG 2026-05-21 23:26:12,121 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:26:12,143 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:26:12,144 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:26:12,145 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:26:12,146 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.10, 127.0.0.1:51142][0m
+DEBUG 2026-05-21 23:26:12,148 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:26:12,149 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:26:12,150 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:26:12,151 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.11, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:26:12,153 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:26:12,158 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:26:12,175 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:26:12,176 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:26:12,177 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:26:12,179 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.14, 127.0.0.1:58721][0m
+DEBUG 2026-05-21 23:26:12,186 http_protocol 25196 6604 HTTP b'GET' request for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:26:12,207 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:26:12,210 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 54399]
+DEBUG 2026-05-21 23:26:12,211 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 54399]
+INFO 2026-05-21 23:26:12,212 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/my_certificates/ 200 [0.09, 127.0.0.1:54399][0m
+DEBUG 2026-05-21 23:26:12,245 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:26:12,247 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 51142]
+DEBUG 2026-05-21 23:26:12,252 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 51142]
+INFO 2026-05-21 23:26:12,253 runserver 25196 6604 [mHTTP GET /api/tutoring/profiles/ 200 [0.10, 127.0.0.1:51142][0m
+DEBUG 2026-05-21 23:26:12,267 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:26:12,268 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58329]
+DEBUG 2026-05-21 23:26:12,269 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58329]
+INFO 2026-05-21 23:26:12,269 runserver 25196 6604 [mHTTP GET /api/tutoring/sessions/? 200 [0.11, 127.0.0.1:58329][0m
+DEBUG 2026-05-21 23:26:12,273 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:26:12,274 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 58721]
+DEBUG 2026-05-21 23:26:12,275 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 58721]
+INFO 2026-05-21 23:26:12,275 runserver 25196 6604 [mHTTP GET /api/content/notifications/ 200 [0.09, 127.0.0.1:58721][0m
+INFO 2026-05-21 23:26:12,360 runserver 25196 6604 WebSocket HANDSHAKING /ws/notifications/ [127.0.0.1:52174]
+DEBUG 2026-05-21 23:26:12,361 http_protocol 25196 6604 Upgraded connection ['127.0.0.1', 52174] to WebSocket
+DEBUG 2026-05-21 23:26:12,375 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 52174] open and established
+INFO 2026-05-21 23:26:12,376 runserver 25196 6604 WebSocket CONNECT /ws/notifications/ [127.0.0.1:52174]
+DEBUG 2026-05-21 23:26:12,377 ws_protocol 25196 6604 WebSocket ['127.0.0.1', 52174] accepted by application
+INFO 2026-05-21 23:26:12,377 consumers 25196 6604 WebSocket connected: user safwan
+DEBUG 2026-05-21 23:27:13,636 ws_protocol 25196 6604 WebSocket closed for ['127.0.0.1', 52174]
+INFO 2026-05-21 23:27:13,637 runserver 25196 6604 WebSocket DISCONNECT /ws/notifications/ [127.0.0.1:52174]
+INFO 2026-05-21 23:27:13,639 consumers 25196 6604 WebSocket disconnected: user safwan
+DEBUG 2026-05-21 23:27:19,487 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 49202]
+DEBUG 2026-05-21 23:27:19,490 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49202]
+DEBUG 2026-05-21 23:27:19,491 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49202]
+DEBUG 2026-05-21 23:27:19,491 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49202]
+INFO 2026-05-21 23:27:19,492 runserver 25196 6604 [mHTTP OPTIONS /api/auth/token/ 200 [0.00, 127.0.0.1:49202][0m
+DEBUG 2026-05-21 23:27:21,332 http_protocol 25196 6604 HTTP b'OPTIONS' request for ['127.0.0.1', 49202]
+DEBUG 2026-05-21 23:27:21,335 http_protocol 25196 6604 HTTP 200 response started for ['127.0.0.1', 49202]
+DEBUG 2026-05-21 23:27:21,336 http_protocol 25196 6604 HTTP close for ['127.0.0.1', 49202]
+DEBUG 2026-05-21 23:27:21,336 http_protocol 25196 6604 HTTP response complete for ['127.0.0.1', 49202]
+INFO 2026-05-21 23:27:21,337 runserver 25196 6604 [mHTTP OPTIONS /api/auth/token/ 200 [0.00, 127.0.0.1:49202][0m
+INFO 2026-05-21 23:28:39,897 autoreload 25196 25076 C:\Users\leno\sasl\backend\content\serializers.py changed, reloading.
+DEBUG 2026-05-21 23:28:42,368 selector_events 4752 19468 Using selector: SelectSelector
+INFO 2026-05-21 23:28:46,327 autoreload 4752 19468 Watching for file changes with StatReloader
+INFO 2026-05-21 23:28:48,716 server 4752 5040 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-21 23:28:48,716 server 4752 5040 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-21 23:28:48,718 server 4752 5040 Listening on TCP address 127.0.0.1:8000
+INFO 2026-05-21 23:29:05,098 autoreload 4752 19468 C:\Users\leno\sasl\backend\sasl\asgi.py changed, reloading.
+DEBUG 2026-05-21 23:29:07,397 selector_events 20932 4228 Using selector: SelectSelector
+INFO 2026-05-21 23:29:09,965 autoreload 20932 4228 Watching for file changes with StatReloader
+INFO 2026-05-21 23:29:12,627 server 20932 13572 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-21 23:29:12,628 server 20932 13572 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-21 23:29:12,629 server 20932 13572 Listening on TCP address 127.0.0.1:8000
+DEBUG 2026-05-21 23:32:10,374 http_protocol 20932 13572 HTTP b'OPTIONS' request for ['127.0.0.1', 59664]
+DEBUG 2026-05-21 23:32:10,377 http_protocol 20932 13572 HTTP 200 response started for ['127.0.0.1', 59664]
+DEBUG 2026-05-21 23:32:10,378 http_protocol 20932 13572 HTTP close for ['127.0.0.1', 59664]
+DEBUG 2026-05-21 23:32:10,378 http_protocol 20932 13572 HTTP response complete for ['127.0.0.1', 59664]
+INFO 2026-05-21 23:32:10,378 runserver 20932 13572 [mHTTP OPTIONS /api/auth/token/ 200 [0.00, 127.0.0.1:59664][0m
+DEBUG 2026-05-21 23:32:13,893 http_protocol 20932 13572 HTTP b'OPTIONS' request for ['127.0.0.1', 59664]
+DEBUG 2026-05-21 23:32:13,897 http_protocol 20932 13572 HTTP 200 response started for ['127.0.0.1', 59664]
+DEBUG 2026-05-21 23:32:13,897 http_protocol 20932 13572 HTTP close for ['127.0.0.1', 59664]
+DEBUG 2026-05-21 23:32:13,898 http_protocol 20932 13572 HTTP response complete for ['127.0.0.1', 59664]
+INFO 2026-05-21 23:32:13,899 runserver 20932 13572 [mHTTP OPTIONS /api/auth/token/ 200 [0.01, 127.0.0.1:59664][0m
+DEBUG 2026-05-21 23:32:47,295 selector_events 16632 13820 Using selector: SelectSelector
+DEBUG 2026-05-21 23:32:53,150 selector_events 26832 15440 Using selector: SelectSelector
+INFO 2026-05-21 23:32:55,494 autoreload 26832 15440 Watching for file changes with StatReloader
+INFO 2026-05-21 23:32:58,546 server 26832 14828 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-21 23:32:58,549 server 26832 14828 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-21 23:32:58,551 server 26832 14828 Listening on TCP address 127.0.0.1:8000
+INFO 2026-05-21 23:33:22,954 autoreload 26832 15440 C:\Users\leno\sasl\backend\groupchat\serializers.py changed, reloading.
+DEBUG 2026-05-21 23:33:25,158 selector_events 2868 16404 Using selector: SelectSelector
+INFO 2026-05-21 23:33:27,515 autoreload 2868 16404 Watching for file changes with StatReloader
+INFO 2026-05-21 23:33:30,226 server 2868 10888 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-21 23:33:30,226 server 2868 10888 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-21 23:33:30,227 server 2868 10888 Listening on TCP address 127.0.0.1:8000
+DEBUG 2026-05-21 23:38:34,751 http_protocol 2868 10888 HTTP b'OPTIONS' request for ['127.0.0.1', 59988]
+DEBUG 2026-05-21 23:38:35,083 http_protocol 2868 10888 HTTP 200 response started for ['127.0.0.1', 59988]
+DEBUG 2026-05-21 23:38:35,092 http_protocol 2868 10888 HTTP close for ['127.0.0.1', 59988]
+DEBUG 2026-05-21 23:38:35,093 http_protocol 2868 10888 HTTP response complete for ['127.0.0.1', 59988]
+INFO 2026-05-21 23:38:35,110 runserver 2868 10888 [mHTTP OPTIONS /api/auth/token/ 200 [0.36, 127.0.0.1:59988][0m
+DEBUG 2026-05-21 23:48:04,344 http_protocol 2868 10888 HTTP b'OPTIONS' request for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:48:04,435 http_protocol 2868 10888 HTTP 200 response started for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:48:04,437 http_protocol 2868 10888 HTTP close for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:48:04,440 http_protocol 2868 10888 HTTP response complete for ['127.0.0.1', 51278]
+INFO 2026-05-21 23:48:04,444 runserver 2868 10888 [mHTTP OPTIONS /api/auth/token/ 200 [0.10, 127.0.0.1:51278][0m
+DEBUG 2026-05-21 23:48:16,323 http_protocol 2868 10888 HTTP b'OPTIONS' request for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:48:16,398 http_protocol 2868 10888 HTTP 200 response started for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:48:16,399 http_protocol 2868 10888 HTTP close for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:48:16,400 http_protocol 2868 10888 HTTP response complete for ['127.0.0.1', 51278]
+INFO 2026-05-21 23:48:16,400 runserver 2868 10888 [mHTTP OPTIONS /api/auth/token/ 200 [0.08, 127.0.0.1:51278][0m
+DEBUG 2026-05-21 23:48:17,346 http_protocol 2868 10888 HTTP b'OPTIONS' request for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:48:17,350 http_protocol 2868 10888 HTTP 200 response started for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:48:17,356 http_protocol 2868 10888 HTTP close for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:48:17,357 http_protocol 2868 10888 HTTP response complete for ['127.0.0.1', 51278]
+INFO 2026-05-21 23:48:17,383 runserver 2868 10888 [mHTTP OPTIONS /api/auth/token/ 200 [0.04, 127.0.0.1:51278][0m
+DEBUG 2026-05-21 23:48:46,223 http_protocol 2868 10888 HTTP b'OPTIONS' request for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:48:46,228 http_protocol 2868 10888 HTTP 200 response started for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:48:46,230 http_protocol 2868 10888 HTTP close for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:48:46,231 http_protocol 2868 10888 HTTP response complete for ['127.0.0.1', 51278]
+INFO 2026-05-21 23:48:46,233 runserver 2868 10888 [mHTTP OPTIONS /api/auth/token/ 200 [0.01, 127.0.0.1:51278][0m
+DEBUG 2026-05-21 23:49:12,373 http_protocol 2868 10888 HTTP b'OPTIONS' request for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:49:12,377 http_protocol 2868 10888 HTTP 200 response started for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:49:12,378 http_protocol 2868 10888 HTTP close for ['127.0.0.1', 51278]
+DEBUG 2026-05-21 23:49:12,379 http_protocol 2868 10888 HTTP response complete for ['127.0.0.1', 51278]
+INFO 2026-05-21 23:49:12,379 runserver 2868 10888 [mHTTP OPTIONS /api/auth/token/ 200 [0.01, 127.0.0.1:51278][0m
+DEBUG 2026-05-21 23:53:54,239 http_protocol 2868 10888 HTTP b'OPTIONS' request for ['127.0.0.1', 51150]
+DEBUG 2026-05-21 23:53:54,274 http_protocol 2868 10888 HTTP 200 response started for ['127.0.0.1', 51150]
+DEBUG 2026-05-21 23:53:54,275 http_protocol 2868 10888 HTTP close for ['127.0.0.1', 51150]
+DEBUG 2026-05-21 23:53:54,278 http_protocol 2868 10888 HTTP response complete for ['127.0.0.1', 51150]
+INFO 2026-05-21 23:53:54,279 runserver 2868 10888 [mHTTP OPTIONS /api/auth/token/ 200 [0.04, 127.0.0.1:51150][0m
+DEBUG 2026-05-21 23:54:18,680 http_protocol 2868 10888 HTTP b'OPTIONS' request for ['127.0.0.1', 51150]
+DEBUG 2026-05-21 23:54:18,684 http_protocol 2868 10888 HTTP 200 response started for ['127.0.0.1', 51150]
+DEBUG 2026-05-21 23:54:18,684 http_protocol 2868 10888 HTTP close for ['127.0.0.1', 51150]
+DEBUG 2026-05-21 23:54:18,685 http_protocol 2868 10888 HTTP response complete for ['127.0.0.1', 51150]
+INFO 2026-05-21 23:54:18,685 runserver 2868 10888 [mHTTP OPTIONS /api/auth/token/ 200 [0.01, 127.0.0.1:51150][0m
+DEBUG 2026-05-21 23:55:11,892 http_protocol 2868 10888 HTTP b'OPTIONS' request for ['127.0.0.1', 51150]
+DEBUG 2026-05-21 23:55:11,896 http_protocol 2868 10888 HTTP 200 response started for ['127.0.0.1', 51150]
+DEBUG 2026-05-21 23:55:11,898 http_protocol 2868 10888 HTTP close for ['127.0.0.1', 51150]
+DEBUG 2026-05-21 23:55:11,898 http_protocol 2868 10888 HTTP response complete for ['127.0.0.1', 51150]
+INFO 2026-05-21 23:55:11,899 runserver 2868 10888 [mHTTP OPTIONS /api/auth/token/ 200 [0.01, 127.0.0.1:51150][0m
+DEBUG 2026-05-21 23:57:28,139 selector_events 5092 19200 Using selector: SelectSelector
+DEBUG 2026-05-21 23:57:41,998 selector_events 5092 19200 Using selector: SelectSelector
+DEBUG 2026-05-21 23:57:42,178 selector_events 5092 19200 Using selector: SelectSelector
+DEBUG 2026-05-21 23:57:42,290 selector_events 5092 19200 Using selector: SelectSelector
+DEBUG 2026-05-21 23:57:42,639 selector_events 5092 19200 Using selector: SelectSelector
+DEBUG 2026-05-21 23:57:42,717 selector_events 5092 19200 Using selector: SelectSelector
+DEBUG 2026-05-21 23:59:57,668 selector_events 25852 21756 Using selector: SelectSelector
+DEBUG 2026-05-22 00:00:03,273 selector_events 26684 3804 Using selector: SelectSelector
+INFO 2026-05-22 00:00:06,438 autoreload 26684 3804 Watching for file changes with StatReloader
+INFO 2026-05-22 00:00:11,783 server 26684 13208 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-22 00:00:11,784 server 26684 13208 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-22 00:00:11,796 server 26684 13208 Listening on TCP address 127.0.0.1:8000
+DEBUG 2026-05-22 00:00:39,836 http_protocol 26684 13208 HTTP b'OPTIONS' request for ['127.0.0.1', 52723]
+DEBUG 2026-05-22 00:00:39,840 http_protocol 26684 13208 HTTP 200 response started for ['127.0.0.1', 52723]
+DEBUG 2026-05-22 00:00:39,841 http_protocol 26684 13208 HTTP close for ['127.0.0.1', 52723]
+DEBUG 2026-05-22 00:00:39,842 http_protocol 26684 13208 HTTP response complete for ['127.0.0.1', 52723]
+INFO 2026-05-22 00:00:39,842 runserver 26684 13208 [mHTTP OPTIONS /api/auth/token/ 200 [0.01, 127.0.0.1:52723][0m
+DEBUG 2026-05-22 00:00:49,421 http_protocol 26684 13208 HTTP b'OPTIONS' request for ['127.0.0.1', 52723]
+DEBUG 2026-05-22 00:00:49,424 http_protocol 26684 13208 HTTP 200 response started for ['127.0.0.1', 52723]
+DEBUG 2026-05-22 00:00:49,424 http_protocol 26684 13208 HTTP close for ['127.0.0.1', 52723]
+DEBUG 2026-05-22 00:00:49,425 http_protocol 26684 13208 HTTP response complete for ['127.0.0.1', 52723]
+INFO 2026-05-22 00:00:49,425 runserver 26684 13208 [mHTTP OPTIONS /api/auth/token/ 200 [0.00, 127.0.0.1:52723][0m
+DEBUG 2026-05-22 00:02:56,645 selector_events 21052 23896 Using selector: SelectSelector
+DEBUG 2026-05-22 00:03:03,951 selector_events 21052 23896 Using selector: SelectSelector
+DEBUG 2026-05-22 00:03:07,319 selector_events 21052 23896 Using selector: SelectSelector
+DEBUG 2026-05-22 00:04:28,516 http_protocol 26684 13208 HTTP b'POST' request for ['127.0.0.1', 53647]
+DEBUG 2026-05-22 00:04:29,243 http_protocol 26684 13208 HTTP 200 response started for ['127.0.0.1', 53647]
+DEBUG 2026-05-22 00:04:29,243 http_protocol 26684 13208 HTTP close for ['127.0.0.1', 53647]
+DEBUG 2026-05-22 00:04:29,244 http_protocol 26684 13208 HTTP response complete for ['127.0.0.1', 53647]
+INFO 2026-05-22 00:04:29,244 runserver 26684 13208 [mHTTP POST /api/auth/token/ 200 [0.73, 127.0.0.1:53647][0m
+DEBUG 2026-05-22 00:05:15,017 http_protocol 26684 13208 HTTP b'OPTIONS' request for ['127.0.0.1', 56052]
+DEBUG 2026-05-22 00:05:15,020 http_protocol 26684 13208 HTTP 200 response started for ['127.0.0.1', 56052]
+DEBUG 2026-05-22 00:05:15,020 http_protocol 26684 13208 HTTP close for ['127.0.0.1', 56052]
+DEBUG 2026-05-22 00:05:15,021 http_protocol 26684 13208 HTTP response complete for ['127.0.0.1', 56052]
+INFO 2026-05-22 00:05:15,021 runserver 26684 13208 [mHTTP OPTIONS /api/auth/token/ 200 [0.00, 127.0.0.1:56052][0m
+DEBUG 2026-05-22 00:06:26,515 http_protocol 26684 13208 HTTP b'OPTIONS' request for ['127.0.0.1', 62034]
+DEBUG 2026-05-22 00:06:26,519 http_protocol 26684 13208 HTTP 200 response started for ['127.0.0.1', 62034]
+DEBUG 2026-05-22 00:06:26,519 http_protocol 26684 13208 HTTP close for ['127.0.0.1', 62034]
+DEBUG 2026-05-22 00:06:26,520 http_protocol 26684 13208 HTTP response complete for ['127.0.0.1', 62034]
+INFO 2026-05-22 00:06:26,520 runserver 26684 13208 [mHTTP OPTIONS /api/auth/token/ 200 [0.00, 127.0.0.1:62034][0m
+DEBUG 2026-05-22 00:08:27,255 selector_events 14224 4372 Using selector: SelectSelector
+DEBUG 2026-05-22 00:08:36,394 selector_events 1308 21280 Using selector: SelectSelector
+INFO 2026-05-22 00:08:40,604 autoreload 1308 21280 Watching for file changes with StatReloader
+INFO 2026-05-22 00:08:50,078 server 1308 17420 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-22 00:08:50,090 server 1308 17420 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-22 00:08:50,100 server 1308 17420 Listening on TCP address 127.0.0.1:8000
