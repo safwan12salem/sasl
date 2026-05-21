@@ -1,0 +1,268 @@
+/* Tailwind base */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+
+/* ========== BASE STYLES ========== */
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-sasl-light text-gray-800 antialiased;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display font-bold tracking-tight;
+  }
+
+  h1 { @apply text-4xl md:text-5xl; }
+  h2 { @apply text-3xl md:text-4xl; }
+  h3 { @apply text-2xl md:text-3xl; }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #f1f1f1; }
+  ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #555; }
+}
+
+/* ========== COMPONENT LAYER ========== */
+@layer components {
+  /* Sasl brand gradient text */
+  .gradient-text {
+    @apply bg-gradient-to-r from-sasl-green to-sasl-orange bg-clip-text text-transparent;
+  }
+
+  /* Elegant card with hover effect */
+  .card {
+    @apply bg-white rounded-2xl shadow-md p-6 transition-all duration-300;
+  }
+  .card:hover {
+    @apply shadow-xl -translate-y-1;
+  }
+
+  /* Buttons */
+  .btn-primary {
+    @apply bg-sasl-green text-white font-semibold py-3 px-6 rounded-full
+           shadow-lg hover:bg-green-600 active:scale-95 transition-all;
+  }
+
+  .btn-secondary {
+    @apply bg-sasl-orange text-white font-semibold py-3 px-6 rounded-full
+           shadow-lg hover:bg-orange-600 active:scale-95 transition-all;
+  }
+
+  .btn-ghost {
+    @apply border border-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-full
+           hover:bg-gray-100 transition-colors;
+  }
+
+  /* Input fields */
+  .input-field {
+    @apply w-full px-4 py-3 border border-gray-200 rounded-xl
+           focus:ring-2 focus:ring-sasl-green focus:border-transparent
+           outline-none transition-all placeholder-gray-400;
+  }
+
+  /* WaveMesh badge */
+  .mesh-badge {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold;
+  }
+  .mesh-online {
+    @apply bg-green-100 text-green-700;
+  }
+  .mesh-offline {
+    @apply bg-gray-200 text-gray-600;
+  }
+
+  /* Flowing avatars group */
+  .avatar-group {
+    @apply flex -space-x-2 overflow-hidden;
+  }
+  .avatar-group img {
+    @apply w-10 h-10 rounded-full border-2 border-white object-cover;
+  }
+}
+
+/* ========== UTILITIES ========== */
+@layer utilities {
+  /* Pulsing glow for live indicators */
+  .pulse-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+
+  /* Floating animation for decorative elements */
+  .float-element {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  /* Mesh ripple effect */
+  .mesh-ripple {
+    position: relative;
+  }
+  .mesh-ripple::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: inherit;
+    background: rgba(0,168,107,0.2);
+    animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    @apply rounded-xl;
+  }
+}
+
+/* ========== ANIMATIONS ========== */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin-slow {
+  animation: spin-slow 8s linear infinite;
+}
+
+/* Onboarding animation */
+.onboarding-step-enter {
+  opacity: 0;
+  transform: translateX(50px);
+}
+.onboarding-step-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: all 0.4s ease-out;
+}
+
+/* Post like animation */
+.like-burst {
+  animation: likePop 0.4s ease-out;
+}
+@keyframes likePop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+/* Shimmer loading */
+.shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ========== BRAND SPECIFIC ========== */
+.logo-sl {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 2.5rem;
+  letter-spacing: -1px;
+}
+.logo-sl .s {
+  color: #00A86B;
+}
+.logo-sl .l {
+  color: #FF7F11;
+}
+
+/* Mesh connectivity lines (decorative) */
+.mesh-lines {
+  background-image: radial-gradient(circle at 20% 50%, rgba(0,168,107,0.15) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 50%, rgba(255,127,17,0.15) 0%, transparent 50%);
+  background-size: 100% 100%;
+}
+
+/* Offline indicator */
+.offline-indicator {
+  @apply fixed top-4 right-4 z-50 bg-red-500 text-white px-4 py-2 rounded-full
+         flex items-center gap-2 shadow-lg animate-pulse;
+}
+
+/* Toast custom overrides */
+.toast-custom {
+  background: linear-gradient(135deg, #00A86B, #FF7F11) !important;
+  color: white !important;
+  border-radius: 12px !important;
+}
+
+/* Responsive sidebar */
+@media (max-width: 768px) {
+  .sidebar {
+    @apply hidden;
+  }
+  .mobile-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-white border-t flex justify-around p-2 z-50;
+  }
+}
+
+
+
+
+/* Glassmorphism cards */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+/* Smooth gradient text */
+.gradient-text {
+  @apply bg-gradient-to-r from-sasl-green to-sasl-orange bg-clip-text text-transparent;
+}
+
+
+
+
+
+.dark {
+  --bg-primary: #1a1a2e;
+  --bg-secondary: #16213e;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+}
+
+.dark body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.dark .glass {
+  background: rgba(30, 30, 60, 0.7);
+  border-color: rgba(255, 255, 255, 0.05);
+}
+
+.dark .card {
+  background: rgba(30, 30, 60, 0.8);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .input-field {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.dark .text-gray-500 { color: #888; }
+.dark .text-gray-600 { color: #aaa; }
+.dark .text-gray-700 { color: #ccc; }
+.dark .text-gray-800 { color: #ddd; }
+.dark .text-gray-900 { color: #fff; }
+.dark .bg-gray-50 { background-color: #1a1a2e; }
+.dark .bg-gray-100 { background-color: #1e1e35; }
+.dark .bg-white { background-color: #1a1a2e; }

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sasl</string>
+    <string name="title_activity_main">Sasl</string>
+    <string name="package_name">com.sasl.app</string>
+    <string name="custom_url_scheme">com.sasl.app</string>
+</resources>
