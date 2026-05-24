@@ -2,6 +2,8 @@
 Sasl - Social Asynchronous Sharing Layer
 Gig Central: Advanced freelancer marketplace with milestones, disputes, reviews, portfolio
 """
+from urllib import request
+
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,7 +17,7 @@ from .serializers import (
 from monetization.services import process_marketplace_purchase
 from notifications.services import create_notification
 from django.contrib.auth import get_user_model
-
+from nftbadges.services import award_badge
 User = get_user_model()
 
 
@@ -96,7 +98,10 @@ class GigViewSet(viewsets.ModelViewSet):
     user=request.user,
     name=gig.category or 'General',
     defaults={'level': 'beginner'}
-)   
+)    
+
+
+        award_badge(request.user, 'First Gig Completed', 'Completed your first gig on Sasl')    
 
         with transaction.atomic():
             gig.status = 'completed'
@@ -111,7 +116,7 @@ class GigViewSet(viewsets.ModelViewSet):
             )
 
         return Response(GigSerializer(gig, context={'request': request}).data)
-
+     
     @action(detail=True, methods=['post'])
     def complete_milestone(self, request, pk=None):
         gig = self.get_object()
