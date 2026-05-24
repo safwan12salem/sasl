@@ -21918,3 +21918,13 @@ INFO 2026-05-24 05:18:30,338 consumers 23756 4368 WebSocket connected: user safw
 DEBUG 2026-05-24 05:39:57,939 ws_protocol 23756 4368 WebSocket closed for ['127.0.0.1', 54397]
 INFO 2026-05-24 05:39:57,965 runserver 23756 4368 WebSocket DISCONNECT /ws/notifications/ [127.0.0.1:54397]
 INFO 2026-05-24 05:39:57,973 consumers 23756 4368 WebSocket disconnected: user safwan
+DEBUG 2026-05-25 00:27:31,716 selector_events 23076 20752 Using selector: SelectSelector
+DEBUG 2026-05-25 00:27:42,810 selector_events 14828 11092 Using selector: SelectSelector
+DEBUG 2026-05-25 00:29:00,842 selector_events 22620 2324 Using selector: SelectSelector
+DEBUG 2026-05-25 00:43:23,615 selector_events 2596 2308 Using selector: SelectSelector
+DEBUG 2026-05-25 00:43:49,952 selector_events 13472 3932 Using selector: SelectSelector
+DEBUG 2026-05-25 00:44:29,864 selector_events 29112 25076 Using selector: SelectSelector
+DEBUG 2026-05-25 00:49:05,447 selector_events 11632 28276 Using selector: SelectSelector
+DEBUG 2026-05-25 00:52:38,269 selector_events 30124 29596 Using selector: SelectSelector
+DEBUG 2026-05-25 00:55:57,607 selector_events 7376 24684 Using selector: SelectSelector
+DEBUG 2026-05-25 00:56:24,522 selector_events 27404 9712 Using selector: SelectSelector

@@ -15,6 +15,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 
+from analytics.views import User
+
 from .models import (
     Post, PostLike, Comment, Reel, Share, Story, Notification,
     Poll, PollOption, PollVote, Report
@@ -317,7 +319,29 @@ class PostViewSet(viewsets.ModelViewSet):
         post.is_hidden = not post.is_hidden
         post.save(update_fields=['is_hidden'])
         return Response({'is_hidden': post.is_hidden})
+     
 
+
+       
+    @action(detail=False, methods=['post'])
+    def report_user(self, request):
+     reported_username = request.data.get('username')
+     reason = request.data.get('reason')
+    
+     try:
+         reported_user = User.objects.get(username=reported_username)
+     except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=404)
+    
+    # Create report for admin review
+     Report.objects.create(
+        reporter=request.user,
+        post=None,  # This is a user report
+        reason=f"User Report: {reason}",
+        reported_user=reported_user
+    )
+    
+     return Response({'status': 'reported'})   
 class StoryViewSet(viewsets.ModelViewSet):
     queryset = Story.objects.filter(expires_at__gt=timezone.now())
     serializer_class = StorySerializer
@@ -382,3 +406,4 @@ class ReelViewSet(viewsets.ModelViewSet):
             reel.likes_count = F('likes_count') - 1
             reel.save()
             return Response({'status': 'unliked', 'likes_count': reel.likes_count})
+

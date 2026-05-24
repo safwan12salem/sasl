@@ -313,6 +313,18 @@ const Feed: React.FC = () => {
       setFilePreview(URL.createObjectURL(file));
     }
   };
+  
+   const handleDelete = async (postId: string) => {
+  if (!confirm('Delete this post?')) return;
+  try {
+    await api.delete(`/content/posts/${postId}/delete_post/`);
+    setPosts(prev => prev.filter(p => p.id !== postId));
+    toast.success('Post deleted');
+  } catch {
+    toast.error('Delete failed');
+  }
+};
+
 
   // ============================================================
   // SUBMIT POST
@@ -524,6 +536,10 @@ const Feed: React.FC = () => {
           <button onClick={() => handleShare(post.id)} className="flex items-center gap-1 hover:text-green-500">
             <Share2 className="w-5 h-5" /> {post.shares_count}
           </button>
+          
+{post.author.username === user?.username && (
+  <button onClick={() => handleDelete(post.id)} className="text-red-500 text-xs">Delete</button>
+)}
         </div>
         <AnimatePresence>
           {showComments && (

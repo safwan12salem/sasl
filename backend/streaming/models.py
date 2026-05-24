@@ -87,3 +87,13 @@ class StreamSchedule(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.scheduled_at.strftime('%Y-%m-%d %H:%M')}"
+    
+
+
+
+
+class StreamReaction(models.Model):
+    stream = models.ForeignKey('StreamSession', on_delete=models.CASCADE, related_name='reactions')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    reaction_type = models.CharField(max_length=20)  # heart, laugh, wow, sad, angry, xp
+    created_at = models.DateTimeField(auto_now_add=True)

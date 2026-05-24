@@ -147,7 +147,25 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
             total=Sum('amount')
         ).order_by('-total')[:10]
         return Response(top)
+    
 
+    @action(detail=True, methods=['post'])
+    def react(self, request, pk=None):
+     stream = self.get_object()
+     reaction_type = request.data.get('reaction', 'heart')
+    
+     StreamReaction.objects.create(
+        stream=stream,
+        user=request.user,
+        reaction_type=reaction_type
+    )
+    
+    # XP reward for the streamer
+     if stream.streamer != request.user:
+        stream.streamer.wallet.xp += 1
+        stream.streamer.wallet.save()
+    
+     return Response({'status': 'reacted', 'reaction': reaction_type})
 
 class StreamScheduleViewSet(viewsets.ModelViewSet):
     serializer_class = StreamScheduleSerializer

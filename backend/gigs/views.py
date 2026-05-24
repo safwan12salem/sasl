@@ -17,7 +17,7 @@ from .serializers import (
 from monetization.services import process_marketplace_purchase
 from notifications.services import create_notification
 from django.contrib.auth import get_user_model
-from nftbadges.services import award_badge
+
 User = get_user_model()
 
 

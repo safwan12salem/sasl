@@ -1,3 +1,2 @@
 from django.db import models
-
-# Create your models here.
+# Notification model is in content app to avoid duplication

@@ -223,10 +223,11 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 
 
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'email'
+#ACCOUNT_EMAIL_REQUIRED = True
+#ACCOUNT_UNIQUE_EMAIL = True
+#ACCOUNT_USERNAME_REQUIRED = True
+#ACCOUNT_AUTHENTICATION_METHOD = 'email'
+
 # ============================================================
 # REST FRAMEWORK
 # ============================================================
@@ -424,3 +425,7 @@ CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379') + '/2'
 
 
 
+
+
+STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_placeholder')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'pk_test_placeholder')
