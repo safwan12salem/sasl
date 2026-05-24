@@ -4,6 +4,7 @@ Monetization views: ad serving, wallet management.
 """
 from datetime import timezone
 
+from decimal import Decimal
 from time import timezone
 
 from django.http import JsonResponse
@@ -78,20 +79,21 @@ def withdraw(self, request):
     amount = request.data.get('amount')
     if not amount or float(amount) <= 0:
         return Response({'error': 'Invalid amount'}, status=400)
-    wallet =Wallet.objects.get(user=request.user)
+    
+    wallet = Wallet.objects.get(user=request.user)
     if wallet.balance < Decimal(str(amount)):
         return Response({'error': 'Insufficient balance'}, status=400)
-    # In production, integrate with payment gateway
-    # For now, deduct and log
+    
     wallet.balance -= Decimal(str(amount))
     wallet.save()
+    
     Transaction.objects.create(
         user=request.user,
         amount=-Decimal(str(amount)),
         transaction_type='withdrawal',
         description=f'Withdrawal of ${amount}'
     )
-    return Response({'status': 'pending', 'new_balance': wallet.balance})
+    return Response({'status': 'pending', 'new_balance': float(wallet.balance)})
 
 
 
@@ -116,15 +118,15 @@ class StripeViewSet(viewsets.GenericViewSet):
         amount = confirm_payment(intent_id)
         if amount:
             wallet = request.user.wallet
-            wallet.balance += amount
+            wallet.balance += Decimal(str(amount))
             wallet.save()
             Transaction.objects.create(
                 user=request.user,
-                amount=amount,
+                amount=Decimal(str(amount)),
                 transaction_type='topup',
                 description=f'Stripe top-up: ${amount}'
             )
-            return Response({'success': True, 'new_balance': wallet.balance})
+            return Response({'success': True, 'new_balance': float(wallet.balance)})
         return Response({'error': 'Payment not confirmed'}, status=400)
     
 

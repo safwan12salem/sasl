@@ -147,6 +147,12 @@ export default function Wallet() {
         >
           <ArrowDownCircle size={18} /> {withdrawing ? t('Processing...') : t('Withdraw Funds')}
         </button>
+        <button
+  onClick={handleTopUp}
+  className="mt-3 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-full font-semibold hover:scale-105 transition"
+>
+  💳 {t('Top Up Wallet')}
+</button>
       </motion.div>
 
       {/* Category Breakdown */}

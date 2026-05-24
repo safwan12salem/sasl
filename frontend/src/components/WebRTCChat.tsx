@@ -1,12 +1,12 @@
 /**
  * Sasl - WebRTC Chat – peer‑to‑peer text messaging
- * Fully fixed with proper WebRTC state management
+ * Fully fixed with proper WebRTC state management and TypeScript types
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { MessageCircle, Send, Loader2, Wifi, WifiOff, Users } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const ROOM_ID = 'sasl-mesh-chat';
 
@@ -17,15 +17,18 @@ export default function WebRTCChat() {
   const [started, setStarted] = useState(false);
   const [connecting, setConnecting] = useState(false);
   const [peerCount, setPeerCount] = useState(0);
-  
+
   const pcRef = useRef<RTCPeerConnection | null>(null);
   const dataChannelRef = useRef<RTCDataChannel | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const makingOffer = useRef(false);
   const politePeer = useRef(false);
-  
+
   const token = localStorage.getItem('sasl_token');
   const { t } = useTranslation();
+
+  // Helper to get signaling state as plain string (avoids TS enum issues)
+  const getState = (pc: RTCPeerConnection): string => pc.signalingState as string;
 
   // ============================================================
   // CLEANUP
@@ -56,9 +59,7 @@ export default function WebRTCChat() {
       pcRef.current = pc;
 
       // ---- DATA CHANNEL ----
-      const channel = pc.createDataChannel('mesh-chat', {
-        ordered: true,
-      });
+      const channel = pc.createDataChannel('mesh-chat', { ordered: true });
       dataChannelRef.current = channel;
 
       channel.onopen = () => {
@@ -87,9 +88,9 @@ export default function WebRTCChat() {
       // ---- ICE CANDIDATES ----
       pc.onicecandidate = (event) => {
         if (event.candidate && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ 
-            type: 'candidate', 
-            candidate: event.candidate.toJSON() 
+          ws.send(JSON.stringify({
+            type: 'candidate',
+            candidate: event.candidate.toJSON()
           }));
         }
       };
@@ -100,9 +101,9 @@ export default function WebRTCChat() {
           makingOffer.current = true;
           await pc.setLocalDescription();
           if (pc.localDescription && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ 
-              type: 'offer', 
-              offer: pc.localDescription.toJSON() 
+            ws.send(JSON.stringify({
+              type: 'offer',
+              offer: pc.localDescription.toJSON()
             }));
           }
         } catch (err) {
@@ -116,45 +117,44 @@ export default function WebRTCChat() {
       ws.onmessage = async (event) => {
         try {
           const data = JSON.parse(event.data);
+          const state = getState(pc);
 
           if (data.type === 'offer') {
-            // Polite peer handling — if we're also making an offer, decide who wins
             const isPolite = politePeer.current;
-            const colliding = makingOffer.current || pc.signalingState !== 'stable';
+            const colliding = makingOffer.current || state !== 'stable';
 
             if (colliding && !isPolite) {
-              // Impolite peer ignores offer
               return;
             }
 
             // ✅ Only set remote description if in stable state
-            if (pc.signalingState !== ('stable' as RTCPeerConnectionState))  {
-              console.warn('Cannot handle offer in state:', pc.signalingState);
+            if (state !== 'stable') {
+              console.warn('Cannot handle offer in state:', state);
               return;
             }
 
             await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-            
+
             // ✅ Only create answer if we have remote offer
-            if (pc.signalingState === 'have-remote-offer' as RTCPeerConnectionState) { 
+            if (getState(pc) === 'have-remote-offer') {
               const answer = await pc.createAnswer();
               await pc.setLocalDescription(answer);
               if (pc.localDescription && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ 
-                  type: 'answer', 
-                  answer: pc.localDescription.toJSON() 
+                ws.send(JSON.stringify({
+                  type: 'answer',
+                  answer: pc.localDescription.toJSON()
                 }));
               }
             }
           } else if (data.type === 'answer') {
             // ✅ Only accept answer if we have a local offer pending
-            if (pc.signalingState === ('have-local-offer' as RTCPeerConnectionState))  {
+            if (state === 'have-local-offer') {
               await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
             }
           } else if (data.type === 'candidate') {
             // ✅ Only add ICE candidates when we have a remote description
             if (!pc.remoteDescription) {
-              return; // Queue candidate for later or ignore
+              return;
             }
             try {
               await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
@@ -162,7 +162,6 @@ export default function WebRTCChat() {
               // Ignore invalid candidates
             }
           } else if (data.type === 'chat') {
-            // Chat messages forwarded through signaling
             setMessages(prev => [...prev, data.text]);
           }
         } catch (err) {
@@ -174,9 +173,9 @@ export default function WebRTCChat() {
       pc.createOffer().then(offer => {
         pc.setLocalDescription(offer).then(() => {
           if (pc.localDescription && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ 
-              type: 'offer', 
-              offer: pc.localDescription.toJSON() 
+            ws.send(JSON.stringify({
+              type: 'offer',
+              offer: pc.localDescription.toJSON()
             }));
           }
         });
@@ -205,8 +204,7 @@ export default function WebRTCChat() {
     if (!input.trim()) return;
 
     const messageData = JSON.stringify({ type: 'chat', text: input });
-    
-    // Try data channel first
+
     if (dataChannelRef.current?.readyState === 'open') {
       dataChannelRef.current.send(messageData);
       setMessages(prev => [...prev, `Me: ${input}`]);
@@ -214,7 +212,6 @@ export default function WebRTCChat() {
       return;
     }
 
-    // Fallback: send through WebSocket signaling
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(messageData);
       setMessages(prev => [...prev, `Me: ${input}`]);
@@ -222,7 +219,6 @@ export default function WebRTCChat() {
       return;
     }
 
-    // Show locally even if not connected
     setMessages(prev => [...prev, `Me: ${input} (queued)`]);
     setInput('');
     toast('Message queued – will send when connected');
@@ -304,7 +300,6 @@ export default function WebRTCChat() {
   // ============================================================
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6">
-      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-2xl font-bold gradient-text flex items-center gap-2">
@@ -323,13 +318,10 @@ export default function WebRTCChat() {
           </p>
         </div>
         {!connected && (
-          <button onClick={connect} className="btn-primary text-sm">
-            Reconnect
-          </button>
+          <button onClick={connect} className="btn-primary text-sm">Reconnect</button>
         )}
       </div>
 
-      {/* Messages */}
       <div className="h-96 bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 mb-4 overflow-y-auto space-y-3">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-400">
@@ -365,7 +357,6 @@ export default function WebRTCChat() {
         )}
       </div>
 
-      {/* Input */}
       <div className="flex gap-2">
         <input
           value={input}
