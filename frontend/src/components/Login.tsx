@@ -25,17 +25,19 @@ export default function Login() {
   }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) return toast.error(t('fill_all_fields'));
-    setLoading(true);
-    try {
-      await login(email, password);
-      toast.success(t('welcome_back'));
-    } catch (err: any) {
-      toast.error(err.message || t('login_error'));
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  if (!email || !password) return toast.error(t('fill_all_fields'));
+  setLoading(true);
+  try {
+    await login(email, password);
+    toast.success(t('welcome_back'));
+    const onboarded = localStorage.getItem('sasl_onboarded');
+    navigate(onboarded ? '/' : '/onboarding', { replace: true });
+  } catch (err: any) {
+    toast.error(err.message || t('login_error'));
+    setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] p-4 relative overflow-hidden">

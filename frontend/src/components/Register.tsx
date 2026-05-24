@@ -39,20 +39,20 @@ export default function Register() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const error = validate();
-    if (error) { toast.error(error); return; }
-    setLoading(true);
-    try {
-      await register(form.email, form.username, form.password);
-      toast.success(t('registration_success'));
-      navigate('/onboarding', { replace: true });
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail || t('registration_error'));
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  const error = validate();
+  if (error) { toast.error(error); return; }
+  setLoading(true);
+  try {
+    await register(form.email, form.username, form.password);
+    toast.success(t('registration_success'));
+    navigate('/onboarding', { replace: true });
+  } catch (err: any) {
+    toast.error(err.response?.data?.detail || t('registration_error'));
+  } finally {
+    setLoading(false);
+  }
+};
 
   const strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
   const strengthColors = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
