@@ -45,7 +45,7 @@ export default function Wallet() {
         const txRes = await api.get('/monetization/transactions/');
         setTransactions(txRes.data.results || txRes.data || []);
       } catch (err) {
-        setError('Failed to load wallet');
+        setError(t('Failed to load wallet'));
       } finally {
         setLoading(false);
       }
@@ -57,11 +57,11 @@ export default function Wallet() {
     setWithdrawing(true);
     try {
       await api.post('/monetization/withdraw/', { amount: wallet?.balance });
-      toast.success('Withdrawal request sent! Funds will arrive in 1-3 days.');
+      toast.success(t('Withdrawal request sent! Funds will arrive in 1-3 days.'));
       const walletRes = await api.get('/users/wallet/');
       setWallet(walletRes.data);
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Withdrawal failed');
+      toast.error(err.response?.data?.error || t('Withdrawal failed'));
     } finally {
       setWithdrawing(false);
     }
@@ -69,12 +69,12 @@ export default function Wallet() {
 
   // Calculate category totals
   const categoryMap: Record<string, { label: string; icon: JSX.Element; color: string }> = {
-    engagement_reward: { label: 'Engagement', icon: <Heart size={14} />, color: 'text-pink-500' },
-    donation: { label: 'Donations', icon: <DollarSign size={14} />, color: 'text-yellow-500' },
-    subscription: { label: 'Subscriptions', icon: <Star size={14} />, color: 'text-purple-500' },
-    purchase: { label: 'Sales', icon: <ShoppingCart size={14} />, color: 'text-orange-500' },
-    ad_reward: { label: 'Ad Rewards', icon: <Video size={14} />, color: 'text-blue-500' },
-    gig_completed: { label: 'Gigs', icon: <BookOpen size={14} />, color: 'text-green-500' },
+    engagement_reward: { label: t('Engagement'), icon: <Heart size={14} />, color: 'text-pink-500' },
+    donation: { label: t('Donations'), icon: <DollarSign size={14} />, color: 'text-yellow-500' },
+    subscription: { label: t('Subscriptions'), icon: <Star size={14} />, color: 'text-purple-500' },
+    purchase: { label: t('Sales'), icon: <ShoppingCart size={14} />, color: 'text-orange-500' },
+    ad_reward: { label: t('Ad Rewards'), icon: <Video size={14} />, color: 'text-blue-500' },
+    gig_completed: { label: t('Gigs'), icon: <BookOpen size={14} />, color: 'text-green-500' },
   };
 
   const categoryTotals: CategoryTotal[] = Object.entries(
@@ -108,11 +108,25 @@ export default function Wallet() {
   );
 
   const totalEarned = wallet?.total_earned || 0;
+   
+    const handleTopUp = async () => {
+  const amount = prompt(t('Enter amount in USD:'));
+  if (!amount) return;
+  try {
+    const res = await api.post('/monetization/create-checkout/', { amount });
+    window.location.href = res.data.url;
+  } catch (err) {
+    toast.error(t('Payment failed'));
+  }
+};
+
+
+
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <h2 className="text-3xl font-bold gradient-text mb-6 flex items-center gap-2">
-        <WalletIcon /> Wallet
+        <WalletIcon /> {t('Wallet')}
       </h2>
 
       {/* Balance Card */}
@@ -122,16 +136,16 @@ export default function Wallet() {
         className="glass p-6 rounded-2xl mb-6"
       >
         <div className="text-center">
-          <p className="text-gray-500 mb-1">Current Balance</p>
+          <p className="text-gray-500 mb-1">{t('Current Balance')}</p>
           <p className="text-5xl font-extrabold text-green-600">${Number(wallet?.balance || 0).toFixed(2)}</p>
-          <p className="text-gray-400 mt-1">Total earned: <span className="font-semibold">${Number(totalEarned).toFixed(2)}</span></p>
+          <p className="text-gray-400 mt-1">{t('Total earned')}: <span className="font-semibold">${Number(totalEarned).toFixed(2)}</span></p>
         </div>
         <button
           onClick={handleWithdraw}
           disabled={withdrawing || Number(wallet?.balance || 0) <= 0}
           className="mt-4 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white py-3 rounded-full font-semibold hover:scale-105 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <ArrowDownCircle size={18} /> {withdrawing ? 'Processing...' : 'Withdraw Funds'}
+          <ArrowDownCircle size={18} /> {withdrawing ? t('Processing...') : t('Withdraw Funds')}
         </button>
       </motion.div>
 
@@ -144,7 +158,7 @@ export default function Wallet() {
           className="glass p-4 rounded-2xl mb-6"
         >
           <h3 className="font-semibold mb-3 flex items-center gap-2">
-            <TrendingUp size={18} /> Earnings Breakdown
+            <TrendingUp size={18} /> {t('Earnings Breakdown')}
           </h3>
           <div className="space-y-2">
             {categoryTotals.map((cat, idx) => (
@@ -171,15 +185,16 @@ export default function Wallet() {
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {t(tab.charAt(0).toUpperCase() + tab.slice(1))}
           </button>
+
         ))}
       </div>
 
       {/* Transaction History */}
-      <h3 className="font-semibold text-xl mb-3">Transaction History</h3>
+      <h3 className="font-semibold text-xl mb-3">{t('Transaction History')}</h3>
       {filteredTransactions.length === 0 ? (
-        <p className="text-gray-500">No transactions yet.</p>
+        <p className="text-gray-500">{t('No transactions yet.')}</p>
       ) : (
         <div className="space-y-2">
           {filteredTransactions.map(tx => (
@@ -190,8 +205,8 @@ export default function Wallet() {
               className="glass p-3 rounded-xl flex justify-between items-center"
             >
               <div>
-                <p className="font-semibold text-sm capitalize">{tx.transaction_type.replace(/_/g, ' ')}</p>
-                <p className="text-xs text-gray-500">{tx.description}</p>
+                <p className="font-semibold text-sm capitalize">{t(tx.transaction_type.replace(/_/g, ' '))}</p>
+                <p className="text-xs text-gray-500">{t(tx.description)}</p>
                 <p className="text-xs text-gray-400">{new Date(tx.created_at).toLocaleDateString()}</p>
               </div>
               <span className={`font-bold ${tx.amount >= 0 ? 'text-green-600' : 'text-red-500'}`}>

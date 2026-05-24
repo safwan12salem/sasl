@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Users, MapPin } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 export default function OnlineUsers() {
   const [count, setCount] = useState(0);
   const [nearbyCount, setNearbyCount] = useState(0);
+  const [t] = useTranslation();
 
   useEffect(() => {
     // Simulate online users count
@@ -29,11 +31,11 @@ export default function OnlineUsers() {
       <div className="flex items-center gap-1">
         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
         <Users size={12} />
-        <span>{count.toLocaleString()} online</span>
+        <span>{count.toLocaleString()} {t('online')}</span>
       </div>
       <div className="flex items-center gap-1">
         <MapPin size={12} />
-        <span>{nearbyCount} near you</span>
+        <span>{nearbyCount} {t('near you')}</span>
       </div>
     </motion.div>
   );

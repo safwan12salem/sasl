@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { subscribeToNotifications } from '../services/supabase';
-
+import { useTranslation } from 'react-i18next';
 
 interface Notification {
   id: string;
@@ -36,7 +36,8 @@ export default function NotificationBell() {
   const panelRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const wsRef = useRef<WebSocket | null>(null);
-
+  const { t } = useTranslation();
+  
   useEffect(() => {
     if (!user) return;
     fetchNotifications();
@@ -49,7 +50,7 @@ export default function NotificationBell() {
     };
     
     const subscription = subscribeToNotifications((payload) => {
-    console.log('New notification:', payload.new);
+    console.log(t('New notification:'), payload.new);
     // Add to notifications list
     setNotifications(prev => [payload.new, ...prev]);
   });
@@ -68,9 +69,9 @@ export default function NotificationBell() {
     const ws = new WebSocket(`ws://localhost:8000/ws/notifications/?token=${token}`);
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === 'unread_count') {
+      if (data.type === t('unread_count')) {
         setUnreadCount(data.count);
-      } else if (data.type === 'new_notification') {
+      } else if (data.type === t('new_notification')) {
         setNotifications(prev => [data.notification, ...prev]);
         setUnreadCount(prev => prev + 1);
         // Show toast for new notification
@@ -146,10 +147,10 @@ export default function NotificationBell() {
             className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 overflow-hidden"
           >
             <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="font-bold">Notifications</h3>
+              <h3 className="font-bold">{t('Notifications')}</h3>
               {unreadCount > 0 && (
                 <button onClick={markAllRead} className="text-sm text-green-600 hover:underline">
-                  Mark all read
+                  {t('Mark all read')}
                 </button>
               )}
             </div>
@@ -162,7 +163,7 @@ export default function NotificationBell() {
               ) : notifications.length === 0 ? (
                 <div className="p-8 text-center text-gray-400">
                   <Bell size={32} className="mx-auto mb-2 opacity-50" />
-                  <p>No notifications yet</p>
+                  <p>{t('No notifications yet')}</p>
                 </div>
               ) : (
                 notifications.map(notification => (
@@ -180,7 +181,7 @@ export default function NotificationBell() {
                         {iconMap[notification.notification_type] || <Bell size={16} />}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-gray-800 line-clamp-2">{notification.message}</p>
+                        <p className="text-sm text-gray-800 line-clamp-2">{t(notification.message)}</p>
                         <p className="text-xs text-gray-400 mt-1">
                           {new Date(notification.created_at).toLocaleDateString()}
                         </p>

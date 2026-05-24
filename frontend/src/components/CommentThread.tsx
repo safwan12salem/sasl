@@ -8,6 +8,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { Loader2, Send, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
+import { t } from 'i18next';
 
 interface Comment {
   id: string;
@@ -25,7 +27,8 @@ interface CommentThreadProps {
 const CommentItem: React.FC<{ comment: Comment; depth?: number }> = ({ comment, depth = 0 }) => {
   const [showReplies, setShowReplies] = useState(false);
   const hasReplies = comment.replies && comment.replies.length > 0;
-
+  const { t } = useTranslation();
+  
   return (
     <div className={`pl-${depth * 4}`}>
       <div className="flex items-start gap-2 mb-2">
@@ -40,7 +43,7 @@ const CommentItem: React.FC<{ comment: Comment; depth?: number }> = ({ comment, 
             <span>❤️ {comment.likes_count}</span>
             {hasReplies && (
               <button onClick={() => setShowReplies(!showReplies)} className="hover:text-blue-500 flex items-center gap-1">
-                {comment.replies!.length} replies {showReplies ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                {t('comment_replies', { count: comment.replies!.length })} {showReplies ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
               </button>
             )}
           </div>
@@ -122,7 +125,7 @@ const CommentThread: React.FC<CommentThreadProps> = ({ postId }) => {
       {loading && <div className="flex justify-center py-2"><Loader2 className="animate-spin" size={18} /></div>}
       {hasMore && !loading && (
         <button onClick={() => { setPage(prev => prev + 1); fetchComments(page + 1); }} className="text-sm text-green-500 hover:underline">
-          Load more comments
+          {t('load_more_comments')}
         </button>
       )}
     </div>

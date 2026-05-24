@@ -4,6 +4,9 @@
  */
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
+
 
 const API_KEY = 'LIVDSRZULELA';
 const BASE_URL = 'https://g.tenor.com/v1';
@@ -28,7 +31,7 @@ const GifPicker: React.FC<GifPickerProps> = ({ onSelect, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [nextPos, setNextPos] = useState<string>('');
-
+   const { t } = useTranslation();
   const fetchGifs = useCallback(async (query: string, pos: string = '') => {
     setLoading(true);
     try {
@@ -47,7 +50,7 @@ const GifPicker: React.FC<GifPickerProps> = ({ onSelect, onClose }) => {
       setNextPos(data.next || '');
       setHasMore(!!data.next);
     } catch (err) {
-      console.error('GIF fetch error', err);
+      console.error(t('GIF fetch error'), err);
     } finally {
       setLoading(false);
     }
@@ -65,13 +68,13 @@ const GifPicker: React.FC<GifPickerProps> = ({ onSelect, onClose }) => {
   return (
     <div className="absolute bottom-full left-0 mb-2 w-80 bg-white rounded-xl shadow-2xl border p-3 z-50">
       <div className="flex justify-between items-center mb-2">
-        <h3 className="font-semibold text-sm">GIFs</h3>
+        <h3 className="font-semibold text-sm">{t('GIFs')}</h3>
         <button onClick={onClose}><X size={16} /></button>
       </div>
       <form onSubmit={handleSearch} className="flex gap-1 mb-2">
         <input
           type="text"
-          placeholder="Search GIFs..."
+          placeholder={t('Search GIFs...')}
           className="input-field text-sm py-1"
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -95,7 +98,7 @@ const GifPicker: React.FC<GifPickerProps> = ({ onSelect, onClose }) => {
       {loading && <div className="flex justify-center py-2"><Loader2 className="animate-spin" size={18} /></div>}
       {hasMore && !loading && (
         <button onClick={() => fetchGifs(search, nextPos)} className="w-full text-center text-sm text-green-600 hover:underline mt-2">
-          Load more
+          {t('Load more')}
         </button>
       )}
     </div>

@@ -7,6 +7,8 @@ import * as tf from '@tensorflow/tfjs';
 import * as faceLandmarksDetection from '@tensorflow-models/face-landmarks-detection';
 import { Camera, Sparkles, Heart, Star, Sun } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
+
 
 interface Filter {
   id: string;
@@ -32,6 +34,7 @@ export default function ARFilters() {
   const [recording, setRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const animationRef = useRef<number>(0);
+  const { t } = useTranslation();
 
   useEffect(() => {
     initCamera();
@@ -50,7 +53,7 @@ export default function ARFilters() {
       );
       setModel(detector);
     } catch (err) {
-      console.log('Face detection model loaded in basic mode');
+      console.log(t('face_detection_model_loaded_in_basic_mode'));
     }
     setLoading(false);
   };
@@ -66,7 +69,7 @@ export default function ARFilters() {
         };
       }
     } catch (err) {
-      toast.error('Camera access denied');
+      toast.error(t('camera_access_denied'));
       setLoading(false);
     }
   };
@@ -84,7 +87,7 @@ export default function ARFilters() {
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext(('2d'));
     if (!ctx) return;
 
     canvas.width = video.videoWidth;
@@ -105,13 +108,13 @@ export default function ARFilters() {
       // Apply filters on detected faces
       faces.forEach(face => {
         const keypoints = face.keypoints;
-        if (activeFilter === 'hearts') {
+        if (activeFilter === t('hearts')) {
           drawHearts(ctx, keypoints);
-        } else if (activeFilter === 'stars') {
+        } else if (activeFilter === t('stars')) {
           drawStars(ctx, keypoints);
-        } else if (activeFilter === 'glow') {
+        } else if (activeFilter === t('glow')) {
           drawGlow(ctx, keypoints);
-        } else if (activeFilter === 'sunshine') {
+        } else if (activeFilter === t('sunshine')) {
           drawSunshine(ctx, keypoints);
         }
       });
@@ -219,18 +222,18 @@ export default function ARFilters() {
       a.href = url;
       a.download = 'sasl-ar-filter.webm';
       a.click();
-      toast.success('Recording saved!');
+      toast.success(t('recording_saved'));
     };
     mediaRecorderRef.current = recorder;
     recorder.start();
     setRecording(true);
-    toast.success('Recording started');
+    toast.success(t('recording_started'));
   };
 
   const stopRecording = () => {
     mediaRecorderRef.current?.stop();
     setRecording(false);
-    toast.success('Recording stopped');
+    toast.success(t('recording_stopped'));
   };
 
   if (loading) {
@@ -254,7 +257,7 @@ export default function ARFilters() {
                 ? `${filter.color} text-white scale-110 shadow-lg`
                 : 'bg-white/80 text-gray-600 hover:bg-white'
             }`}
-            title={filter.name}
+            title={t(filter.name)}
           >
             {filter.icon}
           </button>

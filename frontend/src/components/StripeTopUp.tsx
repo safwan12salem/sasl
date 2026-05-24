@@ -4,7 +4,7 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { DollarSign, Loader2 } from 'lucide-react';
-
+import { useTranslation } from 'react-i18next';
 const stripePromise = loadStripe('pk_test_your_publishable_key');
 
 function TopUpForm() {
@@ -12,6 +12,7 @@ function TopUpForm() {
   const elements = useElements();
   const [amount, setAmount] = useState(10);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,16 +29,16 @@ function TopUpForm() {
       });
 
       if (result.error) {
-        toast.error(result.error.message || 'Payment failed');
+        toast.error(result.error.message || t('Payment failed'));
       } else if (result.paymentIntent?.status === 'succeeded') {
         // Confirm on backend
         await api.post('/monetization/stripe/confirm_topup/', {
           payment_intent_id: result.paymentIntent.id
         });
-        toast.success(`$${amount} added to wallet!`);
+        toast.success(t(`$${amount} added to wallet!`));
       }
     } catch (err: any) {
-      toast.error('Payment failed');
+      toast.error(t('Payment failed'));
     } finally {
       setLoading(false);
     }
@@ -46,7 +47,7 @@ function TopUpForm() {
   return (
     <div className="glass p-6 rounded-2xl max-w-md mx-auto">
       <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
-        <DollarSign /> Top Up Wallet
+        <DollarSign /> {t('Top Up Wallet')}
       </h3>
       <div className="flex gap-2 mb-4">
         {[5, 10, 25, 50].map(val => (
@@ -70,7 +71,7 @@ function TopUpForm() {
         className="btn-primary w-full flex items-center justify-center gap-2"
       >
         {loading ? <Loader2 className="animate-spin" size={16} /> : <DollarSign size={16} />}
-        Pay ${amount}
+        {t('Pay')} ${amount}
       </button>
     </div>
   );

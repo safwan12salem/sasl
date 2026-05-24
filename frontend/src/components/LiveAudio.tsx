@@ -88,7 +88,7 @@ export default function LiveAudio() {
   // Invite
   const [showInvite, setShowInvite] = useState(false);
   const [inviteUsername, setInviteUsername] = useState('');
-
+  
   // ============================================================
   // FETCH
   // ============================================================
@@ -101,7 +101,7 @@ export default function LiveAudio() {
       const res = await api.get(`/liveaudio/rooms/?${params.toString()}`);
       setRooms(res.data.results || res.data || []);
     } catch (err) {
-      setError('Failed to load rooms.');
+      setError(t('failed_to_load_rooms'));
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ export default function LiveAudio() {
   // ACTIONS
   // ============================================================
   const createRoom = async () => {
-    if (!roomTitle.trim()) return toast.error('Enter a room title');
+    if (!roomTitle.trim()) return toast.error(t('enter_room_title'));
     try {
       await api.post('/liveaudio/rooms/', {
         title: roomTitle,
@@ -122,11 +122,11 @@ export default function LiveAudio() {
         is_public: isPublic,
         max_listeners: parseInt(maxListeners),
       });
-      toast.success('Room created! 🎙️');
+      toast.success(t('room_created'));
       resetCreateForm();
       fetchRooms();
     } catch (err: any) {
-      toast.error('Failed to create room');
+      toast.error(t('failed_to_create_room'));
     }
   };
 
@@ -145,9 +145,9 @@ export default function LiveAudio() {
       }
 
       fetchRooms();
-      toast.success('Joined room! 🎉');
+      toast.success(t('Joined room! 🎉'));
     } catch (err) {
-      toast.error('Microphone access needed');
+      toast.error(t('Microphone access needed'));
     }
   };
 
@@ -179,7 +179,7 @@ export default function LiveAudio() {
     try {
       const res = await api.post(`/liveaudio/rooms/${inRoom}/raise_hand/`);
       setHandRaised(res.data.status === 'hand_raised');
-      toast(res.data.status === 'hand_raised' ? 'Hand raised! Host will see your request.' : 'Hand lowered');
+      toast(res.data.status === 'hand_raised' ? t('hand_raised') : t('hand_lowered'));
     } catch {}
   };
 
@@ -187,19 +187,19 @@ export default function LiveAudio() {
     if (!inviteUsername.trim() || !inRoom) return;
     try {
       await api.post(`/liveaudio/rooms/${inRoom}/invite_speaker/`, { username: inviteUsername });
-      toast.success(`${inviteUsername} invited as speaker!`);
+      toast.success(t('speaker_invited'));
       setInviteUsername('');
       setShowInvite(false);
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to invite');
+      toast.error(err.response?.data?.error || t('failed_to_invite'));
     }
   };
-
+ // eslint-disable-next-line @typescript-eslint/no-unused-vars  
   const removeSpeaker = async (username: string) => {
     if (!inRoom) return;
     try {
       await api.post(`/liveaudio/rooms/${inRoom}/remove_speaker/`, { username });
-      toast.success(`${username} removed from speakers`);
+      toast.success(t('speaker_removed'));
     } catch {}
   };
 
@@ -217,7 +217,7 @@ export default function LiveAudio() {
   const endRoom = async (roomId: string) => {
     try {
       await api.post(`/liveaudio/rooms/${roomId}/end_room/`);
-      toast.success('Room ended');
+      toast.success(t('room_ended'));
       fetchRooms();
     } catch {}
   };
@@ -261,7 +261,7 @@ export default function LiveAudio() {
                 ))}
               </div>
               
-              <span className="text-sm font-semibold">{listenerCount} listening</span>
+              <span className="text-sm font-semibold">{listenerCount} {t('listening')}</span>
 
               <div className="flex items-center gap-1">
                 <button onClick={toggleMute} className={`p-2.5 rounded-full transition ${isMuted ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
@@ -323,12 +323,12 @@ export default function LiveAudio() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <div>
           <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-            <Radio className="text-purple-500" /> Live Audio
+            <Radio className="text-purple-500" /> {t('live_audio')}
           </h2>
-          <p className="text-gray-500 text-sm mt-1">Join conversations, share ideas, connect with voices</p>
+          <p className="text-gray-500 text-sm mt-1">{t('join_conversations_share_ideas_connect_with_voices')}</p>
         </div>
         <button onClick={() => setShowCreate(!showCreate)} className="btn-primary flex items-center gap-2">
-          <Plus size={18} /> {showCreate ? 'Cancel' : 'Host Room'}
+          <Plus size={18} /> {showCreate ? t('cancel') : t('host_room')}
         </button>
       </div>
 
@@ -337,7 +337,7 @@ export default function LiveAudio() {
         {showCreate && (
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
             className="glass p-6 rounded-2xl mb-6 space-y-3 shadow-xl border-2 border-purple-200">
-            <h3 className="font-bold text-lg flex items-center gap-2"><Radio size={18} /> Host Audio Room</h3>
+            <h3 className="font-bold text-lg flex items-center gap-2"><Radio size={18} /> {t('host_audio_room')}</h3>
             <input className="input-field" placeholder="Room title *" value={roomTitle} onChange={e => setRoomTitle(e.target.value)} />
             <textarea className="input-field" placeholder="Description..." value={roomDesc} onChange={e => setRoomDesc(e.target.value)} rows={2} />
             <input className="input-field" placeholder="Topics (comma separated)" value={roomTopics} onChange={e => setRoomTopics(e.target.value)} />
@@ -356,7 +356,7 @@ export default function LiveAudio() {
       {/* Topic Pills */}
       <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
         <button onClick={() => setActiveTopic('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${!activeTopic ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
-          All
+          {t('all')}
         </button>
         {['Tech', 'Music', 'Business', 'Health', 'Education', 'Entertainment', 'Sports', 'News'].map(topic => (
           <button key={topic} onClick={() => setActiveTopic(topic)} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${activeTopic === topic ? 'bg-purple-500 text-white' : 'bg-gray-100 text-gray-600'}`}>
@@ -372,13 +372,13 @@ export default function LiveAudio() {
         <div className="glass p-12 rounded-2xl text-center">
           <AlertCircle className="mx-auto mb-3 text-red-500" size={48} />
           <p>{error}</p>
-          <button onClick={fetchRooms} className="btn-primary mt-4">Retry</button>
+          <button onClick={fetchRooms} className="btn-primary mt-4">{t('retry')}</button>
         </div>
       ) : rooms.length === 0 ? (
         <div className="glass p-12 rounded-2xl text-center">
           <Radio size={48} className="mx-auto mb-3 text-gray-300" />
-          <p className="text-xl text-gray-500">No live rooms right now</p>
-          <p className="text-sm text-gray-400">Be the first to host one!</p>
+          <p className="text-xl text-gray-500">{t('no_live_rooms')}</p>
+          <p className="text-sm text-gray-400">{t('be_the_first_to_host_one')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -393,7 +393,7 @@ export default function LiveAudio() {
                     </div>
                     <div>
                       <h3 className="font-bold text-lg">{room.title}</h3>
-                      <p className="text-sm text-gray-500">Hosted by @{room.host.username}</p>
+                      <p className="text-sm text-gray-500">{t('hosted_by')} @{room.host.username}</p>
                     </div>
                   </div>
                   {room.description && <p className="text-sm text-gray-600 mt-1">{room.description}</p>}
@@ -411,7 +411,7 @@ export default function LiveAudio() {
                     <p className="text-2xl font-bold text-purple-600 flex items-center gap-1">
                       <Users size={18} /> {room.current_listeners}
                     </p>
-                    <p className="text-xs text-gray-500">listening</p>
+                    <p className="text-xs text-gray-500">{t('listening')}</p>
                   </div>
 
                   {/* Speakers preview */}
@@ -431,11 +431,11 @@ export default function LiveAudio() {
                   )}
 
                   <button onClick={() => joinRoom(room.id, false)} className="btn-primary text-sm">
-                    Join
+                    {t('join')}
                   </button>
                   {room.host.username === user?.username && (
                     <button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline">
-                      End
+                      {t('end')}
                     </button>
                   )}
                 </div>

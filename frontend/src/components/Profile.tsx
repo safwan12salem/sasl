@@ -16,7 +16,7 @@ import {
   Upload, Image as ImageIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import { useTranslation } from 'react-i18next';
 export default function Profile() {
   const { user: currentUser } = useAuth();
   const { username } = useParams<{ username: string }>();
@@ -34,7 +34,7 @@ export default function Profile() {
   const [pfDesc, setPfDesc] = useState('');
   const [pfLink, setPfLink] = useState('');
   const [pfImage, setPfImage] = useState<File | null>(null);
-
+  const { t } = useTranslation();
   const isOwnProfile = !username || (currentUser && currentUser.username === username);
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function Profile() {
           setAvatarPreview(res.data.avatar_url || null);
         }
       } catch (err) {
-        toast.error('Profile not found');
+        toast.error( t('Profile not found'));
       } finally {
         setLoading(false);
       }
@@ -68,16 +68,16 @@ export default function Profile() {
 
   const handleSave = async () => {
     const formData = new FormData();
-    formData.append('display_name', editForm.display_name);
+    formData.append(' display_name', editForm.display_name);
     formData.append('bio', editForm.bio);
     if (avatarFile) formData.append('avatar', avatarFile);
     try {
-      await api.patch('/users/profile/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      toast.success('Profile updated!');
+      await api.patch('/users/profile/', formData, { headers: {'Content-Type': 'multipart/form-data' } });
+      toast.success(t('Profile updated!'));
       setIsEditing(false);
       window.location.reload();
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || 'Update failed');
+      toast.error(err.response?.data?.detail ||t('Update failed'));
     }
   };
 
@@ -85,29 +85,29 @@ export default function Profile() {
     if (!profile) return;
     try {
       await api.post('/users/follow/toggle/', { username: profile.username });
-      toast.success('Done!');
+      toast.success(t('Done!'));
       window.location.reload();
     } catch {}
   };
 
   // ✅ FIXED: Add portfolio item
   const addPortfolioItem = async () => {
-    if (!pfTitle.trim()) return toast.error('Title required');
+    if (!pfTitle.trim()) return toast.error(t('Title required'));
     const formData = new FormData();
-    formData.append('title', pfTitle);
-    formData.append('description', pfDesc);
-    if (pfLink) formData.append('link', pfLink);
-    if (pfImage) formData.append('image', pfImage);
+    formData.append(t('title'), pfTitle);
+    formData.append(t('description'), pfDesc);
+    if (pfLink) formData.append(t('link'), pfLink);
+    if (pfImage) formData.append(t('image'), pfImage);
     try {
       await api.post('/gigs/gigs/add_portfolio/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      toast.success('Portfolio item added!');
+      toast.success(t('Portfolio item added!'));
       setShowPortfolioForm(false);
       setPfTitle(''); setPfDesc(''); setPfLink(''); setPfImage(null);
       fetchPortfolio();
     } catch (err: any) {
-      toast.error('Failed to add portfolio item');
+      toast.error(t('Failed to add portfolio item'));
     }
   };
 
@@ -127,7 +127,7 @@ export default function Profile() {
   if (!profile) {
     return (
       <div className="text-center py-20">
-        <h2 className="text-2xl font-bold text-gray-600">Profile not found</h2>
+        <h2 className="text-2xl font-bold text-gray-600">{t('Profile not found')}</h2>
       </div>
     );
   }
@@ -186,7 +186,7 @@ export default function Profile() {
                     {profile.display_name || profile.username}
                     {profile.is_verified && (
                       <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        <Check size={12} className="mr-1" /> Verified
+                        <Check size={12} className="mr-1" /> {t('Verified')}
                       </span>
                     )}
                   </h1>
@@ -206,7 +206,7 @@ export default function Profile() {
                 ) : (
                   <>
                     <button onClick={handleFollow} className={`btn-primary text-sm py-1.5 px-6 ${isFollowing ? 'bg-gray-400' : ''}`}>
-                      {isFollowing ? 'Following' : 'Follow'}
+                      {isFollowing ? t('Following') : t('Follow')}
                     </button>
                     {profile.is_creator && <SubscribeButton creatorUsername={profile.username} />}
                   </>
@@ -218,28 +218,28 @@ export default function Profile() {
               <textarea value={editForm.bio} onChange={e => setEditForm({ ...editForm, bio: e.target.value })}
                 className="mt-2 w-full bg-white border rounded-lg px-3 py-2 text-sm" rows={3} placeholder="Tell the world about yourself..." />
             ) : (
-              <p className="mt-2 text-gray-600">{profile.bio || 'No bio yet.'}</p>
+              <p className="mt-2 text-gray-600">{profile.bio || t('No bio yet.')}</p>
             )}
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
               <div className="bg-white rounded-xl p-3 text-center shadow-sm">
                 <p className="text-2xl font-bold text-green-600">{profile.followers_count || 0}</p>
-                <p className="text-xs text-gray-500">Followers</p>
+                <p className="text-xs text-gray-500">{t('Followers')}</p>
               </div>
               <div className="bg-white rounded-xl p-3 text-center shadow-sm">
                 <p className="text-2xl font-bold text-blue-600">{profile.following_count || 0}</p>
-                <p className="text-xs text-gray-500">Following</p>
+                <p className="text-xs text-gray-500">{t('Following')}</p>
               </div>
               {(isOwnProfile || profile.show_balance) && (
                 <div className="bg-white rounded-xl p-3 text-center shadow-sm">
                   <p className="text-2xl font-bold text-yellow-600">${Number(profile.wallet?.balance || 0).toFixed(0)}</p>
-                  <p className="text-xs text-gray-500">Balance</p>
+                  <p className="text-xs text-gray-500">{t('Balance')}</p>
                 </div>
               )}
               {(isOwnProfile || profile.show_earnings) && (
                 <div className="bg-white rounded-xl p-3 text-center shadow-sm">
                   <p className="text-2xl font-bold text-purple-600">${Number(profile.wallet?.total_earned || 0).toFixed(0)}</p>
-                  <p className="text-xs text-gray-500">Earned</p>
+                  <p className="text-xs text-gray-500">{t('Earned')}</p>
                 </div>
               )}
             </div>
@@ -249,11 +249,11 @@ export default function Profile() {
         {/* Tabs */}
         <div className="flex border-b border-gray-200 mt-8 overflow-x-auto">
           {[
-            { key: 'posts', label: 'Posts', icon: <Heart size={14} /> },
-            { key: 'reels', label: 'Reels', icon: <Video size={14} /> },
-            { key: 'products', label: 'Products', icon: <ShoppingBag size={14} /> },
-            { key: 'gigs', label: 'Gigs', icon: <Zap size={14} /> },
-            { key: 'portfolio', label: 'Portfolio', icon: <Briefcase size={14} /> },
+            { key: 'posts', label: t('Posts'), icon: <Heart size={14} /> },
+            { key: 'reels', label: t('Reels'), icon: <Video size={14} /> },
+            { key: 'products', label: t('Products'), icon: <ShoppingBag size={14} /> },
+            { key: 'gigs', label: t('Gigs'), icon: <Zap size={14} /> },
+            { key: 'portfolio', label: t('Portfolio'), icon: <Briefcase size={14} /> },
           ].map(({ key, label, icon }) => (
             <button key={key} onClick={() => setActiveTab(key as any)}
               className={`flex items-center gap-1 px-6 py-3 text-sm font-semibold transition border-b-2 -mb-px whitespace-nowrap ${
@@ -284,7 +284,7 @@ export default function Profile() {
                     className="glass p-3 rounded-xl border-2 border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 hover:text-green-500 hover:border-green-400 transition min-h-[150px]"
                   >
                     <PlusCircle size={32} />
-                    <span className="text-sm mt-2 font-semibold">Add Project</span>
+                    <span className="text-sm mt-2 font-semibold">{t('Add Project')}</span>
                   </button>
                 )}
               </div>
@@ -298,19 +298,19 @@ export default function Profile() {
                     <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                       className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
                       onClick={e => e.stopPropagation()}>
-                      <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Upload size={18} /> Add Portfolio Item</h3>
-                      <input className="input-field mb-3" placeholder="Project title *" value={pfTitle} onChange={e => setPfTitle(e.target.value)} />
-                      <textarea className="input-field mb-3" placeholder="Description..." value={pfDesc} onChange={e => setPfDesc(e.target.value)} rows={2} />
-                      <input className="input-field mb-3" placeholder="Link (optional)" value={pfLink} onChange={e => setPfLink(e.target.value)} />
+                      <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Upload size={18} /> {t('Add Portfolio Item')}</h3>
+                      <input className="input-field mb-3" placeholder={t('Project title *')} value={pfTitle} onChange={e => setPfTitle(e.target.value)} />
+                      <textarea className="input-field mb-3" placeholder={t('Description...')} value={pfDesc} onChange={e => setPfDesc(e.target.value)} rows={2} />
+                      <input className="input-field mb-3" placeholder={t('Link (optional)')} value={pfLink} onChange={e => setPfLink(e.target.value)} />
                       <div className="mb-3">
                         <label className="btn-ghost cursor-pointer flex items-center gap-1 text-sm">
-                          <ImageIcon size={16} /> {pfImage ? pfImage.name : 'Upload Image'}
+                          <ImageIcon size={16} /> {pfImage ? pfImage.name : t('Upload Image')}
                           <input type="file" accept="image/*" className="hidden" onChange={e => setPfImage(e.target.files?.[0] || null)} />
                         </label>
                       </div>
                       <div className="flex gap-2">
-                        <button onClick={addPortfolioItem} className="btn-primary flex-1">Add to Portfolio</button>
-                        <button onClick={() => setShowPortfolioForm(false)} className="btn-ghost">Cancel</button>
+                        <button onClick={addPortfolioItem} className="btn-primary flex-1">{t('Add to Portfolio')}</button>
+                        <button onClick={() => setShowPortfolioForm(false)} className="btn-ghost">{t('Cancel')}</button>
                       </div>
                     </motion.div>
                   </motion.div>
@@ -319,7 +319,7 @@ export default function Profile() {
             </div>
           )}
           {activeTab !== 'portfolio' && (
-            <p className="text-gray-500 text-center py-10">Content will appear here</p>
+            <p className="text-gray-500 text-center py-10">{t('Content will appear here')}</p>
           )}
         </div>
       </div>

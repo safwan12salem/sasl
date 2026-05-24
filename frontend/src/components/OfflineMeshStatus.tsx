@@ -7,6 +7,7 @@ import { Wifi, WifiOff, Users, Radio } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { WaveMeshNode } from '../services/waveMesh';
 import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 let meshNode: WaveMeshNode | null = null;
 
@@ -19,6 +20,7 @@ export default function OfflineMeshStatus() {
   const [peers, setPeers] = useState<string[]>([]);
   const [meshActive, setMeshActive] = useState(false);
   const [incomingMessages, setIncomingMessages] = useState<any[]>([]);
+  const [t] = useTranslation();
 
   useEffect(() => {
     if (!user) return;
@@ -53,7 +55,7 @@ export default function OfflineMeshStatus() {
   };
 
   const sendTestMessage = () => {
-    meshNode?.sendMeshMessage('Hello from the mesh! 🌊');
+    meshNode?.sendMeshMessage(t('Hello from the mesh! 🌊'));
   };
 
   return (
@@ -107,12 +109,12 @@ export default function OfflineMeshStatus() {
           
           <div className="flex gap-2">
             <button onClick={sendTestMessage} className="btn-primary text-xs py-1 px-3 flex-1">
-              Send Message
+              {t('Send Message')}
             </button>
           </div>
           
           <p className="text-[10px] text-gray-400 mt-2 text-center">
-            Post, chat, and search without internet via WaveMesh
+            {t('Post, chat, and search without internet via WaveMesh')}
           </p>
         </motion.div>
       )}

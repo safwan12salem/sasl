@@ -70,23 +70,26 @@ interface TutorProfile {
   total_students?: number;
 }
 
-const SUBJECTS = [
-  'Mathematics', 'Physics', 'Chemistry', 'Biology', 'English',
-  'Programming', 'Web Development', 'Data Science', 'AI/ML',
-  'Music', 'Art', 'History', 'Geography', 'Economics',
-  'Business', 'Marketing', 'Design', 'Photography', 'Language'
-];
-
-const STATUS_COLORS: Record<string, string> = {
-  scheduled: 'bg-blue-100 text-blue-700',
-  ongoing: 'bg-green-100 text-green-700',
-  completed: 'bg-purple-100 text-purple-700',
-  cancelled: 'bg-red-100 text-red-700',
-};
 
 export default function Tutoring() {
   const { user } = useAuth();
   const { t } = useTranslation();
+
+const SUBJECTS = [
+  t('Mathematics'), t('Physics'), t('Chemistry'), t('Biology'), t('English'),
+  t('Programming'), t('Web Development'), t('Data Science'), t('AI/ML'),
+  t('Music'), t('Art'), t('History'), t('Geography'), t('Economics'),
+  t('Business'), t('Marketing'), t('Design'), t('Photography'), t('Language')
+];
+
+const STATUS_COLORS: Record<string, string> = {
+  [t('scheduled')]: 'bg-blue-100 text-blue-700',
+  [t('ongoing')]: 'bg-green-100 text-green-700',
+  [t('completed')]: 'bg-purple-100 text-purple-700',
+  [t('cancelled')]: 'bg-red-100 text-red-700',
+};
+
+
 
   // Sessions
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -161,7 +164,7 @@ export default function Tutoring() {
       setSessions(data);
 
       // Calculate stats
-      const completed = data.filter((s: Session) => s.status === 'completed');
+      const completed = data.filter((s: Session) => s.status === t('completed'));
       setStats({
         totalSessions: data.length,
         completedSessions: completed.length,
@@ -175,7 +178,7 @@ export default function Tutoring() {
           .toFixed(2),
       });
     } catch (err) {
-      setError('Failed to load sessions.');
+      setError(t('Failed to load sessions.'));
     } finally {
       setLoading(false);
     }
@@ -185,14 +188,18 @@ export default function Tutoring() {
     try {
       const res = await api.get('/tutoring/profiles/');
       setTutors(res.data.results || res.data || []);
-    } catch {}
+    } catch (err) {
+      setError(t('Failed to load tutor profiles.'));
+    }
   };
 
   const fetchCertificates = async () => {
     try {
       const res = await api.get('/tutoring/sessions/my_certificates/');
       setCertificates(res.data || []);
-    } catch {}
+    } catch (err) {
+      setError(t('Failed to load certificates.'));
+    }
   };
 
   useEffect(() => { fetchSessions(); fetchTutors(); fetchCertificates(); }, [fetchSessions]);
@@ -201,7 +208,7 @@ export default function Tutoring() {
   // ACTIONS
   // ============================================================
   const createSession = async () => {
-    if (!subject || !price || !scheduledAt) return toast.error('Fill all required fields');
+    if (!subject || !price || !scheduledAt) return toast.error(t('Fill all required fields'));
     try {
       await api.post('/tutoring/sessions/', {
         subject,
@@ -224,26 +231,26 @@ export default function Tutoring() {
   const completeSession = async (id: string) => {
     try {
       await api.post(`/tutoring/sessions/${id}/complete/`);
-      toast.success('Session completed & payment released! 💰');
+      toast.success(t('Session completed & payment released! 💰'));
       fetchSessions();
       fetchCertificates();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Action failed');
+      toast.error(err.response?.data?.error || t('Action failed'));
     }
   };
 
   const cancelSession = async (id: string) => {
     try {
       await api.post(`/tutoring/sessions/${id}/cancel/`);
-      toast.success('Session cancelled');
+      toast.success(t('Session cancelled'));
       fetchSessions();
     } catch (err: any) {
-      toast.error('Failed to cancel');
+      toast.error(t('Failed to cancel'));
     }
   };
 
   const uploadMaterial = async (sessionId: string) => {
-    if (!uploadFile || !materialTitle) return toast.error('Title and file required');
+    if (!uploadFile || !materialTitle) return toast.error(t('Title and file required'));
     const formData = new FormData();
     formData.append('title', materialTitle);
     formData.append('description', materialDesc);
@@ -253,21 +260,21 @@ export default function Tutoring() {
       await api.post(`/tutoring/sessions/${sessionId}/upload_material/`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      toast.success('Material uploaded!');
+      toast.success(t('Material uploaded!'));
       setMaterialTitle(''); setMaterialDesc(''); setUploadFile(null);
       fetchSessions();
     } catch (err: any) {
-      toast.error('Failed to upload');
+      toast.error(t('Failed to upload'));
     }
   };
 
   const confirmSession = async (id: string) => {
     try {
       await api.post(`/tutoring/sessions/${id}/confirm/`);
-      toast.success('Session started!');
+      toast.success(t('Session started!'));
       fetchSessions();
     } catch (err: any) {
-      toast.error('Failed to confirm');
+      toast.error(t('Failed to confirm'));
     }
   };
 
@@ -296,7 +303,7 @@ export default function Tutoring() {
         };
         setInCall(sessionId);
       })
-      .catch(() => toast.error('Camera access denied'));
+      .catch(() => toast.error(t('Camera access denied')));
   };
 
   const endCall = () => {
@@ -312,7 +319,9 @@ export default function Tutoring() {
     try {
       const res = await api.get(`/tutoring/sessions/${sessionId}/whiteboard/`);
       setWhiteboardData(res.data);
-    } catch {}
+    } catch (err) {
+      setError(t('Failed to load whiteboard data.'));
+    }
   };
 
   const startDrawing = (e: React.MouseEvent) => {
@@ -354,8 +363,10 @@ export default function Tutoring() {
     const dataUrl = canvas.toDataURL();
     try {
       await api.post(`/tutoring/sessions/${inCall}/update_whiteboard/`, { data: dataUrl });
-      toast.success('Whiteboard saved!');
-    } catch { toast.error('Failed to save'); }
+      toast.success(t('Whiteboard saved!'));
+    } catch (err) {
+      toast.error(t('Failed to save'));
+    }
   };
 
   // ============================================================
@@ -394,21 +405,21 @@ export default function Tutoring() {
             <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto">
               <div className="flex justify-between items-center p-4 border-b">
                 <h3 className="font-bold flex items-center gap-2">
-                  <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" /> Live Class
+                  <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" /> {t('Live Class')}
                 </h3>
                 <div className="flex items-center gap-2">
                   <button onClick={() => { setShowWhiteboard(!showWhiteboard); if (!showWhiteboard && inCall) fetchWhiteboard(inCall); }}
                     className="btn-ghost text-sm flex items-center gap-1">
-                    <PenTool size={14} /> Whiteboard
+                    <PenTool size={14} /> {t('Whiteboard')}
                   </button>
                   <button onClick={() => setShowChat(!showChat)} className="btn-ghost text-sm flex items-center gap-1">
-                    <MessageCircle size={14} /> {showChat ? 'Hide Chat' : 'Chat'}
+                    <MessageCircle size={14} /> {showChat ? t('Hide Chat') : t('Chat')}
                   </button>
                   <button onClick={() => setShowMaterials(!showMaterials)} className="btn-ghost text-sm flex items-center gap-1">
-                    <FileText size={14} /> Materials
+                    <FileText size={14} /> {t('Materials')}
                   </button>
                   <button onClick={endCall} className="bg-red-500 text-white px-3 py-1.5 rounded-full text-sm flex items-center gap-1">
-                    <VideoOff size={14} /> End
+                    <VideoOff size={14} /> {t('End')}
                   </button>
                 </div>
               </div>
@@ -429,14 +440,14 @@ export default function Tutoring() {
                 </div>
                 {showWhiteboard && (
                   <div className="w-1/3 border-l p-3">
-                    <h4 className="font-bold text-sm mb-2">Whiteboard</h4>
+                    <h4 className="font-bold text-sm mb-2">{t('Whiteboard')}</h4>
                     <div className="flex gap-1 mb-2">
                       <input type="color" value={penColor} onChange={e => setPenColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
                       <select value={penSize} onChange={e => setPenSize(Number(e.target.value))} className="text-xs border rounded px-1">
                         {[1,2,3,5,8].map(s => <option key={s} value={s}>{s}px</option>)}
                       </select>
-                      <button onClick={clearWhiteboard} className="text-xs btn-ghost">Clear</button>
-                      <button onClick={saveWhiteboard} className="text-xs btn-primary">Save</button>
+                      <button onClick={clearWhiteboard} className="text-xs btn-ghost">{t('Clear')}</button>
+                      <button onClick={saveWhiteboard} className="text-xs btn-primary">{t('Save')}</button>
                     </div>
                     <canvas ref={canvasRef} width={400} height={300}
                       className="border rounded w-full bg-white cursor-crosshair"
@@ -451,20 +462,20 @@ export default function Tutoring() {
                 )}
                 {showMaterials && (
                   <div className="w-1/3 border-l p-3 overflow-y-auto max-h-[60vh]">
-                    <h4 className="font-bold text-sm mb-3">Session Materials</h4>
+                    <h4 className="font-bold text-sm mb-3">{t('Session Materials')}</h4>
                     {sessions.find(s => s.id === inCall)?.materials?.map(m => (
                       <div key={m.id} className="bg-gray-50 p-2 rounded-lg mb-2">
                         <p className="text-sm font-semibold">{m.title}</p>
                         {m.description && <p className="text-xs text-gray-500">{m.description}</p>}
-                        {m.file_url && <a href={m.file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1 mt-1"><Download size={12} /> Download</a>}
+                        {m.file_url && <a href={m.file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1 mt-1"><Download size={12} /> {t('Download')}</a>}
                       </div>
                     ))}
                     {user?.is_teacher && (
                       <div className="border-t pt-3 mt-3 space-y-2">
-                        <input className="input-field text-sm" placeholder="Material title" value={materialTitle} onChange={e => setMaterialTitle(e.target.value)} />
-                        <input className="input-field text-sm" placeholder="Description" value={materialDesc} onChange={e => setMaterialDesc(e.target.value)} />
+                        <input className="input-field text-sm" placeholder={t('Material title')} value={materialTitle} onChange={e => setMaterialTitle(e.target.value)} />
+                        <input className="input-field text-sm" placeholder={t('Description')} value={materialDesc} onChange={e => setMaterialDesc(e.target.value)} />
                         <input type="file" className="text-sm" onChange={e => setUploadFile(e.target.files?.[0] || null)} />
-                        <button onClick={() => uploadMaterial(inCall!)} className="btn-primary text-sm w-full">Upload</button>
+                        <button onClick={() => uploadMaterial(inCall!)} className="btn-primary text-sm w-full">{t('Upload')}</button>
                       </div>
                     )}
                   </div>
@@ -479,20 +490,20 @@ export default function Tutoring() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <div>
           <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-            <GraduationCap className="text-blue-500" /> Tutoring
+            <GraduationCap className="text-blue-500" /> {t('Tutoring')}
           </h2>
-          <p className="text-gray-500 text-sm mt-1">Learn from experts, teach your skills, earn money</p>
+          <p className="text-gray-500 text-sm mt-1">{t('Learn from experts, teach your skills, earn money')}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => { setShowTutors(!showTutors); fetchTutors(); }} className="btn-ghost text-sm flex items-center gap-1">
-            <Users size={16} /> Find Tutors
+            <Users size={16} /> {t('Find Tutors')}
           </button>
           <button onClick={() => setShowCertificates(!showCertificates)} className="btn-ghost text-sm flex items-center gap-1">
-            <Award size={16} /> Certificates
+            <Award size={16} /> {t('Certificates')}
           </button>
           {user?.is_teacher && (
             <button onClick={() => setShowCreateForm(!showCreateForm)} className="btn-primary flex items-center gap-2">
-              <ClipboardList size={16} /> {showCreateForm ? 'Cancel' : 'Create Session'}
+              <ClipboardList size={16} /> {showCreateForm ? t('Cancel') : t('Create Session')}
             </button>
           )}
         </div>
@@ -501,10 +512,10 @@ export default function Tutoring() {
       {/* Stats Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
-          { icon: <BookOpen size={18} />, label: 'Total Sessions', value: stats.totalSessions, color: 'blue' },
-          { icon: <CheckCircle size={18} />, label: 'Completed', value: stats.completedSessions, color: 'green' },
-          { icon: <DollarSign size={18} />, label: user?.is_teacher ? 'Earned' : 'Spent', value: `$${user?.is_teacher ? stats.totalEarned : stats.totalLearned}`, color: 'yellow' },
-          { icon: <Star size={18} />, label: 'Rating', value: '4.8', color: 'purple' },
+          { icon: <BookOpen size={18} />, label: t('Total Sessions'), value: stats.totalSessions, color: 'blue' },
+          { icon: <CheckCircle size={18} />, label: t('Completed'), value: stats.completedSessions, color: 'green' },
+          { icon: <DollarSign size={18} />, label: user?.is_teacher ? t('Earned') : t('Spent'), value: `$${user?.is_teacher ? stats.totalEarned : stats.totalLearned}`, color: 'yellow' },
+          { icon: <Star size={18} />, label: t('Rating'), value: '4.8', color: 'purple' },
         ].map((stat, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
             className="glass p-3 rounded-xl text-center">
@@ -520,7 +531,7 @@ export default function Tutoring() {
         {showTutors && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-6">
             <div className="glass p-4 rounded-2xl">
-              <h3 className="font-bold mb-3 flex items-center gap-2"><Users size={18} /> Top Tutors</h3>
+              <h3 className="font-bold mb-3 flex items-center gap-2"><Users size={18} /> {t('Top Tutors')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {tutors.filter(t => t.is_available).slice(0, 6).map(tutor => (
                   <div key={tutor.id} className="bg-white p-4 rounded-xl shadow-sm flex items-center gap-3">
@@ -548,9 +559,9 @@ export default function Tutoring() {
         {showCertificates && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-6">
             <div className="glass p-4 rounded-2xl">
-              <h3 className="font-bold mb-3 flex items-center gap-2"><Award size={18} /> My Certificates</h3>
+              <h3 className="font-bold mb-3 flex items-center gap-2"><Award size={18} /> {t('My Certificates')}</h3>
               {certificates.length === 0 ? (
-                <p className="text-gray-500 text-sm">Complete sessions to earn certificates!</p>
+                <p className="text-gray-500 text-sm">{t('Complete sessions to earn certificates!')}</p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {certificates.map(cert => (
@@ -558,7 +569,7 @@ export default function Tutoring() {
                       <Award size={32} className="text-yellow-500" />
                       <div>
                         <p className="font-bold text-sm">{cert.subject}</p>
-                        <p className="text-xs text-gray-600">Tutor: @{cert.tutor_name}</p>
+                        <p className="text-xs text-gray-600">{t('Tutor')}: @{cert.tutor_name}</p>
                         <p className="text-xs text-gray-500">{new Date(cert.completed_at).toLocaleDateString()}</p>
                       </div>
                     </div>
@@ -575,7 +586,7 @@ export default function Tutoring() {
         {showCreateForm && (
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
             className="glass p-6 rounded-2xl mb-6 space-y-4 shadow-xl border-2 border-blue-200">
-            <h3 className="font-bold text-xl flex items-center gap-2"><ClipboardList size={20} /> Create New Session</h3>
+            <h3 className="font-bold text-xl flex items-center gap-2"><ClipboardList size={20} /> {t('Create New Session')}</h3>
 
             {/* Group Class Toggle */}
             <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-xl">
@@ -584,37 +595,37 @@ export default function Tutoring() {
                 <div className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${isGroupClass ? 'translate-x-7' : 'translate-x-0.5'}`} />
               </button>
               <div>
-                <p className="font-semibold text-sm">Group Class</p>
-                <p className="text-xs text-gray-500">Allow multiple students to join</p>
+                <p className="font-semibold text-sm">{t('Group Class')}</p>
+                <p className="text-xs text-gray-500">{t('Allow multiple students to join')}</p>
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <select className="input-field" value={subject} onChange={e => setSubject(e.target.value)}>
-                <option value="">Select Subject *</option>
+                <option value=""> {t('Select Subject *')}</option>
                 {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
               </select>
-              <input className="input-field" type="number" placeholder="Price ($) *" value={price} onChange={e => setPrice(e.target.value)} />
+              <input className="input-field" type="number" placeholder={t('Price ($) *')} value={price} onChange={e => setPrice(e.target.value)} />
             </div>
-            <textarea className="input-field" placeholder="Description..." value={description} onChange={e => setDescription(e.target.value)} rows={2} />
+            <textarea className="input-field" placeholder={t('Description...')} value={description} onChange={e => setDescription(e.target.value)} rows={2} />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <input className="input-field" type="datetime-local" value={scheduledAt} onChange={e => setScheduledAt(e.target.value)} />
               <select className="input-field" value={duration} onChange={e => setDuration(e.target.value)}>
-                <option value="30">30 minutes</option>
-                <option value="60">1 hour</option>
-                <option value="90">1.5 hours</option>
-                <option value="120">2 hours</option>
+                <option value="30">{t('30 minutes')}</option>
+                <option value="60">{t('1 hour')}</option>
+                <option value="90">{t('1.5 hours')}</option>
+                <option value="120">{t('2 hours')}</option>
               </select>
               {isGroupClass && (
-                <input className="input-field" type="number" placeholder="Max students" value={maxStudents} onChange={e => setMaxStudents(e.target.value)} />
+                <input className="input-field" type="number" placeholder={t('Max students')} value={maxStudents} onChange={e => setMaxStudents(e.target.value)} />
               )}
             </div>
             <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" checked={isOffline} onChange={e => setIsOffline(e.target.checked)} className="rounded" />
-              <Globe size={14} /> Works offline via WaveMesh
+              <Globe size={14} /> {t('Works offline via WaveMesh')}
             </label>
             <button onClick={createSession} className="btn-primary w-full py-3 text-lg font-bold">
-              🚀 Create {isGroupClass ? 'Group Class' : 'Session'}
+              {t('🚀 Create')} {isGroupClass ? t('Group Class') : t('Session')}
             </button>
           </motion.div>
         )}
@@ -624,14 +635,14 @@ export default function Tutoring() {
       <div className="flex flex-col md:flex-row gap-3 mb-4">
         <div className="relative flex-1">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input className="input-field pl-10" placeholder="Search sessions by subject or tutor..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+          <input className="input-field pl-10" placeholder={t('Search sessions by subject or tutor...')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
         <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
           {[
-            { key: 'upcoming' as const, label: 'Upcoming', icon: <Calendar size={14} /> },
-            { key: 'ongoing' as const, label: 'Live', icon: <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> },
-            { key: 'completed' as const, label: 'Completed', icon: <CheckCircle size={14} /> },
-            { key: 'mine' as const, label: 'My Sessions', icon: <BookOpen size={14} /> },
+            { key: 'upcoming' as const, label: t('Upcoming'), icon: <Calendar size={14} /> },
+            { key: 'ongoing' as const, label: t('Live'), icon: <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> },
+            { key: 'completed' as const, label: t('Completed'), icon: <CheckCircle size={14} /> },
+            { key: 'mine' as const, label: t('My Sessions'), icon: <BookOpen size={14} /> },
           ].map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition ${
@@ -650,13 +661,13 @@ export default function Tutoring() {
         <div className="glass p-12 rounded-2xl text-center">
           <AlertCircle className="mx-auto mb-3 text-red-500" size={48} />
           <p className="text-lg text-gray-600">{error}</p>
-          <button onClick={fetchSessions} className="btn-primary mt-4">Retry</button>
+          <button onClick={fetchSessions} className="btn-primary mt-4">{t('Retry')}</button>
         </div>
       ) : sessions.length === 0 ? (
         <div className="glass p-12 rounded-2xl text-center">
           <BookOpen size={48} className="mx-auto mb-3 text-gray-300" />
-          <p className="text-xl text-gray-500">No sessions found</p>
-          <p className="text-sm text-gray-400 mt-1">{user?.is_teacher ? 'Create your first session!' : 'Browse available sessions!'}</p>
+          <p className="text-xl text-gray-500">{t('No sessions found')}</p>
+          <p className="text-sm text-gray-400 mt-1">{user?.is_teacher ? t('Create your first session!') : t('Browse available sessions!')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -680,7 +691,7 @@ export default function Tutoring() {
                           </span>
                           {session.is_group_class && (
                             <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <Users size={10} /> Group
+                              <Users size={10} /> {t('Group')}
                             </span>
                           )}
                         </h3>
@@ -688,8 +699,8 @@ export default function Tutoring() {
                           <span className="flex items-center gap-1"><Calendar size={12} /> {formatDate(session.scheduled_at)}</span>
                           <span className="flex items-center gap-1"><Clock size={12} /> {session.duration_minutes}min</span>
                           <span className="flex items-center gap-1 text-green-600 font-bold"><DollarSign size={12} />${session.price}</span>
-                          <span>Tutor: @{session.tutor.username}</span>
-                          {session.student && <span>Student: @{session.student.username}</span>}
+                          <span>{t('Tutor')}: @{session.tutor.username}</span>
+                          {session.student && <span>{t('Student')}: @{session.student.username}</span>}
                         </p>
                       </div>
                     </div>
@@ -701,24 +712,30 @@ export default function Tutoring() {
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
                       className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 flex items-center gap-1">
-                      <Play size={14} /> Join Class
+                      <Play size={14} /> {t('Join Class')}
                     </button>
                     {user?.is_teacher && session.tutor.username === user.username && session.status === 'scheduled' && (
                       <button onClick={(e) => { e.stopPropagation(); confirmSession(session.id); }}
                         className="bg-green-500 text-white px-3 py-2 rounded-full text-sm hover:bg-green-600">
-                        Confirm
+                        {t('Confirm')}
                       </button>
                     )}
                     {user?.is_teacher && session.tutor.username === user.username && session.status === 'ongoing' && (
                       <button onClick={(e) => { e.stopPropagation(); completeSession(session.id); }}
                         className="text-green-600 hover:underline text-sm font-semibold">
-                        Complete →
+                        {t('Complete')} →
                       </button>
                     )}
                     <button onClick={(e) => { e.stopPropagation(); setExpandedSession(expandedSession === session.id ? null : session.id); }}
                       className="p-2 rounded-full hover:bg-gray-100">
                       {expandedSession === session.id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                     </button>
+
+                    {session.status !== 'cancelled' && session.status !== 'completed' && (
+  <button onClick={() => cancelSession(session.id)} className="text-red-500 text-xs hover:underline">
+    {t('cancel_session')}
+  </button>
+)}
                   </div>
                 </div>
               </div>
@@ -729,7 +746,7 @@ export default function Tutoring() {
                   <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden border-t">
                     <div className="p-4 bg-gray-50/50">
-                      <h4 className="font-semibold text-sm mb-2 flex items-center gap-1"><FileText size={14} /> Session Materials</h4>
+                      <h4 className="font-semibold text-sm mb-2 flex items-center gap-1"><FileText size={14} /> {t('Session Materials')}</h4>
                       <div className="space-y-2">
                         {session.materials.map(m => (
                           <div key={m.id} className="bg-white p-3 rounded-xl flex items-center justify-between">
@@ -740,7 +757,7 @@ export default function Tutoring() {
                             {m.file_url && (
                               <a href={m.file_url} target="_blank" rel="noopener noreferrer"
                                 className="text-blue-500 hover:underline text-sm flex items-center gap-1">
-                                <Download size={14} /> Download
+                                <Download size={14} /> {t('Download')}
                               </a>
                             )}
                           </div>

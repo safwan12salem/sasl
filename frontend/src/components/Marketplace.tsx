@@ -16,6 +16,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import WebRTCPrivateChat from './WebRTCPrivateChat';
 import { useTranslation } from 'react-i18next';
+import { t } from '../services/translateHelper';
+
 
 interface Product {
   id: string;
@@ -93,7 +95,7 @@ export default function Marketplace() {
 
   // Wishlist
   const [wishlist, setWishlist] = useState<string[]>([]);
-
+  
   // ============================================================
   // FETCH
   // ============================================================
@@ -254,7 +256,7 @@ export default function Marketplace() {
           <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
             <ShoppingBag className="text-green-500" /> {t('marketplace')}
           </h2>
-          <p className="text-gray-500 text-sm mt-1">Buy and sell products – even offline</p>
+          <p className="text-gray-500 text-sm mt-1">{t('buy_sell_tagline')}</p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex bg-gray-100 rounded-xl p-1">
@@ -267,7 +269,7 @@ export default function Marketplace() {
           </div>
           {user?.is_seller && (
             <button onClick={() => setShowSellForm(!showSellForm)} className="btn-primary flex items-center gap-2">
-              <PlusCircle size={18} /> {showSellForm ? 'Cancel' : 'Sell Item'}
+              <PlusCircle size={18} /> {showSellForm ? t('cancel') : t('sell_item')}
             </button>
           )}
         </div>
@@ -278,17 +280,17 @@ export default function Marketplace() {
         <div className="flex gap-3">
           <div className="relative flex-1">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input className="input-field pl-10" placeholder="Search products..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+            <input className="input-field pl-10" placeholder={t('search_products')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
           </div>
           <button onClick={() => setShowFilters(!showFilters)} className="btn-ghost flex items-center gap-1">
-            <Filter size={18} /> Filters {showFilters ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />}
+            <Filter size={18} /> {t('filters')} {showFilters ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />}
           </button>
         </div>
 
         {/* Category Pills */}
         <div className="flex gap-2 overflow-x-auto pb-1">
           <button onClick={() => setSelectedCategory('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${!selectedCategory ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
-            All
+            {t('all')}
           </button>
           {categories.map(cat => (
             <button key={cat.id} onClick={() => setSelectedCategory(cat.slug)} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${selectedCategory === cat.slug ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
@@ -305,7 +307,7 @@ export default function Marketplace() {
                 <input className="input-field w-32" type="number" placeholder="Max price" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
                 <label className="flex items-center gap-2 text-sm cursor-pointer">
                   <input type="checkbox" checked={inStockOnly} onChange={e => setInStockOnly(e.target.checked)} className="rounded" />
-                  In Stock Only
+                  {t('in_stock_only')}
                 </label>
                 <select className="input-field w-40" value={sortBy} onChange={e => setSortBy(e.target.value)}>
                   <option value="-created_at">Newest</option>
@@ -325,12 +327,12 @@ export default function Marketplace() {
       <AnimatePresence>
         {showSellForm && (
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="glass p-6 rounded-2xl mb-6 space-y-3 shadow-xl border-2 border-green-200">
-            <h3 className="font-bold text-lg flex items-center gap-2"><Package size={18} /> List New Product</h3>
-            <input className="input-field" placeholder="Product title *" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
-            <textarea className="input-field" placeholder="Description..." value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={2} />
+            <h3 className="font-bold text-lg flex items-center gap-2"><Package size={18} /> {t('list_new_product')}</h3>
+            <input className="input-field" placeholder={t('product_title')} value={newTitle} onChange={e => setNewTitle(e.target.value)} />
+            <textarea className="input-field" placeholder={t('description')} value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={2} />
             <div className="grid grid-cols-3 gap-3">
-              <input className="input-field" type="number" placeholder="Price ($) *" value={newPrice} onChange={e => setNewPrice(e.target.value)} />
-              <input className="input-field" type="number" placeholder="Stock" value={newStock} onChange={e => setNewStock(e.target.value)} />
+              <input className="input-field" type="number" placeholder={t('price')} value={newPrice} onChange={e => setNewPrice(e.target.value)} />
+              <input className="input-field" type="number" placeholder={t('stock')} value={newStock} onChange={e => setNewStock(e.target.value)} />
               <select className="input-field" value={newCategory} onChange={e => setNewCategory(e.target.value)}>
                 <option value="">Category</option>
                 {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
@@ -360,8 +362,8 @@ export default function Marketplace() {
       ) : products.length === 0 ? (
         <div className="glass p-12 rounded-2xl text-center">
           <Package size={48} className="mx-auto mb-3 text-gray-300" />
-          <p className="text-xl text-gray-500">No products found</p>
-          <p className="text-sm text-gray-400 mt-1">Try adjusting your filters or be the first to list!</p>
+          <p className="text-xl text-gray-500">{t('no_products_found')}</p>
+          <p className="text-sm text-gray-400 mt-1">{t('try_adjusting_filters')}</p>
         </div>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -404,12 +406,12 @@ export default function Marketplace() {
                   <span className="text-xl font-bold text-green-600">${p.price}</span>
                   <button onClick={(e) => { e.stopPropagation(); buy(p.id); }} disabled={p.stock === 0}
                     className="flex items-center gap-1 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition disabled:opacity-50">
-                    <ShoppingCart size={14} /> Buy
+                    <ShoppingCart size={14} /> {t('buy')}
                   </button>
                 </div>
                 <button onClick={(e) => { e.stopPropagation(); setChatRoom(`product-${p.id}`); }}
                   className="mt-2 w-full text-xs text-gray-400 hover:text-green-500 transition flex items-center justify-center gap-1">
-                  <MessageCircle size={12} /> Chat with Seller
+                  <MessageCircle size={12} /> {t('chat_with_seller')}
                 </button>
               </div>
             </motion.div>
@@ -431,7 +433,7 @@ export default function Marketplace() {
               <div className="text-right">
                 <p className="text-xl font-bold text-green-600">${p.price}</p>
                 <button onClick={(e) => { e.stopPropagation(); buy(p.id); }} disabled={p.stock === 0}
-                  className="btn-primary text-xs mt-1">Buy Now</button>
+                  className="btn-primary text-xs mt-1">{t('buy_now')}</button>
               </div>
             </div>
           ))}
@@ -471,7 +473,7 @@ export default function Marketplace() {
                 <div className="flex gap-2 mt-4">
                   <button onClick={() => { buy(selectedProduct.id); setSelectedProduct(null); }} disabled={selectedProduct.stock === 0}
                     className="btn-primary flex-1 flex items-center justify-center gap-2">
-                    <ShoppingCart size={18} /> Buy Now
+                    <ShoppingCart size={18} /> {t('buy_now')}
                   </button>
                   <button onClick={() => toggleWishlist(selectedProduct.id)} className="btn-ghost">
                     <Heart size={20} className={selectedProduct.is_wishlisted ? 'fill-red-500 text-red-500' : ''} />
@@ -481,7 +483,7 @@ export default function Marketplace() {
                 {/* Reviews */}
                 <div className="mt-4 pt-4 border-t">
                   <button onClick={() => setShowReviews(!showReviews)} className="font-semibold text-sm flex items-center gap-1">
-                    <Star size={16} /> Reviews ({selectedProduct.review_count || 0}) {showReviews ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />}
+                    <Star size={16} /> {t('reviews')} ({selectedProduct.review_count || 0}) {showReviews ? <ChevronDown size={14} className="rotate-180" /> : <ChevronDown size={14} />}
                   </button>
                   {showReviews && (
                     <div className="mt-2 space-y-2">
@@ -498,8 +500,8 @@ export default function Marketplace() {
                           </button>
                         ))}
                       </div>
-                      <textarea className="input-field text-sm" placeholder="Write a review..." value={reviewComment} onChange={e => setReviewComment(e.target.value)} rows={2} />
-                      <button onClick={() => submitReview(selectedProduct.id)} className="btn-primary text-sm">Submit Review</button>
+                      <textarea className="input-field text-sm" placeholder={t('write_review')} value={reviewComment} onChange={e => setReviewComment(e.target.value)} rows={2} />
+                      <button onClick={() => submitReview(selectedProduct.id)} className="btn-primary text-sm">{t('submit_review')}</button>
                     </div>
                   )}
                 </div>

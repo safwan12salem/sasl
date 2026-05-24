@@ -10,6 +10,8 @@ import {
   Download, Loader2, AlertCircle, RefreshCw
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+
 
 interface AnalyticsData {
   userGrowth: { date: string; count: number }[];
@@ -28,7 +30,7 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dateRange, setDateRange] = useState<'7d' | '30d' | '90d'>('30d');
-
+  const { t } = useTranslation();
   const fetchAnalytics = async () => {
     setLoading(true);
     setError(null);
@@ -102,7 +104,7 @@ export default function Analytics() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-          <TrendingUp /> Analytics Dashboard
+          <TrendingUp /> {t('analytics_dashboard')}
         </h2>
         <div className="flex items-center gap-3">
           <div className="flex gap-1 bg-gray-100 rounded-full p-1">
@@ -123,7 +125,7 @@ export default function Analytics() {
             ))}
           </div>
           <button onClick={exportCSV} className="btn-ghost flex items-center gap-1 text-sm">
-            <Download size={16} /> Export
+            <Download size={16} /> {t('export')}
           </button>
         </div>
       </div>
@@ -158,7 +160,7 @@ export default function Analytics() {
         className="glass p-6 rounded-2xl mb-6"
       >
         <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-          <DollarSign size={18} /> Revenue Trend
+          <DollarSign size={18} /> {t('revenue_trend')}
         </h3>
         <div className="flex items-end gap-1 h-40">
           {safeRevenue.map((item, i) => (
@@ -186,7 +188,7 @@ export default function Analytics() {
           transition={{ delay: 0.5 }}
           className="glass p-6 rounded-2xl"
         >
-          <h3 className="font-bold text-lg mb-4">Top Posts</h3>
+          <h3 className="font-bold text-lg mb-4">{t('top_posts')}</h3>
           <div className="space-y-3">
             {safeTopPosts.map((post, i) => (
               <div key={i} className="flex items-center justify-between text-sm">
@@ -198,7 +200,7 @@ export default function Analytics() {
               </div>
             ))}
             {safeTopPosts.length === 0 && (
-              <p className="text-gray-400 text-sm">No posts data yet.</p>
+              <p className="text-gray-400 text-sm">{t('no_posts_data_yet')}</p>
             )}
           </div>
         </motion.div>
@@ -209,16 +211,16 @@ export default function Analytics() {
           transition={{ delay: 0.6 }}
           className="glass p-6 rounded-2xl"
         >
-          <h3 className="font-bold text-lg mb-4">User Growth</h3>
+          <h3 className="font-bold text-lg mb-4">{t('user_growth')}</h3>
           <div className="space-y-3">
             {safeGrowth.slice(-10).map((item, i) => (
               <div key={i} className="flex items-center justify-between text-sm">
                 <span>{item.date}</span>
-                <span className="font-semibold">+{item.count} users</span>
+                <span className="font-semibold">+{item.count} {t('users')}</span>
               </div>
             ))}
             {safeGrowth.length === 0 && (
-              <p className="text-gray-400 text-sm">No growth data yet.</p>
+              <p className="text-gray-400 text-sm">{t('no_growth_data_yet')}</p>
             )}
           </div>
         </motion.div>

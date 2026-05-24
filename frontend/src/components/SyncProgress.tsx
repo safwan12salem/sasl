@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useMesh } from '../hooks/useMesh';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cloud, CheckCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 export default function SyncProgress() {
   const { isOnline, offlineQueue, syncOfflinePosts } = useMesh();
   const [syncing, setSyncing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (isOnline && offlineQueue.length > 0 && !syncing) {
@@ -50,7 +52,7 @@ export default function SyncProgress() {
             <Cloud size={16} className="text-blue-500" />
           )}
           <span className="text-sm font-semibold">
-            {done ? 'Synced!' : 'Syncing offline data...'}
+            {done ? t('Synced!') : t('Syncing offline data...')}
           </span>
         </div>
         <div className="w-48 h-1.5 bg-gray-200 rounded-full overflow-hidden">

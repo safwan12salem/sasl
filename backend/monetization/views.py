@@ -6,9 +6,12 @@ from datetime import timezone
 
 from time import timezone
 
+from django.http import JsonResponse
 from rest_framework import viewsets, permissions, status, mixins
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes, permission_classes
 from rest_framework.response import Response
+
+from sasl import settings
 from .models import AdCampaign, AdImpression, Transaction
 from .serializers import AdCampaignSerializer, TransactionSerializer
 from .services import run_ad_auction, reward_ad_watch, generate_monthly_earnings_report
@@ -18,8 +21,12 @@ from .services import run_ad_auction, reward_ad_watch, generate_monthly_earnings
 
 from django.db.models import Sum, Q
 from users.models import Wallet, User
+from users.serializers import WalletSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+import stripe
 
-
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 
@@ -262,3 +269,35 @@ class EarningsViewSet(viewsets.ReadOnlyModelViewSet):
             'percentile': percentile,
         }
         return Response(data)
+    
+
+
+
+
+
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_checkout_session(request):
+    amount = request.data.get('amount', 10)
+    try:
+        session =stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': 'usd',
+                    'product_data': {'name': 'Sasl Wallet Top-Up'},
+                    'unit_amount': int(float(amount) * 100),
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url='http://localhost:3000/wallet?success=true',
+            cancel_url='http://localhost:3000/wallet?cancelled=true',
+            metadata={'user_id': str(request.user.id)},
+        )
+        return JsonResponse({'url': session.url})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

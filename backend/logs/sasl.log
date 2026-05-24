@@ -19657,3 +19657,228 @@ INFO 2026-05-22 17:35:28,746 autoreload 20132 14968 Watching for file changes wi
 INFO 2026-05-22 17:35:32,016 server 20132 23108 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
 INFO 2026-05-22 17:35:32,017 server 20132 23108 Configuring endpoint tcp:port=8000:interface=127.0.0.1
 INFO 2026-05-22 17:35:32,019 server 20132 23108 Listening on TCP address 127.0.0.1:8000
+DEBUG 2026-05-22 17:36:26,553 http_protocol 20132 23108 HTTP b'POST' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:36:27,255 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:36:27,257 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:36:27,258 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:36:27,258 runserver 20132 23108 [mHTTP POST /api/auth/token/ 200 [0.71, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:36:27,266 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:36:27,270 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:36:27,270 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:36:27,271 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:36:27,279 runserver 20132 23108 [mHTTP OPTIONS /api/users/profile/ 200 [0.01, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:36:27,307 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:36:27,440 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:36:27,441 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:36:27,441 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:36:27,442 runserver 20132 23108 [mHTTP GET /api/users/profile/ 200 [0.14, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:36:27,554 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:36:27,648 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:36:27,649 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:36:27,650 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:36:27,651 runserver 20132 23108 [mHTTP GET /api/users/profile/ 200 [0.10, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:37:23,730 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:23,733 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:37:23,736 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:23,737 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:23,737 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:37:23,738 runserver 20132 23108 [mHTTP OPTIONS /api/content/notifications/ 200 [0.01, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:37:23,740 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:37:23,741 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:37:23,741 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 51509]
+INFO 2026-05-22 17:37:23,750 runserver 20132 23108 [mHTTP OPTIONS /api/monetization/ads/serve_ad/ 200 [0.02, 127.0.0.1:51509][0m
+DEBUG 2026-05-22 17:37:23,773 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:23,787 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:37:23,790 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:23,791 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:23,792 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:37:23,792 runserver 20132 23108 [mHTTP OPTIONS /api/content/notifications/ 200 [0.02, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:37:23,793 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:37:23,794 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:37:23,795 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 51509]
+INFO 2026-05-22 17:37:23,795 runserver 20132 23108 [mHTTP OPTIONS /api/monetization/ads/serve_ad/ 200 [0.01, 127.0.0.1:51509][0m
+DEBUG 2026-05-22 17:37:23,801 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:23,809 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:37:23,925 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:37:23,926 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:37:23,928 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 51509]
+INFO 2026-05-22 17:37:23,929 runserver 20132 23108 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.12, 127.0.0.1:51509][0m
+DEBUG 2026-05-22 17:37:23,934 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:37:23,979 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:23,980 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:23,980 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:37:23,980 runserver 20132 23108 [mHTTP GET /api/content/notifications/ 200 [0.18, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:37:23,987 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:37:24,033 runserver 20132 23108 WebSocket HANDSHAKING /ws/notifications/ [127.0.0.1:53612]
+DEBUG 2026-05-22 17:37:24,035 http_protocol 20132 23108 Upgraded connection ['127.0.0.1', 53612] to WebSocket
+DEBUG 2026-05-22 17:37:24,039 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:24,039 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:24,040 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:37:24,041 runserver 20132 23108 [mHTTP OPTIONS /api/content/stories/ 200 [0.05, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:37:24,065 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:24,109 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 53996]
+DEBUG 2026-05-22 17:37:24,147 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:24,158 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 60308]
+DEBUG 2026-05-22 17:37:24,202 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:24,209 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:24,211 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 61718]
+INFO 2026-05-22 17:37:24,243 runserver 20132 23108 [mHTTP OPTIONS /api/users/suggested/ 200 [0.18, 127.0.0.1:61718][0m
+DEBUG 2026-05-22 17:37:24,253 ws_protocol 20132 23108 WebSocket ['127.0.0.1', 53612] open and established
+INFO 2026-05-22 17:37:24,255 runserver 20132 23108 WebSocket CONNECT /ws/notifications/ [127.0.0.1:53612]
+DEBUG 2026-05-22 17:37:24,257 ws_protocol 20132 23108 WebSocket ['127.0.0.1', 53612] accepted by application
+INFO 2026-05-22 17:37:24,259 consumers 20132 23108 WebSocket connected: user safwan
+DEBUG 2026-05-22 17:37:24,271 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:24,406 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:37:24,406 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:37:24,407 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 51509]
+INFO 2026-05-22 17:37:24,413 runserver 20132 23108 [mHTTP GET /api/content/posts/?page=2 200 [0.48, 127.0.0.1:51509][0m
+DEBUG 2026-05-22 17:37:24,433 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 53996]
+DEBUG 2026-05-22 17:37:24,453 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 53996]
+DEBUG 2026-05-22 17:37:24,457 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 53996]
+INFO 2026-05-22 17:37:24,462 runserver 20132 23108 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.35, 127.0.0.1:53996][0m
+DEBUG 2026-05-22 17:37:24,470 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 60308]
+DEBUG 2026-05-22 17:37:24,471 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 60308]
+DEBUG 2026-05-22 17:37:24,472 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 60308]
+INFO 2026-05-22 17:37:24,475 runserver 20132 23108 [mHTTP GET /api/content/stories/ 200 [0.32, 127.0.0.1:60308][0m
+DEBUG 2026-05-22 17:37:24,505 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:24,516 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:24,522 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:37:24,525 runserver 20132 23108 [mHTTP GET /api/content/notifications/ 200 [0.38, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:37:24,533 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:24,533 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:24,535 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 61718]
+INFO 2026-05-22 17:37:24,537 runserver 20132 23108 [mHTTP GET /api/users/suggested/ 200 [0.27, 127.0.0.1:61718][0m
+DEBUG 2026-05-22 17:37:24,655 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:24,729 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:24,731 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:24,735 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 61718]
+INFO 2026-05-22 17:37:24,778 runserver 20132 23108 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.12, 127.0.0.1:61718][0m
+DEBUG 2026-05-22 17:37:24,787 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:24,860 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:24,862 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:24,863 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 61718]
+INFO 2026-05-22 17:37:24,864 runserver 20132 23108 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.08, 127.0.0.1:61718][0m
+DEBUG 2026-05-22 17:37:42,943 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:42,945 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:42,948 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:42,948 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:37:42,949 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 61718]
+INFO 2026-05-22 17:37:42,949 runserver 20132 23108 [mHTTP OPTIONS /api/content/posts/2f6afacf-a2dd-4f61-ad7f-61c7223fa5f9/comments/?page=1 200 [0.01, 127.0.0.1:61718][0m
+DEBUG 2026-05-22 17:37:42,950 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:42,951 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:42,951 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:37:42,952 runserver 20132 23108 [mHTTP OPTIONS /api/content/posts/2f6afacf-a2dd-4f61-ad7f-61c7223fa5f9/comments/?page=1 200 [0.01, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:37:42,974 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:43,030 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:43,032 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:43,033 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:37:43,036 runserver 20132 23108 [mHTTP GET /api/content/posts/2f6afacf-a2dd-4f61-ad7f-61c7223fa5f9/comments/?page=1 200 [0.06, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:37:43,045 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:43,101 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:43,101 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:43,102 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:37:43,102 runserver 20132 23108 [mHTTP GET /api/content/posts/2f6afacf-a2dd-4f61-ad7f-61c7223fa5f9/comments/?page=1 200 [0.06, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:37:46,220 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:46,223 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:46,223 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:46,224 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:37:46,224 runserver 20132 23108 [mHTTP OPTIONS /api/content/posts/147f4a18-c489-4436-bd64-54590d989749/share/ 200 [0.00, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:37:46,227 http_protocol 20132 23108 HTTP b'POST' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:46,313 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:46,314 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:37:46,315 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:37:46,315 runserver 20132 23108 [mHTTP POST /api/content/posts/147f4a18-c489-4436-bd64-54590d989749/share/ 200 [0.09, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:38:00,755 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:00,840 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:00,841 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:00,841 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:38:00,842 runserver 20132 23108 [mHTTP GET /api/content/posts/0db95ac4-5799-44a9-aa1e-17337fab09ec/comments/?page=1 200 [0.09, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:38:00,846 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:00,922 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:00,923 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:00,925 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:38:00,926 runserver 20132 23108 [mHTTP GET /api/content/posts/0db95ac4-5799-44a9-aa1e-17337fab09ec/comments/?page=1 200 [0.08, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:38:07,871 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:07,874 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:38:07,877 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 53996]
+DEBUG 2026-05-22 17:38:07,879 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 52269]
+DEBUG 2026-05-22 17:38:07,880 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 60308]
+DEBUG 2026-05-22 17:38:07,881 http_protocol 20132 23108 HTTP b'OPTIONS' request for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:38:07,924 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:07,925 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:07,925 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:38:07,927 runserver 20132 23108 [mHTTP OPTIONS /api/gigs/gigs/?status=open 200 [0.06, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:38:07,931 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:38:07,932 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 61718]
+DEBUG 2026-05-22 17:38:07,933 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 61718]
+INFO 2026-05-22 17:38:07,934 runserver 20132 23108 [mHTTP OPTIONS /api/gigs/gigs/portfolio/ 200 [0.06, 127.0.0.1:61718][0m
+DEBUG 2026-05-22 17:38:07,977 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 53996]
+DEBUG 2026-05-22 17:38:07,982 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 53996]
+DEBUG 2026-05-22 17:38:07,984 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 53996]
+INFO 2026-05-22 17:38:07,985 runserver 20132 23108 [mHTTP OPTIONS /api/gigs/gigs/?status=open 200 [0.11, 127.0.0.1:53996][0m
+DEBUG 2026-05-22 17:38:07,988 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 52269]
+DEBUG 2026-05-22 17:38:07,990 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 52269]
+DEBUG 2026-05-22 17:38:07,991 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 52269]
+INFO 2026-05-22 17:38:07,992 runserver 20132 23108 [mHTTP OPTIONS /api/gigs/gigs/my_badges/ 200 [0.11, 127.0.0.1:52269][0m
+DEBUG 2026-05-22 17:38:07,994 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 60308]
+DEBUG 2026-05-22 17:38:07,995 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 60308]
+DEBUG 2026-05-22 17:38:07,996 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 60308]
+INFO 2026-05-22 17:38:07,997 runserver 20132 23108 [mHTTP OPTIONS /api/gigs/gigs/my_badges/ 200 [0.12, 127.0.0.1:60308][0m
+DEBUG 2026-05-22 17:38:07,999 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:38:08,000 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:38:08,006 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 51509]
+INFO 2026-05-22 17:38:08,020 runserver 20132 23108 [mHTTP OPTIONS /api/gigs/gigs/portfolio/ 200 [0.14, 127.0.0.1:51509][0m
+DEBUG 2026-05-22 17:38:08,040 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:08,048 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 60308]
+DEBUG 2026-05-22 17:38:08,050 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:38:08,191 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:38:08,192 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:38:08,193 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 51509]
+INFO 2026-05-22 17:38:08,193 runserver 20132 23108 [mHTTP GET /api/gigs/gigs/portfolio/ 200 [0.14, 127.0.0.1:51509][0m
+DEBUG 2026-05-22 17:38:08,199 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:38:08,217 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:08,227 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:08,241 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:38:08,241 runserver 20132 23108 [mHTTP GET /api/gigs/gigs/?status=open 200 [0.20, 127.0.0.1:54684][0m
+DEBUG 2026-05-22 17:38:08,245 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 60308]
+DEBUG 2026-05-22 17:38:08,247 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 60308]
+DEBUG 2026-05-22 17:38:08,249 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 60308]
+INFO 2026-05-22 17:38:08,255 runserver 20132 23108 [mHTTP GET /api/gigs/gigs/my_badges/ 200 [0.21, 127.0.0.1:60308][0m
+DEBUG 2026-05-22 17:38:08,272 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:08,304 http_protocol 20132 23108 HTTP b'GET' request for ['127.0.0.1', 60308]
+DEBUG 2026-05-22 17:38:08,374 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:38:08,375 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 51509]
+DEBUG 2026-05-22 17:38:08,376 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 51509]
+INFO 2026-05-22 17:38:08,377 runserver 20132 23108 [mHTTP GET /api/gigs/gigs/portfolio/ 200 [0.18, 127.0.0.1:51509][0m
+DEBUG 2026-05-22 17:38:08,457 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 60308]
+DEBUG 2026-05-22 17:38:08,485 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 60308]
+DEBUG 2026-05-22 17:38:08,486 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 60308]
+INFO 2026-05-22 17:38:08,487 runserver 20132 23108 [mHTTP GET /api/gigs/gigs/my_badges/ 200 [0.18, 127.0.0.1:60308][0m
+DEBUG 2026-05-22 17:38:08,501 http_protocol 20132 23108 HTTP 200 response started for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:08,502 http_protocol 20132 23108 HTTP close for ['127.0.0.1', 54684]
+DEBUG 2026-05-22 17:38:08,503 http_protocol 20132 23108 HTTP response complete for ['127.0.0.1', 54684]
+INFO 2026-05-22 17:38:08,504 runserver 20132 23108 [mHTTP GET /api/gigs/gigs/?status=open 200 [0.23, 127.0.0.1:54684][0m
+INFO 2026-05-22 17:38:11,366 runserver 20132 23108 WebSocket HANDSHAKING /ws/video/gig-a4e7130a-2be0-41e2-aa20-28706f1d7605/ [127.0.0.1:55468]
+DEBUG 2026-05-22 17:38:11,366 http_protocol 20132 23108 Upgraded connection ['127.0.0.1', 55468] to WebSocket
+DEBUG 2026-05-22 17:38:11,369 ws_protocol 20132 23108 WebSocket ['127.0.0.1', 55468] open and established
+INFO 2026-05-22 17:38:11,369 runserver 20132 23108 WebSocket CONNECT /ws/video/gig-a4e7130a-2be0-41e2-aa20-28706f1d7605/ [127.0.0.1:55468]
+DEBUG 2026-05-22 17:38:11,370 ws_protocol 20132 23108 WebSocket ['127.0.0.1', 55468] accepted by application
+DEBUG 2026-05-22 17:38:16,314 ws_protocol 20132 23108 WebSocket incoming frame on ['127.0.0.1', 55468]
+DEBUG 2026-05-22 17:38:16,316 ws_protocol 20132 23108 Sent WebSocket packet to client for ['127.0.0.1', 55468]
+DEBUG 2026-05-22 17:38:21,192 ws_protocol 20132 23108 WebSocket closed for ['127.0.0.1', 55468]
+INFO 2026-05-22 17:38:21,192 runserver 20132 23108 WebSocket DISCONNECT /ws/video/gig-a4e7130a-2be0-41e2-aa20-28706f1d7605/ [127.0.0.1:55468]
+DEBUG 2026-05-24 04:20:56,536 selector_events 23736 28956 Using selector: SelectSelector
+DEBUG 2026-05-24 04:21:02,336 selector_events 18856 27268 Using selector: SelectSelector
+INFO 2026-05-24 04:21:05,147 autoreload 18856 27268 Watching for file changes with StatReloader
+INFO 2026-05-24 04:21:38,203 autoreload 18856 27268 C:\Users\leno\sasl\backend\monetization\views.py changed, reloading.
+DEBUG 2026-05-24 04:21:40,071 selector_events 16460 23328 Using selector: SelectSelector
+INFO 2026-05-24 04:21:42,167 autoreload 16460 23328 Watching for file changes with StatReloader
+INFO 2026-05-24 04:21:44,740 server 16460 24156 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-24 04:21:44,740 server 16460 24156 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-24 04:21:44,742 server 16460 24156 Listening on TCP address 127.0.0.1:8000
+INFO 2026-05-24 04:22:09,292 autoreload 16460 23328 C:\Users\leno\sasl\backend\monetization\urls.py changed, reloading.
+DEBUG 2026-05-24 04:22:11,575 selector_events 23756 20844 Using selector: SelectSelector
+INFO 2026-05-24 04:22:17,520 autoreload 23756 20844 Watching for file changes with StatReloader
+INFO 2026-05-24 04:22:24,102 server 23756 4368 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
+INFO 2026-05-24 04:22:24,103 server 23756 4368 Configuring endpoint tcp:port=8000:interface=127.0.0.1
+INFO 2026-05-24 04:22:24,106 server 23756 4368 Listening on TCP address 127.0.0.1:8000

@@ -11,6 +11,8 @@ import {
   MessageCircle, Zap, Shield
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
+const { t } = useTranslation();
 
 interface PeerDevice {
   id: string;
@@ -72,10 +74,10 @@ export default function WaveMeshChat() {
   // BROADCAST CHANNEL MESH DISCOVERY
   // ============================================================
   useEffect(() => {
-    bcRef.current = new BroadcastChannel('sasl-mesh-chat');
+    bcRef.current = new BroadcastChannel(t('sasl-mesh-chat'));
     bcRef.current.onmessage = (event) => {
       const data = event.data;
-      if (data.type === 'message') {
+      if (data.type === t('message')) {
         setMessages(prev => [...prev, {
           id: Date.now().toString(),
           sender: data.sender || 'Unknown',
@@ -86,18 +88,18 @@ export default function WaveMeshChat() {
           fileUrl: data.fileUrl,
           fileName: data.fileName,
         }]);
-      } else if (data.type === 'typing') {
+      } else if (data.type === t('typing')) {
         setPeerTyping(true);
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = setTimeout(() => setPeerTyping(false), 2000);
-      } else if (data.type === 'peer_discovery') {
+      } else if (data.type === t('peer_discovery')) {
         setBroadcastPeers(prev => prev.includes(data.peerId) ? prev : [...prev, data.peerId]);
       }
     };
 
     // Announce presence
     const interval = setInterval(() => {
-      bcRef.current?.postMessage({ type: 'peer_discovery', peerId: 'local-user' });
+      bcRef.current?.postMessage({ type: t('peer_discovery'), peerId: t('local-user') });
     }, 5000);
 
     return () => {
@@ -127,7 +129,7 @@ export default function WaveMeshChat() {
       try {
         service = await gattServer.getPrimaryService(SASL_SERVICE_UUID);
       } catch {
-        toast.error('Device does not support Sasl Mesh');
+        toast.error(t('Device does not support Sasl Mesh'));
         return;
       }
       
@@ -135,7 +137,7 @@ export default function WaveMeshChat() {
       setCharacteristic(char);
       setConnected(true);
       
-      toast.success(`Connected to ${device.name || 'Unknown Device'}`);
+      toast.success(`Connected to ${device.name || t('Unknown Device')}`);
 
       // Listen for messages
       await char.startNotifications();
@@ -219,7 +221,7 @@ export default function WaveMeshChat() {
       }
     } catch (err) {
       setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'sent' } : m));
-      toast.error('Failed to send');
+      toast.error(t('Failed to send'));
     } finally {
       setSending(false);
       setSelectedFile(null);
@@ -248,7 +250,7 @@ export default function WaveMeshChat() {
 
     // Offline: save locally
     setMessages(prev => prev.map(m => m.id === messageId ? { ...m, status: 'sent' } : m));
-    toast.success('Message saved – will send when peer connects');
+    toast.success(t('Message saved – will send when peer connects'));
   };
 
   // ============================================================
@@ -257,7 +259,7 @@ export default function WaveMeshChat() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value);
     if (bcRef.current) {
-      bcRef.current.postMessage({ type: 'typing' });
+      bcRef.current.postMessage({ type: t('typing') });
     }
   };
 
@@ -277,9 +279,9 @@ export default function WaveMeshChat() {
         const reader = new FileReader();
         reader.onload = () => {
           const data = {
-            type: 'message',
-            messageType: 'voice',
-            text: '🎤 Voice message',
+            type: t('message'),
+            messageType: t('voice'),
+            text: t('🎤 Voice message'),
             voiceUrl: reader.result as string,
             voiceDuration: Math.round((Date.now() - recordingStartTime) / 1000),
             sender: 'Me',
@@ -294,7 +296,7 @@ export default function WaveMeshChat() {
       const recordingStartTime = Date.now();
       recorder.start();
       setRecordingVoice(true);
-      toast('Recording...');
+      toast(t('Recording...'));
       
       setTimeout(() => {
         if (mediaRecorderRef.current?.state === 'recording') {
@@ -303,7 +305,7 @@ export default function WaveMeshChat() {
         }
       }, 30000); // Max 30 seconds
     } catch {
-      toast.error('Microphone access denied');
+      toast.error(t('Microphone access denied'));
     }
   };
 
@@ -373,7 +375,7 @@ export default function WaveMeshChat() {
         <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 mb-4 flex items-center gap-2">
           <Zap size={16} className="text-purple-500" />
           <p className="text-sm text-purple-700">
-            Local mesh active – {broadcastPeers.length} peer(s) nearby. Messages sent via BroadcastChannel.
+            {t('Local mesh active')} – {broadcastPeers.length} {t('peer(s) nearby')}. {t('Messages sent via BroadcastChannel')}
           </p>
         </div>
       )}
@@ -381,13 +383,13 @@ export default function WaveMeshChat() {
       {!connected && broadcastPeers.length === 0 && (
         <div className="bg-gray-50 rounded-2xl p-8 text-center mb-4">
           <Radio size={48} className="mx-auto mb-3 text-gray-300" />
-          <p className="text-gray-500 font-semibold">No mesh peers detected</p>
+          <p className="text-gray-500 font-semibold">{t('No mesh peers detected')}</p>
           <p className="text-sm text-gray-400 mt-1">
-            Open Sasl on another device or tab to test local mesh.
-            For Bluetooth, click "Scan & Connect" on both devices.
+            {t('Open Sasl on another device or tab to test local mesh.')}
+            {t('For Bluetooth, click "Scan & Connect" on both devices.')}
           </p>
           <button onClick={scanForDevices} className="btn-primary mt-4 flex items-center gap-2 mx-auto">
-            <Bluetooth size={16} /> Scan for Devices
+            <Bluetooth size={16} /> {t('Scan for Devices')}
           </button>
         </div>
       )}
@@ -400,8 +402,8 @@ export default function WaveMeshChat() {
               {connectedDevice?.name?.[0]?.toUpperCase() || 'D'}
             </div>
             <div>
-              <p className="font-semibold text-sm">{connectedDevice?.name || 'Device'}</p>
-              <p className="text-xs text-green-600">Connected via Bluetooth</p>
+              <p className="font-semibold text-sm">{connectedDevice?.name || t('Device')}</p>
+              <p className="text-xs text-green-600">{t('Connected via Bluetooth')}</p>
             </div>
           </div>
           <Shield size={16} className="text-green-500" />
@@ -414,8 +416,8 @@ export default function WaveMeshChat() {
           <div className="flex items-center justify-center h-full text-gray-400">
             <div className="text-center">
               <MessageCircle size={48} className="mx-auto mb-2 opacity-50" />
-              <p>No messages yet</p>
-              <p className="text-sm">Start chatting via mesh!</p>
+              <p>{t('No messages yet')}</p>
+              <p className="text-sm">{t('Start chatting via mesh!')}</p>
             </div>
           </div>
         )}
@@ -437,8 +439,8 @@ export default function WaveMeshChat() {
               {msg.type === 'voice' && (
                 <div className="flex items-center gap-2 mb-1">
                   <Mic size={16} />
-                  <span className="text-sm">🎤 Voice message</span>
-                  {msg.voiceDuration && <span className="text-xs opacity-70">{msg.voiceDuration}s</span>}
+                  <span className="text-sm">{t('🎤 Voice message')}</span>
+                  {msg.voiceDuration && <span className="text-xs opacity-70">{msg.voiceDuration}{t('s')}</span>}
                 </div>
               )}
               
@@ -463,7 +465,7 @@ export default function WaveMeshChat() {
         {peerTyping && (
           <div className="flex justify-start">
             <div className="bg-white dark:bg-gray-800 px-4 py-2 rounded-2xl shadow-sm">
-              <p className="text-sm text-gray-400 italic">Peer is typing...</p>
+              <p className="text-sm text-gray-400 italic">{t('Peer is typing...')}</p>
             </div>
           </div>
         )}
@@ -486,9 +488,9 @@ export default function WaveMeshChat() {
       {recordingVoice && (
         <div className="flex items-center gap-2 mb-2 p-3 bg-red-50 border border-red-200 rounded-xl">
           <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-          <span className="text-sm text-red-600 font-semibold">Recording...</span>
+          <span className="text-sm text-red-600 font-semibold">{t('Recording...')}</span>
           <button onClick={stopVoiceRecording} className="ml-auto bg-red-500 text-white px-3 py-1 rounded-full text-xs">
-            Stop
+            {t('Stop')}
           </button>
         </div>
       )}
@@ -507,15 +509,15 @@ export default function WaveMeshChat() {
                 className="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-2 flex gap-1 z-20">
                 <button onClick={() => { imageInputRef.current?.click(); setShowAttachmentMenu(false); }}
                   className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl flex flex-col items-center text-xs gap-1">
-                  <ImageIcon size={20} className="text-blue-500" /> Photo
+                  <ImageIcon size={20} className="text-blue-500" /> {t('Photo')}
                 </button>
                 <button onClick={() => { fileInputRef.current?.click(); setShowAttachmentMenu(false); }}
                   className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl flex flex-col items-center text-xs gap-1">
-                  <FileText size={20} className="text-orange-500" /> File
+                  <FileText size={20} className="text-orange-500" /> {t('File')}
                 </button>
                 <button onClick={() => { startVoiceRecording(); setShowAttachmentMenu(false); }}
                   className="p-3 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl flex flex-col items-center text-xs gap-1">
-                  <Mic size={20} className="text-red-500" /> Voice
+                  <Mic size={20} className="text-red-500" /> {t('Voice')}
                 </button>
               </motion.div>
             )}
@@ -529,7 +531,7 @@ export default function WaveMeshChat() {
 
         <input value={input} onChange={handleInputChange}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-          placeholder={connected ? 'Type a message...' : 'Type a message (local mesh)...'}
+          placeholder={connected ? t('Type a message...') : t('Type a message (local mesh)...')}
           className="input-field flex-1" />
 
         <button onClick={sendMessage} disabled={sending || (!input.trim() && !selectedFile)}

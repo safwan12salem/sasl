@@ -11,6 +11,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
+
 
 interface Group {
   id: string;
@@ -35,6 +37,7 @@ interface Message {
 
 export default function GroupChat() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [groups, setGroups] = useState<Group[]>([]);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -80,7 +83,7 @@ export default function GroupChat() {
       const res = await api.get(`/groupchat/groups/${groupId}/messages/`);
       setMessages(res.data.results || res.data || []);
     } catch (err) {
-      if (!silent) toast.error('Failed to load messages');
+      if (!silent) toast.error(t('failed_to_load_messages'));
     } finally {
       if (!silent) setLoading(false);
     }
@@ -88,7 +91,7 @@ export default function GroupChat() {
 
   const createGroup = async () => {
     if (!groupName.trim()) {
-      toast.error('Enter a group name');
+      toast.error(t('enter_group_name'));
       return;
     }
     try {
@@ -97,7 +100,7 @@ export default function GroupChat() {
         is_mesh: isMeshGroup,
         is_private: isPrivate,
       });
-      toast.success(`Group "${groupName}" created!`);
+      toast.success(t('group_created_successfully'));
       setShowCreate(false);
       setGroupName('');
       setIsMeshGroup(true);
@@ -105,7 +108,7 @@ export default function GroupChat() {
       await fetchGroups();
       setActiveGroup(res.data.id);
     } catch (err: any) {
-      const msg = err.response?.data?.error || 'Failed to create group';
+      const msg = err.response?.data?.error || t('failed_to_create_group');
       toast.error(msg);
     }
   };
@@ -131,7 +134,7 @@ export default function GroupChat() {
       setInput('');
       await fetchMessages(activeGroup, true);
     } catch (err: any) {
-      const msg = err.response?.data?.error || 'Failed to send message';
+      const msg = err.response?.data?.error || t('failed_to_send_message');
       toast.error(msg);
     } finally {
       setSending(false);
@@ -144,23 +147,23 @@ export default function GroupChat() {
       await api.post(`/groupchat/groups/${activeGroup}/add_member/`, {
         username: inviteUsername,
       });
-      toast.success(`${inviteUsername} added to group!`);
+      toast.success(t('member_added_to_group', { username: inviteUsername }));
       setInviteUsername('');
       setShowInvite(false);
       fetchGroups();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to add member');
+      toast.error(err.response?.data?.error || t('failed_to_add_member'));
     }
   };
 
   const leaveGroup = async (groupId: string) => {
     try {
       await api.post(`/groupchat/groups/${groupId}/leave/`);
-      toast.success('Left the group');
+      toast.success(t('left_group'));
       if (activeGroup === groupId) setActiveGroup(null);
       fetchGroups();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to leave group');
+      toast.error(err.response?.data?.error || t('failed_to_leave_group'));
     }
   };
 
@@ -187,13 +190,13 @@ export default function GroupChat() {
       <div className="w-72 border-r border-gray-200 dark:border-gray-700 flex flex-col">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold flex items-center gap-2">
-            <MessageCircle size={20} /> Groups
+            <MessageCircle size={20} /> {t('groups')}
           </h2>
           <button
             onClick={() => setShowCreate(!showCreate)}
             className="btn-primary w-full mt-3 text-sm flex items-center gap-1 justify-center"
           >
-            <Plus size={14} /> New Group
+            <Plus size={14} /> {t('new_group')}
           </button>
         </div>
 
@@ -208,7 +211,7 @@ export default function GroupChat() {
               <div className="p-4 space-y-2">
                 <input
                   className="input-field text-sm"
-                  placeholder="Group name..."
+                  placeholder={t('group_name')}
                   value={groupName}
                   onChange={e => setGroupName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && createGroup()}
@@ -216,11 +219,11 @@ export default function GroupChat() {
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-1 text-xs cursor-pointer">
                     <input type="checkbox" checked={isMeshGroup} onChange={e => setIsMeshGroup(e.target.checked)} className="rounded" />
-                    <WifiOff size={12} /> Mesh
+                    <WifiOff size={12} /> {t('mesh')}
                   </label>
                   <label className="flex items-center gap-1 text-xs cursor-pointer">
                     <input type="checkbox" checked={isPrivate} onChange={e => setIsPrivate(e.target.checked)} className="rounded" />
-                    Private
+                    {t('private')}
                   </label>
                 </div>
                 <div className="flex gap-2">
@@ -237,8 +240,8 @@ export default function GroupChat() {
           {groups.length === 0 && (
             <div className="text-center text-gray-400 p-8">
               <Users size={32} className="mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No groups yet</p>
-              <p className="text-xs">Create one to start chatting!</p>
+              <p className="text-sm">{t('no_groups_yet')}</p>
+              <p className="text-xs">{t('create_group_to_chat')}</p>
             </div>
           )}
           {groups.map(group => (
@@ -270,7 +273,7 @@ export default function GroupChat() {
                 <button
                   onClick={(e) => { e.stopPropagation(); leaveGroup(group.id); }}
                   className="p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-400 hover:text-red-500"
-                  title="Leave group"
+                  title={t('leave_group')}
                 >
                   <LogOut size={14} />
                 </button>
@@ -303,7 +306,7 @@ export default function GroupChat() {
                 </div>
               </div>
               <button onClick={() => setShowInvite(!showInvite)} className="btn-ghost text-sm flex items-center gap-1">
-                <UserPlus size={14} /> Invite
+                <UserPlus size={14} /> {t('invite')}
               </button>
             </div>
 
@@ -311,7 +314,7 @@ export default function GroupChat() {
               {showInvite && (
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-b border-gray-200 dark:border-gray-700 overflow-hidden">
                   <div className="p-3 flex gap-2">
-                    <input className="input-field flex-1 text-sm" placeholder="Enter username to invite..." value={inviteUsername} onChange={e => setInviteUsername(e.target.value)} onKeyDown={e => e.key === 'Enter' && inviteMember()} />
+                    <input className="input-field flex-1 text-sm" placeholder={t('enter_username_to_invite')} value={inviteUsername} onChange={e => setInviteUsername(e.target.value)} onKeyDown={e => e.key === 'Enter' && inviteMember()} />
                     <button onClick={inviteMember} className="btn-primary text-sm"><UserPlus size={14} /></button>
                     <button onClick={() => setShowInvite(false)} className="btn-ghost text-sm"><X size={14} /></button>
                   </div>
@@ -324,8 +327,8 @@ export default function GroupChat() {
               {messages.length === 0 && !loading && (
                 <div className="text-center text-gray-400 py-20">
                   <MessageCircle size={48} className="mx-auto mb-2 opacity-50" />
-                  <p>No messages yet</p>
-                  <p className="text-sm">Be the first to say something!</p>
+                  <p>{t('no_messages_yet')}</p>
+                  <p className="text-sm">{t('be_first_to_say_something')}</p>
                 </div>
               )}
               {messages.map((msg, idx) => {
@@ -396,9 +399,9 @@ export default function GroupChat() {
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 flex items-center justify-center mx-auto mb-4">
                 <Users size={48} className="opacity-50" />
               </div>
-              <h3 className="text-xl font-bold text-gray-500 mb-2">Sasl Groups</h3>
-              <p className="text-sm">Select a group from the sidebar or create a new one</p>
-              <button onClick={() => setShowCreate(true)} className="btn-primary mt-4 flex items-center gap-1 mx-auto"><Plus size={14} /> Create Your First Group</button>
+              <h3 className="text-xl font-bold text-gray-500 mb-2">{t('sasl_groups')}</h3>
+              <p className="text-sm">{t('select_group_from_sidebar_or_create_new')}</p>
+              <button onClick={() => setShowCreate(true)} className="btn-primary mt-4 flex items-center gap-1 mx-auto"><Plus size={14} /> {t('create_your_first_group')}</button>
             </div>
           </div>
         )}

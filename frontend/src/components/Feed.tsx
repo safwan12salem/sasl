@@ -23,7 +23,7 @@ import { saslBrain } from '../services/saslBrain';
 import EmojiPicker from 'emoji-picker-react';
 import { contentModerator } from '../services/contentModeration';
 import { getMeshNode } from './OfflineMeshStatus';
-
+import { useTranslation } from 'react-i18next';
 // ---------- TYPES ----------
 interface Post {
   id: string;
@@ -84,7 +84,7 @@ const Feed: React.FC = () => {
   const [showStoryRecorder, setShowStoryRecorder] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const isFetching = useRef(false);
-
+  const { t } = useTranslation();
   // ============================================================
   // FETCH POSTS - Fixed to prevent infinite loops
   // ============================================================
@@ -158,7 +158,7 @@ const Feed: React.FC = () => {
       setHasMore(!!nextPage && currentPageSize > 0);
     } catch (err) {
       if (!append && initialLoad) {
-         console.warn('Feed fetch failed:', err);
+         console.warn(t('feed_fetch_failed'), err);
       }
     } finally {
       setLoading(false);
@@ -174,9 +174,9 @@ const Feed: React.FC = () => {
 
      useEffect(() => {
   // Ensure token is available before fetching
-  const token = localStorage.getItem('sasl_token');
+  const token = localStorage.getItem(t('sasl_token'));
   if (token) {
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    api.defaults.headers.common[t('authorization')] = `Bearer ${token}`;
   }
   
   // Small delay to ensure everything is ready
@@ -261,7 +261,7 @@ const Feed: React.FC = () => {
       const res = await api.post(`/content/posts/${postId}/vote_poll/`, { option_id: optionId });
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, poll: res.data } : p));
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Vote failed');
+      toast.error(err.response?.data?.error || t('vote_failed'));
     }
   };
 
@@ -280,14 +280,14 @@ const Feed: React.FC = () => {
           text: post.text,
           url: `${window.location.origin}/post/${postId}`,
         });
-        toast.success('Shared!');
+        toast.success(t('shared'));
       } else {
         await navigator.clipboard.writeText(`${window.location.origin}/post/${postId}`);
-        toast.success('Link copied to clipboard!');
+        toast.success(t('link_copied'));
       }
     } catch (err: any) {
       if (err.name !== 'AbortError') {
-        toast.error('Could not share');
+        toast.error(t('could_not_share'));
       }
     }
   };
@@ -327,16 +327,16 @@ const Feed: React.FC = () => {
 
     const moderation = await contentModerator.moderateText(composing);
     if (moderation.isSpam || moderation.isHateful) {
-      toast.error(`Content flagged: ${moderation.reason}. Please revise.`);
+      toast.error(t('content_flagged', { reason: moderation.reason }));
       return;
     }
 
     const formData = new FormData();
-    formData.append('text', composing);
-    if (selectedFile) formData.append('media', selectedFile);
+    formData.append(t('text'), composing);
+    if (selectedFile) formData.append(t('media'), selectedFile);
     if (composingWithPoll) {
       const validOptions = pollOptions.filter(opt => opt.trim());
-      formData.append('poll', JSON.stringify({
+      formData.append(t('poll'), JSON.stringify({
         question: composing,
         options: validOptions,
         expires_in_days: 1
@@ -355,9 +355,9 @@ const Feed: React.FC = () => {
       } as any);
       setPosts(prev => [res.data, ...prev]);
       resetComposer();
-      toast.success('Posted!');
+      toast.success(t('posted'));
     } catch {
-      toast.error('Failed to post');
+      toast.error(t('failed_to_post'));
       setUploadProgress(0);
     }
   };
@@ -377,16 +377,16 @@ const Feed: React.FC = () => {
         author: user?.username,
         timestamp: Date.now(),
       });
-      toast.success('Posted via WaveMesh! 📡');
+      toast.success(t('posted_via_wavemesh'));
     } else {
-      toast.success('Queued – will sync when online');
+      toast.success(t('queued_sync_online'));
     }
     
-    localStorage.setItem('sasl_offline_posts', JSON.stringify(updatedQueue));
+    localStorage.setItem(t('sasl_offline_posts'), JSON.stringify(updatedQueue));
     
     const fakePost: Post = {
       id: `offline-${Date.now()}`,
-      author: { username: user?.username || 'You' },
+      author: { username: user?.username || t('you') },
       text: composing,
       media_url: filePreview,
       likes_count: 0,
@@ -414,11 +414,11 @@ const Feed: React.FC = () => {
     try {
       await api.post('/content/posts/sync_offline_posts/', { posts: offlineQueue });
       setOfflineQueue([]);
-      localStorage.removeItem('sasl_offline_posts');
-      toast.success('Offline posts synced!');
+      localStorage.removeItem(t('sasl_offline_posts'));
+      toast.success(t('offline_posts_synced'));
       await fetchPosts(1, false);
     } catch {
-      toast.error('Sync failed, will retry');
+      toast.error(t('sync_failed'));
     } finally {
       setSyncing(false);
     }
@@ -438,7 +438,7 @@ const Feed: React.FC = () => {
         <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-orange-400 p-[3px]">
           <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-2xl">+</div>
         </div>
-        <span className="text-xs mt-1">Your Story</span>
+        <span className="text-xs mt-1">{t('your_story')}</span>
       </div>
       {stories.slice(0, 10).map(s => (
         <div key={s.id} className="flex flex-col items-center">
@@ -457,7 +457,7 @@ const Feed: React.FC = () => {
         <div key={u.id} className="flex items-center gap-1 bg-white rounded-full px-3 py-1 shadow-sm text-sm">
           <div className="w-6 h-6 rounded-full bg-gray-300" />
           <span>{u.username}</span>
-          <button className="text-green-500 ml-1 text-xs">Follow</button>
+          <button className="text-green-500 ml-1 text-xs">{t('follow')}</button>
         </div>
       ))}
     </div>
@@ -548,7 +548,7 @@ const Feed: React.FC = () => {
           {offlineQueue.length > 0 && (
             <button onClick={syncOfflineQueue} disabled={syncing} className="flex items-center gap-1 btn-ghost text-xs">
               {syncing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wifi className="w-3 h-3" />}
-              Sync ({offlineQueue.length})
+              {t('sync')} ({offlineQueue.length})
             </button>
           )}
         </div>
@@ -606,7 +606,7 @@ const Feed: React.FC = () => {
             </button>
           </div>
           <button onClick={submitPost} disabled={!composing.trim() && !selectedFile} className="btn-primary text-sm py-2 px-6">
-            Post
+            {t('post')}
           </button>
         </div>
         
@@ -636,10 +636,10 @@ const Feed: React.FC = () => {
       <div ref={loader} className="h-10 flex justify-center items-center">
         {loading && <Loader2 className="animate-spin text-green-500" />}
         {!hasMore && !loading && posts.length > 0 && (
-          <p className="text-gray-400 text-sm">You're all caught up! 🎉</p>
+          <p className="text-gray-400 text-sm">{t('all_caught_up')}</p>
         )}
         {!hasMore && !loading && posts.length === 0 && !initialLoad && (
-          <p className="text-gray-400">No posts yet. Be the first to share something!</p>
+          <p className="text-gray-400">{t('no_posts_yet')}</p>
         )}
       </div>
     </div>

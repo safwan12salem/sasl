@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-
+import { useTranslation } from 'react-i18next';
 interface Props {
   creatorUsername: string;
 }
@@ -16,7 +16,7 @@ const SubscribeButton: React.FC<Props> = ({ creatorUsername }) => {
   const [subscribed, setSubscribed] = useState(false);
   const [tier, setTier] = useState('basic');
   const [price, setPrice] = useState(5); // default $5
-
+    const { t } = useTranslation();
   useEffect(() => {
     if (!user) return;
     // Check if already subscribed
@@ -51,7 +51,7 @@ const SubscribeButton: React.FC<Props> = ({ creatorUsername }) => {
       const subId = res.data.results[0].id;
       await api.delete(`/users/subscriptions/${subId}/`);
       setSubscribed(false);
-      toast('Unsubscribed');
+      toast.success(t('Unsubscribed'));
     }
   };
 
@@ -61,17 +61,17 @@ const SubscribeButton: React.FC<Props> = ({ creatorUsername }) => {
     <div className="mt-2">
       {subscribed ? (
         <button onClick={handleCancel} className="btn-ghost text-xs py-1 px-3">
-          Subscribed (cancel)
+          {t('Subscribed')} ({t('cancel')})
         </button>
       ) : (
         <div className="flex gap-2 items-center">
           <select className="border rounded px-2 py-1 text-xs" value={tier} onChange={e => setTier(e.target.value)}>
-            <option value="basic">Basic $5</option>
-            <option value="pro">Pro $10</option>
-            <option value="vip">VIP $20</option>
+            <option value="basic">{t('Basic')} $5</option>
+            <option value="pro">{t('Pro')} $10</option>
+            <option value="vip">{t('VIP')} $20</option>
           </select>
           <button onClick={handleSubscribe} className="btn-primary text-xs py-1 px-3">
-            Subscribe
+            {t('Subscribe')}
           </button>
         </div>
       )}

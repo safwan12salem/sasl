@@ -12,6 +12,7 @@ import {
   Loader2, AlertCircle, Trophy, Shield, Wallet
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 interface EarningsData {
   total_earned: number;
@@ -59,6 +60,8 @@ export default function EarningsDashboard() {
     show_transactions: false,
   });
 
+  const { t } = useTranslation();
+
   useEffect(() => {
     // Fetch earnings data and privacy settings
     Promise.all([
@@ -85,9 +88,9 @@ export default function EarningsDashboard() {
     try {
       await api.patch('/users/profile/', { [key]: updated[key] });
       const label = key.replace('show_', '').replace('_', ' ');
-      toast.success(`${label} ${updated[key] ? 'visible' : 'hidden'}`);
+      toast.success(t('privacy_updated', { label, status: updated[key] ? 'visible' : 'hidden' }));
     } catch {
-      toast.error('Update failed');
+      toast.error(t('privacy_update_failed'));
     }
   };
 
@@ -113,7 +116,7 @@ export default function EarningsDashboard() {
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <h2 className="text-3xl font-bold gradient-text mb-6 flex items-center gap-2">
-        <DollarSign /> My Earnings
+        <DollarSign /> {t('my_earnings')}
       </h2>
 
       {/* Privacy Controls */}
@@ -123,16 +126,16 @@ export default function EarningsDashboard() {
         className="glass p-4 rounded-2xl mb-6"
       >
         <h3 className="font-semibold mb-3 flex items-center gap-2">
-          <Shield size={18} /> Privacy Controls
+          <Shield size={18} /> {t('privacy_controls')}
         </h3>
         <p className="text-sm text-gray-500 mb-3">
-          Control who can see your earnings. Only you can see this data by default.
+          {t('privacy_controls_description')}
         </p>
         <div className="space-y-2">
           {([
-            { key: 'show_earnings' as keyof PrivacySettings, label: 'Show Earnings to Public', icon: <TrendingUp size={16} /> },
-            { key: 'show_rank' as keyof PrivacySettings, label: 'Show Rank on Leaderboard', icon: <Trophy size={16} /> },
-            { key: 'show_balance' as keyof PrivacySettings, label: 'Show Wallet Balance', icon: <Wallet size={16} /> },
+            { key: 'show_earnings' as keyof PrivacySettings, label: t('show_earnings'), icon: <TrendingUp size={16} /> },
+            { key: 'show_rank' as keyof PrivacySettings, label: t('show_rank'), icon: <Trophy size={16} /> },
+            { key: 'show_balance' as keyof PrivacySettings, label: t('show_balance'), icon: <Wallet size={16} /> },
           ]).map(({ key, label, icon }) => (
             <div key={key} className="flex items-center justify-between py-2 border-b last:border-b-0">
               <span className="flex items-center gap-2 text-sm">
@@ -163,7 +166,7 @@ export default function EarningsDashboard() {
           animate={{ opacity: 1, y: 0 }}
           className="glass p-4 rounded-2xl text-center"
         >
-          <p className="text-gray-500 text-sm">Earned This Month</p>
+          <p className="text-gray-500 text-sm"> {t('earned_this_month')}</p>
           <p className="text-3xl font-extrabold text-green-600">
             ${earnings.total_earned.toFixed(2)}
           </p>
@@ -175,7 +178,7 @@ export default function EarningsDashboard() {
           transition={{ delay: 0.1 }}
           className="glass p-4 rounded-2xl text-center"
         >
-          <p className="text-gray-500 text-sm">Projected Monthly</p>
+          <p className="text-gray-500 text-sm"> {t('projected_monthly')}</p>
           <p className="text-3xl font-extrabold text-blue-600">
             ${earnings.projected_monthly.toFixed(2)}
           </p>
@@ -188,7 +191,7 @@ export default function EarningsDashboard() {
           className="glass p-4 rounded-2xl text-center"
         >
           <p className="text-gray-500 text-sm flex items-center justify-center gap-1">
-            <Trophy size={14} /> Rank
+            <Trophy size={14} /> {t('rank')}
           </p>
           <p className="text-3xl font-extrabold text-purple-600">
             #{earnings.rank}
@@ -201,9 +204,9 @@ export default function EarningsDashboard() {
           transition={{ delay: 0.3 }}
           className="glass p-4 rounded-2xl text-center"
         >
-          <p className="text-gray-500 text-sm">Percentile</p>
+          <p className="text-gray-500 text-sm"> {t('percentile')}</p>
           <p className="text-3xl font-extrabold text-orange-600">
-            Top {earnings.percentile}%
+            {t('top_percentile', { percentile: earnings.percentile })}
           </p>
         </motion.div>
       </div>
@@ -216,7 +219,7 @@ export default function EarningsDashboard() {
         className="glass p-6 rounded-2xl mb-6"
       >
         <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-          <BarChart3 size={20} /> Earnings Breakdown
+          <BarChart3 size={20} /> {t('earnings_breakdown')}
         </h3>
         <div className="space-y-3">
           {Object.entries(earnings.breakdown).map(([key, value]) => (
@@ -241,14 +244,14 @@ export default function EarningsDashboard() {
         className="glass p-6 rounded-2xl"
       >
         <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
-          <Target size={20} /> How to Earn More
+          <Target size={20} /> {t('how_to_earn_more')}
         </h3>
         <div className="space-y-2 text-sm text-gray-600">
-          <p>🎥 <strong>Stream</strong> regularly – top streamers earn $3,200+/month</p>
-          <p>🛍️ <strong>Sell products</strong> – average seller makes $1,800/month</p>
-          <p>📚 <strong>Tutor students</strong> – teachers earn $4,500+/month</p>
-          <p>💼 <strong>Complete gigs</strong> – gig workers average $1,200/month</p>
-          <p>👀 <strong>Watch ads daily</strong> – earn up to $15/month passively</p>
+          <p>🎥 <strong> {t('stream_regularly')}</strong>–{t('top_streamers_earn', { amount: '$3,200+' })}</p>
+          <p>🛍️ <strong> {t('sell_products')}</strong> – {t('average_seller_makes', { amount: '$1,800' })}</p>
+          <p>📚 <strong> {t('tutor_students')}</strong> – {t('teachers_earn', { amount: '$4,500+' })}</p>
+          <p>💼 <strong> {t('complete_gigs')}</strong> – {t('gig_workers_average', { amount: '$1,200' })}</p>
+          <p>👀 <strong> {t('watch_ads_daily')}</strong> – {t('earn_up_to', { amount: '$15' })} {t('month_passively')}</p>
         </div>
       </motion.div>
     </div>

@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { Award, TrendingUp, Star, Users, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import DailyChallenge from './DailyChallenge';
-
+import { useTranslation } from 'react-i18next';
 interface Badge {
   name: string;
   icon: string;
@@ -22,7 +22,7 @@ export default function ProgressHub() {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const { t } = useTranslation();
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -37,12 +37,12 @@ export default function ProgressHub() {
 
         // Badges
         const earnedBadges: Badge[] = [
-          { name: 'First Post', icon: '📝', earned: posts.length > 0 },
-          { name: '10 Likes', icon: '❤️', earned: totalLikes >= 10 },
-          { name: 'Seller', icon: '🛒', earned: user?.is_seller || false },
-          { name: 'Streamer', icon: '🎥', earned: user?.is_creator || false },
-          { name: 'Teacher', icon: '📚', earned: user?.is_teacher || false },
-          { name: '100 XP', icon: '⭐', earned: xp >= 100 },
+          { name: t('First Post'), icon: '📝', earned: posts.length > 0 },
+          { name: t('10 Likes'), icon: '❤️', earned: totalLikes >= 10 },
+          { name: t('Seller'), icon: '🛒', earned: user?.is_seller || false },
+          { name: t('Streamer'), icon: '🎥', earned: user?.is_creator || false },
+          { name: t('Teacher'), icon: '📚', earned: user?.is_teacher || false },
+          { name: t('100 XP'), icon: '⭐', earned: xp >= 100 },
         ];
         setBadges(earnedBadges);
 
@@ -69,27 +69,27 @@ export default function ProgressHub() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <h2 className="text-3xl font-bold gradient-text mb-6 flex items-center gap-2">
-        <TrendingUp /> Progress Hub
+        <TrendingUp /> {t('Progress Hub')}
       </h2>
        <DailyChallenge />
       {/* Stats Card */}
       <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} className="glass p-6 rounded-2xl mb-6">
         <div className="text-center">
-          <p className="text-gray-500">Level {stats.level}</p>
+          <p className="text-gray-500">{t('Level')} {stats.level}</p>
           <div className="w-full bg-gray-200 h-4 rounded-full mt-2">
             <div className="bg-gradient-to-r from-green-400 to-green-600 h-4 rounded-full" style={{width:`${levelProgress}%`}} />
           </div>
-          <p className="text-sm mt-1">{stats.xp} XP</p>
+          <p className="text-sm mt-1">{stats.xp}  {t('XP')}</p>
         </div>
         <div className="flex justify-around mt-4 text-sm">
-          <span>📝 {stats.posts} Posts</span>
-          <span>❤️ {stats.likes} Likes</span>
-          <span>👥 {user?.followers_count || 0} Followers</span>
+          <span>📝 {stats.posts} {t('Posts')}</span>
+          <span>❤️ {stats.likes} {t('Likes')}</span>
+          <span>👥 {user?.followers_count || 0} {t('Followers')}</span>
         </div>
       </motion.div>
 
       {/* Badges */}
-      <h3 className="font-bold text-xl mb-3 flex items-center gap-2"><Award /> Badges</h3>
+      <h3 className="font-bold text-xl mb-3 flex items-center gap-2"><Award />  {t('Badges')}</h3>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
         {badges.map((b, i) => (
           <motion.div key={i} initial={{ scale:0 }} animate={{ scale:1 }} transition={{ delay:i*0.1 }}
@@ -101,12 +101,12 @@ export default function ProgressHub() {
       </div>
 
       {/* Leaderboard */}
-      <h3 className="font-bold text-xl mb-3 flex items-center gap-2"><Users /> Leaderboard</h3>
+      <h3 className="font-bold text-xl mb-3 flex items-center gap-2"><Users /> {t('Leaderboard')}</h3>
       <div className="glass rounded-2xl overflow-hidden">
         {leaderboard.map((entry, i) => (
           <div key={i} className={`flex justify-between px-4 py-2 ${entry.username === user?.username ? 'bg-green-50' : ''}`}>
             <span className="font-semibold">{entry.username}</span>
-            <span className="text-green-600 font-bold">{entry.xp} XP</span>
+            <span className="text-green-600 font-bold">{entry.xp} {t('XP')}</span>
           </div>
         ))}
       </div>

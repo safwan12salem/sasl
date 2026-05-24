@@ -93,12 +93,12 @@ export default function SnapSender() {
   const [showContacts, setShowContacts] = useState(false);
 
   const FILTERS = [
-    { name: 'none', label: 'Normal', style: '' },
-    { name: 'grayscale', label: 'B&W', style: 'grayscale(100%)' },
-    { name: 'sepia', label: 'Sepia', style: 'sepia(100%)' },
-    { name: 'vintage', label: 'Vintage', style: 'sepia(50%) hue-rotate(-20deg) brightness(0.9)' },
-    { name: 'cool', label: 'Cool', style: 'hue-rotate(180deg) brightness(1.1)' },
-    { name: 'warm', label: 'Warm', style: 'hue-rotate(-30deg) brightness(1.1) saturate(1.5)' },
+    { name: t('none'), label: t('Normal'), style: '' },
+    { name: 'grayscale', label: t('B&W'), style: 'grayscale(100%)' },
+    { name: 'sepia', label: t('Sepia'), style: 'sepia(100%)' },
+    { name: 'vintage', label: t('Vintage'), style: 'sepia(50%) hue-rotate(-20deg) brightness(0.9)' },
+    { name: 'cool', label: t('Cool'), style: 'hue-rotate(180deg) brightness(1.1)' },
+    { name: 'warm', label: t('Warm'), style: 'hue-rotate(-30deg) brightness(1.1) saturate(1.5)' },
   ];
 
   // ============================================================
@@ -108,7 +108,7 @@ export default function SnapSender() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode, width: { ideal: 720 }, height: { ideal: 1280 } },
-        audio: mediaType === 'video',
+        audio: mediaType ===  t('video'),
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -116,8 +116,8 @@ export default function SnapSender() {
       }
       setCameraActive(true);
     } catch (err: any) {
-      if (err.name === 'NotAllowedError') toast.error('Camera permission denied');
-      else toast.error('Camera access failed');
+      if (err.name === 'NotAllowedError') toast.error( t('Camera permission denied'));
+      else toast.error(t('Camera access failed'));
     }
   };
 
@@ -227,7 +227,7 @@ export default function SnapSender() {
   // SEND SNAP
   // ============================================================
   const sendSnap = async () => {
-    if (!blob || !receiver.trim()) return toast.error('Capture content and enter a username');
+    if (!blob || !receiver.trim()) return toast.error( t('Capture content and enter a username'));
     setUploading(true);
     try {
       const formData = new FormData();
@@ -239,11 +239,11 @@ export default function SnapSender() {
       await api.post('/snaps/snaps/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      toast.success('Snap sent! 📸');
+      toast.success( t('Snap sent! 📸'));
       setBlob(null); setReceiver(''); setCaption(''); setDrawings([]);
       fetchSnaps();
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || 'Failed to send snap');
+      toast.error(err.response?.data?.detail || t('Failed to send snap'));
     } finally {
       setUploading(false);
     }
@@ -299,18 +299,18 @@ export default function SnapSender() {
   };
 
   const postStory = async () => {
-    if (!storyFile) return toast.error('Select an image or video');
+    if (!storyFile) return toast.error( t('Select an image or video'));
     const formData = new FormData();
     formData.append('media', storyFile);
     try {
       await api.post('/snaps/snaps/post_story/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      toast.success('Story posted! 📖');
+      toast.success( t('Story posted! 📖'));
       setShowStoryForm(false); setStoryFile(null); setStoryPreview(null);
       fetchStories();
     } catch (err: any) {
-      toast.error('Failed to post story');
+      toast.error( t('Failed to post story'));
     }
   };
 
@@ -318,17 +318,17 @@ export default function SnapSender() {
   // RENDER
   // ============================================================
   const modeTabs = [
-    { key: 'camera' as SnapMode, icon: <Camera size={18} />, label: 'Camera' },
+    { key: 'camera' as SnapMode, icon: <Camera size={18} />, label: t('Camera') },
     { key: 'inbox' as SnapMode, icon: <Inbox size={18} />, label: `Inbox (${snaps.length})` },
-    { key: 'stories' as SnapMode, icon: <Play size={18} />, label: 'Stories' },
-    { key: 'streaks' as SnapMode, icon: <Zap size={18} />, label: 'Streaks' },
+    { key: 'stories' as SnapMode, icon: <Play size={18} />, label: t('Stories') },
+    { key: 'streaks' as SnapMode, icon: <Zap size={18} />, label: t('Streaks') },
   ];
 
   return (
     <div className="max-w-md mx-auto p-4">
       {/* Header */}
       <h2 className="text-3xl font-bold gradient-text mb-4 flex items-center gap-2">
-        <Camera className="text-yellow-500" /> Snap
+        <Camera className="text-yellow-500" /> {t('Snap')}
       </h2>
 
       {/* Mode Tabs */}
@@ -439,10 +439,10 @@ export default function SnapSender() {
               )}
               <div className="flex gap-2">
                 <button onClick={() => setShowContacts(!showContacts)} className="btn-ghost text-sm flex items-center gap-1">
-                  <Users size={14} /> Contacts
+                  <Users size={14} /> {t('Contacts')}
                 </button>
                 <input value={receiver} onChange={e => setReceiver(e.target.value)}
-                  placeholder="Username to send to" className="input-field flex-1 text-sm" />
+                  placeholder={t('Username to send to')} className="input-field flex-1 text-sm" />
               </div>
               {showContacts && recentContacts.length > 0 && (
                 <div className="flex gap-2 overflow-x-auto">
@@ -455,11 +455,11 @@ export default function SnapSender() {
                 </div>
               )}
               <input value={caption} onChange={e => setCaption(e.target.value)}
-                placeholder="Add a caption..." className="input-field text-sm" />
+                placeholder={t('Add a caption...')} className="input-field text-sm" />
               <button onClick={sendSnap} disabled={uploading}
                 className="btn-primary w-full flex items-center justify-center gap-2 py-3">
                 {uploading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
-                Send Snap
+                {t('Send Snap')}
               </button>
             </motion.div>
           )}
@@ -471,17 +471,17 @@ export default function SnapSender() {
         <div className="space-y-3">
           <div className="flex gap-2 mb-3">
             <button className={`px-3 py-1 rounded-full text-xs font-semibold ${viewingSnap ? 'bg-gray-100' : 'bg-yellow-500 text-white'}`}>
-              Received ({snaps.length})
+              {t('Received')} ({snaps.length})
             </button>
             <button className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100">
-              Sent ({sentSnaps.length})
+              {t('Sent')} ({sentSnaps.length})
             </button>
           </div>
 
           {snaps.length === 0 ? (
             <div className="glass p-8 rounded-2xl text-center">
               <Inbox size={48} className="mx-auto mb-3 text-gray-300" />
-              <p className="text-gray-500">No new snaps</p>
+              <p className="text-gray-500"> {t('No new snaps')}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -510,9 +510,9 @@ export default function SnapSender() {
       {mode === 'stories' && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-bold">Stories</h3>
+            <h3 className="font-bold"> {t('Stories')}</h3>
             <button onClick={() => setShowStoryForm(true)} className="btn-primary text-xs flex items-center gap-1">
-              <Plus size={14} /> Add Story
+              <Plus size={14} /> {t('Add Story')}
             </button>
           </div>
 
@@ -524,8 +524,8 @@ export default function SnapSender() {
               }} className="text-sm" />
               {storyPreview && <img src={storyPreview} alt="Preview" className="w-full h-32 object-cover rounded-lg" />}
               <div className="flex gap-2">
-                <button onClick={postStory} className="btn-primary flex-1 text-sm">Post Story</button>
-                <button onClick={() => { setShowStoryForm(false); setStoryFile(null); setStoryPreview(null); }} className="btn-ghost text-sm">Cancel</button>
+                <button onClick={postStory} className="btn-primary flex-1 text-sm">{t('Post Story')}</button>
+                <button onClick={() => { setShowStoryForm(false); setStoryFile(null); setStoryPreview(null); }} className="btn-ghost text-sm">{t('Cancel')}</button>
               </div>
             </div>
           )}
@@ -552,12 +552,12 @@ export default function SnapSender() {
       {/* Streaks Mode */}
       {mode === 'streaks' && (
         <div>
-          <h3 className="font-bold mb-3 flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> Snap Streaks</h3>
+          <h3 className="font-bold mb-3 flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> {t('Snap Streaks')}</h3>
           {streaks.length === 0 ? (
             <div className="glass p-8 rounded-2xl text-center">
               <Zap size={48} className="mx-auto mb-3 text-gray-300" />
-              <p className="text-gray-500">No streaks yet</p>
-              <p className="text-sm text-gray-400">Send snaps daily to build streaks!</p>
+              <p className="text-gray-500">{t('No streaks yet')}</p>
+              <p className="text-sm text-gray-400">{t('Send snaps daily to build streaks!')}</p>
             </div>
           ) : (
             <div className="space-y-2">
@@ -569,14 +569,14 @@ export default function SnapSender() {
                     </div>
                     <div>
                       <p className="font-semibold text-sm">@{streak.other_user}</p>
-                      <p className="text-xs text-gray-500">Last snap: {new Date(streak.last_snap_date).toLocaleDateString()}</p>
+                      <p className="text-xs text-gray-500">{t('Last snap')}: {new Date(streak.last_snap_date).toLocaleDateString()}</p>
                     </div>
                   </div>
                   <div className="text-center">
                     <p className="text-2xl font-bold text-orange-500 flex items-center gap-1">
                       <Zap size={20} className="fill-yellow-400 text-yellow-400" /> {streak.current_streak}
                     </p>
-                    <p className="text-xs text-gray-400">Best: {streak.longest_streak}</p>
+                    <p className="text-xs text-gray-400">{t('Best')}: {streak.longest_streak}</p>
                   </div>
                 </div>
               ))}
@@ -621,7 +621,7 @@ export default function SnapSender() {
                 <img src={viewingStory.media_url} alt="" className="w-full max-h-[80vh] object-contain" />
               )}
               <p className="absolute top-4 left-4 text-white font-bold">@{viewingStory.user.username}</p>
-              <p className="absolute top-4 right-4 text-white text-xs">{viewingStory.views_count} views</p>
+              <p className="absolute top-4 right-4 text-white text-xs">{viewingStory.views_count}  {t('views')}</p>
             </div>
           </motion.div>
         )}

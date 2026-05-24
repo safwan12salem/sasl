@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { Send } from 'lucide-react';
-
+import { useTranslation } from 'react-i18next';
 interface Props {
   roomId: string;
   onClose: () => void;
@@ -15,6 +15,7 @@ export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
   const [connected, setConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
   const token = localStorage.getItem('sasl_token');
+  const { t } = useTranslation();
 
   useEffect(() => {
     const wsUrl = `ws://localhost:8000/ws/video/${roomId}/?token=${token}`;
@@ -59,7 +60,7 @@ export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key ===  'Enter') {
       e.preventDefault();
       send();
     }
@@ -72,7 +73,7 @@ export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-2">
             <div className={`w-2.5 h-2.5 rounded-full ${connected ? 'bg-green-500' : 'bg-red-500'}`} />
-            <h3 className="font-bold text-gray-800">Chat</h3>
+            <h3 className="font-bold text-gray-800">{t('Chat')}</h3>
           </div>
           <button
             onClick={onClose}
@@ -86,7 +87,7 @@ export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
         <div className="h-72 bg-gray-50 rounded-lg m-3 p-3 overflow-y-auto space-y-2">
           {messages.length === 0 && (
             <p className="text-gray-400 text-sm text-center mt-20">
-              {connected ? 'Start the conversation!' : 'Connecting...'}
+              {connected ? t('Start the conversation!') : t('Connecting...')}
             </p>
           )}
           {messages.map((m, i) => {
@@ -113,7 +114,7 @@ export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
+            placeholder={t('Type a message...')}
             className="flex-1 px-4 py-2.5 bg-gray-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-green-400 transition"
           />
           <button

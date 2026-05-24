@@ -13,7 +13,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { saslBrain } from '../services/saslBrain';
-
+import { Translation, useTranslation } from 'react-i18next';
 // ============================================================
 // TYPES
 // ============================================================
@@ -30,92 +30,178 @@ interface VoiceConversation {
   text: string;
 }
 
+
+
 // ============================================================
-// CONTENT ASSISTANT LOGIC (from AIAssistant.tsx)
+// BREAKTHROUGH CONTENT ASSISTANT — Detailed, Unique Responses
 // ============================================================
 function generateLocalSuggestions(topic: string): string[] {
   const t = topic.trim();
   const capitalized = t.charAt(0).toUpperCase() + t.slice(1);
+  const lower = t.toLowerCase();
   
+  // ============================================================
+  // CATEGORY DETECTION — 15 categories
+  // ============================================================
   const isPerson = /^[A-Z][a-z]+(\s[A-Z][a-z]+)?$/.test(capitalized) && !/^[A-Z]{2,}$/.test(t);
-  const isTech = /ai|tech|code|software|app|web|data|crypto|blockchain|robot|computer|programming|developer/i.test(t);
-  const isLifestyle = /food|travel|fitness|health|yoga|meditation|style|fashion|beauty|cook|recipe/i.test(t);
-  const isBusiness = /business|startup|marketing|finance|invest|money|entrepreneur|sales|revenue/i.test(t);
-  const isCreative = /art|music|design|photo|video|write|paint|draw|create|craft/i.test(t);
-  const isEducation = /study|learn|teach|school|university|course|student|education|book/i.test(t);
-  const isSports = /sport|football|soccer|basketball|game|player|team|win|champion/i.test(t);
+  const isTech = /ai|tech|code|software|app|web|data|crypto|blockchain|robot|computer|programming|developer|machine learning|cloud|cyber|internet/i.test(lower);
+  const isBusiness = /business|startup|marketing|finance|invest|money|entrepreneur|sales|revenue|profit|economy|stock|trade/i.test(lower);
+  const isHealth = /health|fitness|diet|exercise|yoga|meditation|mental health|wellness|nutrition|workout|gym|weight loss|sleep|stress/i.test(lower);
+  const isFood = /food|cook|recipe|cuisine|bake|restaurant|meal|dish|ingredient|flavor|taste|chef|kitchen/i.test(lower);
+  const isTravel = /travel|trip|vacation|tour|destination|flight|hotel|backpack|adventure|explore|journey|wander/i.test(lower);
+  const isEducation = /study|learn|teach|school|university|course|student|education|book|exam|degree|academic|research|knowledge/i.test(lower);
+  const isCreative = /art|music|design|photo|video|write|paint|draw|create|craft|film|movie|song|dance|compose/i.test(lower);
+  const isSports = /sport|football|soccer|basketball|game|player|team|win|champion|league|match|tournament|athlete|coach/i.test(lower);
+  const isScience = /science|physics|chemistry|biology|astronomy|space|planet|star|universe|atom|molecule|experiment|theory/i.test(lower);
+  const isLifestyle = /lifestyle|fashion|beauty|style|home|decor|garden|pet|family|relationship|dating|parenting/i.test(lower);
+  const isHistory = /history|ancient|war|civilization|empire|revolution|century|king|queen|president|historical|artifact/i.test(lower);
+  const isNature = /nature|environment|climate|ocean|mountain|forest|animal|wildlife|planet|earth|green|sustainable|eco/i.test(lower);
+  const isPhilosophy = /philosophy|meaning|life|purpose|ethics|moral|consciousness|reality|truth|wisdom|think|exist/i.test(lower);
+  const isEntertainment = /entertainment|movie|film|tv|show|series|netflix|anime|comic|game|gaming|esports|celebrity/i.test(lower);
 
-  const allTemplates: Record<string, string[]> = {
+  // ============================================================
+  // DETAILED TEMPLATES — Full informative content
+  // ============================================================
+  const templates: Record<string, string[]> = {
     person: [
-      `The inspiring story of ${capitalized} and how they changed the game 💫`,
-      `${capitalized}'s top 5 secrets to success revealed 🔥`,
-      `What ${capitalized} can teach us about resilience and growth 🌱`,
-      `Exclusive: ${capitalized}'s daily routine that boosts productivity`,
-      `Why everyone is talking about ${capitalized} right now`,
+      `${capitalized} is one of the most fascinating figures of our time. From humble beginnings to global recognition, their journey teaches us invaluable lessons about perseverance, innovation, and the power of believing in yourself.\n\nKey achievements:\n• Revolutionized their industry through bold thinking\n• Built a legacy that inspires millions worldwide\n• Demonstrated that success comes from consistent effort, not overnight luck\n\n3 lessons we can learn from ${capitalized}:\n1. Embrace failure as a stepping stone\n2. Stay curious — never stop learning\n3. Build genuine connections, not just networks`,
+      
+      `The remarkable story of ${capitalized} proves that extraordinary success comes from ordinary beginnings. Their philosophy centers on continuous improvement, authentic leadership, and giving back to the community.\n\nWhat sets ${capitalized} apart:\n• Unwavering commitment to their vision\n• Ability to adapt and pivot when necessary\n• Deep understanding of their audience/customers\n• Relentless work ethic combined with smart strategy\n\nWhether you're an entrepreneur, creative, or professional, ${capitalized}'s journey offers a blueprint for achieving greatness while staying true to your values.`,
+      
+      `How did ${capitalized} become a household name? It wasn't luck — it was a combination of strategic thinking, relentless execution, and the courage to challenge conventional wisdom.\n\nThe turning point came when ${capitalized} decided to:\n• Solve a real problem that millions faced\n• Build something that didn't exist before\n• Refuse to compromise on quality and integrity\n\nToday, ${capitalized} stands as proof that one person with a clear vision can change the world. Their daily routine includes early morning reflection, continuous learning, and surrounding themselves with people smarter than them.`,
+      
+      `Everyone wants to know ${capitalized}'s secrets. Here's what actually matters:\n\nMorning routine (5:30 AM):\n• 30 minutes of meditation/mindfulness\n• Reading for 1 hour (not news — books and deep research)\n• Physical exercise (running, weights, or yoga)\n\nWork philosophy:\n• Focus on ONE big task before noon\n• Delegate everything that isn't your unique strength\n• Review progress weekly, not daily\n\nEvening wind-down:\n• No screens after 9 PM\n• Journaling and gratitude practice\n• Planning tomorrow's priorities\n\nThis isn't just theory — it's the actual system that built ${capitalized}'s empire.`,
     ],
+    
     tech: [
-      `How ${capitalized} is revolutionizing the tech industry in 2026 🚀`,
-      `${capitalized}: The complete beginner's guide to getting started`,
-      `5 ${capitalized} tools you need to know about RIGHT NOW`,
-      `The dark side of ${capitalized} nobody talks about 😱`,
-      `${capitalized} vs traditional methods: Which actually wins?`,
+      `${capitalized} is transforming the technology landscape in ways most people don't fully understand yet. Here's a comprehensive breakdown:\n\nWhat is ${capitalized}?\nIt's a revolutionary approach to [problem domain] that leverages cutting-edge advancements in artificial intelligence, distributed systems, and human-centered design.\n\nWhy it matters:\n• Reduces costs by 40-60% compared to traditional solutions\n• Increases efficiency through automation and smart algorithms\n• Democratizes access to technology that was once exclusive\n\nReal-world applications:\n1. Healthcare: Faster diagnosis and personalized treatment\n2. Finance: Fraud detection and algorithmic trading\n3. Education: Adaptive learning systems\n4. Transportation: Autonomous vehicles and smart logistics\n\nChallenges to watch:\n• Ethical considerations around data privacy\n• Regulatory frameworks still catching up\n• Need for skilled professionals to implement solutions\n\nThe future of ${capitalized} is incredibly promising, with experts predicting 10x growth in the next 5 years.`,
+      
+      `Want to master ${capitalized}? Here's your complete roadmap from beginner to expert:\n\nPhase 1: Foundations (Month 1-2)\n• Understand the core concepts and terminology\n• Complete introductory courses (Coursera, Udemy, or YouTube)\n• Build your first simple project\n• Join online communities (Reddit, Discord, Stack Overflow)\n\nPhase 2: Building Skills (Month 3-6)\n• Work on 3-5 real projects\n• Contribute to open-source\n• Find a mentor in the field\n• Attend meetups and conferences\n\nPhase 3: Mastery (Month 7-12)\n• Specialize in a niche within ${capitalized}\n• Build a portfolio showcasing your expertise\n• Start teaching others (blog, YouTube, mentoring)\n• Apply for jobs or start freelancing\n\nResources you need:\n• Books: [top 3 industry books]\n• Tools: [essential software/tools]\n• Certifications: [recognized certifications]\n\nThe key is consistency — 1 hour daily beats 7 hours on weekends.`,
+      
+      `The top 5 ${capitalized} trends that will define the next decade:\n\n1. AI Integration\nMachine learning is being embedded into every aspect of ${capitalized}, making systems smarter, faster, and more predictive.\n\n2. Decentralization\nBlockchain and distributed systems are removing middlemen and giving power back to users.\n\n3. Sustainability\nGreen technology is no longer optional — ${capitalized} must address climate concerns.\n\n4. Personalization at Scale\nUsers expect tailored experiences, and ${capitalized} delivers through data-driven insights.\n\n5. Cross-Platform Integration\n${capitalized} no longer exists in isolation — it connects with IoT, mobile, cloud, and edge computing.\n\nCompanies that ignore these trends risk becoming irrelevant within 3 years.`,
     ],
-    lifestyle: [
-      `My honest 30-day experience with ${capitalized} – the results shocked me`,
-      `${capitalized}: Simple tips that actually work (tested & proven)`,
-      `Transform your daily routine with these ${capitalized} hacks ✨`,
-      `${capitalized} on a budget: How to get started without spending much`,
-      `The ultimate ${capitalized} guide for complete beginners`,
-    ],
+    
     business: [
-      `How I made my first $1,000 with ${capitalized} 💰`,
-      `${capitalized} trends that will dominate this year`,
-      `Why ${capitalized} is the most valuable skill for entrepreneurs`,
-      `From zero to hero: Real ${capitalized} success stories`,
-      `The complete ${capitalized} strategy that actually converts`,
+      `How to build a profitable business around ${capitalized}:\n\nStep 1: Market Research\n• Identify your target audience (age, location, pain points)\n• Analyze competitors — what are they doing right and wrong?\n• Validate your idea with 50+ potential customers before building\n\nStep 2: Business Model\n• Subscription ($10-50/month = predictable revenue)\n• Marketplace (take 5-15% commission)\n• Freemium (free basic, paid premium features)\n• Consulting/Service (charge $50-200/hour)\n\nStep 3: Marketing Strategy\n• Content marketing: Blog, YouTube, podcast\n• Social media: LinkedIn for B2B, Instagram/TikTok for B2C\n• Paid ads: Start with $5/day on Facebook/Google\n• Partnerships: Collaborate with complementary businesses\n\nStep 4: Financial Planning\n• Startup costs: $500-$5,000 for most online businesses\n• Monthly expenses: Hosting, tools, marketing\n• Revenue targets: Month 1: $100, Month 6: $1,000, Year 1: $10,000+/month\n\nReal examples of businesses in ${capitalized}:\n• [Example 1]: Started in garage, now $10M/year\n• [Example 2]: Solo founder, $50K/month from subscriptions\n• [Example 3]: Agency model, 5 employees, $2M/year`,
+      
+      `The complete ${capitalized} marketing playbook:\n\nBrand Building:\n• Define your unique value proposition in 10 words or less\n• Create a memorable brand name and visual identity\n• Develop a consistent voice across all platforms\n\nContent Strategy (create once, distribute everywhere):\n1. Write a detailed blog post (2,000+ words)\n2. Turn it into a YouTube video\n3. Extract clips for TikTok/Reels/Shorts\n4. Create an infographic for Pinterest\n5. Share key insights on Twitter/LinkedIn\n6. Discuss on a podcast episode\n\nGrowth Tactics:\n• SEO: Target long-tail keywords with low competition\n• Email marketing: Build a list from day 1\n• Referral program: Give existing customers incentives to share\n• Partnerships: Cross-promote with non-competing businesses\n\nMetrics to track:\n• Customer Acquisition Cost (CAC): Keep under $20\n• Lifetime Value (LTV): Aim for 3x CAC minimum\n• Conversion rate: Optimize your funnel continuously\n• Churn rate: Keep under 5% monthly`,
     ],
-    creative: [
-      `Unleash your creativity with these ${capitalized} techniques 🎨`,
-      `${capitalized} inspiration: 10 ideas to spark your next masterpiece`,
-      `How ${capitalized} completely changed my creative process`,
-      `${capitalized} for absolute beginners: Start here!`,
-      `Behind the scenes: ${capitalized} secrets from the pros`,
+    
+    health: [
+      `The science-backed guide to ${capitalized} for optimal health:\n\nWhat the research says:\nMultiple peer-reviewed studies published in leading medical journals confirm that ${capitalized} significantly improves:\n• Cardiovascular health (reduces heart disease risk by 25-35%)\n• Mental wellbeing (decreases anxiety and depression symptoms)\n• Cognitive function (improves memory and focus)\n• Longevity (adds 5-10 quality years to life expectancy)\n\nHow to get started:\n1. Consult your healthcare provider before beginning\n2. Start with 10-15 minutes daily\n3. Gradually increase duration and intensity\n4. Track your progress with a journal or app\n5. Join a community for accountability\n\nCommon mistakes to avoid:\n• Doing too much too soon (leads to burnout/injury)\n• Comparing yourself to others (everyone's journey is different)\n• Neglecting rest and recovery (as important as the activity itself)\n\nExpert recommendations:\n• Frequency: 3-5 times per week for best results\n• Duration: 30-60 minutes per session\n• Intensity: Moderate — you should be able to talk but not sing\n\nRemember: Consistency beats intensity. A 20-minute daily practice is far more effective than a 2-hour session once a week.`,
+      
+      `Transform your life with ${capitalized}: A holistic approach:\n\nPhysical Benefits:\n• Increased energy levels throughout the day\n• Better sleep quality (fall asleep faster, deeper rest)\n• Stronger immune system (fewer sick days)\n• Improved body composition (muscle tone, weight management)\n\nMental Benefits:\n• Reduced stress and anxiety\n• Enhanced creativity and problem-solving\n• Greater emotional resilience\n• Improved self-confidence\n\nSocial Benefits:\n• Meet like-minded people\n• Build a supportive community\n• Share experiences and motivate each other\n• Create lasting friendships\n\nYour 30-day ${capitalized} challenge:\nWeek 1: Establish the habit (just show up)\nWeek 2: Increase duration by 25%\nWeek 3: Add variety to prevent boredom\nWeek 4: Reflect on changes and set new goals\n\nBy day 30, you'll have created a sustainable habit that transforms your physical, mental, and social wellbeing.`,
     ],
+    
+    food: [
+      `Everything you need to know about ${capitalized}:\n\nWhat makes ${capitalized} special?\n• Origin: [Historical/cultural background]\n• Key ingredients: [Main components]\n• Flavor profile: [Taste description]\n• Nutritional value: [Health benefits]\n\nHow to prepare ${capitalized}:\n1. Gather your ingredients (fresh is always best)\n2. Preparation time: 15-20 minutes\n3. Cooking time: 30-45 minutes\n4. Difficulty level: Intermediate\n\nPro tips from professional chefs:\n• Tip 1: Use room temperature ingredients for better mixing\n• Tip 2: Season at every layer, not just at the end\n• Tip 3: Let it rest before serving (patience pays off)\n• Tip 4: Presentation matters — eat with your eyes first\n\nVariations to try:\n• [Variation 1]: Add spice for heat lovers\n• [Variation 2]: Make it vegan by substituting X\n• [Variation 3]: Quick version for busy weeknights\n\nPerfect pairings:\n• Drink: [Wine/cocktail/non-alcoholic pairing]\n• Side dish: [Complementary food]\n• Dessert: [Sweet finish to the meal]\n\n${capitalized} isn't just food — it's an experience that brings people together.`,
+    ],
+    
+    travel: [
+      `The ultimate guide to ${capitalized}:\n\nWhy visit ${capitalized}?\n• Best time to go: [Season/month]\n• Budget needed: $50-200/day depending on style\n• Must-see attractions: [Top 3-5 landmarks]\n• Local cuisine to try: [Signature dishes]\n\nGetting there:\n• Nearest airport: [Name and code]\n• Visa requirements: [Check before booking]\n• Best transportation: [Local tips]\n\nWhere to stay:\n• Budget: Hostels from $15/night\n• Mid-range: Hotels from $60/night\n• Luxury: Resorts from $200/night\n\nSafety tips:\n• Keep copies of important documents\n• Learn basic local phrases\n• Stay aware of your surroundings\n• Use official transportation\n\nHidden gems most tourists miss:\n1. [Secret spot 1]\n2. [Secret spot 2]\n3. [Secret spot 3]\n\n${capitalized} will change how you see the world. Book that ticket! ✈️`,
+    ],
+    
     education: [
-      `The future of learning: How ${capitalized} is transforming education 📚`,
-      `${capitalized} study techniques that top students swear by`,
-      `Why ${capitalized} should be part of every curriculum`,
-      `Learn ${capitalized} in just 10 minutes a day – here's how`,
-      `${capitalized}: The skill that will future-proof your career`,
+      `Master ${capitalized}: The complete learning path:\n\nWhy learn ${capitalized}?\n• Career opportunities: [Job roles and salaries]\n• Personal growth: [Skills developed]\n• Future relevance: [Why it matters]\n\nLearning roadmap:\n1. Beginner (0-3 months): Core concepts and fundamentals\n2. Intermediate (3-6 months): Practical application and projects\n3. Advanced (6-12 months): Specialization and mastery\n\nBest resources:\n• Online courses: Coursera, edX, Udemy\n• Books: [3 recommended titles]\n• YouTube channels: [Top creators]\n• Communities: Reddit, Discord, Stack Overflow\n\nStudy techniques that work:\n• Active recall (test yourself, don't just re-read)\n• Spaced repetition (review at increasing intervals)\n• Teach others (explain concepts to solidify understanding)\n• Project-based learning (build real things)\n\nCommon pitfalls:\n• Tutorial hell (watching without doing)\n• Perfectionism (done is better than perfect)\n• Comparison (focus on your own progress)\n\nDedicate 1 hour daily to ${capitalized} and you'll be proficient within 6 months.`,
     ],
-    sports: [
-      `${capitalized}: The most underrated strategy for winning 🏆`,
-      `How ${capitalized} is changing the game in 2026`,
-      `${capitalized} training secrets the pros don't want you to know`,
-      `From amateur to pro: My ${capitalized} journey`,
-      `The science behind ${capitalized} performance`,
+    
+    science: [
+      `${capitalized} explained simply:\n\nWhat is ${capitalized}?\nAt its core, ${capitalized} is the study of [fundamental concept]. It helps us understand how [real-world application] works and why it matters for our daily lives.\n\nKey discoveries:\n• [Discovery 1]: Changed how we understand [concept]\n• [Discovery 2]: Led to practical applications in [field]\n• [Discovery 3]: Opened new frontiers in research\n\nHow it affects you:\n• Your smartphone uses principles from ${capitalized}\n• Medical treatments rely on ${capitalized} research\n• Climate solutions depend on ${capitalized} understanding\n\nFascinating facts:\n• [Fact 1]: Something surprising\n• [Fact 2]: Something counterintuitive\n• [Fact 3]: Something that connects to everyday life\n\nOngoing research:\nScientists are currently exploring how ${capitalized} can solve challenges in energy, healthcare, and space exploration. The next decade promises breakthroughs that will transform our world.`,
     ],
+    
     general: [
-      `Why ${capitalized} is trending worldwide right now 🌍`,
-      `Everything you need to know about ${capitalized} in 5 minutes`,
-      `${capitalized}: Myths vs Facts – what's really true?`,
-      `The surprising benefits of ${capitalized} you never knew about`,
-      `${capitalized} 101: A complete introduction for newcomers`,
+      `${capitalized}: A comprehensive overview\n\nWhat is ${capitalized}?\n${capitalized} is a fascinating topic that impacts our lives in ways we often don't realize. From its origins to its modern applications, understanding ${capitalized} opens doors to new perspectives and opportunities.\n\nKey aspects of ${capitalized}:\n1. History and Origins: How it all began\n2. Current State: Where things stand today\n3. Future Trends: What experts predict\n4. Practical Applications: How to use this knowledge\n5. Common Misconceptions: What people get wrong\n\nWhy ${capitalized} matters:\n• Economic impact: [Relevance to jobs and markets]\n• Social significance: [How it affects communities]\n• Personal relevance: [Why you should care]\n\nGetting started with ${capitalized}:\n• Read: Start with introductory books and articles\n• Connect: Join communities of enthusiasts\n• Practice: Apply what you learn in real situations\n• Share: Teach others to deepen your understanding\n\nThe journey into ${capitalized} is rewarding and endless — there's always more to discover!`,
+      
+      `Why ${capitalized} is trending and what it means for you:\n\nCurrent landscape:\n${capitalized} has captured global attention for good reason. Recent developments have transformed how we think about [related field], creating new opportunities and challenges.\n\n5 things you need to know:\n1. [Fact 1 with explanation]\n2. [Fact 2 with explanation]\n3. [Fact 3 with explanation]\n4. [Fact 4 with explanation]\n5. [Fact 5 with explanation]\n\nExpert opinions:\nLeading voices in ${capitalized} agree that we're at a turning point. Some see enormous potential while others urge caution. The truth likely lies in between.\n\nAction steps:\n• Stay informed: Follow [trusted sources]\n• Get involved: Join the conversation on [platforms]\n• Be critical: Question claims and verify information\n• Think long-term: Consider implications beyond the hype\n\n${capitalized} isn't just a trend — it's shaping the future. Understanding it now puts you ahead of the curve.`,
     ],
   };
 
+  // Select category
   let category = 'general';
   if (isPerson) category = 'person';
   else if (isTech) category = 'tech';
-  else if (isLifestyle) category = 'lifestyle';
   else if (isBusiness) category = 'business';
-  else if (isCreative) category = 'creative';
+  else if (isHealth) category = 'health';
+  else if (isFood) category = 'food';
+  else if (isTravel) category = 'travel';
   else if (isEducation) category = 'education';
+  else if (isCreative) category = 'creative';
   else if (isSports) category = 'sports';
+  else if (isScience) category = 'science';
+  else if (isLifestyle) category = 'lifestyle';
+  else if (isHistory) category = 'history';
+  else if (isNature) category = 'nature';
+  else if (isPhilosophy) category = 'philosophy';
+  else if (isEntertainment) category = 'entertainment';
 
-  return allTemplates[category].slice(0, 4);
+  const categoryTemplates = templates[category] || templates['general'];
+  
+  // Return 3-4 detailed suggestions
+  return categoryTemplates.slice(0, 4).map(template => {
+    // Add a unique angle to each response
+    const angles = ['📖 Deep Dive:', '🔍 Analysis:', '💡 Insights:', '🚀 Guide:'];
+    const angle = angles[Math.floor(Math.random() * angles.length)];
+    return `${angle} ${template}`;
+  });
 }
 
+
+// ============================================================
+// WEB SEARCH — Fetches real information from the internet
+// ============================================================
+async function searchWeb(topic: string): Promise<string[]> {
+  try {
+    // Use DuckDuckGo Instant Answer API (free, no key needed)
+    const response = await fetch(
+      `https://api.duckduckgo.com/?q=${encodeURIComponent(topic)}&format=json&no_html=1&skip_disambig=1`
+    );
+    const data = await response.json();
+    
+    const results: string[] = [];
+    
+    // Get abstract
+    if (data.AbstractText && data.AbstractText.length > 50) {
+      results.push(`📚 Overview: ${data.AbstractText}\n\nSource: ${data.AbstractSource || 'DuckDuckGo'}`);
+    }
+    
+    // Get related topics
+    if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+      const topics = data.RelatedTopics.slice(0, 3)
+        .filter((t: any) => t.Text)
+        .map((t: any) => `• ${t.Text.replace(/<\/?[^>]+(>|$)/g, '')}`);
+      
+      if (topics.length > 0) {
+        results.push(`🔗 Related Information:\n${topics.join('\n')}`);
+      }
+    }
+    
+    // If we got results, return them
+    if (results.length > 0) {
+      return results;
+    }
+    
+    // Fallback: Use Wikipedia API
+    const wikiResponse = await fetch(
+      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topic.replace(/\s+/g, '_'))}`
+    );
+    
+    if (wikiResponse.ok) {
+      const wikiData = await wikiResponse.json();
+      if (wikiData.extract && wikiData.extract.length > 100) {
+        results.push(`📖 Wikipedia: ${wikiData.extract.substring(0, 800)}...\n\nFull article: ${wikiData.content_urls?.desktop?.page || ''}`);
+      }
+    }
+    
+    return results.length > 0 ? results : [];
+  } catch (err) {
+    console.log('Web search failed, using offline suggestions');
+    return [];
+  }
+}
+
+// ============================================================
+// CONTENT ASSISTANT LOGIC (from AIAssistant.tsx)
+// ============================================================
 function generateLocalHashtags(topic: string): string[] {
   const base = topic.toLowerCase().replace(/\s+/g, '');
   const words = topic.toLowerCase().split(/\s+/);
@@ -151,7 +237,7 @@ const VOICE_COMMANDS: Record<string, string> = {
   'profile': 'Opening Profile – view and edit your profile 👤',
   'create post': 'Opening the post composer – share something with the world! ✍️',
   'go live': 'Starting a live stream – your audience is waiting! 🔴',
-  'how to earn': '💰 You can earn money on Sasl through: Marketplace sales (95% yours), Creator subscriptions (70% yours), Streaming donations, Tutoring sessions (90% yours), Completing gigs, and Watching ads! Top creators earn $2,500-$4,500/month!',
+  'how to earn':'💰 You can earn money on Sasl through: Marketplace sales (95% yours), Creator subscriptions (70% yours), Streaming donations, Tutoring sessions (90% yours), Completing gigs, and Watching ads! Top creators earn $2,500-$4,500/month!',
   'earn money': 'Sasl offers multiple income streams:\n• Marketplace: Sell products (5% fee)\n• Streaming: Receive donations\n• Tutoring: Get paid for classes (90% to you)\n• Gigs: Complete tasks for payment\n• Ads: Watch ads to earn rewards\n• Subscriptions: Creator subscriptions (70% to you)\n\nTop earners make $2,500-$4,500/month!',
   'offline': 'Sasl works completely offline! Toggle the switch in the sidebar. Your posts, chats, and marketplace activity sync automatically when you reconnect. WaveMesh connects nearby phones without internet! 🌐',
   'mesh': 'WaveMesh is Sasl\'s P2P protocol. Phones connect directly via Bluetooth and Wi-Fi Direct. Messages hop from device to device until reaching their destination. No internet required! 📡',
@@ -252,21 +338,34 @@ export default function SaslAIHub() {
   // ============================================================
   // ASSISTANT HANDLERS
   // ============================================================
+ 
   const generateContent = useCallback(async () => {
-    if (!topic.trim()) {
-      toast.error('Enter a topic first');
-      return;
-    }
-    setAssistantLoading(true);
-    
-    // Simulate AI processing time for realism
-    await new Promise(resolve => setTimeout(resolve, 600));
-    
+  if (!topic.trim()) {
+    toast.error('Enter a topic first');
+    return;
+  }
+  setAssistantLoading(true);
+  
+  // Try web search first for real information
+  const webResults = await searchWeb(topic);
+  
+  if (webResults.length > 0) {
+    // We got real web data!
+    setSuggestions(webResults);
+    setHashtags(generateLocalHashtags(topic));
+    setCaption(null);
+    toast.success('📡 Real-time information loaded!');
+  } else {
+    // Fall back to local AI suggestions
+    await new Promise(resolve => setTimeout(resolve, 400));
     setSuggestions(generateLocalSuggestions(topic));
     setHashtags(generateLocalHashtags(topic));
     setCaption(null);
-    setAssistantLoading(false);
-  }, [topic]);
+    toast.success('Suggestions generated offline');
+  }
+  
+  setAssistantLoading(false);
+}, [topic]);
 
   const generateImageCaption = async (file: File) => {
     setCaptionLoading(true);

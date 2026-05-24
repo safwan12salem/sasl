@@ -3,7 +3,7 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Star, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-
+import { useTranslation } from 'react-i18next';
 const challenges = [
   { id: 1, text: 'Post 3 times today', goal: 3, xp: 50 },
   { id: 2, text: 'Like 10 posts', goal: 10, xp: 30 },
@@ -15,6 +15,7 @@ export default function DailyChallenge() {
   const [current, setCurrent] = useState<{ id: number; text: string; goal: number; xp: number } | null>(null);
   const [progress, setProgress] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     // Random challenge each day
@@ -39,7 +40,7 @@ export default function DailyChallenge() {
     setProgress(newProgress);
     if (newProgress >= current.goal && !completed) {
       setCompleted(true);
-      toast.success(`Challenge completed! +${current.xp} XP`);
+      toast.success(t('challenge_completed', { xp: current.xp }));
     }
     const today = new Date().toDateString();
     localStorage.setItem(`challenge_${today}`, JSON.stringify({ challenge: current, progress: newProgress, completed: newProgress >= current.goal }));
@@ -49,7 +50,7 @@ export default function DailyChallenge() {
 
   return (
     <div className="glass p-4 rounded-2xl mb-6">
-      <h3 className="font-bold text-lg flex items-center gap-2"><Star size={18} /> Daily Challenge</h3>
+      <h3 className="font-bold text-lg flex items-center gap-2"><Star size={18} /> {t('daily_challenge')}</h3>
       <p className="text-sm mt-1">{current.text}</p>
       <div className="w-full bg-gray-200 h-2 rounded-full mt-2">
         <div className="bg-green-500 h-2 rounded-full transition-all" style={{ width: `${(progress / current.goal) * 100}%` }} />
@@ -59,7 +60,7 @@ export default function DailyChallenge() {
         {completed ? (
           <span className="text-green-600 flex items-center gap-1 text-sm"><CheckCircle size={14} /> Done (+{current.xp} XP)</span>
         ) : (
-          <button onClick={increment} className="btn-primary text-xs py-1 px-2">Do it!</button>
+          <button onClick={increment} className="btn-primary text-xs py-1 px-2">{t('do_it')}</button>
         )}
       </div>
     </div>

@@ -5,7 +5,7 @@ import React, { useRef, useState, useCallback } from 'react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { Camera, StopCircle, Loader2 } from 'lucide-react';
-
+import { useTranslation } from 'react-i18next';
 const MAX_DURATION = 15; // seconds
 
 export default function StoryRecorder({ onDone }: { onDone?: () => void }) {
@@ -15,7 +15,7 @@ export default function StoryRecorder({ onDone }: { onDone?: () => void }) {
   const [chunks, setChunks] = useState<Blob[]>([]);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
+  const { t } = useTranslation();
   const startRecording = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -40,11 +40,11 @@ export default function StoryRecorder({ onDone }: { onDone?: () => void }) {
       }, MAX_DURATION * 1000);
      } catch (err: any) {
     if (err.name === 'NotAllowedError') {
-      toast.error('Camera permission denied. Please allow camera access in browser settings.');
+      toast.error(t('Camera permission denied. Please allow camera access in browser settings.'));
     } else if (err.name === 'NotFoundError') {
-      toast.error('No camera found.');
+      toast.error(t('No camera found.'));
     } else {
-      toast.error('Could not access camera.');
+      toast.error(t('Could not access camera.'));
     }
   }
 }, []);
@@ -69,12 +69,12 @@ export default function StoryRecorder({ onDone }: { onDone?: () => void }) {
       await api.post('/content/stories/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      toast.success('Story uploaded!');
+      toast.success(t('Story uploaded!'));
       setPreviewUrl(null);
       setChunks([]);
       onDone?.();
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || 'Upload failed');
+      toast.error(err.response?.data?.detail || t('Upload failed'));
     } finally {
       setUploading(false);
     }
@@ -94,16 +94,16 @@ export default function StoryRecorder({ onDone }: { onDone?: () => void }) {
       <div className="flex gap-2">
         {!recording ? (
           <button onClick={startRecording} className="btn-primary flex items-center gap-1">
-            <Camera size={16} /> Start
+            <Camera size={16} /> {t('Start')}
           </button>
         ) : (
           <button onClick={stopRecording} className="btn-secondary flex items-center gap-1">
-            <StopCircle size={16} /> Stop
+            <StopCircle size={16} /> {t('Stop')}
           </button>
         )}
         {previewUrl && !uploading && (
           <button onClick={uploadStory} className="btn-primary">
-            Upload
+            {t('Upload')}
           </button>
         )}
         {uploading && <Loader2 className="animate-spin" />}

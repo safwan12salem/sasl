@@ -85,7 +85,7 @@ export default function Streaming() {
       const res = await api.get(`/streaming/streams/?${params.toString()}`);
       setStreams(res.data.results || []);
     } catch (err) {
-      setError('Failed to load streams.');
+      setError(t('Failed to load streams.'));
     } finally {
       setLoading(false);
     }
@@ -104,7 +104,7 @@ export default function Streaming() {
   // ACTIONS
   // ============================================================
   const startStream = async () => {
-    if (!title.trim()) return toast.error('Enter a title');
+    if (!title.trim()) return toast.error(t('Enter a title'));
     try {
       await api.post('/streaming/streams/', {
         title,
@@ -112,35 +112,35 @@ export default function Streaming() {
         category,
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
       });
-      toast.success('You are now live! 🎥');
+      toast.success(t('You are now live! 🎥'));
       setTitle(''); setDescription(''); setTags('');
       fetchStreams();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to start stream');
+      toast.error(err.response?.data?.error || t('Failed to start stream'));
     }
   };
 
   const donate = async (streamId: string) => {
     const amt = amount[streamId] || 1;
-    if (amt <= 0) return toast.error('Enter an amount');
+    if (amt <= 0) return toast.error(t('Enter an amount'));
     try {
       await api.post(`/streaming/streams/${streamId}/donate/`, {
         amount: amt,
         message: donationMessage[streamId] || '👏',
       });
-      toast.success(`Donated $${amt}! 🎉`);
+      toast.success(t(`Donated $${amt}! 🎉`));
       setAmount(prev => ({ ...prev, [streamId]: 0 }));
       setDonationMessage(prev => ({ ...prev, [streamId]: '' }));
       fetchStreams();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Donation failed');
+      toast.error(err.response?.data?.error || t('Donation failed'));
     }
   };
 
   const scheduleStream = async () => {
     if (!title.trim()) return;
     try {
-      const scheduledAt = prompt('Schedule date & time (YYYY-MM-DDTHH:MM):');
+      const scheduledAt = prompt(t('Schedule date & time (YYYY-MM-DDTHH:MM):'));
       if (!scheduledAt) return;
       await api.post('/streaming/schedules/', {
         title,
@@ -148,25 +148,27 @@ export default function Streaming() {
         category,
         scheduled_at: scheduledAt,
       });
-      toast.success('Stream scheduled! 📅');
+      toast.success(t('Stream scheduled! 📅'));
       setTitle(''); setDescription('');
       fetchSchedules();
     } catch (err: any) {
-      toast.error('Failed to schedule');
+      toast.error(t('Failed to schedule'));
     }
   };
 
   const saveStream = (streamId: string) => {
     setSavedStreams(prev => [...prev, streamId]);
-    toast.success('Stream saved!');
+    toast.success(t('Stream saved!'));
   };
 
   const endStream = async (streamId: string) => {
     try {
       await api.post(`/streaming/streams/${streamId}/end_stream/`);
-      toast.success('Stream ended');
+      toast.success(t('Stream ended'));
       fetchStreams();
-    } catch { toast.error('Failed to end stream'); }
+    } catch (err: any) {
+      toast.error(t('Failed to end stream'));
+    }
   };
 
   // ============================================================
@@ -195,7 +197,7 @@ export default function Streaming() {
 
         setInCall({ streamId, role });
       })
-      .catch(() => toast.error('Camera access denied'));
+      .catch(() => toast.error(t('Camera access denied')));
   };
 
   const endCall = () => {
@@ -232,10 +234,10 @@ export default function Streaming() {
               <div className="flex justify-between mb-3">
                 <h3 className="text-white font-bold flex items-center gap-2">
                   <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                  {inCall.role === 'streamer' ? 'Streaming LIVE' : 'Watching Stream'}
+                  {inCall.role === 'streamer' ? t('Streaming LIVE') : t('Watching Stream')}
                 </h3>
                 <button onClick={endCall} className="bg-red-500 text-white px-4 py-2 rounded-full flex items-center gap-2">
-                  <VideoOff size={16} /> End
+                  <VideoOff size={16} /> {t('End')}
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -257,13 +259,13 @@ export default function Streaming() {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <div>
           <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-            <Radio className="text-red-500" /> Live Streams
+            <Radio className="text-red-500" /> {t('Live Streams')}
           </h2>
-          <p className="text-gray-500 text-sm mt-1">Watch, stream, and earn from anywhere</p>
+          <p className="text-gray-500 text-sm mt-1">{t('Watch, stream, and earn from anywhere')}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowSchedule(!showSchedule)} className="btn-ghost flex items-center gap-1 text-sm">
-            <Calendar size={16} /> Schedule
+            <Calendar size={16} /> {t('Schedule')}
           </button>
         </div>
       </div>
@@ -271,21 +273,21 @@ export default function Streaming() {
       {/* Create Stream Form */}
       {user?.is_creator && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass p-5 rounded-2xl mb-6 space-y-3 border-l-4 border-red-500">
-          <h3 className="font-bold flex items-center gap-2"><Video size={18} className="text-red-500" /> Go Live</h3>
+          <h3 className="font-bold flex items-center gap-2"><Video size={18} className="text-red-500" /> {t('Go Live')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <input className="input-field" placeholder="Stream title..." value={title} onChange={e => setTitle(e.target.value)} />
+            <input className="input-field" placeholder={t('Stream title...')} value={title} onChange={e => setTitle(e.target.value)} />
             <select className="input-field" value={category} onChange={e => setCategory(e.target.value)}>
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-            <input className="input-field" placeholder="Tags (comma separated)" value={tags} onChange={e => setTags(e.target.value)} />
+            <input className="input-field" placeholder={t('Tags (comma separated)')} value={tags} onChange={e => setTags(e.target.value)} />
           </div>
-          <textarea className="input-field" placeholder="Description..." value={description} onChange={e => setDescription(e.target.value)} rows={2} />
+          <textarea className="input-field" placeholder={t('Description...')} value={description} onChange={e => setDescription(e.target.value)} rows={2} />
           <div className="flex gap-2">
             <button onClick={startStream} className="btn-primary bg-red-500 hover:bg-red-600 flex items-center gap-2">
-              <span className="w-2 h-2 bg-white rounded-full animate-pulse" /> Go Live Now
+              <span className="w-2 h-2 bg-white rounded-full animate-pulse" /> {t('Go Live Now')}
             </button>
             <button onClick={scheduleStream} className="btn-ghost flex items-center gap-1">
-              <Calendar size={14} /> Schedule for Later
+              <Calendar size={14} /> {t('Schedule for Later')}
             </button>
           </div>
         </motion.div>
@@ -296,12 +298,12 @@ export default function Streaming() {
         {showSchedule && schedules.length > 0 && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-6">
             <div className="glass p-4 rounded-2xl">
-              <h4 className="font-bold mb-3 flex items-center gap-2"><Calendar size={16} /> Upcoming Streams</h4>
+              <h4 className="font-bold mb-3 flex items-center gap-2"><Calendar size={16} /> {t('Upcoming Streams')}</h4>
               <div className="space-y-2">
                 {schedules.map(s => (
                   <div key={s.id} className="flex items-center justify-between bg-white p-3 rounded-xl">
                     <div><p className="font-semibold text-sm">{s.title}</p><p className="text-xs text-gray-500">by @{s.streamer_name} · {new Date(s.scheduled_at).toLocaleString()}</p></div>
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Upcoming</span>
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{t('Upcoming')}</span>
                   </div>
                 ))}
               </div>
@@ -312,9 +314,9 @@ export default function Streaming() {
 
       {/* Category Pills */}
       <div className="flex gap-2 overflow-x-auto pb-1 mb-6">
-        <button onClick={() => setActiveCategory('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${!activeCategory ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>All</button>
+        <button onClick={() => setActiveCategory('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${!activeCategory ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{t('All')}</button>
         {CATEGORIES.map(cat => (
-          <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${activeCategory === cat ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{cat}</button>
+          <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${activeCategory === cat ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{t(cat)}</button>
         ))}
       </div>
 
@@ -322,14 +324,14 @@ export default function Streaming() {
       {error ? (
         <div className="glass p-12 rounded-2xl text-center">
           <AlertCircle className="mx-auto mb-3 text-red-500" size={48} />
-          <p className="text-lg text-gray-600">{error}</p>
-          <button onClick={fetchStreams} className="btn-primary mt-4">Retry</button>
+          <p className="text-lg text-gray-600">{t('An error occurred while fetching streams.')}</p>
+          <button onClick={fetchStreams} className="btn-primary mt-4">{t('Retry')}</button>
         </div>
       ) : streams.length === 0 ? (
         <div className="glass p-12 rounded-2xl text-center">
           <Radio size={48} className="mx-auto mb-3 text-gray-300" />
-          <p className="text-xl text-gray-500">No live streams right now</p>
-          <p className="text-sm text-gray-400 mt-1">{user?.is_creator ? 'Start streaming above!' : 'Check back soon!'}</p>
+          <p className="text-xl text-gray-500">{t('No live streams right now')}</p>
+          <p className="text-sm text-gray-400 mt-1">{user?.is_creator ? t('Start streaming above!') : t('Check back soon!')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -380,11 +382,11 @@ export default function Streaming() {
                   <div className="flex gap-2">
                     {user?.is_creator && s.streamer.username === user.username ? (
                       <button onClick={() => startVideoCall(s.id, 'streamer')} className="flex-1 bg-green-500 text-white py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 flex items-center justify-center gap-1">
-                        <Video size={12} /> Streamer View
+                        <Video size={12} /> {t('Streamer View')}
                       </button>
                     ) : (
                       <button onClick={() => startVideoCall(s.id, 'viewer')} className="flex-1 bg-red-500 text-white py-1.5 rounded-full text-xs font-semibold hover:bg-red-600 flex items-center justify-center gap-1">
-                        <Play size={12} /> Watch
+                        <Play size={12} /> {t('Watch')}
                       </button>
                     )}
                   </div>
@@ -394,12 +396,12 @@ export default function Streaming() {
                     <input type="number" min="1" className="w-16 border rounded-full px-2 py-1 text-xs" placeholder="$1"
                       value={amount[s.id] || ''} onChange={e => setAmount(prev => ({ ...prev, [s.id]: Number(e.target.value) }))} />
                     <button onClick={() => donate(s.id)} className="flex-1 bg-yellow-500 text-white py-1 rounded-full text-xs font-semibold hover:bg-yellow-600 flex items-center justify-center gap-1">
-                      <DollarSign size={12} /> Donate
+                      <DollarSign size={12} /> {t('Donate')}
                     </button>
                   </div>
 
                   {s.streamer.username === user?.username && (
-                    <button onClick={() => endStream(s.id)} className="w-full text-xs text-red-500 hover:underline">End Stream</button>
+                    <button onClick={() => endStream(s.id)} className="w-full text-xs text-red-500 hover:underline">{t('End Stream')}</button>
                   )}
                 </div>
               </div>

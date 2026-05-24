@@ -7,12 +7,14 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Trophy, TrendingUp, DollarSign, Users, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 export default function Leaderboard() {
   const { user } = useAuth();
   const [popularity, setPopularity] = useState<any[]>([]);
   const [earnings, setEarnings] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'popularity' | 'earnings'>('popularity');
+  const { t } = useTranslation();
 
   useEffect(() => {
     api.get('/users/leaderboard/popularity/').then(res => setPopularity(res.data));
@@ -22,7 +24,7 @@ export default function Leaderboard() {
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <h2 className="text-3xl font-bold gradient-text mb-6 flex items-center gap-2">
-        <Trophy /> Leaderboard
+        <Trophy /> {t('leaderboard')}
       </h2>
 
       {/* Tab Switcher */}
@@ -33,7 +35,7 @@ export default function Leaderboard() {
             activeTab === 'popularity' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'
           }`}
         >
-          <Users size={16} /> Popularity
+          <Users size={16} /> {t('popularity')}
         </button>
         <button
           onClick={() => setActiveTab('earnings')}
@@ -41,7 +43,7 @@ export default function Leaderboard() {
             activeTab === 'earnings' ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-600'
           }`}
         >
-          <DollarSign size={16} /> Earnings
+          <DollarSign size={16} /> {t('earnings')}
         </button>
       </div>
 
@@ -49,7 +51,7 @@ export default function Leaderboard() {
       {activeTab === 'popularity' && (
         <div className="space-y-2">
           <p className="text-sm text-gray-500 mb-3 flex items-center gap-1">
-            <Shield size={14} /> Public ranking based on followers
+            <Shield size={14} /> {t('public_ranking_based_on_followers')}
           </p>
           {popularity.map((entry, idx) => (
             <motion.div
@@ -75,14 +77,14 @@ export default function Leaderboard() {
               <div className="flex-1">
                 <p className="font-semibold">{entry.display_name || entry.username}</p>
                 <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <Users size={12} /> {entry.followers_count} followers
+                  <Users size={12} /> {t('followers')}: {entry.followers_count}
                   <span className="px-2 py-0.5 rounded-full bg-purple-100 text-purple-700 text-xs">
-                    Level {entry.level}
+                    {t('level')} {entry.level}
                   </span>
                 </div>
               </div>
               {entry.is_verified && (
-                <span className="text-blue-500 text-xs font-semibold">✓ Verified</span>
+                <span className="text-blue-500 text-xs font-semibold">{t('verified')}</span>
               )}
             </motion.div>
           ))}
@@ -93,13 +95,13 @@ export default function Leaderboard() {
       {activeTab === 'earnings' && (
         <div className="space-y-2">
           <p className="text-sm text-gray-500 mb-3 flex items-center gap-1">
-            <Shield size={14} /> Only users who chose to share their earnings appear here
+            <Shield size={14} /> {t('only_users_who_chose_to_share_their_earnings_appear_here')}
           </p>
           {earnings.length === 0 ? (
             <div className="text-center py-10 text-gray-400">
               <Shield size={48} className="mx-auto mb-2 opacity-50" />
-              <p>No one has chosen to share their earnings yet.</p>
-              <p className="text-sm mt-1">Enable "Show Earnings" in your profile to appear here!</p>
+              <p>{t('no_one_has_chosen_to_share_their_earnings_yet')}</p>
+              <p className="text-sm mt-1">{t('enable_show_earnings_in_your_profile_to_appear_here')}</p>
             </div>
           ) : (
             earnings.map((entry, idx) => (

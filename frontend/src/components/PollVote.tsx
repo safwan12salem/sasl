@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 interface PollOption {
   id: string;
@@ -29,6 +30,7 @@ const PollVote: React.FC<PollVoteProps> = ({ postId, poll }) => {
   const [options, setOptions] = useState<PollOption[]>(poll.options);
   const [alreadyVoted, setAlreadyVoted] = useState(poll.options.some(o => o.voted_by_me));
   const [voting, setVoting] = useState(false);
+  const [t] = useTranslation();
 
   const handleVote = async (optionId: string) => {
     if (alreadyVoted || voting) return;
@@ -77,7 +79,7 @@ const PollVote: React.FC<PollVoteProps> = ({ postId, poll }) => {
                   onClick={() => handleVote(opt.id)}
                   className="absolute inset-0 w-full h-full opacity-0 hover:opacity-100 flex items-center justify-center text-white font-bold text-xs bg-black/20 rounded-full transition"
                 >
-                  Vote
+                  {t('Vote')}
                 </button>
               )}
             </div>

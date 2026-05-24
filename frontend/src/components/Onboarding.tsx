@@ -13,7 +13,7 @@ import {
   Heart, Star, ChevronRight, ArrowRight, Play
 } from 'lucide-react';
 
-
+import { useTranslation } from 'react-i18next';
 const steps = [
   {
     id: 'offline',
