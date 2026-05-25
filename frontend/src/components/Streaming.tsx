@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import {
   Play, Users, DollarSign, Loader2, Radio, AlertCircle, Video, VideoOff,
-  Clock, Calendar, TrendingUp, Crown, Image as ImageIcon, X
+  Clock, Calendar, TrendingUp, Crown, Image as ImageIcon, X, Bookmark
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WebRTCConnection } from '../services/webrtc';
