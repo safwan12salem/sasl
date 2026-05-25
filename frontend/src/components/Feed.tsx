@@ -172,14 +172,12 @@ const Feed: React.FC = () => {
   // ============================================================
   
 
-     useEffect(() => {
-  // Ensure token is available before fetching
-  const token = localStorage.getItem(t('sasl_token'));
+   useEffect(() => {
+  const token = localStorage.getItem('sasl_token');  // ✅ Hardcoded key — never translate localStorage keys
   if (token) {
-    api.defaults.headers.common[t('authorization')] = `Bearer ${token}`;
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;  // ✅ Hardcoded header name
   }
   
-  // Small delay to ensure everything is ready
   const timer = setTimeout(() => {
     fetchPosts(1, false);
     loadStories();
@@ -344,11 +342,11 @@ const Feed: React.FC = () => {
     }
 
     const formData = new FormData();
-    formData.append(t('text'), composing);
-    if (selectedFile) formData.append(t('media'), selectedFile);
+    formData.append('text', composing);
+    if (selectedFile) formData.append('media', selectedFile);
     if (composingWithPoll) {
       const validOptions = pollOptions.filter(opt => opt.trim());
-      formData.append(t('poll'), JSON.stringify({
+      formData.append('poll', JSON.stringify({
         question: composing,
         options: validOptions,
         expires_in_days: 1
@@ -394,7 +392,7 @@ const Feed: React.FC = () => {
       toast.success(t('queued_sync_online'));
     }
     
-    localStorage.setItem(t('sasl_offline_posts'), JSON.stringify(updatedQueue));
+    localStorage.setItem('sasl_offline_posts', JSON.stringify(updatedQueue));
     
     const fakePost: Post = {
       id: `offline-${Date.now()}`,
@@ -426,11 +424,11 @@ const Feed: React.FC = () => {
     try {
       await api.post('/content/posts/sync_offline_posts/', { posts: offlineQueue });
       setOfflineQueue([]);
-      localStorage.removeItem(t('sasl_offline_posts'));
-      toast.success(t('offline_posts_synced'));
+      localStorage.removeItem('sasl_offline_posts');
+      toast.success('offline_posts_synced');
       await fetchPosts(1, false);
     } catch {
-      toast.error(t('sync_failed'));
+      toast.error('sync_failed');
     } finally {
       setSyncing(false);
     }
@@ -450,7 +448,7 @@ const Feed: React.FC = () => {
         <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-orange-400 p-[3px]">
           <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-2xl">+</div>
         </div>
-        <span className="text-xs mt-1">{t('your_story')}</span>
+        <span className="text-xs mt-1">{'your_story'}</span>
       </div>
       {stories.slice(0, 10).map(s => (
         <div key={s.id} className="flex flex-col items-center">
@@ -469,7 +467,7 @@ const Feed: React.FC = () => {
         <div key={u.id} className="flex items-center gap-1 bg-white rounded-full px-3 py-1 shadow-sm text-sm">
           <div className="w-6 h-6 rounded-full bg-gray-300" />
           <span>{u.username}</span>
-          <button className="text-green-500 ml-1 text-xs">{t('follow')}</button>
+          <button className="text-green-500 ml-1 text-xs">{'follow'}</button>
         </div>
       ))}
     </div>
