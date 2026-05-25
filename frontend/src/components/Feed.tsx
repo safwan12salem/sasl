@@ -313,7 +313,7 @@ const Feed: React.FC = () => {
   };
   
    const handleDelete = async (postId: string) => {
-  if (!confirm('Delete this post?')) return;
+  if (!window.confirm('Delete this post?')) return;
   try {
     await api.delete(`/content/posts/${postId}/delete_post/`);
     setPosts(prev => prev.filter(p => p.id !== postId));
