@@ -32,8 +32,10 @@ export default function Reels() {
   const [reelCaption, setReelCaption] = useState('');
   const [uploading, setUploading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [commentingReel, setCommentingReel] = useState<string | null>(null);
-const [commentText, setCommentText] = useState('');
+  const [reelComments, setReelComments] = useState<Record<string, any[]>>({});
+  const [showComments, setShowComments] = useState<string | null>(null);
+  const [commentText, setCommentText] = useState('');
+
   const fetchReels = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -75,99 +77,98 @@ const [commentText, setCommentText] = useState('');
 
   useEffect(() => { fetchReels(); }, [fetchReels]);
 
-
   const handleLike = async (reelId: string) => {
-  if (reelId === 'demo-reel') return;
-  
-  const reel = reels.find(r => r.id === reelId);
-  if (!reel) return;
-  
-  // Optimistic update
-  const newLiked = !reel.liked_by_me;
-  const newCount = newLiked ? reel.likes_count + 1 : reel.likes_count - 1;
-  
-  setReels(prev => prev.map(r => r.id === reelId ? {
-    ...r,
-    liked_by_me: newLiked,
-    likes_count: Math.max(0, newCount)
-  } : r));
-  
-  try {
-    const res = await api.post(`/content/reels/${reelId}/like/`);
-    // Only sync with server if the response is valid
-    if (res.data && typeof res.data.likes_count === 'number') {
-      setReels(prev => prev.map(r => r.id === reelId ? {
-        ...r,
-        likes_count: res.data.likes_count,
-        liked_by_me: res.data.status === 'liked'
-      } : r));
-    }
-    if (navigator.vibrate) navigator.vibrate(10);
-  } catch {
-    // Revert on error
+    if (reelId === 'demo-reel') return;
+    
+    const reel = reels.find(r => r.id === reelId);
+    if (!reel) return;
+    
+    const newLiked = !reel.liked_by_me;
+    const newCount = newLiked ? reel.likes_count + 1 : reel.likes_count - 1;
+    
     setReels(prev => prev.map(r => r.id === reelId ? {
       ...r,
-      liked_by_me: reel.liked_by_me,
-      likes_count: reel.likes_count
+      liked_by_me: newLiked,
+      likes_count: Math.max(0, newCount)
     } : r));
-  }
-};
-  // ✅ FIXED: Share uses native share or copies link
-  const handleShare = async (reelId: string) => {
-  const reel = reels.find(r => r.id === reelId);
-  if (!reel) return;
-  
-  const shareData = {
-    title: 'Check out this reel on Sasl!',
-    text: reel.caption || 'Amazing reel on Sasl',
-    url: `${window.location.origin}/reels`,
+    
+    try {
+      const res = await api.post(`/content/reels/${reelId}/like/`);
+      if (res.data && typeof res.data.likes_count === 'number') {
+        setReels(prev => prev.map(r => r.id === reelId ? {
+          ...r,
+          likes_count: res.data.likes_count,
+          liked_by_me: res.data.status === 'liked'
+        } : r));
+      }
+      if (navigator.vibrate) navigator.vibrate(10);
+    } catch {
+      setReels(prev => prev.map(r => r.id === reelId ? {
+        ...r,
+        liked_by_me: reel.liked_by_me,
+        likes_count: reel.likes_count
+      } : r));
+    }
   };
 
-  try {
-    if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-      await navigator.share(shareData);
-      toast.success('Shared!');
-    } else {
-      await navigator.clipboard.writeText(shareData.url);
-      toast.success('Link copied!');
-    }
-  } catch (err: any) {
-    if (err.name === 'AbortError') return; // User cancelled
-    // Fallback
+  const handleShare = async (reelId: string) => {
+    const reel = reels.find(r => r.id === reelId);
+    if (!reel) return;
+    
+    const shareData = {
+      title: 'Check out this reel on Sasl!',
+      text: reel.caption || 'Amazing reel on Sasl',
+      url: `${window.location.origin}/reels`,
+    };
+
     try {
-      await navigator.clipboard.writeText(shareData.url);
-      toast.success('Link copied!');
-    } catch {
-      toast.error('Could not share');
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+        toast.success('Shared!');
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        toast.success('Link copied!');
+      }
+    } catch (err: any) {
+      if (err.name === 'AbortError') return;
+      try {
+        await navigator.clipboard.writeText(shareData.url);
+        toast.success('Link copied!');
+      } catch {
+        toast.error('Could not share');
+      }
     }
-  }
-};
-  
+  };
 
+  const handleComment = async (reelId: string) => {
+    if (!commentText.trim()) return;
+    try {
+      await api.post(`/content/reels/${reelId}/comment/`, { text: commentText });
+      setReels(prev => prev.map(r => r.id === reelId ? {
+        ...r, comments_count: r.comments_count + 1
+      } : r));
+      setCommentText('');
+      toast.success('Comment added! 💬');
+      // Refresh comments
+      fetchReelComments(reelId);
+    } catch {
+      toast.error('Comment failed');
+    }
+  };
 
-const handleComment = async (reelId: string) => {
-  if (!commentText.trim()) return;
-  try {
-    await api.post(`/content/reels/${reelId}/comment/`, { text: commentText });
-    setReels(prev => prev.map(r => r.id === reelId ? {
-      ...r, comments_count: r.comments_count + 1
-    } : r));
-    setCommentText('');
-    setCommentingReel(null);
-    toast.success('Comment added! 💬');
-  } catch {
-    toast.error('Comment failed');
-  }
-};
-
-
+  const fetchReelComments = async (reelId: string) => {
+    try {
+      const res = await api.get(`/content/reels/${reelId}/comments/`);
+      setReelComments(prev => ({ ...prev, [reelId]: res.data || [] }));
+    } catch {}
+  };
 
   const uploadReel = async () => {
     if (!reelFile) return toast.error(t('Select a video'));
     setUploading(true);
     const formData = new FormData();
     formData.append('video', reelFile);
-formData.append('caption', reelCaption);
+    formData.append('caption', reelCaption);
 
     try {
       await api.post('/content/reels/', formData);
@@ -224,7 +225,7 @@ formData.append('caption', reelCaption);
       {showUpload && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Video size={20} />  {t('Upload Reel')}</h3>
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Video size={20} /> {t('Upload Reel')}</h3>
             <input
               type="file"
               accept="video/*"
@@ -280,39 +281,60 @@ formData.append('caption', reelCaption);
               {/* Actions */}
               <div className="flex items-center gap-6">
                 <button onClick={() => handleLike(reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-red-400 transition">
-                   <Heart size={28} className={reel.liked_by_me ? 'fill-red-500 text-red-500' : 'text-white'} />
+                  <Heart size={28} className={reel.liked_by_me ? 'fill-red-500 text-red-500' : 'text-white'} />
                   <span className="text-xs">{reel.likes_count}</span>
                 </button>
-                <button onClick={() => setCommentingReel(commentingReel === reel.id ? null : reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-blue-400 transition">
-  <MessageCircle size={28} />
-  <span className="text-xs">{reel.comments_count}</span>
-</button>
+                <button onClick={() => {
+                  if (showComments === reel.id) {
+                    setShowComments(null);
+                  } else {
+                    setShowComments(reel.id);
+                    fetchReelComments(reel.id);
+                  }
+                }} className="flex flex-col items-center gap-1 text-white hover:text-blue-400 transition">
+                  <MessageCircle size={28} />
+                  <span className="text-xs">{reel.comments_count}</span>
+                </button>
                 <button onClick={() => handleShare(reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-green-400 transition">
                   <Share2 size={28} />
                   <span className="text-xs">{t('Share')}</span>
                 </button>
-
-                {/* Comment button */}
-
-
-{/* Comment input */}
-{commentingReel === reel.id && (
-  <div className="absolute bottom-20 left-4 right-4 flex gap-2 z-10">
-    <input
-      value={commentText}
-      onChange={e => setCommentText(e.target.value)}
-      placeholder="Add a comment..."
-      className="flex-1 bg-black/60 text-white px-4 py-2 rounded-full text-sm border border-white/20 outline-none"
-      autoFocus
-      onKeyDown={e => e.key === 'Enter' && handleComment(reel.id)}
-    />
-    <button onClick={() => handleComment(reel.id)}
-      className="bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold">
-      Post
-    </button>
-  </div>
-)}
               </div>
+
+              {/* Comments Panel */}
+              {showComments === reel.id && (
+                <div className="mt-3 max-h-48 overflow-y-auto bg-black/60 rounded-xl p-3">
+                  {(reelComments[reel.id] || []).map((c: any, i: number) => (
+                    <div key={i} className="flex items-start gap-2 mb-2">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                        {c.user?.username?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                      <div>
+                        <span className="text-white text-xs font-semibold">{c.user?.username || 'user'}</span>
+                        <span className="text-white/70 text-xs ml-2">{c.text}</span>
+                      </div>
+                    </div>
+                  ))}
+                  {(reelComments[reel.id] || []).length === 0 && (
+                    <p className="text-white/50 text-xs text-center py-2">No comments yet</p>
+                  )}
+                  
+                  {/* Comment input */}
+                  <div className="flex gap-2 mt-2 pt-2 border-t border-white/10">
+                    <input
+                      value={commentText}
+                      onChange={e => setCommentText(e.target.value)}
+                      placeholder="Add a comment..."
+                      className="flex-1 bg-white/20 text-white px-3 py-2 rounded-full text-xs border border-white/20 outline-none"
+                      onKeyDown={e => e.key === 'Enter' && handleComment(reel.id)}
+                    />
+                    <button onClick={() => handleComment(reel.id)}
+                      className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold">
+                      Post
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))
