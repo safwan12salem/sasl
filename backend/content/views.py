@@ -394,22 +394,21 @@ class ReelViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+       
 
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
-        reel = self.get_object()
-        like, created = ReelLike.objects.get_or_create(reel=reel, user=request.user)
-        if created:
-            reel.likes_count = F('likes_count') + 1
-            reel.save()
-            return Response({'status': 'liked', 'likes_count': reel.likes_count})
-        else:
-            like.delete()
-            reel.likes_count = F('likes_count') - 1
-            reel.save()
-            return Response({'status': 'unliked', 'likes_count': reel.likes_count})
-
-     
+      reel = self.get_object()
+      like, created = ReelLike.objects.get_or_create(reel=reel, user=request.user)
+      if created:
+        reel.likes_count = reel.likes_count + 1  # ← Use plain math, not F() expression
+        reel.save(update_fields=['likes_count'])
+        return Response({'status': 'liked', 'likes_count': reel.likes_count})
+      else:
+        like.delete()
+        reel.likes_count = max(0, reel.likes_count - 1)
+        reel.save(update_fields=['likes_count'])
+        return Response({'status': 'unliked', 'likes_count': reel.likes_count})  
 
     @action(detail=True, methods=['post'])
     def comment(self, request, pk=None):

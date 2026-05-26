@@ -395,6 +395,7 @@ const STATUS_COLORS: Record<string, string> = {
   // ============================================================
   // RENDER
   // ============================================================
+  
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto">
       {/* Video Call Overlay */}
