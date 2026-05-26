@@ -21928,4 +21928,273 @@ DEBUG 2026-05-25 00:49:05,447 selector_events 11632 28276 Using selector: Select
 DEBUG 2026-05-25 00:52:38,269 selector_events 30124 29596 Using selector: SelectSelector
 DEBUG 2026-05-25 00:55:57,607 selector_events 7376 24684 Using selector: SelectSelector
 DEBUG 2026-05-25 00:56:24,522 selector_events 27404 9712 Using selector: SelectSelector
-DEBUG 2026-05-25 22:45:47,103 selector_events 26028 19464 Using selector: SelectSelector
+DEBUG 2026-05-24 23:19:20,634 selector_events 738 126660239995328 Using selector: EpollSelector
+DEBUG 2026-05-24 23:19:21,749 selector_events 743 124439142326720 Using selector: EpollSelector
+DEBUG 2026-05-24 23:24:56,617 selector_events 799 139863262290368 Using selector: EpollSelector
+DEBUG 2026-05-24 23:25:01,085 selector_events 804 140253034205632 Using selector: EpollSelector
+DEBUG 2026-05-24 23:25:19,726 selector_events 1 125492026468224 Using selector: EpollSelector
+WARNING 2026-05-24 23:25:23,753 log 2 125492026468224 Not Found: /
+WARNING 2026-05-24 23:54:53,168 log 2 125492026468224 Not Found: /
+DEBUG 2026-05-24 23:57:47,132 selector_events 1 134860326639488 Using selector: EpollSelector
+WARNING 2026-05-24 23:57:50,659 log 2 134860326639488 Not Found: /
+DEBUG 2026-05-25 00:21:58,429 selector_events 866 125696100749760 Using selector: EpollSelector
+DEBUG 2026-05-25 00:22:18,171 selector_events 1 124219635996544 Using selector: EpollSelector
+WARNING 2026-05-25 00:22:22,011 log 2 124219635996544 Not Found: /
+ERROR 2026-05-25 00:33:23,721 user_wsgi_wrapper 2 124219635996544 /home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/views/debug.py:487: ExceptionCycleWarning: Cycle in the exception chain detected: exception 'Error 111 connecting to 127.0.0.1:6379. Connection refused.' encountered again.
+ERROR 2026-05-25 00:33:23,722 user_wsgi_wrapper 2 124219635996544   warnings.warn(
+ERROR 2026-05-25 00:33:23,796 log 2 124219635996544 Internal Server Error: /api/auth/token/
+Traceback (most recent call last):
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django_redis/cache.py", line 29, in _decorator
+    return method(self, *args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django_redis/cache.py", line 99, in _get
+    return self.client.get(key, default=default, version=version, client=client)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django_redis/client/default.py", line 300, in get
+    raise ConnectionInterrupted(connection=client) from e
+django_redis.exceptions.ConnectionInterrupted: Redis ConnectionError: Error 111 connecting to 127.0.0.1:6379. Connection refused.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 416, in initial
+    self.check_throttles(request)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 359, in check_throttles
+    if not throttle.allow_request(request, self):
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/throttling.py", line 123, in allow_request
+    self.history = self.cache.get(self.key, [])
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django_redis/cache.py", line 92, in get
+    value = self._get(key, default, version, client)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django_redis/cache.py", line 36, in _decorator
+    raise e.__cause__  # noqa: B904
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django_redis/client/default.py", line 298, in get
+    value = client.get(key)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/redis/commands/core.py", line 1822, in get
+    return self.execute_command("GET", name, keys=[name])
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/redis/client.py", line 559, in execute_command
+    return self._execute_command(*args, **options)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/redis/client.py", line 565, in _execute_command
+    conn = self.connection or pool.get_connection(command_name, **options)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/redis/connection.py", line 1422, in get_connection
+    connection.connect()
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/redis/connection.py", line 363, in connect
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to 127.0.0.1:6379. Connection refused.
+DEBUG 2026-05-25 00:34:45,704 selector_events 1 135092724070272 Using selector: EpollSelector
+WARNING 2026-05-25 00:34:49,454 log 2 135092724070272 Not Found: /
+ERROR 2026-05-25 00:35:43,592 user_wsgi_wrapper 2 135092724070272 /home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/views/debug.py:487: ExceptionCycleWarning: Cycle in the exception chain detected: exception 'Error 111 connecting to 127.0.0.1:6379. Connection refused.' encountered again.
+ERROR 2026-05-25 00:35:43,593 user_wsgi_wrapper 2 135092724070272   warnings.warn(
+ERROR 2026-05-25 00:35:43,649 log 2 135092724070272 Internal Server Error: /api/auth/token/
+Traceback (most recent call last):
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django_redis/cache.py", line 29, in _decorator
+    return method(self, *args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django_redis/cache.py", line 99, in _get
+    return self.client.get(key, default=default, version=version, client=client)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django_redis/client/default.py", line 300, in get
+    raise ConnectionInterrupted(connection=client) from e
+django_redis.exceptions.ConnectionInterrupted: Redis ConnectionError: Error 111 connecting to 127.0.0.1:6379. Connection refused.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/views/generic/base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 416, in initial
+    self.check_throttles(request)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 359, in check_throttles
+    if not throttle.allow_request(request, self):
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/throttling.py", line 123, in allow_request
+    self.history = self.cache.get(self.key, [])
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django_redis/cache.py", line 92, in get
+    value = self._get(key, default, version, client)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django_redis/cache.py", line 36, in _decorator
+    raise e.__cause__  # noqa: B904
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django_redis/client/default.py", line 298, in get
+    value = client.get(key)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/redis/commands/core.py", line 1822, in get
+    return self.execute_command("GET", name, keys=[name])
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/redis/client.py", line 559, in execute_command
+    return self._execute_command(*args, **options)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/redis/client.py", line 565, in _execute_command
+    conn = self.connection or pool.get_connection(command_name, **options)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/redis/connection.py", line 1422, in get_connection
+    connection.connect()
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/redis/connection.py", line 363, in connect
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error 111 connecting to 127.0.0.1:6379. Connection refused.
+DEBUG 2026-05-25 09:50:20,354 selector_events 1 126684878559104 Using selector: EpollSelector
+WARNING 2026-05-25 09:50:26,886 log 2 126684878559104 Not Found: /
+WARNING 2026-05-25 09:50:59,293 log 2 126684878559104 Method Not Allowed: /api/auth/token/
+WARNING 2026-05-25 09:51:00,454 log 2 126684878559104 Not Found: /favicon.ico
+WARNING 2026-05-25 09:55:14,179 log 2 126684878559104 Method Not Allowed: /api/auth/token/
+WARNING 2026-05-25 10:02:49,135 log 2 126684878559104 Not Found: /
+ERROR 2026-05-25 10:16:11,675 user_wsgi_wrapper 2 126684878559104 /home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'content.models.Story'> QuerySet.
+ERROR 2026-05-25 10:16:11,676 user_wsgi_wrapper 2 126684878559104   paginator = self.django_paginator_class(queryset, page_size)
+ERROR 2026-05-25 10:16:26,272 user_wsgi_wrapper 2 126684878559104 /home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'marketplace.models.ProductCategory'> QuerySet.
+ERROR 2026-05-25 10:16:26,280 user_wsgi_wrapper 2 126684878559104   paginator = self.django_paginator_class(queryset, page_size)
+WARNING 2026-05-25 10:16:26,606 log 2 126684878559104 Not Found: /media/products/8e3a478979def9f070eeb67f3a181d34.jpg
+ERROR 2026-05-25 10:16:58,655 user_wsgi_wrapper 2 126684878559104 /home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'tutoring.models.TutorProfile'> QuerySet.
+ERROR 2026-05-25 10:16:58,655 user_wsgi_wrapper 2 126684878559104   paginator = self.django_paginator_class(queryset, page_size)
+WARNING 2026-05-25 10:21:39,969 log 2 126684878559104 Not Found: /media/reels/Screen_Recording_2025-07-26_142952.mp4
+WARNING 2026-05-25 10:21:39,978 log 2 126684878559104 Not Found: /media/reels/Screen_Recording_2025-07-26_142952_ujWj0h3.mp4
+ERROR 2026-05-25 10:21:49,275 log 2 126684878559104 Internal Server Error: /api/content/reels/88372789-a9fd-42ec-a143-4799c1d0ef26/like/
+Traceback (most recent call last):
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/sasl/sasl/backend/content/views.py", line 399, in like
+    like, created = ReelLike.objects.get_or_create(reel=reel, user=request.user)
+NameError: name 'ReelLike' is not defined
+ERROR 2026-05-25 10:21:51,823 log 2 126684878559104 Internal Server Error: /api/content/reels/88372789-a9fd-42ec-a143-4799c1d0ef26/like/
+Traceback (most recent call last):
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/sasl/sasl/backend/content/views.py", line 399, in like
+    like, created = ReelLike.objects.get_or_create(reel=reel, user=request.user)
+NameError: name 'ReelLike' is not defined
+DEBUG 2026-05-25 10:40:18,274 selector_events 1 137094933194624 Using selector: EpollSelector
+WARNING 2026-05-25 10:40:22,596 log 2 137094933194624 Not Found: /
+DEBUG 2026-05-25 10:44:39,277 selector_events 1 129665543374720 Using selector: EpollSelector
+WARNING 2026-05-25 10:44:43,637 log 2 129665543374720 Not Found: /
+WARNING 2026-05-25 10:58:21,587 log 2 129665543374720 Unauthorized: /api/auth/token/
+WARNING 2026-05-25 11:30:41,803 log 2 129665543374720 Unauthorized: /api/auth/token/
+WARNING 2026-05-25 11:32:49,744 log 2 129665543374720 Unauthorized: /api/auth/token/
+ERROR 2026-05-25 11:34:21,508 user_wsgi_wrapper 2 129665543374720 /home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'content.models.Story'> QuerySet.
+ERROR 2026-05-25 11:34:21,509 user_wsgi_wrapper 2 129665543374720   paginator = self.django_paginator_class(queryset, page_size)
+INFO 2026-05-25 11:40:41,670 services 2 129665543374720 Reward 0.0100 to safwan for like
+ERROR 2026-05-25 11:41:01,293 user_wsgi_wrapper 2 129665543374720 /home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'marketplace.models.ProductCategory'> QuerySet.
+ERROR 2026-05-25 11:41:01,298 user_wsgi_wrapper 2 129665543374720   paginator = self.django_paginator_class(queryset, page_size)
+WARNING 2026-05-25 11:41:01,912 log 2 129665543374720 Not Found: /media/products/8e3a478979def9f070eeb67f3a181d34.jpg
+WARNING 2026-05-25 11:41:07,466 log 2 129665543374720 Not Found: /media/products/8e3a478979def9f070eeb67f3a181d34.jpg
+ERROR 2026-05-25 11:41:56,890 user_wsgi_wrapper 2 129665543374720 /home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'tutoring.models.TutorProfile'> QuerySet.
+ERROR 2026-05-25 11:41:56,891 user_wsgi_wrapper 2 129665543374720   paginator = self.django_paginator_class(queryset, page_size)
+WARNING 2026-05-25 11:42:06,935 log 2 129665543374720 Not Found: /media/reels/Screen_Recording_2025-07-26_142952_ujWj0h3.mp4
+WARNING 2026-05-25 11:42:06,945 log 2 129665543374720 Not Found: /media/reels/Screen_Recording_2025-07-26_142952.mp4
+ERROR 2026-05-25 11:42:09,413 log 2 129665543374720 Internal Server Error: /api/content/reels/c5eaa2b6-12c2-41db-8762-5490a44f5857/like/
+Traceback (most recent call last):
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/sasl/sasl/backend/content/views.py", line 399, in like
+    like, created = ReelLike.objects.get_or_create(reel=reel, user=request.user)
+NameError: name 'ReelLike' is not defined
+WARNING 2026-05-25 11:42:20,512 log 2 129665543374720 Not Found: /media/reels/Screen_Recording_2025-07-26_142952_ujWj0h3.mp4
+WARNING 2026-05-25 11:42:20,565 log 2 129665543374720 Not Found: /media/reels/Screen_Recording_2025-07-26_142952.mp4
+DEBUG 2026-05-25 18:18:25,646 selector_events 1 133979018278784 Using selector: EpollSelector
+ERROR 2026-05-25 18:18:37,896 user_wsgi_wrapper 2 133979018278784 /home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/pagination.py:207: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'content.models.Story'> QuerySet.
+ERROR 2026-05-25 18:18:37,899 user_wsgi_wrapper 2 133979018278784   paginator = self.django_paginator_class(queryset, page_size)
+WARNING 2026-05-25 18:18:46,836 log 2 133979018278784 Not Found: /media/reels/Screen_Recording_2025-07-26_142952_ujWj0h3.mp4
+WARNING 2026-05-25 18:18:47,022 log 2 133979018278784 Not Found: /media/reels/Screen_Recording_2025-07-26_142952.mp4
+ERROR 2026-05-25 18:18:49,953 log 2 133979018278784 Internal Server Error: /api/content/reels/c5eaa2b6-12c2-41db-8762-5490a44f5857/like/
+Traceback (most recent call last):
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/sasl/sasl/backend/content/views.py", line 399, in like
+    like, created = ReelLike.objects.get_or_create(reel=reel, user=request.user)
+NameError: name 'ReelLike' is not defined
+ERROR 2026-05-25 18:25:21,560 log 2 133979018278784 Internal Server Error: /api/content/reels/c5eaa2b6-12c2-41db-8762-5490a44f5857/like/
+Traceback (most recent call last):
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/viewsets.py", line 124, in view
+    return self.dispatch(request, *args, **kwargs)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/home/sasl/.virtualenvs/sasl/lib/python3.10/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "/home/sasl/sasl/backend/content/views.py", line 399, in like
+    like, created = ReelLike.objects.get_or_create(reel=reel, user=request.user)
+NameError: name 'ReelLike' is not defined
+WARNING 2026-05-25 20:10:51,392 log 2 133979018278784 Not Found: /favicon.ico
+DEBUG 2026-05-25 20:39:35,180 selector_events 109 134126875271616 Using selector: EpollSelector
+DEBUG 2026-05-25 20:46:03,159 selector_events 211 133670150435264 Using selector: EpollSelector
