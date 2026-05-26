@@ -18,7 +18,10 @@ export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
   const { t } = useTranslation();
 
   useEffect(() => {
-    const wsUrl = `wss://sasl.pythonanywhere.com/ws/video/${roomId}/?token=${token}`;
+    const isLocal = window.location.hostname === 'localhost';
+const wsUrl = isLocal 
+  ? `ws://localhost:8000/ws/video/${roomId}/?token=${token}`
+  : `wss://sasl.pythonanywhere.com/ws/video/${roomId}/?token=${token}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
@@ -60,7 +63,7 @@ export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key ===  'Enter') {
+    if (e.key === 'Enter') {
       e.preventDefault();
       send();
     }

@@ -4,7 +4,7 @@ export class WebRTCConnection {
   private signalSend: (msg: any) => void;
   private makingOffer = false;
   private ignoreOffer = false;
-
+  private candidateQueue: RTCIceCandidateInit[] = [];
   constructor(signalSend: (msg: any) => void) {
     this.signalSend = signalSend;
   }
@@ -112,7 +112,13 @@ export class WebRTCConnection {
       }
 
       await this.pc.setRemoteDescription(new RTCSessionDescription(offer));
-      
+      // Add this after setRemoteDescription in BOTH handleOffer and handleAnswer:
+// Process queued candidates
+for (const c of this.candidateQueue) {
+    try { await this.pc!.addIceCandidate(new RTCIceCandidate(c)); } catch {}
+}
+this.candidateQueue = [];
+
       const answer = await this.pc.createAnswer();
       await this.pc.setLocalDescription(answer);
       
@@ -135,26 +141,33 @@ export class WebRTCConnection {
       }
 
       await this.pc.setRemoteDescription(new RTCSessionDescription(answer));
+      // Add this after setRemoteDescription in BOTH handleOffer and handleAnswer:
+// Process queued candidates
+for (const c of this.candidateQueue) {
+    try { await this.pc!.addIceCandidate(new RTCIceCandidate(c)); } catch {}
+}
+this.candidateQueue = [];
+
     } catch (err) {
       console.warn('Handle answer failed:', err);
     }
   }
 
-  async addIceCandidate(candidate: RTCIceCandidateInit) {
+ async addIceCandidate(candidate: RTCIceCandidateInit) {
     if (!this.pc) return;
 
-    try {
-      // Only add candidates when we have a remote description
-      if (this.pc.signalingState === 'stable' && !this.pc.remoteDescription) {
-        // Queue candidate for later or ignore
+    // If remote description isn't set yet, queue the candidate
+    if (!this.pc.remoteDescription) {
+        this.candidateQueue.push(candidate);
         return;
-      }
-
-      await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
-    } catch (err) {
-      console.warn('Add ICE candidate failed:', err);
     }
-  }
+
+    try {
+        await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch (err) {
+        console.warn('Add ICE candidate failed:', err);
+    }
+}
 
   disconnect() {
     this.pc?.close();
@@ -162,5 +175,6 @@ export class WebRTCConnection {
     this.stopLocalStream();
     this.makingOffer = false;
     this.ignoreOffer = false;
+    this.candidateQueue = [];
   }
 }

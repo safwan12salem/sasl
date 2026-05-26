@@ -300,7 +300,7 @@ export default function GroupChat() {
                 <div>
                   <h3 className="font-bold">{activeGroupData.name}</h3>
                   <p className="text-xs text-gray-500">
-                    {activeGroupData.members_count || 0} members
+                    {activeGroupData.members_count || 0}  members
                     {activeGroupData.is_mesh && ' · Mesh Enabled'}
                   </p>
                 </div>
@@ -357,7 +357,7 @@ export default function GroupChat() {
                       {showAvatar && !isMe && <p className="text-xs text-gray-500 mb-0.5 ml-1">{msg.sender?.username}</p>}
                      {msg.image && (
   <img 
-    src={msg.image.startsWith('http') ? msg.image : `http://localhost:8000${msg.image}`}
+    src={msg.image.startsWith('http') ? msg.image : `${api.defaults.baseURL?.replace('/api','')}${msg.image}`}
     alt="Shared"
     className="max-w-full rounded-xl mb-1 max-h-60 object-cover"
   />

@@ -222,7 +222,7 @@ export default function EarningsDashboard() {
           <BarChart3 size={20} /> {t('earnings_breakdown')}
         </h3>
         <div className="space-y-3">
-          {Object.entries(earnings.breakdown).map(([key, value]) => (
+          {Object.entries(earnings.breakdown || {}).map(([key, value]) =>  (
             <div key={key} className="flex items-center justify-between">
               <span className="flex items-center gap-2 text-sm">
                 {categoryIcons[key] || <DollarSign size={18} />}
