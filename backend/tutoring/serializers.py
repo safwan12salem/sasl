@@ -54,3 +54,7 @@ class TutoringSessionSerializer(serializers.ModelSerializer):
     
     def get_students_enrolled(self, obj):
         return obj.max_students  # Placeholder — would track actual enrollments
+    
+
+
+

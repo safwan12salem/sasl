@@ -130,3 +130,12 @@ class DailyChallenge(models.Model):
 
     class Meta:
         unique_together = ('user', 'challenge_id', 'date')
+
+
+
+
+class Referral(models.Model):
+    referrer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='referrals_made')
+    referred_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='referred_by')
+    reward_claimed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,8 @@ import NotificationBell from './NotificationBell';
 import PageTransition from './PageTransition';
 import OnlineUsers from './OnlineUsers';
 import { useTheme } from '../contexts/ThemeContext';
+import ReferralModal from './ReferralModal';
+
 
 export default function Layout() {
   const { user, logout } = useAuth();
@@ -22,7 +24,7 @@ export default function Layout() {
   const { isOnline, toggleOnlineMode } = useMesh();
   const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
-
+  const [showReferral, setShowReferral] = useState(false);
   const navItems = [
     { to: '/', icon: Home, label: t('feed') },
     { to: '/gigs', icon: Briefcase, label: t('Gig Central') },
@@ -39,6 +41,7 @@ export default function Layout() {
     { to: '/ai-hub', icon: Sparkles, label: t('Sasl AI Hub') },
     { to: '/progress', icon: Star, label: t('Progress') },
     { to: '/wallet', icon: Wallet, label: t('wallet') },
+    { to: '/referral', icon: Users, label: t('referrals') },
     { to: '/earnings', icon: DollarSign, label: t('Earnings') },
     { to: '/profile', icon: User, label: t('profile') },
    
@@ -78,6 +81,9 @@ export default function Layout() {
           <button onClick={toggleTheme} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
             {isDark ? <Sun size={18} /> : <Moon size={18} />}
           </button>
+          <button onClick={() => setShowReferral(true)} className="flex items-center gap-2 w-full py-2 px-4 rounded-xl hover:bg-white/10 transition">
+  <Users size={18} /> {t('invite')}
+</button>
           <button onClick={logout} className="flex items-center gap-2 w-full py-2 px-4 rounded-xl bg-red-600/80 hover:bg-red-700 transition">
             <LogOut size={18} /> {t('logout')}
           </button>
@@ -102,7 +108,10 @@ export default function Layout() {
             <Outlet />
           </PageTransition>
         </main>
+       
       </div>
+    {showReferral && <ReferralModal onClose={() => setShowReferral(false)} />}   
     </div>
+  
   );
 }

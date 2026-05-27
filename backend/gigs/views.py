@@ -223,3 +223,19 @@ class GigViewSet(viewsets.ModelViewSet):
         
         gigs = qs.order_by('-budget')[:10]
         return Response(GigSerializer(gigs, many=True, context={'request': request}).data)
+    
+
+
+    @action(detail=True, methods=['get', 'post'])
+    def chat(self, request, pk=None):
+      gig = self.get_object()
+      if request.method == 'GET':
+          messages = GigChatMessage.objects.filter(gig=gig).order_by('created_at')
+          return Response(GigChatMessageSerializer(messages, many=True).data)
+      else:
+          msg = GigChatMessage.objects.create(
+              gig=gig,
+              sender=request.user,
+              text=request.data.get('text', '')
+          )
+          return Response(GigChatMessageSerializer(msg).data, status=201) 
