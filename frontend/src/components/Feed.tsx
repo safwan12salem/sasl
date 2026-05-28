@@ -1,7 +1,7 @@
 /**
  * Sasl - Social Asynchronous Sharing Layer
  * Complete Feed component with posts, likes, comments, polls, GIFs, ads, offline sync.
- * No WebSocket – fully stable. Infinite scroll fixed.
+ * Posts persist across reloads via sessionStorage cache.
  */
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
@@ -61,11 +61,20 @@ interface OfflinePost {
 }
 
 const MAX_OFFLINE_POSTS = 100;
+const POSTS_CACHE_KEY = 'sasl_feed_cache';
+
+const cachePosts = (p: Post[]) => {
+  try { sessionStorage.setItem(POSTS_CACHE_KEY, JSON.stringify(p)); } catch {}
+};
+const getCachedPosts = (): Post[] => {
+  try { const raw = sessionStorage.getItem(POSTS_CACHE_KEY); return raw ? JSON.parse(raw) : []; }
+  catch { return []; }
+};
 
 const Feed: React.FC = () => {
   const { user } = useAuth();
   const { isOnline, syncOfflinePosts } = useMesh();
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<Post[]>(getCachedPosts);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -85,96 +94,70 @@ const Feed: React.FC = () => {
   const [showStoryRecorder, setShowStoryRecorder] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const isFetching = useRef(false);
-  const postsLoaded = useRef(false);
   const { t } = useTranslation();
 
+  useEffect(() => { cachePosts(posts); }, [posts]);
+
   // ============================================================
-  // FETCH POSTS — No flickering, preserves existing posts
+  // FETCH POSTS
   // ============================================================
   const fetchPosts = useCallback(async (pageNum: number, append = false) => {
     if (isFetching.current) return;
     isFetching.current = true;
-    
-    // Only show loading spinner on first load when there are no posts
-    if (posts.length === 0 || !append) {
-      setLoading(true);
-    }
-    
+    if (!append) setLoading(true);
+
     try {
       if (!isOnline) {
         const offlinePosts = await db.posts.orderBy('created_at').reverse().toArray();
-        const mapped: Post[] = offlinePosts.map(p => ({
-          id: p.id,
-          author: { username: p.author },
-          text: p.text,
-          media_url: p.media_url || null,
-          likes_count: p.likes_count,
-          comments_count: p.comments_count,
-          shares_count: p.shares_count,
-          liked_by_me: false,
-          created_at: p.created_at,
-          poll: undefined,
-        }));
-        setPosts(mapped);
+        setPosts(offlinePosts.map(p => ({
+          id: p.id, author: { username: p.author }, text: p.text,
+          media_url: p.media_url || null, likes_count: p.likes_count,
+          comments_count: p.comments_count, shares_count: p.shares_count,
+          liked_by_me: false, created_at: p.created_at, poll: undefined,
+        })));
         setHasMore(false);
-        setInitialLoad(false);
         return;
       }
 
       const res = await api.get(`/content/posts/?page=${pageNum}`);
       const data = res.data;
       const results = Array.isArray(data?.results) ? data.results : [];
-      
-      // Rank posts with Sasl Brain
+
       let sortedResults = results;
       try {
         const ranked = await saslBrain.rankPosts(results);
         sortedResults = ranked
           .map((score: { postId: string }) => results.find((p: any) => p.id === score.postId))
           .filter(Boolean);
-      } catch {
-        sortedResults = results;
-      }
+      } catch { sortedResults = results; }
 
-      // Update state — never clear existing posts, only add/merge
       setPosts(prev => {
-        if (!append) {
-          // First load: merge with existing to prevent flicker
-          if (prev.length === 0) return sortedResults;
+        if (append) {
           const existingIds = new Set(prev.map(p => p.id));
-          const trulyNew = sortedResults.filter((p: Post) => !existingIds.has(p.id));
-          return trulyNew.length > 0 ? [...sortedResults, ...prev.filter(p => !sortedResults.find((s: Post) => s.id === p.id))] : prev;
+          const newPosts = sortedResults.filter((p: Post) => !existingIds.has(p.id));
+          return [...prev, ...newPosts];
         }
-        // Append mode: add only new ones
-        const existingIds = new Set(prev.map(p => p.id));
-        const newPosts = sortedResults.filter((p: Post) => !existingIds.has(p.id));
-        return newPosts.length > 0 ? [...prev, ...newPosts] : prev;
+        const localOnly = prev.filter(p => p.id.startsWith('offline-'));
+        const merged = [...sortedResults];
+        for (const lp of localOnly) {
+          if (!merged.find(m => m.id === lp.id)) merged.unshift(lp);
+        }
+        return merged;
       });
-      
-      postsLoaded.current = true;
 
-      // Cache offline
       for (const p of results) {
         await db.posts.put({
-          id: p.id,
-          text: p.text,
-          author: p.author?.username,
-          media_url: p.media_url,
-          likes_count: p.likes_count,
-          comments_count: p.comments_count,
-          shares_count: p.shares_count,
+          id: p.id, text: p.text, author: p.author?.username,
+          media_url: p.media_url, likes_count: p.likes_count,
+          comments_count: p.comments_count, shares_count: p.shares_count,
           created_at: p.created_at,
         });
       }
 
-      // Check if more pages exist
       const nextPage = data?.next;
-      const currentPageSize = results.length;
-      setHasMore(!!nextPage && currentPageSize > 0);
+      setHasMore(!!nextPage && results.length > 0);
     } catch (err) {
-      if (!append && posts.length === 0) {
-        console.warn(t('feed_fetch_failed'), err);
-      }
+      if (posts.length === 0) console.warn('Feed fetch failed', err);
     } finally {
       setLoading(false);
       setInitialLoad(false);
@@ -183,14 +166,11 @@ const Feed: React.FC = () => {
   }, [isOnline, posts.length]);
 
   // ============================================================
-  // INITIAL LOAD — runs once on mount
+  // INITIAL LOAD
   // ============================================================
   useEffect(() => {
     const token = localStorage.getItem('sasl_token');
-    if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    }
-    
+    if (token) api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     fetchPosts(1, false);
     loadStories();
     loadSuggestedUsers();
@@ -199,28 +179,23 @@ const Feed: React.FC = () => {
   }, []);
 
   // ============================================================
-  // INFINITE SCROLL OBSERVER
+  // INFINITE SCROLL
   // ============================================================
   useEffect(() => {
     if (!loader.current) return;
-    
     const observer = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore && !loading && !isFetching.current && posts.length > 0) {
+      if (entries[0].isIntersecting && hasMore && !loading && !isFetching.current) {
         setPage(prev => {
           const nextPage = prev + 1;
-          if (nextPage > 50) {
-            setHasMore(false);
-            return prev;
-          }
+          if (nextPage > 50) { setHasMore(false); return prev; }
           fetchPosts(nextPage, true);
           return nextPage;
         });
       }
     }, { rootMargin: '200px' });
-    
     observer.observe(loader.current);
     return () => observer.disconnect();
-  }, [hasMore, loading, fetchPosts, posts.length]);
+  }, [hasMore, loading, fetchPosts]);
 
   // ============================================================
   // HELPERS
@@ -228,48 +203,44 @@ const Feed: React.FC = () => {
   const loadStories = async () => {
     try { const res = await api.get('/content/stories/'); setStories(res.data.results || []); } catch {}
   };
-  
   const loadSuggestedUsers = async () => {
     try { const res = await api.get('/users/suggested/'); setSuggestedUsers(res.data || []); } catch {}
   };
-  
   const loadOfflineQueue = () => {
     const raw = localStorage.getItem('sasl_offline_posts');
     if (raw) setOfflineQueue(JSON.parse(raw).slice(0, MAX_OFFLINE_POSTS));
   };
 
   // ============================================================
-  // LIKE HANDLER — updates single post, no feed flicker
+  // LIKE
   // ============================================================
   const handleLike = async (postId: string) => {
-    // Optimistic update — instant, no flicker
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    const newLiked = !post.liked_by_me;
+    const newCount = newLiked ? post.likes_count + 1 : post.likes_count - 1;
+
     setPosts(prev => prev.map(p => p.id === postId ? {
-      ...p,
-      liked_by_me: !p.liked_by_me,
-      likes_count: p.liked_by_me ? p.likes_count - 1 : p.likes_count + 1
+      ...p, liked_by_me: newLiked, likes_count: Math.max(0, newCount)
     } : p));
-    
+
     try {
       const res = await api.post(`/content/posts/${postId}/like/`);
-      // Sync with server — still no flicker
-      setPosts(prev => prev.map(p => p.id === postId ? {
-        ...p,
-        likes_count: res.data.likes_count,
-        liked_by_me: res.data.status === 'liked'
-      } : p));
+      if (res.data && typeof res.data.likes_count === 'number') {
+        setPosts(prev => prev.map(p => p.id === postId ? {
+          ...p, likes_count: res.data.likes_count, liked_by_me: res.data.status === 'liked'
+        } : p));
+      }
       if (navigator.vibrate) navigator.vibrate(10);
     } catch {
-      // Revert on error — still no flicker
       setPosts(prev => prev.map(p => p.id === postId ? {
-        ...p,
-        liked_by_me: !p.liked_by_me,
-        likes_count: p.liked_by_me ? p.likes_count + 1 : p.likes_count - 1
+        ...p, liked_by_me: post.liked_by_me, likes_count: post.likes_count
       } : p));
     }
   };
 
   // ============================================================
-  // POLL VOTE HANDLER
+  // POLL VOTE
   // ============================================================
   const handleVote = async (postId: string, optionId: string) => {
     try {
@@ -281,13 +252,12 @@ const Feed: React.FC = () => {
   };
 
   // ============================================================
-  // SHARE HANDLER
+  // SHARE
   // ============================================================
   const handleShare = async (postId: string) => {
     try {
       const res = await api.post(`/content/posts/${postId}/share/`);
       setPosts(prev => prev.map(p => p.id === postId ? { ...p, shares_count: res.data.shares_count } : p));
-      
       const post = posts.find(p => p.id === postId);
       if (post && navigator.share) {
         await navigator.share({
@@ -301,160 +271,93 @@ const Feed: React.FC = () => {
         toast.success(t('link_copied'));
       }
     } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        toast.error(t('could_not_share'));
-      }
+      if (err.name !== 'AbortError') toast.error(t('could_not_share'));
     }
   };
 
   // ============================================================
-  // COMPOSER HELPERS
+  // COMPOSER
   // ============================================================
   const resetComposer = () => {
-    setComposing('');
-    setSelectedFile(null);
-    setFilePreview(null);
-    setUploadProgress(0);
-    setComposingWithPoll(false);
-    setPollOptions(['', '']);
-    setShowGifPicker(false);
-    setShowEmojiPicker(false);
+    setComposing(''); setSelectedFile(null); setFilePreview(null);
+    setUploadProgress(0); setComposingWithPoll(false);
+    setPollOptions(['', '']); setShowGifPicker(false); setShowEmojiPicker(false);
   };
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setFilePreview(URL.createObjectURL(file));
-    }
+    if (file) { setSelectedFile(file); setFilePreview(URL.createObjectURL(file)); }
   };
-  
   const handleDelete = async (postId: string) => {
     if (!window.confirm('Delete this post?')) return;
     try {
       await api.delete(`/content/posts/${postId}/delete_post/`);
       setPosts(prev => prev.filter(p => p.id !== postId));
       toast.success(t('delete'));
-    } catch {
-      toast.error(t('delete_failed'));
-    }
+    } catch { toast.error(t('delete_failed')); }
   };
 
   // ============================================================
-  // SUBMIT POST — prepends without clearing feed
+  // SUBMIT POST
   // ============================================================
   const submitPost = async () => {
     if (!composing.trim() && !selectedFile) return;
-    
-    if (!isOnline) {
-      createOfflinePost();
-      return;
-    }
-
+    if (!isOnline) { createOfflinePost(); return; }
     const moderation = await contentModerator.moderateText(composing);
     if (moderation.isSpam || moderation.isHateful) {
-      toast.error(t('content_flagged', { reason: moderation.reason }));
-      return;
+      toast.error(t('content_flagged', { reason: moderation.reason })); return;
     }
-
     const formData = new FormData();
     formData.append('text', composing);
     if (selectedFile) formData.append('media', selectedFile);
     if (composingWithPoll) {
-      const validOptions = pollOptions.filter(opt => opt.trim());
       formData.append('poll', JSON.stringify({
         question: composing,
-        options: validOptions,
+        options: pollOptions.filter(o => o.trim()),
         expires_in_days: 1
       }));
     }
-
     try {
       const res = await api.post('/content/posts/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (progressEvent: any) => {
-          if (progressEvent.total) {
-            const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(percent);
-          }
-        },
+        onUploadProgress: (e: any) => { if (e.total) setUploadProgress(Math.round((e.loaded * 100) / e.total)); },
       } as any);
-      // Prepend new post — no feed flicker
       setPosts(prev => [res.data, ...prev]);
       resetComposer();
       toast.success(t('posted'));
-    } catch {
-      toast.error(t('failed_to_post'));
-      setUploadProgress(0);
-    }
+    } catch { toast.error(t('failed_to_post')); setUploadProgress(0); }
   };
 
   // ============================================================
   // OFFLINE POST
   // ============================================================
   const createOfflinePost = () => {
-    const newPost: OfflinePost = { text: composing, timestamp: Date.now() };
-    const updatedQueue = [...offlineQueue, newPost].slice(0, MAX_OFFLINE_POSTS);
+    const updatedQueue = [...offlineQueue, { text: composing, timestamp: Date.now() }].slice(0, MAX_OFFLINE_POSTS);
     setOfflineQueue(updatedQueue);
-    
-    const mesh = getMeshNode();
-    if (mesh) {
-      mesh.sendPostViaMesh({
-        text: composing,
-        author: user?.username,
-        timestamp: Date.now(),
-      });
-      toast.success(t('posted_via_wavemesh'));
-    } else {
-      toast.success(t('queued_sync_online'));
-    }
-    
     localStorage.setItem('sasl_offline_posts', JSON.stringify(updatedQueue));
-    
-    const fakePost: Post = {
-      id: `offline-${Date.now()}`,
-      author: { username: user?.username || t('you') },
-      text: composing,
-      media_url: filePreview,
-      likes_count: 0,
-      comments_count: 0,
-      shares_count: 0,
-      liked_by_me: false,
-      created_at: new Date().toISOString(),
-    };
-    setPosts(prev => [fakePost, ...prev]);
+    const mesh = getMeshNode();
+    if (mesh) mesh.sendPostViaMesh({ text: composing, author: user?.username, timestamp: Date.now() });
+    setPosts(prev => [{
+      id: `offline-${Date.now()}`, author: { username: user?.username || 'You' },
+      text: composing, media_url: filePreview, likes_count: 0, comments_count: 0,
+      shares_count: 0, liked_by_me: false, created_at: new Date().toISOString(),
+    }, ...prev]);
     resetComposer();
+    toast.success(mesh ? t('posted_via_wavemesh') : t('queued_sync_online'));
   };
-
-  // ============================================================
-  // SYNC OFFLINE QUEUE
-  // ============================================================
-  useEffect(() => {
-    if (isOnline && offlineQueue.length > 0) {
-      syncOfflineQueue();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOnline]);
 
   const syncOfflineQueue = async () => {
     setSyncing(true);
     try {
       await api.post('/content/posts/sync_offline_posts/', { posts: offlineQueue });
-      setOfflineQueue([]);
-      localStorage.removeItem('sasl_offline_posts');
-      toast.success(t('offline_posts_synced'));
-      fetchPosts(1, false);
-    } catch {
-      toast.error(t('sync_failed'));
-    } finally {
-      setSyncing(false);
-    }
+      setOfflineQueue([]); localStorage.removeItem('sasl_offline_posts');
+      toast.success(t('offline_posts_synced')); fetchPosts(1, false);
+    } catch { toast.error(t('sync_failed')); }
+    finally { setSyncing(false); }
   };
 
-  const handleGifSelect = (url: string) => {
-    setComposing(prev => prev + ' ' + url);
-    setShowGifPicker(false);
-  };
+  useEffect(() => { if (isOnline && offlineQueue.length > 0) syncOfflineQueue(); }, [isOnline]);
+
+  const handleGifSelect = (url: string) => { setComposing(p => p + ' ' + url); setShowGifPicker(false); };
 
   // ============================================================
   // SUB-COMPONENTS
@@ -492,16 +395,13 @@ const Feed: React.FC = () => {
 
   const PollSection = ({ poll, postId }: { poll: Post['poll']; postId: string }) => {
     if (!poll) return null;
-    const alreadyVoted = poll.options.some(o => o.voted_by_me);
+    const voted = poll.options.some(o => o.voted_by_me);
     return (
       <div className="mt-2 space-y-2">
         {poll.options.map(opt => (
           <div key={opt.id} className="flex items-center justify-between">
-            <button
-              onClick={() => handleVote(postId, opt.id)}
-              disabled={alreadyVoted}
-              className="text-left text-sm hover:bg-gray-100 p-1 rounded w-full flex items-center gap-2"
-            >
+            <button onClick={() => handleVote(postId, opt.id)} disabled={voted}
+              className="text-left text-sm hover:bg-gray-100 p-1 rounded w-full flex items-center gap-2">
               <span className={`w-4 h-4 rounded-full border-2 ${opt.voted_by_me ? 'bg-green-500' : 'border-gray-400'}`} />
               {opt.text}
               <span className="ml-auto text-xs text-gray-500">({opt.votes_count})</span>
@@ -531,17 +431,12 @@ const Feed: React.FC = () => {
         </div>
         <p className="mb-3">{post.text}</p>
         {post.media_url && (
-          <img
-            src={post.media_url}
-            className="rounded-xl mb-3 max-h-80 w-full object-cover"
-            alt="post"
-            loading="lazy"
-          />
+          <img src={post.media_url} className="rounded-xl mb-3 max-h-80 w-full object-cover" alt="" loading="lazy" />
         )}
         {post.poll && <PollSection poll={post.poll} postId={post.id} />}
         <div className="flex justify-between text-gray-500 mb-2">
           <button onClick={() => handleLike(post.id)} className="flex items-center gap-1 hover:text-red-500">
-            <Heart className={`w-5 h-5 ${post.liked_by_me ? 'fill-red-500 text-red-500' : ''} like-burst`} />
+            <Heart className={`w-5 h-5 ${post.liked_by_me ? 'fill-red-500 text-red-500' : ''}`} />
             {post.likes_count}
           </button>
           <button onClick={() => setShowComments(!showComments)} className="flex items-center gap-1 hover:text-blue-500">
@@ -551,7 +446,6 @@ const Feed: React.FC = () => {
           <button onClick={() => handleShare(post.id)} className="flex items-center gap-1 hover:text-green-500">
             <Share2 className="w-5 h-5" /> {post.shares_count}
           </button>
-          
           {post.author.username === user?.username && (
             <button onClick={() => handleDelete(post.id)} className="text-red-500 text-xs">{t('delete')}</button>
           )}
@@ -584,7 +478,7 @@ const Feed: React.FC = () => {
           )}
         </div>
       </div>
-      
+
       {showStoryRecorder && (
         <div className="fixed inset-0 bg-black/60 z-40 flex items-center justify-center">
           <div className="bg-white p-4 rounded-2xl w-full max-w-md">
@@ -593,11 +487,11 @@ const Feed: React.FC = () => {
           </div>
         </div>
       )}
-      
+
       <SuggestedBar />
       <StoryRing />
       <AdBanner />
-      
+
       {/* Composer */}
       <div className="bg-white rounded-2xl shadow p-4 mb-6">
         <textarea
@@ -609,7 +503,7 @@ const Feed: React.FC = () => {
         />
         {filePreview && (
           <div className="relative mt-2">
-            <img src={filePreview} className="rounded-lg max-h-48" alt="preview" />
+            <img src={filePreview} className="rounded-lg max-h-48" alt="" />
             <button onClick={() => { setSelectedFile(null); setFilePreview(null); setUploadProgress(0); }} className="absolute top-1 right-1 bg-white rounded-full p-1"><X size={16} /></button>
           </div>
         )}
@@ -621,29 +515,27 @@ const Feed: React.FC = () => {
         {composingWithPoll && (
           <div className="mt-2 space-y-2">
             {pollOptions.map((opt, idx) => (
-              <input key={idx} className="input-field" placeholder={`Option ${idx+1}`} value={opt}
+              <input key={idx} className="input-field" placeholder={`Option ${idx + 1}`} value={opt}
                 onChange={e => { const n = [...pollOptions]; n[idx] = e.target.value; setPollOptions(n); }} />
             ))}
           </div>
         )}
         {showGifPicker && <GifPicker onSelect={handleGifSelect} onClose={() => setShowGifPicker(false)} />}
-        
+
         <div className="flex items-center justify-between mt-3">
           <div className="flex gap-3 text-gray-500">
             <label className="cursor-pointer hover:text-green-500"><Image size={20} /><input type="file" accept="image/*,video/*" className="hidden" onChange={handleFileChange} /></label>
             <button onClick={() => setComposingWithPoll(!composingWithPoll)} className="hover:text-purple-500"><BarChart2 size={20} /></button>
-            <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="hover:text-yellow-500 relative">
-              <Smile size={20} />
-            </button>
+            <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="hover:text-yellow-500 relative"><Smile size={20} /></button>
           </div>
           <button onClick={submitPost} disabled={!composing.trim() && !selectedFile} className="btn-primary text-sm py-2 px-6">
             {t('post')}
           </button>
         </div>
-        
+
         {showEmojiPicker && (
           <div className="mt-2">
-            <EmojiPicker 
+            <EmojiPicker
               onEmojiClick={(emojiData) => {
                 setComposing(prev => prev + emojiData.emoji);
                 setShowEmojiPicker(false);
@@ -655,7 +547,7 @@ const Feed: React.FC = () => {
         )}
       </div>
 
-      {/* Posts — never flicker */}
+      {/* Posts */}
       {posts.map((post, idx) => (
         <React.Fragment key={post.id}>
           <PostCard post={post} />
@@ -663,7 +555,7 @@ const Feed: React.FC = () => {
         </React.Fragment>
       ))}
 
-      {/* Infinite scroll loader */}
+      {/* Loader */}
       <div ref={loader} className="h-10 flex justify-center items-center">
         {loading && posts.length === 0 && <Loader2 className="animate-spin text-green-500" />}
         {loading && posts.length > 0 && <Loader2 className="animate-spin text-green-500 w-4 h-4" />}
