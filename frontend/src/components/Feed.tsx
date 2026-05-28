@@ -131,13 +131,12 @@ const Feed: React.FC = () => {
 
       // Update state - prevent duplicates when appending
       setPosts(prev => {
-  if (!append) return sortedResults;
-  const existingIds = new Set(prev.map(p => p.id));
-  const newPosts = sortedResults.filter((p: Post) => !existingIds.has(p.id));
-  // Only update if there are actual new posts
-  return newPosts.length > 0 ? [...prev, ...newPosts] : prev;
-});
-
+        if (!append) return sortedResults;
+        const existingIds = new Set(prev.map(p => p.id));
+        const newPosts = sortedResults.filter((p: Post) => !existingIds.has(p.id));
+        if (newPosts.length === 0) return prev;
+        return [...prev, ...newPosts];
+      });
       // Cache offline
       for (const p of results) {
         await db.posts.put({
