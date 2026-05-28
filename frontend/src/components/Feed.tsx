@@ -131,11 +131,12 @@ const Feed: React.FC = () => {
 
       // Update state - prevent duplicates when appending
       setPosts(prev => {
-        if (!append) return sortedResults;
-        const existingIds = new Set(prev.map(p => p.id));
-        const newPosts = sortedResults.filter((p: Post) => !existingIds.has(p.id));
-        return [...prev, ...newPosts];
-      });
+  if (!append) return sortedResults;
+  const existingIds = new Set(prev.map(p => p.id));
+  const newPosts = sortedResults.filter((p: Post) => !existingIds.has(p.id));
+  // Only update if there are actual new posts
+  return newPosts.length > 0 ? [...prev, ...newPosts] : prev;
+});
 
       // Cache offline
       for (const p of results) {
@@ -172,11 +173,17 @@ const Feed: React.FC = () => {
   // ============================================================
   
 
-   useEffect(() => {
-  const token = localStorage.getItem('sasl_token');  // ✅ Hardcoded key — never translate localStorage keys
+   const hasFetched = useRef(false);
+
+useEffect(() => {
+  if (hasFetched.current) return;
+  
+  const token = localStorage.getItem('sasl_token');
   if (token) {
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;  // ✅ Hardcoded header name
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   }
+  
+  hasFetched.current = true;
   
   const timer = setTimeout(() => {
     fetchPosts(1, false);

@@ -134,3 +134,27 @@ class Portfolio(models.Model):
 
     def __str__(self):
         return f"{self.title} by {self.user.username}"
+
+
+
+
+
+
+
+
+
+
+class GigChatMessage(models.Model):
+    """Persistent chat messages for gig conversations"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    gig = models.ForeignKey(Gig, on_delete=models.CASCADE, related_name='chat_messages')
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    text = models.TextField(blank=True, default='')
+    image = models.ImageField(upload_to='gigs/chat/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Chat from {self.sender.username} on {self.gig.title}"
