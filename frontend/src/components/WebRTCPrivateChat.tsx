@@ -2,6 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { Send } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+
+
+
 interface Props {
   roomId: string;
   onClose: () => void;
@@ -16,7 +21,8 @@ export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
   const wsRef = useRef<WebSocket | null>(null);
   const token = localStorage.getItem('sasl_token');
   const { t } = useTranslation();
-
+  const [chatType, setChatType] = useState<'gig' | 'tutoring'>('gig');
+  const { user } = useAuth();
   useEffect(() => {
     const isLocal = window.location.hostname === 'localhost';
 const wsUrl = isLocal 
@@ -52,15 +58,48 @@ const wsUrl = isLocal
     };
   }, [roomId, token]);
 
-  const send = () => {
-    if (!input.trim()) return;
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      // Send chat message through WebSocket
-      wsRef.current.send(JSON.stringify({ type: 'chat', text: input }));
-      setMessages(prev => [...prev, `Me: ${input}`]);
-      setInput('');
+useEffect(() => {
+  if (roomId.startsWith('gig-')) setChatType('gig');
+  else if (roomId.startsWith('tutoring-')) setChatType('tutoring');
+}, [roomId]);
+
+
+useEffect(() => {
+  const fetchHistory = async () => {
+    try {
+      const id = roomId.replace('gig-', '').replace('tutoring-', '');
+      const endpoint = chatType === 'gig' 
+        ? `/gigs/gigs/${id}/chat/`
+        : `/tutoring/sessions/${id}/chat/`;
+      const res = await api.get(endpoint);
+      setMessages(res.data.map((m: any) => 
+        m.sender_name === user?.username ? `Me: ${m.text}` : `${m.sender_name}: ${m.text}`
+      ));
+    } catch {
+      toast.error('Failed to fetch chat history');
     }
   };
+  fetchHistory();
+}, [roomId, chatType]);
+
+  const send = async () => {
+  if (!input.trim()) return;
+  if (wsRef.current?.readyState === WebSocket.OPEN) {
+    wsRef.current.send(JSON.stringify({ type: 'chat', text: input }));
+  }
+
+
+ try {
+    const id = roomId.replace('gig-', '').replace('tutoring-', '');
+    const endpoint = chatType === 'gig'
+      ? `/gigs/gigs/${id}/chat/`
+      : `/tutoring/sessions/${id}/chat/`;
+    await api.post(endpoint, { text: input });
+  } catch {}
+  
+  setMessages(prev => [...prev, `Me: ${input}`]);
+  setInput('');
+};
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {

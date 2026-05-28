@@ -35,6 +35,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import SaslAIHub from './components/SaslAIHub';
 import AdvertisePage from './components/AdvertisePage';
 import { globalMesh } from './services/globalMesh';
+import ReferralModal from './components/ReferralModal';
 
 // ✅ FIXED: Added loading check
 function PrivateRoute({ children }: { children: JSX.Element }) {
@@ -131,6 +132,7 @@ function AppContent() {
           <Route path="/ai-hub" element={<PrivateRoute><SaslAIHub /></PrivateRoute>} />
           <Route path="/group-chat" element={<PrivateRoute><GroupChat /></PrivateRoute>} />
           <Route path="/events" element={<PrivateRoute><Events /></PrivateRoute>} />
+          <Route path="/referral" element={<PrivateRoute><ReferralModal referralCode={user?.username || ''} onClose={() => window.history.back()} /></PrivateRoute>} />
           <Route path="/qr-profile" element={<PrivateRoute><QRProfile username={user?.username || ''} /></PrivateRoute>} />
           <Route path="/advertise" element={<AdvertisePage />} />
         </Route>
