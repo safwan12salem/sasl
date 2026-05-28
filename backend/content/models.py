@@ -126,6 +126,22 @@ class ReelLike(models.Model):
 
 
 
+class ReelComment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    reel = models.ForeignKey(Reel, on_delete=models.CASCADE, related_name='comments_list')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    text = models.TextField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+
+
+
+        
+
+
+
 # Add to existing Notification model
 class Notification(models.Model):
     TYPE_CHOICES = (
@@ -153,3 +169,5 @@ class Notification(models.Model):
      
     class Meta:
         ordering = ['-created_at']
+
+

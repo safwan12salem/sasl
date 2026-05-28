@@ -84,11 +84,7 @@ export class WebRTCConnection {
     }
   }
 
-  async handleOffer(
-    offer: RTCSessionDescriptionInit,
-    remoteVideoElement: HTMLVideoElement
-  ) {
-    // If we're making an offer, ignore incoming offers (polite peer)
+ async handleOffer(offer: RTCSessionDescriptionInit, remoteVideoElement: HTMLVideoElement) {
     if (this.makingOffer) {
       this.ignoreOffer = true;
       return;
@@ -105,19 +101,22 @@ export class WebRTCConnection {
     };
 
     try {
-      // Check state before setting remote description
+      // Close existing connection and create new if needed
       if (this.pc.signalingState !== 'stable') {
-        console.warn('Cannot handle offer in state:', this.pc.signalingState);
-        return;
+        this.pc.close();
+        this.pc = this.createPeerConnection();
+        this.pc.ontrack = (event) => {
+          if (event.streams[0]) remoteVideoElement.srcObject = event.streams[0];
+        };
       }
 
       await this.pc.setRemoteDescription(new RTCSessionDescription(offer));
-      // Add this after setRemoteDescription in BOTH handleOffer and handleAnswer:
-// Process queued candidates
-for (const c of this.candidateQueue) {
-    try { await this.pc!.addIceCandidate(new RTCIceCandidate(c)); } catch {}
-}
-this.candidateQueue = [];
+      
+      // Process queued candidates
+      for (const c of this.candidateQueue) {
+        try { await this.pc!.addIceCandidate(new RTCIceCandidate(c)); } catch {}
+      }
+      this.candidateQueue = [];
 
       const answer = await this.pc.createAnswer();
       await this.pc.setLocalDescription(answer);

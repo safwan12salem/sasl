@@ -108,10 +108,10 @@ export default function Streaming() {
       formData.append('title', title);
       formData.append('description', description);
       formData.append('category', category);
-      formData.append('tags', tags);
+      formData.append('tags', JSON.stringify(tags.split(',').map(t => t.trim()).filter(Boolean)));
       if (thumbnailFile) formData.append('thumbnail', thumbnailFile);
       
-      await api.post('/streaming/streams/', formData, {
+      const res = await api.post('/streaming/streams/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast.success(t('You are now live! 🎥'));
@@ -119,7 +119,8 @@ export default function Streaming() {
       setThumbnailFile(null); setThumbnailPreview(null);
       fetchStreams();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || t('Failed to start stream'));
+      const errorMsg = err.response?.data ? JSON.stringify(err.response.data) : t('Failed to start stream');
+      toast.error(errorMsg);
     }
   };
 

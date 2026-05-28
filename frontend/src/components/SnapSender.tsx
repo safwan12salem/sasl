@@ -108,7 +108,7 @@ export default function SnapSender() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode, width: { ideal: 720 }, height: { ideal: 1280 } },
-        audio: mediaType ===  t('video'),
+        audio: mediaType ===  'video',
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
@@ -116,8 +116,8 @@ export default function SnapSender() {
       }
       setCameraActive(true);
     } catch (err: any) {
-      if (err.name === 'NotAllowedError') toast.error( t('Camera permission denied'));
-      else toast.error(t('Camera access failed'));
+      if (err.name === 'NotAllowedError') toast.error( 'Camera permission denied');
+      else toast.error('Camera access failed');
     }
   };
 
@@ -243,7 +243,7 @@ export default function SnapSender() {
       setBlob(null); setReceiver(''); setCaption(''); setDrawings([]);
       fetchSnaps();
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || t('Failed to send snap'));
+      toast.error(err.response?.data?.detail || 'Failed to send snap');
     } finally {
       setUploading(false);
     }
@@ -257,14 +257,18 @@ export default function SnapSender() {
       const res = await api.get('/snaps/snaps/inbox/');
       setSnaps(res.data?.received || []);
       setSentSnaps(res.data?.sent || []);
-    } catch {}
+    } catch {
+      toast.error('Failed to fetch snaps');
+    }
   };
 
   const fetchStreaks = async () => {
     try {
       const res = await api.get('/snaps/snaps/streaks/');
       setStreaks(res.data || []);
-    } catch {}
+    } catch {
+      toast.error('Failed to fetch streaks');
+    }
   };
 
   const fetchStories = async () => {
