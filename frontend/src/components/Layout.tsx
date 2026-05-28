@@ -110,7 +110,7 @@ export default function Layout() {
         </main>
        
       </div>
-    {showReferral && <ReferralModal onClose={() => setShowReferral(false)} />}   
+   {showReferral && <ReferralModal referralCode={user?.username || 'sasl'} onClose={() => setShowReferral(false)} />}   
     </div>
   
   );
