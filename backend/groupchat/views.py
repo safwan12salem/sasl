@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from .models import GroupChat, GroupMessage, GroupInvite
 from .serializers import GroupChatSerializer, GroupMessageSerializer, GroupInviteSerializer
 from notifications.services import create_notification
-
+from django.db.models import Q
 User = get_user_model()
 
 class GroupChatViewSet(viewsets.ModelViewSet):
@@ -18,7 +18,10 @@ class GroupChatViewSet(viewsets.ModelViewSet):
         group.members.add(self.request.user)
 
     def get_queryset(self):
-        return GroupChat.objects.filter(members=self.request.user)
+     user = self.request.user
+     return GroupChat.objects.filter(
+        Q(members=user) | Q(is_private=False)
+     ).distinct()
 
     @action(detail=True, methods=['get'])
     def messages(self, request, pk=None):

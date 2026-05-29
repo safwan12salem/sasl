@@ -49,7 +49,7 @@ export default function Profile() {
   const [userReels, setUserReels] = useState<any[]>([]);
   const [userProducts, setUserProducts] = useState<any[]>([]);
   const [userGigs, setUserGigs] = useState<any[]>([]);
-
+  const [isFollowing, setIsFollowing] = useState(false);
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
@@ -113,12 +113,18 @@ export default function Profile() {
     }
   };
 
-  const handleFollow = async () => {
+ const handleFollow = async () => {
     if (!profile) return;
     try {
-      await api.post('/users/follow/toggle/', { username: profile.username });
-      toast.success(t('Done!'));
-      window.location.reload();
+      const res = await api.post('/users/follow/toggle/', { username: profile.username });
+      const isNowFollowing = res.data.status === 'following';
+      setIsFollowing(isNowFollowing);
+      setProfile((prev: any) => ({
+        ...prev,
+        followers_count: res.data.followers_count,
+        following_count: res.data.following_count,
+      }));
+      toast.success(isNowFollowing ? t('Following') : t('Unfollowed'));
     } catch {}
   };
 
@@ -163,7 +169,7 @@ export default function Profile() {
     );
   }
 
-  const isFollowing = false;
+  
 
   return (
     <div className="min-h-screen bg-gray-50">

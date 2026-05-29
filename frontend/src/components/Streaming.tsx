@@ -114,16 +114,24 @@ export default function Streaming() {
       const res = await api.post('/streaming/streams/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
+      
+      // Add to local state immediately — DON'T call fetchStreams() yet
+      setStreams(prev => {
+        const exists = prev.find(s => s.id === res.data.id);
+        if (exists) return prev;
+        return [res.data, ...prev];
+      });
+      
       toast.success(t('You are now live! 🎥'));
       setTitle(''); setDescription(''); setTags('');
       setThumbnailFile(null); setThumbnailPreview(null);
-      fetchStreams();
+      
+      // Sync with server after a short delay
+      setTimeout(() => fetchStreams(), 500);
     } catch (err: any) {
-      const errorMsg = err.response?.data ? JSON.stringify(err.response.data) : t('Failed to start stream');
-      toast.error(errorMsg);
+      toast.error(err.response?.data?.error || t('Failed to start stream'));
     }
   };
-
   const donate = async (streamId: string) => {
     const amt = amount[streamId] || 1;
     if (amt <= 0) return toast.error(t('Enter an amount'));

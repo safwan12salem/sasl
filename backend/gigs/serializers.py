@@ -40,7 +40,9 @@ class SkillBadgeSerializer(serializers.ModelSerializer):
 class PortfolioSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
     image = serializers.ImageField(required=False, allow_null=True)
-    link = serializers.URLField(required=False, allow_blank=True, default='')
+    link = serializers.CharField(required=False, allow_blank=True, default='')
+    title = serializers.CharField(required=True)
+    description = serializers.CharField(required=False, allow_blank=True, default='')
     
     class Meta:
         model = Portfolio
@@ -55,6 +57,7 @@ class PortfolioSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
+
 
 class GigSerializer(serializers.ModelSerializer):
     creator_name = serializers.ReadOnlyField(source='creator.username')

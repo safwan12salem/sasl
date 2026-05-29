@@ -20,7 +20,7 @@ from analytics.views import User
 from sasl import settings
 
 from .models import (
-    Post, PostLike, Comment, Reel, ReelLike, ReelComment, Share, Story, Notification,
+    Post, PostLike, Comment, Reel, ReelLike, ReelComment, ReelCommentLike, Share, Story, Notification,
     Poll, PollOption, PollVote, Report
 )
 
@@ -459,3 +459,23 @@ class ReelViewSet(viewsets.ModelViewSet):
             like.delete()
             return Response({'status': 'unliked'})
         return Response({'status': 'liked'})    
+    
+
+
+
+    @action(detail=True, methods=['post'])
+    def reply_comment(self, request, pk=None):
+        reel = self.get_object()
+        comment_id = request.data.get('comment_id')
+        text = request.data.get('text', '')
+        if not comment_id or not text.strip():
+            return Response({'error': 'comment_id and text required'}, status=400)
+        try:
+            comment = ReelComment.objects.get(id=comment_id, reel=reel)
+        except ReelComment.DoesNotExist:
+            return Response({'error': 'Comment not found'}, status=404)
+        
+        reply = ReelCommentReply.objects.create(
+            comment=comment, user=request.user, text=text
+        )
+        return Response(ReelCommentReplySerializer(reply).data, status=201)
