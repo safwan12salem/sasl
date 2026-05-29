@@ -3,7 +3,7 @@ Sasl - Social Asynchronous Sharing Layer
 Content serializers with polls, comments, reports.
 """
 from rest_framework import serializers
-from .models import Post, PostLike, Comment, Reel, ReelComment, ReelLike, Story, Notification, Poll, PollOption, PollVote, Report
+from .models import Post, PostLike, Comment, Reel, ReelComment, ReelLike, Story, Notification, Poll, PollOption, PollVote, Report, ReelCommentLike
 from users.serializers import UserProfileSerializer
 
 class PollOptionSerializer(serializers.ModelSerializer):
@@ -119,9 +119,23 @@ class ReelSerializer(serializers.ModelSerializer):
             return ReelLike.objects.filter(reel=obj, user=request.user).exists()
         return False
 
+
+
+
 class ReelCommentSerializer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
+    likes_count = serializers.SerializerMethodField()
+    liked_by_me = serializers.SerializerMethodField()
     
     class Meta:
         model = ReelComment
-        fields = ['id', 'user', 'text', 'created_at']
+        fields = ['id', 'user', 'text', 'likes_count', 'liked_by_me', 'created_at']
+    
+    def get_likes_count(self, obj):
+        return obj.likes.count()
+    
+    def get_liked_by_me(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return ReelCommentLike.objects.filter(comment=obj, user=request.user).exists()
+        return False

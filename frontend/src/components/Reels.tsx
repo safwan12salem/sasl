@@ -41,90 +41,45 @@ export default function Reels() {
     try {
       const res = await api.get('/content/reels/');
       const raw = res.data.results || res.data || [];
-
-      let videoReels: any[] = raw
-        .filter((r: any) => r.video_url)
-        .map((r: any) => ({
-          id: r.id,
-          user: r.user || { username: 'unknown' },
-          video_url: r.video_url,
-          caption: r.caption || '',
-          likes_count: r.likes_count || 0,
-          comments_count: r.comments_count || 0,
-          liked_by_me: r.liked_by_me || false,
-        }));
-
+      let videoReels: any[] = raw.filter((r: any) => r.video_url).map((r: any) => ({
+        id: r.id, user: r.user || { username: 'unknown' }, video_url: r.video_url,
+        caption: r.caption || '', likes_count: r.likes_count || 0,
+        comments_count: r.comments_count || 0, liked_by_me: r.liked_by_me || false,
+      }));
       if (videoReels.length === 0) {
-        videoReels.push({
-          id: 'demo-reel',
-          user: { username: 'Sasl' },
-          video_url: 'https://www.w3schools.com/html/mov_bbb.mp4',
-          caption: 'Welcome to Sasl Reels! 🌍✨',
-          likes_count: 120,
-          comments_count: 15,
-          liked_by_me: false,
-        });
+        videoReels.push({ id: 'demo-reel', user: { username: 'Sasl' }, video_url: 'https://www.w3schools.com/html/mov_bbb.mp4', caption: 'Welcome to Sasl Reels! 🌍✨', likes_count: 120, comments_count: 15, liked_by_me: false });
       }
-
       setReels(videoReels);
-    } catch (err) {
-      setError(t('Could not load reels. Please try again.'));
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError(t('Could not load reels. Please try again.')); }
+    finally { setLoading(false); }
   }, [t]);
 
   useEffect(() => { fetchReels(); }, [fetchReels]);
 
   const handleLike = async (reelId: string) => {
     if (reelId === 'demo-reel') return;
-    
     const reel = reels.find(r => r.id === reelId);
     if (!reel) return;
-    
     const newLiked = !reel.liked_by_me;
     const newCount = newLiked ? reel.likes_count + 1 : reel.likes_count - 1;
-    
-    setReels(prev => prev.map(r => r.id === reelId ? {
-      ...r, liked_by_me: newLiked, likes_count: Math.max(0, newCount)
-    } : r));
-    
+    setReels(prev => prev.map(r => r.id === reelId ? { ...r, liked_by_me: newLiked, likes_count: Math.max(0, newCount) } : r));
     try {
       const res = await api.post(`/content/reels/${reelId}/like/`);
       if (res.data && typeof res.data.likes_count === 'number') {
-        setReels(prev => prev.map(r => r.id === reelId ? {
-          ...r, likes_count: res.data.likes_count, liked_by_me: res.data.status === 'liked'
-        } : r));
+        setReels(prev => prev.map(r => r.id === reelId ? { ...r, likes_count: res.data.likes_count, liked_by_me: res.data.status === 'liked' } : r));
       }
       if (navigator.vibrate) navigator.vibrate(10);
-    } catch {
-      setReels(prev => prev.map(r => r.id === reelId ? {
-        ...r, liked_by_me: reel.liked_by_me, likes_count: reel.likes_count
-      } : r));
-    }
+    } catch { setReels(prev => prev.map(r => r.id === reelId ? { ...r, liked_by_me: reel.liked_by_me, likes_count: reel.likes_count } : r)); }
   };
 
   const handleShare = async (reelId: string) => {
     const reel = reels.find(r => r.id === reelId);
     if (!reel) return;
-    const shareData = {
-      title: 'Check out this reel on Sasl!',
-      text: reel.caption || 'Amazing reel on Sasl',
-      url: `${window.location.origin}/reels`,
-    };
+    const shareData = { title: 'Check out this reel on Sasl!', text: reel.caption || 'Amazing reel on Sasl', url: `${window.location.origin}/reels` };
     try {
-      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-        await navigator.share(shareData);
-        toast.success('Shared!');
-      } else {
-        await navigator.clipboard.writeText(shareData.url);
-        toast.success('Link copied!');
-      }
-    } catch (err: any) {
-      if (err.name === 'AbortError') return;
-      try { await navigator.clipboard.writeText(shareData.url); toast.success('Link copied!'); }
-      catch { toast.error('Could not share'); }
-    }
+      if (navigator.share && navigator.canShare && navigator.canShare(shareData)) { await navigator.share(shareData); toast.success('Shared!'); }
+      else { await navigator.clipboard.writeText(shareData.url); toast.success('Link copied!'); }
+    } catch (err: any) { if (err.name === 'AbortError') return; try { await navigator.clipboard.writeText(shareData.url); toast.success('Link copied!'); } catch { toast.error('Could not share'); } }
   };
 
   const handleComment = async (reelId: string) => {
@@ -140,10 +95,7 @@ export default function Reels() {
   };
 
   const fetchReelComments = async (reelId: string) => {
-    try {
-      const res = await api.get(`/content/reels/${reelId}/comments/`);
-      setReelComments(prev => ({ ...prev, [reelId]: res.data || [] }));
-    } catch {}
+    try { const res = await api.get(`/content/reels/${reelId}/comments/`); setReelComments(prev => ({ ...prev, [reelId]: res.data || [] })); } catch {}
   };
 
   const uploadReel = async () => {
@@ -153,55 +105,32 @@ export default function Reels() {
     formData.append('video', reelFile);
     formData.append('caption', reelCaption);
     try {
-      const res = await api.post('/content/reels/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const res = await api.post('/content/reels/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       setReels(prev => [res.data, ...prev]);
       toast.success(t('Reel uploaded! 🎬'));
-      setShowUpload(false);
-      setReelFile(null);
-      setReelCaption('');
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail || t('Upload failed'));
-    } finally { setUploading(false); }
+      setShowUpload(false); setReelFile(null); setReelCaption('');
+    } catch (err: any) { toast.error(err.response?.data?.detail || t('Upload failed')); }
+    finally { setUploading(false); }
   };
 
-  const scrollTo = (index: number) => {
-    const nextIndex = index % reels.length;
-    setActiveIndex(nextIndex);
-    videoRefs.current.forEach((v, i) => { if (v) i === nextIndex ? v.play() : v.pause(); });
-  };
+  const scrollTo = (index: number) => { const nextIndex = index % reels.length; setActiveIndex(nextIndex); videoRefs.current.forEach((v, i) => { if (v) i === nextIndex ? v.play() : v.pause(); }); };
 
-  if (loading) {
-    return <div className="flex justify-center items-center h-screen bg-black"><Loader2 className="animate-spin text-white" size={48} /></div>;
-  }
-
-  if (error) {
-    return <div className="flex justify-center items-center h-screen bg-black text-white"><div className="text-center"><p className="mb-4">{error}</p><button onClick={fetchReels} className="btn-primary">{t('Retry')}</button></div></div>;
-  }
+  if (loading) return <div className="flex justify-center items-center h-screen bg-black"><Loader2 className="animate-spin text-white" size={48} /></div>;
+  if (error) return <div className="flex justify-center items-center h-screen bg-black text-white"><div className="text-center"><p className="mb-4">{error}</p><button onClick={fetchReels} className="btn-primary">{t('Retry')}</button></div></div>;
 
   return (
     <div className="h-screen overflow-y-scroll snap-y snap-mandatory bg-black relative">
-      <button onClick={() => setShowUpload(true)} className="fixed bottom-24 right-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white p-4 rounded-full shadow-xl z-40 hover:scale-110 transition">
-        <Plus size={24} />
-      </button>
-
+      <button onClick={() => setShowUpload(true)} className="fixed bottom-24 right-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white p-4 rounded-full shadow-xl z-40 hover:scale-110 transition"><Plus size={24} /></button>
       {showUpload && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl">
             <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Video size={20} /> {t('Upload Reel')}</h3>
             <input type="file" accept="video/*" onChange={e => setReelFile(e.target.files?.[0] || null)} className="mb-3 w-full text-sm" />
             <input className="input-field mb-3" placeholder={t('Write a caption...')} value={reelCaption} onChange={e => setReelCaption(e.target.value)} />
-            <div className="flex gap-2">
-              <button onClick={uploadReel} disabled={uploading || !reelFile} className="btn-primary flex-1">
-                {uploading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Upload'}
-              </button>
-              <button onClick={() => setShowUpload(false)} className="btn-ghost">Cancel</button>
-            </div>
+            <div className="flex gap-2"><button onClick={uploadReel} disabled={uploading || !reelFile} className="btn-primary flex-1">{uploading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Upload'}</button><button onClick={() => setShowUpload(false)} className="btn-ghost">Cancel</button></div>
           </div>
         </div>
       )}
-
       {reels.length === 0 ? (
         <div className="flex justify-center items-center h-full text-white"><p>{t('No reels yet. Be the first to create one!')}</p></div>
       ) : (
@@ -210,39 +139,24 @@ export default function Reels() {
             <video ref={el => { videoRefs.current[idx] = el; }} src={reel.video_url} className="absolute inset-0 w-full h-full object-cover" loop muted autoPlay={idx === 0} playsInline onEnded={() => scrollTo(idx + 1)} />
             <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/30 to-transparent">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-lg border-2 border-white">
-                  {reel.user?.username?.[0]?.toUpperCase() || 'U'}
-                </div>
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-lg border-2 border-white">{reel.user?.username?.[0]?.toUpperCase() || 'U'}</div>
                 <div><p className="font-bold text-white">@{reel.user?.username || 'user'}</p><p className="text-white/80 text-sm">{reel.caption}</p></div>
               </div>
               <div className="flex items-center gap-6">
-                <button onClick={() => handleLike(reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-red-400 transition">
-                  <Heart size={28} className={reel.liked_by_me ? 'fill-red-500 text-red-500' : 'text-white'} />
-                  <span className="text-xs">{reel.likes_count}</span>
-                </button>
-                <button onClick={() => { if (showComments === reel.id) { setShowComments(null); } else { setShowComments(reel.id); fetchReelComments(reel.id); } }} className="flex flex-col items-center gap-1 text-white hover:text-blue-400 transition">
-                  <MessageCircle size={28} />
-                  <span className="text-xs">{reel.comments_count}</span>
-                </button>
-                <button onClick={() => handleShare(reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-green-400 transition">
-                  <Share2 size={28} /><span className="text-xs">{t('Share')}</span>
-                </button>
+                <button onClick={() => handleLike(reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-red-400 transition"><Heart size={28} className={reel.liked_by_me ? 'fill-red-500 text-red-500' : 'text-white'} /><span className="text-xs">{reel.likes_count}</span></button>
+                <button onClick={() => { if (showComments === reel.id) { setShowComments(null); } else { setShowComments(reel.id); fetchReelComments(reel.id); } }} className="flex flex-col items-center gap-1 text-white hover:text-blue-400 transition"><MessageCircle size={28} /><span className="text-xs">{reel.comments_count}</span></button>
+                <button onClick={() => handleShare(reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-green-400 transition"><Share2 size={28} /><span className="text-xs">{t('Share')}</span></button>
               </div>
-
               {showComments === reel.id && (
                 <div className="mt-3 max-h-56 overflow-y-auto bg-black/80 rounded-xl p-3 relative">
                   <button onClick={(e) => { e.stopPropagation(); setShowComments(null); }} className="absolute top-2 right-2 text-white/60 hover:text-white text-lg leading-none">✕</button>
                   <p className="text-white text-xs font-semibold mb-2">Comments</p>
                   {(reelComments[reel.id] || []).map((c: any, i: number) => (
                     <div key={c.id || i} className="flex items-start gap-2 mb-2 pr-6">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                        {c.user?.username?.[0]?.toUpperCase() || 'U'}
-                      </div>
-                      <div className="flex-1">
-                        <span className="text-white text-xs font-semibold">{c.user?.username || 'user'}</span>
-                        <span className="text-white/70 text-xs ml-2">{c.text}</span>
-                      </div>
-                      <button className="text-white/40 hover:text-red-400 text-xs flex-shrink-0">❤️</button>
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{c.user?.username?.[0]?.toUpperCase() || 'U'}</div>
+                      <div className="flex-1"><span className="text-white text-xs font-semibold">{c.user?.username || 'user'}</span><span className="text-white/70 text-xs ml-2">{c.text}</span></div>
+                      <button onClick={async (e) => { e.stopPropagation(); try { await api.post(`/content/reels/${reel.id}/like_comment/`, { comment_id: c.id }); fetchReelComments(reel.id); } catch {} }}
+                        className={`text-xs flex-shrink-0 transition-colors ${c.liked_by_me ? 'text-red-500' : 'text-white/40 hover:text-red-400'}`}>❤️ {c.likes_count || ''}</button>
                     </div>
                   ))}
                   {(reelComments[reel.id] || []).length === 0 && <p className="text-white/50 text-xs text-center py-2">No comments yet</p>}

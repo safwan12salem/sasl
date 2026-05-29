@@ -437,3 +437,25 @@ class ReelViewSet(viewsets.ModelViewSet):
         reel = self.get_object()
         reel_comments = ReelComment.objects.filter(reel=reel).order_by('-created_at')[:50]
         return Response(ReelCommentSerializer(reel_comments, many=True).data)
+
+
+
+
+    @action(detail=True, methods=['post'])
+    def like_comment(self, request, pk=None):
+        reel = self.get_object()
+        comment_id = request.data.get('comment_id')
+        if not comment_id:
+            return Response({'error': 'comment_id required'}, status=400)
+        try:
+            comment = ReelComment.objects.get(id=comment_id, reel=reel)
+        except ReelComment.DoesNotExist:
+            return Response({'error': 'Comment not found'}, status=404)
+        
+        like, created = ReelCommentLike.objects.get_or_create(
+            comment=comment, user=request.user
+        )
+        if not created:
+            like.delete()
+            return Response({'status': 'unliked'})
+        return Response({'status': 'liked'})    

@@ -138,7 +138,14 @@ class ReelComment(models.Model):
 
 
 
-        
+
+class ReelCommentLike(models.Model):
+    comment = models.ForeignKey(ReelComment, on_delete=models.CASCADE, related_name='likes')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('comment', 'user')
 
 
 
