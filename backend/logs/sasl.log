@@ -41851,3 +41851,377 @@ INFO 2026-05-30 17:25:09,285 autoreload 26452 6904 Watching for file changes wit
 INFO 2026-05-30 17:25:13,115 server 26452 11860 HTTP/2 support not enabled (install the http2 and tls Twisted extras)
 INFO 2026-05-30 17:25:13,117 server 26452 11860 Configuring endpoint tcp:port=8000:interface=127.0.0.1
 INFO 2026-05-30 17:25:13,119 server 26452 11860 Listening on TCP address 127.0.0.1:8000
+DEBUG 2026-05-30 17:28:45,745 http_protocol 26452 11860 HTTP b'POST' request for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:46,939 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:46,941 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:46,943 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 52971]
+INFO 2026-05-30 17:28:46,943 runserver 26452 11860 [mHTTP POST /api/auth/token/ 200 [1.20, 127.0.0.1:52971][0m
+DEBUG 2026-05-30 17:28:46,967 http_protocol 26452 11860 HTTP b'OPTIONS' request for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:47,024 http_protocol 26452 11860 HTTP b'OPTIONS' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:47,033 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:47,036 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:47,037 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 52971]
+INFO 2026-05-30 17:28:47,091 runserver 26452 11860 [mHTTP OPTIONS /api/users/profile/ 200 [0.12, 127.0.0.1:52971][0m
+DEBUG 2026-05-30 17:28:47,095 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:47,098 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:47,101 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:47,104 runserver 26452 11860 [mHTTP OPTIONS /api/users/profile/ 200 [0.08, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:47,121 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:47,319 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:47,320 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:47,321 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:47,322 runserver 26452 11860 [mHTTP GET /api/users/profile/ 200 [0.20, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:47,328 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:47,470 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:47,471 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:47,472 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:47,473 runserver 26452 11860 [mHTTP GET /api/users/profile/ 200 [0.15, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:54,415 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:54,420 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:54,546 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:54,548 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:54,549 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:54,549 runserver 26452 11860 [mHTTP GET /api/content/notifications/ 200 [0.13, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:54,552 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:54,552 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:54,554 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 52971]
+INFO 2026-05-30 17:28:54,554 runserver 26452 11860 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.13, 127.0.0.1:52971][0m
+DEBUG 2026-05-30 17:28:54,569 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:54,595 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:54,742 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:28:54,743 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 60259]
+DEBUG 2026-05-30 17:28:54,760 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 62817]
+DEBUG 2026-05-30 17:28:54,803 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:54,823 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:54,824 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 52971]
+INFO 2026-05-30 17:28:54,835 runserver 26452 11860 [mHTTP GET /api/content/stories/ 200 [0.24, 127.0.0.1:52971][0m
+DEBUG 2026-05-30 17:28:54,915 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:55,061 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 62817]
+DEBUG 2026-05-30 17:28:55,063 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 62817]
+DEBUG 2026-05-30 17:28:55,065 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 62817]
+INFO 2026-05-30 17:28:55,067 runserver 26452 11860 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.31, 127.0.0.1:62817][0m
+DEBUG 2026-05-30 17:28:55,142 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:55,143 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 52971]
+DEBUG 2026-05-30 17:28:55,143 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 52971]
+INFO 2026-05-30 17:28:55,144 runserver 26452 11860 [mHTTP GET /api/content/stories/ 200 [0.23, 127.0.0.1:52971][0m
+DEBUG 2026-05-30 17:28:55,145 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 60259]
+DEBUG 2026-05-30 17:28:55,146 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 60259]
+DEBUG 2026-05-30 17:28:55,147 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 60259]
+INFO 2026-05-30 17:28:55,148 runserver 26452 11860 [mHTTP GET /api/content/notifications/ 200 [0.40, 127.0.0.1:60259][0m
+DEBUG 2026-05-30 17:28:55,156 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:28:55,158 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:28:55,160 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 55416]
+INFO 2026-05-30 17:28:55,162 runserver 26452 11860 [mHTTP GET /api/users/suggested/ 200 [0.42, 127.0.0.1:55416][0m
+DEBUG 2026-05-30 17:28:55,205 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:28:55,384 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:28:55,387 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:28:55,390 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 55416]
+INFO 2026-05-30 17:28:55,394 runserver 26452 11860 [mHTTP GET /api/users/suggested/ 200 [0.19, 127.0.0.1:55416][0m
+DEBUG 2026-05-30 17:28:55,650 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:55,651 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:55,652 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:55,653 runserver 26452 11860 [mHTTP GET /api/content/posts/?page=1 200 [1.08, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:55,783 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:55,903 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:55,904 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:55,905 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:55,906 runserver 26452 11860 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.12, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:55,912 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,015 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,016 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,018 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:56,019 runserver 26452 11860 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.11, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:56,024 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,121 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,123 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,124 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:56,124 runserver 26452 11860 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.10, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:56,129 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,239 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,240 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,242 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:56,243 runserver 26452 11860 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.11, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:56,249 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,344 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,345 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,346 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:56,347 runserver 26452 11860 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.10, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:56,352 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,442 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,443 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,444 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:56,445 runserver 26452 11860 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.09, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:56,450 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 58053]
+DEBUG 2026-05-30 17:28:56,454 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,541 http_protocol 26452 11860 HTTP 304 response started for ['127.0.0.1', 58053]
+DEBUG 2026-05-30 17:28:56,549 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 58053]
+DEBUG 2026-05-30 17:28:56,603 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 58053]
+INFO 2026-05-30 17:28:56,612 runserver 26452 11860 [36mHTTP GET /media/posts/8e3a478979def9f070eeb67f3a181d34.jpg 304 [0.16, 127.0.0.1:58053][0m
+DEBUG 2026-05-30 17:28:56,626 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,627 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,629 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:56,630 runserver 26452 11860 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.18, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:56,657 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,727 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,754 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:56,761 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:56,762 runserver 26452 11860 [mHTTP GET /api/monetization/ads/serve_ad/ 200 [0.11, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:59,362 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:59,366 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:28:59,502 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:28:59,503 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:28:59,504 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 55416]
+INFO 2026-05-30 17:28:59,504 runserver 26452 11860 [mHTTP GET /api/marketplace/categories/ 200 [0.14, 127.0.0.1:55416][0m
+DEBUG 2026-05-30 17:28:59,509 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:28:59,548 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:59,571 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:59,573 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:59,574 runserver 26452 11860 [mHTTP GET /api/marketplace/products/?ordering=-created_at 200 [0.21, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:28:59,582 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:59,719 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:28:59,720 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:28:59,721 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 55416]
+INFO 2026-05-30 17:28:59,721 runserver 26452 11860 [mHTTP GET /api/marketplace/categories/ 200 [0.21, 127.0.0.1:55416][0m
+DEBUG 2026-05-30 17:28:59,726 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:59,727 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:28:59,729 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:28:59,730 runserver 26452 11860 [mHTTP GET /api/marketplace/products/?ordering=-created_at 200 [0.15, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:29:01,849 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:29:01,853 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:29:01,855 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 60259]
+DEBUG 2026-05-30 17:29:01,973 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 60259]
+DEBUG 2026-05-30 17:29:01,978 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 60259]
+DEBUG 2026-05-30 17:29:01,982 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 60259]
+INFO 2026-05-30 17:29:01,983 runserver 26452 11860 [mHTTP GET /api/gigs/gigs/my_badges/ 200 [0.13, 127.0.0.1:60259][0m
+DEBUG 2026-05-30 17:29:02,030 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:29:02,033 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:29:02,034 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 55416]
+INFO 2026-05-30 17:29:02,035 runserver 26452 11860 [mHTTP GET /api/gigs/gigs/portfolio/ 200 [0.18, 127.0.0.1:55416][0m
+DEBUG 2026-05-30 17:29:02,046 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:29:02,050 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 60259]
+DEBUG 2026-05-30 17:29:02,076 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:29:02,119 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:29:02,121 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:29:02,123 runserver 26452 11860 [mHTTP GET /api/gigs/gigs/?status=open 200 [0.27, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:29:02,134 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:29:02,215 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 60259]
+DEBUG 2026-05-30 17:29:02,216 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 60259]
+DEBUG 2026-05-30 17:29:02,217 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 60259]
+INFO 2026-05-30 17:29:02,218 runserver 26452 11860 [mHTTP GET /api/gigs/gigs/my_badges/ 200 [0.17, 127.0.0.1:60259][0m
+DEBUG 2026-05-30 17:29:02,246 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:29:02,288 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:29:02,293 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 55416]
+INFO 2026-05-30 17:29:02,294 runserver 26452 11860 [mHTTP GET /api/gigs/gigs/portfolio/ 200 [0.25, 127.0.0.1:55416][0m
+DEBUG 2026-05-30 17:29:02,403 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:29:02,404 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:29:02,405 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:29:02,407 runserver 26452 11860 [mHTTP GET /api/gigs/gigs/?status=open 200 [0.27, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:29:49,257 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:29:49,272 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:29:49,388 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:29:49,434 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:29:49,435 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 55416]
+INFO 2026-05-30 17:29:49,443 runserver 26452 11860 [mHTTP GET /api/streaming/schedules/upcoming/ 200 [0.17, 127.0.0.1:55416][0m
+DEBUG 2026-05-30 17:29:49,521 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:29:49,633 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:29:49,636 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:29:49,638 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:29:49,643 runserver 26452 11860 [mHTTP GET /api/streaming/streams/?is_live=true 200 [0.39, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:29:49,660 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:29:49,740 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:29:49,741 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 55416]
+DEBUG 2026-05-30 17:29:49,745 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 55416]
+INFO 2026-05-30 17:29:49,755 runserver 26452 11860 [mHTTP GET /api/streaming/schedules/upcoming/ 200 [0.23, 127.0.0.1:55416][0m
+DEBUG 2026-05-30 17:29:50,088 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:29:50,092 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:29:50,094 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:29:50,102 runserver 26452 11860 [mHTTP GET /api/streaming/streams/?is_live=true 200 [0.44, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:30:39,285 http_protocol 26452 11860 HTTP b'POST' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:39,455 Image 26452 1844 Importing BlpImagePlugin
+DEBUG 2026-05-30 17:30:39,461 Image 26452 1844 Importing BmpImagePlugin
+DEBUG 2026-05-30 17:30:39,461 Image 26452 1844 Importing BufrStubImagePlugin
+DEBUG 2026-05-30 17:30:39,465 Image 26452 1844 Importing CurImagePlugin
+DEBUG 2026-05-30 17:30:39,477 Image 26452 1844 Importing DcxImagePlugin
+DEBUG 2026-05-30 17:30:39,522 Image 26452 1844 Importing DdsImagePlugin
+DEBUG 2026-05-30 17:30:39,537 Image 26452 1844 Importing EpsImagePlugin
+DEBUG 2026-05-30 17:30:39,543 Image 26452 1844 Importing FitsImagePlugin
+DEBUG 2026-05-30 17:30:39,555 Image 26452 1844 Importing FliImagePlugin
+DEBUG 2026-05-30 17:30:39,570 Image 26452 1844 Importing FpxImagePlugin
+DEBUG 2026-05-30 17:30:39,605 Image 26452 1844 Image: failed to import FpxImagePlugin: No module named 'olefile'
+DEBUG 2026-05-30 17:30:39,606 Image 26452 1844 Importing FtexImagePlugin
+DEBUG 2026-05-30 17:30:39,610 Image 26452 1844 Importing GbrImagePlugin
+DEBUG 2026-05-30 17:30:39,614 Image 26452 1844 Importing GifImagePlugin
+DEBUG 2026-05-30 17:30:39,615 Image 26452 1844 Importing GribStubImagePlugin
+DEBUG 2026-05-30 17:30:39,618 Image 26452 1844 Importing Hdf5StubImagePlugin
+DEBUG 2026-05-30 17:30:39,623 Image 26452 1844 Importing IcnsImagePlugin
+DEBUG 2026-05-30 17:30:39,691 Image 26452 1844 Importing IcoImagePlugin
+DEBUG 2026-05-30 17:30:39,696 Image 26452 1844 Importing ImImagePlugin
+DEBUG 2026-05-30 17:30:39,752 Image 26452 1844 Importing ImtImagePlugin
+DEBUG 2026-05-30 17:30:39,756 Image 26452 1844 Importing IptcImagePlugin
+DEBUG 2026-05-30 17:30:39,760 Image 26452 1844 Importing JpegImagePlugin
+DEBUG 2026-05-30 17:30:39,760 Image 26452 1844 Importing Jpeg2KImagePlugin
+DEBUG 2026-05-30 17:30:39,761 Image 26452 1844 Importing McIdasImagePlugin
+DEBUG 2026-05-30 17:30:39,765 Image 26452 1844 Importing MicImagePlugin
+DEBUG 2026-05-30 17:30:39,771 Image 26452 1844 Image: failed to import MicImagePlugin: No module named 'olefile'
+DEBUG 2026-05-30 17:30:39,772 Image 26452 1844 Importing MpegImagePlugin
+DEBUG 2026-05-30 17:30:39,784 Image 26452 1844 Importing MpoImagePlugin
+DEBUG 2026-05-30 17:30:39,826 Image 26452 1844 Importing MspImagePlugin
+DEBUG 2026-05-30 17:30:39,830 Image 26452 1844 Importing PalmImagePlugin
+DEBUG 2026-05-30 17:30:39,837 Image 26452 1844 Importing PcdImagePlugin
+DEBUG 2026-05-30 17:30:39,842 Image 26452 1844 Importing PcxImagePlugin
+DEBUG 2026-05-30 17:30:39,842 Image 26452 1844 Importing PdfImagePlugin
+DEBUG 2026-05-30 17:30:39,906 Image 26452 1844 Importing PixarImagePlugin
+DEBUG 2026-05-30 17:30:39,916 Image 26452 1844 Importing PngImagePlugin
+DEBUG 2026-05-30 17:30:39,918 Image 26452 1844 Importing PpmImagePlugin
+DEBUG 2026-05-30 17:30:39,920 Image 26452 1844 Importing PsdImagePlugin
+DEBUG 2026-05-30 17:30:39,940 Image 26452 1844 Importing QoiImagePlugin
+DEBUG 2026-05-30 17:30:39,956 Image 26452 1844 Importing SgiImagePlugin
+DEBUG 2026-05-30 17:30:39,960 Image 26452 1844 Importing SpiderImagePlugin
+DEBUG 2026-05-30 17:30:39,965 Image 26452 1844 Importing SunImagePlugin
+DEBUG 2026-05-30 17:30:39,968 Image 26452 1844 Importing TgaImagePlugin
+DEBUG 2026-05-30 17:30:39,972 Image 26452 1844 Importing TiffImagePlugin
+DEBUG 2026-05-30 17:30:39,973 Image 26452 1844 Importing WebPImagePlugin
+DEBUG 2026-05-30 17:30:40,006 Image 26452 1844 Importing WmfImagePlugin
+DEBUG 2026-05-30 17:30:40,020 Image 26452 1844 Importing XbmImagePlugin
+DEBUG 2026-05-30 17:30:40,028 Image 26452 1844 Importing XpmImagePlugin
+DEBUG 2026-05-30 17:30:40,035 Image 26452 1844 Importing XVThumbImagePlugin
+DEBUG 2026-05-30 17:30:40,130 http_protocol 26452 11860 HTTP 201 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:40,141 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:40,152 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:30:40,156 runserver 26452 11860 [mHTTP POST /api/streaming/streams/ 201 [0.87, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:30:40,520 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 51584]
+DEBUG 2026-05-30 17:30:40,803 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 51584]
+DEBUG 2026-05-30 17:30:40,805 http_protocol 26452 11860 HTTP response chunk for ['127.0.0.1', 51584]
+DEBUG 2026-05-30 17:30:40,806 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 51584]
+DEBUG 2026-05-30 17:30:40,807 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 51584]
+INFO 2026-05-30 17:30:40,808 runserver 26452 11860 [mHTTP GET /media/streams/thumbnails/8e3a478979def9f070eeb67f3a181d34_aXIR9XY.jpg 200 [0.29, 127.0.0.1:51584][0m
+DEBUG 2026-05-30 17:30:54,566 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:54,690 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:54,691 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:54,692 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:30:54,692 runserver 26452 11860 [mHTTP GET /api/content/reels/ 200 [0.13, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:30:54,696 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:54,879 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:54,881 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:54,883 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:30:54,883 runserver 26452 11860 [mHTTP GET /api/content/reels/ 200 [0.19, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:30:54,890 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:55,059 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:55,060 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:55,061 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:30:55,061 runserver 26452 11860 [mHTTP GET /api/content/reels/ 200 [0.17, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:30:57,110 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:57,240 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:57,241 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:30:57,242 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:30:57,243 runserver 26452 11860 [mHTTP GET /api/content/reels/eaebefbb-180b-49e2-ac98-4abce5d0176a/comments/ 200 [0.13, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:31:14,285 http_protocol 26452 11860 HTTP b'POST' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:14,402 http_protocol 26452 11860 HTTP 201 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:14,403 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:14,404 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:31:14,404 runserver 26452 11860 [mHTTP POST /api/content/reels/eaebefbb-180b-49e2-ac98-4abce5d0176a/reply_comment/ 201 [0.12, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:31:14,414 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:14,594 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:14,595 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:14,596 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:31:14,597 runserver 26452 11860 [mHTTP GET /api/content/reels/eaebefbb-180b-49e2-ac98-4abce5d0176a/comments/ 200 [0.18, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:31:43,335 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:43,422 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:43,423 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:43,423 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:31:43,423 runserver 26452 11860 [mHTTP GET /api/content/reels/eaebefbb-180b-49e2-ac98-4abce5d0176a/comments/ 200 [0.09, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:31:46,295 http_protocol 26452 11860 HTTP b'POST' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:46,335 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:46,337 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:46,337 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:31:46,338 runserver 26452 11860 [mHTTP POST /api/content/reels/eaebefbb-180b-49e2-ac98-4abce5d0176a/like_comment/ 200 [0.04, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:31:46,349 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:46,418 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:46,418 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:46,419 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:31:46,419 runserver 26452 11860 [mHTTP GET /api/content/reels/eaebefbb-180b-49e2-ac98-4abce5d0176a/comments/ 200 [0.07, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:31:48,421 http_protocol 26452 11860 HTTP b'POST' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:48,523 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:48,524 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:48,525 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:31:48,526 runserver 26452 11860 [mHTTP POST /api/content/reels/eaebefbb-180b-49e2-ac98-4abce5d0176a/like_comment/ 200 [0.11, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 17:31:48,538 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:48,683 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:48,684 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 64963]
+DEBUG 2026-05-30 17:31:48,685 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 64963]
+INFO 2026-05-30 17:31:48,685 runserver 26452 11860 [mHTTP GET /api/content/reels/eaebefbb-180b-49e2-ac98-4abce5d0176a/comments/ 200 [0.15, 127.0.0.1:64963][0m
+DEBUG 2026-05-30 18:01:12,094 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:12,254 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:12,255 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:12,256 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 61515]
+INFO 2026-05-30 18:01:12,257 runserver 26452 11860 [mHTTP GET /api/users/profile/ 200 [0.16, 127.0.0.1:61515][0m
+DEBUG 2026-05-30 18:01:12,264 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:12,319 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:12,321 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:12,322 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 61515]
+INFO 2026-05-30 18:01:12,324 runserver 26452 11860 [mHTTP GET /api/users/profile/ 200 [0.06, 127.0.0.1:61515][0m
+DEBUG 2026-05-30 18:01:15,152 http_protocol 26452 11860 HTTP b'OPTIONS' request for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:15,156 http_protocol 26452 11860 HTTP b'OPTIONS' request for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,162 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:15,163 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:15,164 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 61515]
+INFO 2026-05-30 18:01:15,165 runserver 26452 11860 [mHTTP OPTIONS /api/content/notifications/ 200 [0.01, 127.0.0.1:61515][0m
+DEBUG 2026-05-30 18:01:15,166 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,168 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,170 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 57476]
+INFO 2026-05-30 18:01:15,171 runserver 26452 11860 [mHTTP OPTIONS /api/content/reels/ 200 [0.01, 127.0.0.1:57476][0m
+DEBUG 2026-05-30 18:01:15,178 http_protocol 26452 11860 HTTP b'OPTIONS' request for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:15,183 http_protocol 26452 11860 HTTP b'OPTIONS' request for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,190 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:15,191 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:15,192 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 61515]
+INFO 2026-05-30 18:01:15,193 runserver 26452 11860 [mHTTP OPTIONS /api/content/notifications/ 200 [0.02, 127.0.0.1:61515][0m
+DEBUG 2026-05-30 18:01:15,195 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,196 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,197 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 57476]
+INFO 2026-05-30 18:01:15,198 runserver 26452 11860 [mHTTP OPTIONS /api/content/reels/ 200 [0.02, 127.0.0.1:57476][0m
+DEBUG 2026-05-30 18:01:15,209 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:15,213 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,325 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:15,330 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:15,331 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 61515]
+INFO 2026-05-30 18:01:15,332 runserver 26452 11860 [mHTTP GET /api/content/notifications/ 200 [0.12, 127.0.0.1:61515][0m
+DEBUG 2026-05-30 18:01:15,345 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:15,357 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,358 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,359 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 57476]
+INFO 2026-05-30 18:01:15,360 runserver 26452 11860 [mHTTP GET /api/content/reels/ 200 [0.15, 127.0.0.1:57476][0m
+DEBUG 2026-05-30 18:01:15,367 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,410 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:15,416 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 61515]
+DEBUG 2026-05-30 18:01:15,421 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 61515]
+INFO 2026-05-30 18:01:15,424 runserver 26452 11860 [mHTTP GET /api/content/notifications/ 200 [0.08, 127.0.0.1:61515][0m
+DEBUG 2026-05-30 18:01:15,463 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,464 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,465 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 57476]
+INFO 2026-05-30 18:01:15,466 runserver 26452 11860 [mHTTP GET /api/content/reels/ 200 [0.10, 127.0.0.1:57476][0m
+DEBUG 2026-05-30 18:01:15,477 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,566 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,567 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 57476]
+DEBUG 2026-05-30 18:01:15,567 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 57476]
+INFO 2026-05-30 18:01:15,568 runserver 26452 11860 [mHTTP GET /api/content/reels/ 200 [0.09, 127.0.0.1:57476][0m
+DEBUG 2026-05-30 20:34:36,300 http_protocol 26452 11860 HTTP b'OPTIONS' request for ['127.0.0.1', 58876]
+DEBUG 2026-05-30 20:34:36,427 http_protocol 26452 11860 HTTP b'OPTIONS' request for ['127.0.0.1', 65321]
+DEBUG 2026-05-30 20:34:36,459 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 58876]
+DEBUG 2026-05-30 20:34:36,462 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 58876]
+DEBUG 2026-05-30 20:34:36,466 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 58876]
+INFO 2026-05-30 20:34:36,471 runserver 26452 11860 [mHTTP OPTIONS /api/users/profile/ 200 [0.17, 127.0.0.1:58876][0m
+DEBUG 2026-05-30 20:34:36,475 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 65321]
+DEBUG 2026-05-30 20:34:36,478 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 65321]
+DEBUG 2026-05-30 20:34:36,479 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 65321]
+INFO 2026-05-30 20:34:36,481 runserver 26452 11860 [mHTTP OPTIONS /api/users/profile/ 200 [0.05, 127.0.0.1:65321][0m
+DEBUG 2026-05-30 20:34:36,496 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 58876]
+DEBUG 2026-05-30 20:34:36,823 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 58876]
+DEBUG 2026-05-30 20:34:36,825 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 58876]
+DEBUG 2026-05-30 20:34:36,827 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 58876]
+INFO 2026-05-30 20:34:36,829 runserver 26452 11860 [mHTTP GET /api/users/profile/ 200 [0.33, 127.0.0.1:58876][0m
+DEBUG 2026-05-30 20:34:36,845 http_protocol 26452 11860 HTTP b'GET' request for ['127.0.0.1', 58876]
+DEBUG 2026-05-30 20:34:37,521 http_protocol 26452 11860 HTTP 200 response started for ['127.0.0.1', 58876]
+DEBUG 2026-05-30 20:34:37,522 http_protocol 26452 11860 HTTP close for ['127.0.0.1', 58876]
+DEBUG 2026-05-30 20:34:37,524 http_protocol 26452 11860 HTTP response complete for ['127.0.0.1', 58876]
+INFO 2026-05-30 20:34:37,525 runserver 26452 11860 [mHTTP GET /api/users/profile/ 200 [0.68, 127.0.0.1:58876][0m

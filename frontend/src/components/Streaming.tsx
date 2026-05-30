@@ -78,7 +78,7 @@ export default function Streaming() {
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({ is_live: 'true' });
+            const params = new URLSearchParams();
       if (activeCategory) params.set('category', activeCategory);
       const res = await api.get(`/streaming/streams/?${params.toString()}`);
       setStreams(res.data.results || []);
