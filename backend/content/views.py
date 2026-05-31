@@ -153,13 +153,13 @@ class PostViewSet(viewsets.ModelViewSet):
                 post.refresh_from_db()
                 reward_engagement(request.user, 'like')
                 if post.author != request.user:
-                 create_notification(
-                   recipient=post.author,
-                   actor=request.user,
-                   notification_type='like',
-                   message=f'{request.user.username} liked your post',
-                   post=post
-                    )
+                  create_notification(
+                    recipient=post.author,
+                    actor=request.user,
+                    notification_type='comment',
+                    message=f'{request.user.username} commented on your post',
+                    post=post
+    )
                 return Response({'status': 'liked', 'likes_count': post.likes_count})
             else:
                 like.delete()

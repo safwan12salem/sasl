@@ -502,11 +502,11 @@ const STATUS_COLORS: Record<string, string> = {
           <button onClick={() => setShowCertificates(!showCertificates)} className="btn-ghost text-sm flex items-center gap-1">
             <Award size={16} /> {t('Certificates')}
           </button>
-          {user?.is_teacher && (
+           (
             <button onClick={() => setShowCreateForm(!showCreateForm)} className="btn-primary flex items-center gap-2">
               <ClipboardList size={16} /> {showCreateForm ? t('Cancel') : t('Create Session')}
             </button>
-          )}
+          )
         </div>
       </div>
 

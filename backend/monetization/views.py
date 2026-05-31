@@ -12,6 +12,7 @@ from rest_framework import viewsets, permissions, status, mixins
 from rest_framework.decorators import action, api_view, permission_classes, permission_classes
 from rest_framework.response import Response
 
+from monetization.stripe_service import confirm_payment, create_payment_intent
 from sasl import settings
 from .models import AdCampaign, AdImpression, Transaction
 from .serializers import AdCampaignSerializer, TransactionSerializer
@@ -26,6 +27,8 @@ from users.serializers import WalletSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
 import stripe
+# In backend/monetization/views.py
+from .admin_dashboard import get_revenue_report, get_user_earnings_report
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -74,27 +77,6 @@ class TransactionViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 
-@action(detail=False, methods=['post'])
-def withdraw(self, request):
-    amount = request.data.get('amount')
-    if not amount or float(amount) <= 0:
-        return Response({'error': 'Invalid amount'}, status=400)
-    
-    wallet = Wallet.objects.get(user=request.user)
-    if wallet.balance < Decimal(str(amount)):
-        return Response({'error': 'Insufficient balance'}, status=400)
-    
-    wallet.balance -= Decimal(str(amount))
-    wallet.save()
-    
-    Transaction.objects.create(
-        user=request.user,
-        amount=-Decimal(str(amount)),
-        transaction_type='withdrawal',
-        description=f'Withdrawal of ${amount}'
-    )
-    return Response({'status': 'pending', 'new_balance': float(wallet.balance)})
-
 
 
 class StripeViewSet(viewsets.GenericViewSet):
@@ -106,7 +88,7 @@ class StripeViewSet(viewsets.GenericViewSet):
         if not amount or float(amount) <= 0:
             return Response({'error': 'Invalid amount'}, status=400)
         
-        intent = create_payment_intent(request.user, float(amount), 'Sasl Wallet Top-up')
+        intent =create_payment_intent(request.user, float(amount), 'Sasl Wallet Top-up')
         if not intent:
             return Response({'error': 'Payment failed'}, status=400)
         
@@ -115,7 +97,7 @@ class StripeViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=['post'])
     def confirm_topup(self, request):
         intent_id = request.data.get('payment_intent_id')
-        amount = confirm_payment(intent_id)
+        amount =  confirm_payment(intent_id)
         if amount:
             wallet = request.user.wallet
             wallet.balance += Decimal(str(amount))
@@ -129,9 +111,28 @@ class StripeViewSet(viewsets.GenericViewSet):
             return Response({'success': True, 'new_balance': float(wallet.balance)})
         return Response({'error': 'Payment not confirmed'}, status=400)
     
+      
+    @action(detail=False, methods=['post'])
+    def withdraw(self, request):
+        amount = request.data.get('amount')
+        if not amount or float(amount) <= 0:
+            return Response({'error': 'Invalid amount'}, status=400)
+        
+        wallet = request.user.wallet
+        if wallet.balance < Decimal(str(amount)):
+            return Response({'error': 'Insufficient balance'}, status=400)
+        
+        wallet.balance -= Decimal(str(amount))
+        wallet.save()
+        
+        Transaction.objects.create(
+            user=request.user,
+            amount=-Decimal(str(amount)),
+            transaction_type='withdrawal',
+            description=f'Withdrawal of ${amount}'
+        )
+        return Response({'status': 'pending', 'new_balance': float(wallet.balance)}) 
 
-# In backend/monetization/views.py
-from .admin_dashboard import get_revenue_report, get_user_earnings_report
 
 class RevenueViewSet(viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]

@@ -26,7 +26,17 @@ class AdImpression(models.Model):
     rewarded = models.BooleanField(default=False)
 
 class Transaction(models.Model):
-    TYPE = (('purchase','Purchase'), ('donation','Donation'), ('subscription','Subscription'), ('ad_reward','Ad Reward'), ('engagement_reward','Engagement Reward'))
+    TYPE = (
+        ('purchase', 'Purchase'),
+        ('donation', 'Donation'),
+        ('subscription', 'Subscription'),
+        ('ad_reward', 'Ad Reward'),
+        ('engagement_reward', 'Engagement Reward'),
+        ('topup', 'Top Up'),
+        ('withdrawal', 'Withdrawal'),
+        ('gig_completed', 'Gig Completed'),
+        ('tutoring_completed', 'Tutoring Completed'),
+    )
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='transactions')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     transaction_type = models.CharField(max_length=20, choices=TYPE)

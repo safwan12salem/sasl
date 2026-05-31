@@ -65,8 +65,8 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(
-            tutor=self.request.user if self.request.user.is_teacher else None,
-            student=self.request.user if not self.request.user.is_teacher else None,
+            tutor=self.request.user,
+            student=None,
             status='scheduled'
         )
 
