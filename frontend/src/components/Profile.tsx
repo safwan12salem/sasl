@@ -57,6 +57,13 @@ export default function Profile() {
         const url = username ? `/users/user/${username}/` : '/users/profile/';
         const res = await api.get(url);
         setProfile(res.data);
+         if (!isOwnProfile && res.data.username) {
+          try {
+            const followRes = await api.get(`/users/follow/following/`);
+            const followingList = followRes.data || [];
+            setIsFollowing(followingList.some((f: any) => f.following === res.data.username || f.following?.username === res.data.username));
+          } catch {}
+        }
         if (isOwnProfile) {
           setEditForm({ display_name: res.data.display_name || '', bio: res.data.bio || '' });
           setAvatarPreview(res.data.avatar_url || null);
@@ -75,6 +82,7 @@ export default function Profile() {
     try {
       const res = await api.get('/gigs/gigs/portfolio/');
       setPortfolio(res.data || []);
+
     } catch {}
   };
 

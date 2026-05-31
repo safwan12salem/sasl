@@ -429,7 +429,10 @@ const Feed: React.FC = () => {
             <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
           </div>
           <div>
-            <p className="font-semibold text-gray-900 dark:text-white">{post.author.username}</p>
+            <p className="font-semibold cursor-pointer hover:text-sasl-green transition-colors" 
+   onClick={(e) => { e.stopPropagation(); window.location.href = `/profile/${post.author.username}`; }}>
+  {post.author.username}
+</p>
             <p className="text-xs text-gray-500">{new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
           </div>
         </div>

@@ -12,12 +12,12 @@ from rest_framework import viewsets, permissions, status, mixins
 from rest_framework.decorators import action, api_view, permission_classes, permission_classes
 from rest_framework.response import Response
 
-from monetization.stripe_service import confirm_payment, create_payment_intent
+from .stripe_service import create_payment_intent, confirm_payment
 from sasl import settings
 from .models import AdCampaign, AdImpression, Transaction
 from .serializers import AdCampaignSerializer, TransactionSerializer
 from .services import run_ad_auction, reward_ad_watch, generate_monthly_earnings_report
-#from .stripe_service import create_payment_intent, confirm_payment
+
 
 
 
@@ -97,7 +97,7 @@ class StripeViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=['post'])
     def confirm_topup(self, request):
         intent_id = request.data.get('payment_intent_id')
-        amount =  confirm_payment(intent_id)
+        amount = confirm_payment(intent_id)
         if amount:
             wallet = request.user.wallet
             wallet.balance += Decimal(str(amount))

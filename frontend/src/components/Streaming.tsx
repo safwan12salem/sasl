@@ -172,12 +172,15 @@ export default function Streaming() {
     toast.success(t('Stream saved!'));
   };
 
-  const endStream = async (streamId: string) => {
+    const endStream = async (streamId: string) => {
+    // Remove from UI immediately
+    setStreams(prev => prev.filter(s => s.id !== streamId));
     try {
       await api.post(`/streaming/streams/${streamId}/end_stream/`);
       toast.success(t('Stream ended'));
-      fetchStreams();
     } catch (err: any) {
+      // If fails, add it back
+      fetchStreams();
       toast.error(t('Failed to end stream'));
     }
   };
