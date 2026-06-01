@@ -126,6 +126,7 @@ class ReelCommentSerializer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
     likes_count = serializers.SerializerMethodField()
     liked_by_me = serializers.SerializerMethodField()
+    my_reaction = serializers.SerializerMethodField() 
     replies = serializers.SerializerMethodField()    
     class Meta:
         model = ReelComment
@@ -140,6 +141,14 @@ class ReelCommentSerializer(serializers.ModelSerializer):
             return ReelCommentLike.objects.filter(comment=obj, user=request.user).exists()
         return False
     
+
+    def get_my_reaction(self, obj):  # ← ADD THIS
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            like = ReelCommentLike.objects.filter(comment=obj, user=request.user).first()
+            return like.reaction if like else None
+        return None
+    
     def get_replies(self, obj):
         replies = ReelCommentReply.objects.filter(comment=obj)[:10]
         return ReelCommentReplySerializer(replies, many=True).data
@@ -151,7 +160,7 @@ class ReelCommentReplySerializer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
     likes_count = serializers.SerializerMethodField()
     liked_by_me = serializers.SerializerMethodField()
-
+    my_reaction = serializers.SerializerMethodField() 
     class Meta:
         model = ReelCommentReply
         fields = ['id', 'user', 'text', 'likes_count', 'liked_by_me', 'created_at']
@@ -164,3 +173,12 @@ class ReelCommentReplySerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return ReelCommentReplyLike.objects.filter(reply=obj, user=request.user).exists()
         return False
+    
+
+
+    def get_my_reaction(self, obj):  # ← ADD THIS
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            like = ReelCommentReplyLike.objects.filter(reply=obj, user=request.user).first()
+            return like.reaction if like else None
+        return None

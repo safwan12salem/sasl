@@ -445,6 +445,7 @@ class ReelViewSet(viewsets.ModelViewSet):
     def like_comment(self, request, pk=None):
         reel = self.get_object()
         comment_id = request.data.get('comment_id')
+        reaction = request.data.get('reaction', '❤️')
         if not comment_id:
             return Response({'error': 'comment_id required'}, status=400)
         try:
@@ -456,9 +457,15 @@ class ReelViewSet(viewsets.ModelViewSet):
             comment=comment, user=request.user
         )
         if not created:
+            if like.reaction == reaction:
+                like.delete()
+                return Response({'status': 'unliked', 'reaction': None})
+            # If different reaction, update it
+            like.reaction = reaction
+            like.save()
             like.delete()
             return Response({'status': 'unliked'})
-        return Response({'status': 'liked'})    
+        return Response({'status': 'liked', 'reaction': reaction, 'likes_count': ReelCommentLike.objects.filter(comment=comment).count()})  
     
 
 
@@ -486,6 +493,7 @@ class ReelViewSet(viewsets.ModelViewSet):
     def like_reply(self, request, pk=None):
         reel = self.get_object()
         reply_id = request.data.get('reply_id')
+        reaction = request.data.get('reaction', '❤️')
         if not reply_id:
             return Response({'error': 'reply_id required'}, status=400)
         try:
@@ -494,7 +502,8 @@ class ReelViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Reply not found'}, status=404)
         
         like, created = ReelCommentReplyLike.objects.get_or_create(
-            reply=reply, user=request.user
+            reply=reply, user=request.user,
+            defaults={'reaction': reaction}
         )
         if not created:
             like.delete()
