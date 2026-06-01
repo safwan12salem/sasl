@@ -130,7 +130,7 @@ class ReelCommentSerializer(serializers.ModelSerializer):
     replies = serializers.SerializerMethodField()    
     class Meta:
         model = ReelComment
-        fields = ['id', 'user', 'text', 'likes_count', 'liked_by_me','replies', 'created_at']
+        fields = ['id', 'user', 'text', 'likes_count', 'liked_by_me','my_reaction','replies', 'created_at']
     
     def get_likes_count(self, obj):
         return ReelCommentLike.objects.filter(comment=obj).count()
@@ -163,7 +163,7 @@ class ReelCommentReplySerializer(serializers.ModelSerializer):
     my_reaction = serializers.SerializerMethodField() 
     class Meta:
         model = ReelCommentReply
-        fields = ['id', 'user', 'text', 'likes_count', 'liked_by_me', 'created_at']
+        fields = ['id', 'user', 'text', 'likes_count', 'liked_by_me','my_reaction', 'created_at']
 
     def get_likes_count(self, obj):
         return ReelCommentReplyLike.objects.filter(reply=obj).count()
