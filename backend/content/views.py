@@ -506,6 +506,7 @@ class ReelViewSet(viewsets.ModelViewSet):
             defaults={'reaction': reaction}
         )
         if not created:
+          if like.reaction == reaction:
             like.delete()
-            return Response({'status': 'unliked', 'likes_count': ReelCommentReplyLike.objects.filter(reply=reply).count()})
-        return Response({'status': 'liked', 'likes_count': ReelCommentReplyLike.objects.filter(reply=reply).count()})    
+            return Response({'status': 'unliked', 'reaction': None, 'likes_count': ReelCommentReplyLike.objects.filter(reply=reply).count()})
+        return Response({'status': 'liked', 'reaction': reaction, 'likes_count': ReelCommentReplyLike.objects.filter(reply=reply).count()})    

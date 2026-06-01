@@ -142,6 +142,7 @@ class ReelComment(models.Model):
 class ReelCommentLike(models.Model):
     comment = models.ForeignKey(ReelComment, on_delete=models.CASCADE, related_name='likes')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    reaction = models.CharField(max_length=10, default='❤️')
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
@@ -149,18 +150,16 @@ class ReelCommentLike(models.Model):
 
 
 
-
 class ReelCommentReply(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     comment = models.ForeignKey(ReelComment, on_delete=models.CASCADE, related_name='replies')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    reaction = models.CharField(max_length=10, default='❤️')
+    
     text = models.TextField(max_length=500)
     created_at = models.DateTimeField(auto_now_add=True)
     
 
-    class Meta:
-        unique_together = ['comment', 'user']
+   
     class Meta:
         ordering = ['created_at']
 
