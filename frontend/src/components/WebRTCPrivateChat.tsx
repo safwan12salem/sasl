@@ -23,6 +23,8 @@ export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
   const { t } = useTranslation();
   const [chatType, setChatType] = useState<'gig' | 'tutoring'>('gig');
   const { user } = useAuth();
+  
+  
   useEffect(() => {
     const isLocal = window.location.hostname === 'localhost';
 const wsUrl = isLocal 
@@ -58,10 +60,19 @@ const wsUrl = isLocal
     };
   }, [roomId, token]);
 
+
+
+
+
+
 useEffect(() => {
   if (roomId.startsWith('gig-')) setChatType('gig');
   else if (roomId.startsWith('tutoring-')) setChatType('tutoring');
 }, [roomId]);
+
+
+
+
 
 
 useEffect(() => {
@@ -81,6 +92,25 @@ useEffect(() => {
   };
   fetchHistory();
 }, [roomId, chatType]);
+
+
+
+// Inside WebRTCPrivateChat component, add:
+useEffect(() => {
+  if (roomId?.startsWith('gig-')) {
+    const gigId = roomId.replace('gig-', '');
+    api.get(`/gigs/gigs/${gigId}/chat/`).then(res => {
+      // Load history into messages state
+      const history = (res.data || []).map((m: any) => ({
+        text: m.text,
+        sender: m.sender_name,
+        timestamp: m.created_at,
+      }));
+      setMessages(history);
+    }).catch(() => {});
+  }
+}, [roomId]);
+
 
   const send = async () => {
   if (!input.trim()) return;

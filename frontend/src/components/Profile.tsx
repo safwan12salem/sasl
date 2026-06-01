@@ -50,6 +50,9 @@ export default function Profile() {
   const [userProducts, setUserProducts] = useState<any[]>([]);
   const [userGigs, setUserGigs] = useState<any[]>([]);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [showFollowList, setShowFollowList] = useState<'followers' | 'following' | null>(null);
+const [followList, setFollowList] = useState<any[]>([]);
+
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
@@ -156,6 +159,16 @@ export default function Profile() {
     }
   };
 
+const fetchFollowList = async (type: 'followers' | 'following') => {
+  try {
+    const endpoint = type === 'followers' ? '/users/follow/followers/' : '/users/follow/following/';
+    const res = await api.get(endpoint);
+    setFollowList(res.data || []);
+    setShowFollowList(type);
+  } catch {}
+};
+
+
   if (loading) {
     return (
       <div className="animate-pulse">
@@ -252,27 +265,13 @@ export default function Profile() {
               <p className="mt-2 text-gray-600">{profile.bio || t('No bio yet.')}</p>
             )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-              <div className="bg-white rounded-xl p-3 text-center shadow-sm cursor-pointer hover:shadow-md transition"
-     onClick={async () => {
-       try {
-         const res = await api.get(`/users/follow/followers/`);
-         const followers = res.data || [];
-         const names = followers.map((f: any) => `@${f.follower?.username || f.follower}`).join('\n');
-         alert(`Followers (${followers.length}):\n${names || 'None'}`);
-       } catch {}
-     }}>
+                            <div className="bg-white rounded-xl p-3 text-center shadow-sm cursor-pointer hover:shadow-md transition"
+     onClick={() => fetchFollowList('followers')}>
   <p className="text-2xl font-bold text-green-600">{profile.followers_count || 0}</p>
   <p className="text-xs text-gray-500">{t('Followers')}</p>
 </div>
 <div className="bg-white rounded-xl p-3 text-center shadow-sm cursor-pointer hover:shadow-md transition"
-     onClick={async () => {
-       try {
-         const res = await api.get(`/users/follow/following/`);
-         const following = res.data || [];
-         const names = following.map((f: any) => `@${f.following?.username || f.following}`).join('\n');
-         alert(`Following (${following.length}):\n${names || 'None'}`);
-       } catch {}
-     }}>
+     onClick={() => fetchFollowList('following')}>
   <p className="text-2xl font-bold text-blue-600">{profile.following_count || 0}</p>
   <p className="text-xs text-gray-500">{t('Following')}</p>
 </div>
@@ -357,6 +356,27 @@ export default function Profile() {
           )}
         </div>
       </div>
+      {showFollowList && (
+  <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowFollowList(null)}>
+    <div className="bg-white rounded-2xl p-6 max-w-sm w-full max-h-96 overflow-y-auto shadow-2xl" onClick={e => e.stopPropagation()}>
+      <h3 className="font-bold text-lg mb-4">{showFollowList === 'followers' ? t('Followers') : t('Following')}</h3>
+      {followList.map((f: any, i: number) => {
+        const username = f.follower?.username || f.following?.username || f.follower_name || f.following_name;
+        const avatar = f.follower?.avatar_url || f.following?.avatar_url;
+        return (
+          <div key={i} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-xl cursor-pointer"
+               onClick={() => { setShowFollowList(null); window.location.href = `/profile/${username}`; }}>
+            {avatar ? <img src={avatar} className="w-10 h-10 rounded-full object-cover" alt="" />
+              : <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold">{username?.[0]?.toUpperCase()}</div>}
+            <span className="font-semibold">@{username}</span>
+          </div>
+        );
+      })}
+      {followList.length === 0 && <p className="text-gray-500 text-center py-4">{t('no_data')}</p>}
+      <button onClick={() => setShowFollowList(null)} className="btn-ghost w-full mt-4">{t('close')}</button>
+    </div>
+  </div>
+)}
     </div>
   );
 }

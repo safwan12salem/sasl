@@ -5,7 +5,7 @@ import stripe
 from django.conf import settings
 from decimal import Decimal
 
-#stripe.api_key = settings.STRIPE_SECRET_KEY
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 def create_stripe_customer(user):
     """Create a Stripe customer for a user"""

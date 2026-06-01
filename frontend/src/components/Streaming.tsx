@@ -395,9 +395,13 @@ export default function Streaming() {
 
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs">
-                    {s.streamer.username[0]?.toUpperCase()}
-                  </div>
+                 {s.streamer.avatar_url ? (
+  <img src={s.streamer.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+) : (
+  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs">
+    {s.streamer.username[0]?.toUpperCase()}
+  </div>
+)}
                   <span className="font-semibold text-sm">{s.streamer.username}</span>
                   {s.category && <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded-full">{s.category}</span>}
                 </div>

@@ -681,9 +681,13 @@ const STATUS_COLORS: Record<string, string> = {
                 <div className="flex flex-col md:flex-row justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                        {session.tutor.username[0]?.toUpperCase()}
-                      </div>
+                      {session.tutor.avatar_url ? (
+  <img src={session.tutor.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
+) : (
+  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+    {session.tutor.username[0]?.toUpperCase()}
+  </div>
+)}
                       <div>
                         <h3 className="font-bold text-lg flex items-center gap-2">
                           {session.subject}

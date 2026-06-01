@@ -435,10 +435,15 @@ const Feed: React.FC = () => {
       >
         <div className="flex items-center gap-3 mb-3">
           <div className="relative">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sasl-green to-sasl-orange flex items-center justify-center text-white font-bold cursor-pointer hover:scale-105 transition"
-     onClick={(e) => { e.stopPropagation(); window.location.href = `/profile/${post.author.username}`; }}>
-  {post.author.username[0].toUpperCase()}
-</div>
+       {post.author?.avatar_url ? (
+  <img src={post.author.avatar_url} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow cursor-pointer hover:scale-105 transition"
+       onClick={(e) => { e.stopPropagation(); window.location.href = `/profile/${post.author.username}`; }} alt="" />
+) : (
+  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sasl-green to-sasl-orange flex items-center justify-center text-white font-bold cursor-pointer hover:scale-105 transition"
+       onClick={(e) => { e.stopPropagation(); window.location.href = `/profile/${post.author.username}`; }}>
+    {post.author.username[0].toUpperCase()}
+  </div>
+)}
             <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
           </div>
           <div>

@@ -157,7 +157,11 @@ export default function Reels() {
             <video ref={el => { videoRefs.current[idx] = el; }} src={reel.video_url} className="absolute inset-0 w-full h-full object-cover" loop muted autoPlay={idx === 0} playsInline onEnded={() => scrollTo(idx + 1)} />
             <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/30 to-transparent">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-lg border-2 border-white">{reel.user?.username?.[0]?.toUpperCase() || 'U'}</div>
+                            {reel.user?.avatar_url ? (
+  <img src={reel.user.avatar_url} className="w-12 h-12 rounded-full object-cover border-2 border-white" alt="" />
+) : (
+  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-lg border-2 border-white">{reel.user?.username?.[0]?.toUpperCase() || 'U'}</div>
+)}
                 <div><p className="font-bold text-white">@{reel.user?.username || 'user'}</p><p className="text-white/80 text-sm">{reel.caption}</p></div>
               </div>
               <div className="flex items-center gap-6">
@@ -172,21 +176,64 @@ export default function Reels() {
                                         {(reelComments[reel.id] || []).map((c: any, i: number) => (
                     <div key={c.id || i} className="mb-2 pr-6">
                       <div className="flex items-start gap-2">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{c.user?.username?.[0]?.toUpperCase() || 'U'}</div>
+                       {c.user?.avatar_url ? (
+  <img src={c.user.avatar_url} className="w-6 h-6 rounded-full object-cover flex-shrink-0" alt="" />
+) : (
+  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{c.user?.username?.[0]?.toUpperCase() || 'U'}</div>
+)}
                         <div className="flex-1">
                           <span className="text-white text-xs font-semibold">{c.user?.username || 'user'}</span>
                           <span className="text-white/70 text-xs ml-2">{c.text}</span>
                           <button onClick={(e) => { e.stopPropagation(); setReplyingTo(replyingTo === c.id ? null : c.id); setReplyTexts(prev => ({ ...prev, [c.id]: '' })); }}
                             className="text-white/40 text-[10px] ml-2 hover:text-white/80">Reply</button>
                         </div>
-                        <button onClick={async (e) => { e.stopPropagation(); try { await api.post(`/content/reels/${reel.id}/like_comment/`, { comment_id: c.id }); fetchReelComments(reel.id); } catch {} }}
-                          className={`text-xs flex-shrink-0 transition-colors ${c.liked_by_me ? 'text-red-500' : 'text-white/40 hover:text-red-400'}`}>❤️ {c.likes_count || ''}</button>
+                       <div className="flex items-center gap-0.5">
+  {['❤️', '😂', '🔥', '😢'].map(emoji => (
+    <button 
+      key={emoji}
+      onClick={async (e) => { 
+        e.stopPropagation(); 
+        try { 
+          await api.post(`/content/reels/${reel.id}/like_comment/`, { comment_id: c.id }); 
+          fetchReelComments(reel.id); 
+        } catch {} 
+      }}
+      className="text-[10px] hover:scale-125 transition-transform"
+    >
+      {emoji}
+    </button>
+  ))}
+</div>
                       </div>
                       {/* Replies */}
                       {(c.replies || []).map((r: any) => (
                         <div key={r.id} className="flex items-start gap-2 ml-8 mt-1">
-                          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">{r.user?.username?.[0]?.toUpperCase() || 'U'}</div>
-                          <div><span className="text-white text-[10px] font-semibold">{r.user?.username || 'user'}</span><span className="text-white/60 text-[10px] ml-1">{r.text}</span></div>
+                          {r.user?.avatar_url ? (
+  <img src={r.user.avatar_url} className="w-5 h-5 rounded-full object-cover flex-shrink-0" alt="" />
+) : (
+  <div className="w-5 h-5 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">{r.user?.username?.[0]?.toUpperCase() || 'U'}</div>
+)}
+                        <div>
+  <span className="text-white text-[10px] font-semibold">{r.user?.username || 'user'}</span>
+  <span className="text-white/60 text-[10px] ml-1">{r.text}</span>
+  <div className="flex items-center gap-0.5 mt-0.5">
+    {['❤️', '😂', '🔥'].map(emoji => (
+      <button 
+        key={emoji}
+        onClick={async (e) => { 
+          e.stopPropagation(); 
+          try { 
+            await api.post(`/content/reels/${reel.id}/like_reply/`, { reply_id: r.id }); 
+            fetchReelComments(reel.id); 
+          } catch {} 
+        }}
+        className="text-[8px] hover:scale-125 transition-transform"
+      >
+        {emoji}
+      </button>
+    ))}
+  </div>
+</div>
                         </div>
                       ))}
                       {/* Reply Input */}

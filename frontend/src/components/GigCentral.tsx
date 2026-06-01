@@ -557,9 +557,13 @@ export default function GigCentral() {
                 <div className="flex flex-col md:flex-row justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-sm">
-                        {gig.creator_name[0]?.toUpperCase()}
-                      </div>
+                     {gig.creator_avatar ? (
+  <img src={gig.creator_avatar} className="w-10 h-10 rounded-full object-cover" alt="" />
+) : (
+  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-sm">
+    {gig.creator_name[0]?.toUpperCase()}
+  </div>
+)}
                       <div>
                         <h3 className="font-bold text-lg flex items-center gap-2">
                           {gig.title}
