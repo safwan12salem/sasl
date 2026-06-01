@@ -387,7 +387,19 @@ const Feed: React.FC = () => {
         <div key={u.id} className="flex items-center gap-1 bg-white rounded-full px-3 py-1 shadow-sm text-sm">
           <div className="w-6 h-6 rounded-full bg-gray-300" />
           <span>{u.username}</span>
-          <button className="text-green-500 ml-1 text-xs">{t('follow')}</button>
+          <button 
+  className="text-green-500 ml-1 text-xs"
+  onClick={async (e) => {
+    e.stopPropagation();
+    try {
+      await api.post('/users/follow/toggle/', { username: u.username });
+      toast.success('Followed!');
+      loadSuggestedUsers();
+    } catch {}
+  }}
+>
+  {t('follow')}
+</button>
         </div>
       ))}
     </div>
@@ -423,9 +435,10 @@ const Feed: React.FC = () => {
       >
         <div className="flex items-center gap-3 mb-3">
           <div className="relative">
-            <div className="w-11 h-11 rounded-full bg-gradient-to-br from-sasl-green to-sasl-orange flex items-center justify-center text-white font-bold text-sm">
-              {post.author.username[0].toUpperCase()}
-            </div>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sasl-green to-sasl-orange flex items-center justify-center text-white font-bold cursor-pointer hover:scale-105 transition"
+     onClick={(e) => { e.stopPropagation(); window.location.href = `/profile/${post.author.username}`; }}>
+  {post.author.username[0].toUpperCase()}
+</div>
             <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
           </div>
           <div>

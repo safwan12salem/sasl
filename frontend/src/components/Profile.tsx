@@ -252,8 +252,30 @@ export default function Profile() {
               <p className="mt-2 text-gray-600">{profile.bio || t('No bio yet.')}</p>
             )}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
-              <div className="bg-white rounded-xl p-3 text-center shadow-sm"><p className="text-2xl font-bold text-green-600">{profile.followers_count || 0}</p><p className="text-xs text-gray-500">{t('Followers')}</p></div>
-              <div className="bg-white rounded-xl p-3 text-center shadow-sm"><p className="text-2xl font-bold text-blue-600">{profile.following_count || 0}</p><p className="text-xs text-gray-500">{t('Following')}</p></div>
+              <div className="bg-white rounded-xl p-3 text-center shadow-sm cursor-pointer hover:shadow-md transition"
+     onClick={async () => {
+       try {
+         const res = await api.get(`/users/follow/followers/`);
+         const followers = res.data || [];
+         const names = followers.map((f: any) => `@${f.follower?.username || f.follower}`).join('\n');
+         alert(`Followers (${followers.length}):\n${names || 'None'}`);
+       } catch {}
+     }}>
+  <p className="text-2xl font-bold text-green-600">{profile.followers_count || 0}</p>
+  <p className="text-xs text-gray-500">{t('Followers')}</p>
+</div>
+<div className="bg-white rounded-xl p-3 text-center shadow-sm cursor-pointer hover:shadow-md transition"
+     onClick={async () => {
+       try {
+         const res = await api.get(`/users/follow/following/`);
+         const following = res.data || [];
+         const names = following.map((f: any) => `@${f.following?.username || f.following}`).join('\n');
+         alert(`Following (${following.length}):\n${names || 'None'}`);
+       } catch {}
+     }}>
+  <p className="text-2xl font-bold text-blue-600">{profile.following_count || 0}</p>
+  <p className="text-xs text-gray-500">{t('Following')}</p>
+</div>
               {(isOwnProfile || profile.show_balance) && <div className="bg-white rounded-xl p-3 text-center shadow-sm"><p className="text-2xl font-bold text-yellow-600">${Number(profile.wallet?.balance || 0).toFixed(0)}</p><p className="text-xs text-gray-500">{t('Balance')}</p></div>}
               {(isOwnProfile || profile.show_earnings) && <div className="bg-white rounded-xl p-3 text-center shadow-sm"><p className="text-2xl font-bold text-purple-600">${Number(profile.wallet?.total_earned || 0).toFixed(0)}</p><p className="text-xs text-gray-500">{t('Earned')}</p></div>}
             </div>
