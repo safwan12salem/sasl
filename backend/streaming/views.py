@@ -15,6 +15,10 @@ from .serializers import (
 from monetization.services import process_donation
 from notifications.services import create_notification
 
+from monetization.transaction_validator import validate_donation
+
+
+
 
 class StreamSessionViewSet(viewsets.ModelViewSet):
     queryset = StreamSession.objects.select_related('streamer').prefetch_related('donations').all()
@@ -54,6 +58,9 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
         stream.ended_at = timezone.now()
         stream.save()
         return Response({'status': 'ended'})
+      
+
+
 
     @action(detail=True, methods=['post'])
     def donate(self, request, pk=None):
@@ -61,6 +68,13 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
         amount = request.data.get('amount')
         if not amount or float(amount) <= 0:
             return Response({'error': 'Invalid amount'}, status=400)
+
+        # Anti-fraud validation
+        valid, error_response = validate_donation(
+            request.user, stream.streamer, float(amount)
+        )
+        if not valid:
+            return error_response
 
         success = process_donation(request.user, stream.streamer, float(amount))
         if not success:
@@ -82,7 +96,6 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
         )
 
         return Response(StreamDonationSerializer(donation, context={'request': request}).data, status=201)
-
     @action(detail=True, methods=['post'])
     def join(self, request, pk=None):
         stream = self.get_object()
