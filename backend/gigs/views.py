@@ -17,7 +17,8 @@ from .serializers import (
 from monetization.services import process_marketplace_purchase
 from notifications.services import create_notification
 from django.contrib.auth import get_user_model
-
+from monetization.anti_fraud import FraudDetector, EscrowManager, WalletFreeze
+from monetization.models import Transaction
 User = get_user_model()
 
 
@@ -83,30 +84,58 @@ class GigViewSet(viewsets.ModelViewSet):
         
         return Response(GigSerializer(gig, context={'request': request}).data)
 
-    @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
         gig = self.get_object()
         if gig.status != 'in_progress' or gig.taker != request.user:
             return Response({'error': 'Not allowed'}, status=400)
 
+        # Check if wallet is frozen
+        if WalletFreeze.is_frozen(request.user):
+            return Response({'error': 'Your wallet is frozen. Contact support.'}, status=403)
+
+        # Fraud check on payment
+        is_suspicious, reason = FraudDetector.check_transaction(
+            gig.creator, gig.budget, 'gig_completed'
+        )
+        if is_suspicious:
+            # Log but don't block — admin reviews later
+            create_notification(
+                recipient=gig.creator,
+                actor=request.user,
+                notification_type='fraud_alert',
+                message=f'Suspicious transaction flagged: {reason}'
+            )
+
+        # Process payment through escrow-like flow
         success = process_marketplace_purchase(gig.creator, request.user, gig.budget, gig.title)
         if not success:
             return Response({'error': 'Payment failed'}, status=402)
         
+        # Record the completed transaction
+        Transaction.objects.create(
+            user=gig.creator,
+            amount=gig.budget,
+            transaction_type='gig_completed',
+            description=f'Payment for gig: {gig.title}'
+        )
+        Transaction.objects.create(
+            user=request.user,
+            amount=gig.budget,
+            transaction_type='gig_completed',
+            description=f'Earnings from gig: {gig.title}'
+        )
 
         SkillBadge.objects.get_or_create(
-    user=request.user,
-    name=gig.category or 'General',
-    defaults={'level': 'beginner'}
-)    
+            user=request.user,
+            name=gig.category or 'General',
+            defaults={'level': 'beginner'}
+        )
 
-
-        award_badge(request.user, 'First Gig Completed', 'Completed your first gig on Sasl')    
+        award_badge(request.user, 'First Gig Completed', 'Completed your first gig on Sasl')
 
         with transaction.atomic():
             gig.status = 'completed'
             gig.save()
-
 
             create_notification(
                 recipient=gig.creator,
@@ -116,7 +145,6 @@ class GigViewSet(viewsets.ModelViewSet):
             )
 
         return Response(GigSerializer(gig, context={'request': request}).data)
-     
     @action(detail=True, methods=['post'])
     def complete_milestone(self, request, pk=None):
         gig = self.get_object()

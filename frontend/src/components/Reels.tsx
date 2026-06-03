@@ -187,7 +187,7 @@ export default function Reels() {
                           <button onClick={(e) => { e.stopPropagation(); setReplyingTo(replyingTo === c.id ? null : c.id); setReplyTexts(prev => ({ ...prev, [c.id]: '' })); }}
                             className="text-white/40 text-[10px] ml-2 hover:text-white/80">Reply</button>
                         </div>
-           <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5">
   {['❤️', '😂', '🔥', '😢'].map(emoji => (
     <button 
       key={emoji}
@@ -198,7 +198,12 @@ export default function Reels() {
           fetchReelComments(reel.id); 
         } catch {} 
       }}
-      className={`text-[10px] hover:scale-125 transition-transform ${c.my_reaction === emoji ? 'scale-125 brightness-125' : 'opacity-50'}`}
+      className={`text-[10px] transition-all duration-200 ${
+        c.my_reaction === emoji 
+          ? 'scale-125 brightness-125 opacity-100 drop-shadow-lg' 
+          : 'opacity-40 hover:opacity-70'
+      }`}
+      title={emoji === '❤️' ? 'Love' : emoji === '😂' ? 'Laugh' : emoji === '🔥' ? 'Fire' : 'Sad'}
     >
       {emoji}
     </button>
@@ -228,7 +233,11 @@ export default function Reels() {
           fetchReelComments(reel.id); 
         } catch {} 
       }}
-      className={`text-[8px] hover:scale-125 transition-transform ${r.my_reaction === emoji ? 'scale-125 brightness-125' : 'opacity-50'}`}
+      className={`text-[8px] transition-all duration-200 ${
+        r.my_reaction === emoji 
+          ? 'scale-125 brightness-125 opacity-100 drop-shadow-lg' 
+          : 'opacity-40 hover:opacity-70'
+      }`}
     >
       {emoji}
     </button>
