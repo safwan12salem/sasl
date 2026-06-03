@@ -17,6 +17,8 @@ from monetization.services import process_marketplace_purchase
 from notifications.services import create_notification
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from monetization.transaction_validator import validate_marketplace_purchase
+
 
 User = get_user_model()
 
@@ -81,13 +83,21 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Not enough stock'}, status=400)
 
         total = product.price * quantity
+        
+        # Anti-fraud validation
+        valid, error_response = validate_marketplace_purchase(
+            request.user, product.seller, total, product.title
+        )
+        if not valid:
+            return error_response
+        
         success = process_marketplace_purchase(request.user, product.seller, total, product.title)
         if not success:
             return Response({'error': 'Insufficient wallet balance'}, status=402)
 
         with transaction.atomic():
             product.stock -= quantity
-            product.sales_count += quantity
+            product.sales_count = (product.sales_count or 0) + quantity
             if product.stock == 0:
                 product.is_active = False
             product.save()
@@ -99,15 +109,15 @@ class ProductViewSet(viewsets.ModelViewSet):
                 total_price=total,
                 status='completed'
             )
-
+        
         create_notification(
             recipient=product.seller,
             actor=request.user,
             notification_type='purchase',
-            message=f'{request.user.username} purchased {quantity}x "{product.title}" for ${total}'
+            message=f'{request.user.username} purchased {quantity}x {product.title} for ${total}'
         )
-
-        return Response(OrderSerializer(order, context={'request': request}).data, status=201)
+        
+        return Response({'status': 'purchased', 'order_id': str(order.id)})
 
     @action(detail=True, methods=['post'])
     def review(self, request, pk=None):

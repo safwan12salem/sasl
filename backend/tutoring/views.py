@@ -19,7 +19,7 @@ from .serializers import (
 from monetization.services import process_subscription_payment
 from notifications.services import create_notification
 from django.contrib.auth import get_user_model
-
+from monetization.transaction_validator import validate_tutoring_payment
 User = get_user_model()
 
 
@@ -79,13 +79,19 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         session.save()
         return Response({'status': 'ongoing'})
 
-    @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
         session = self.get_object()
         if session.tutor != request.user or session.status != 'ongoing':
             return Response({'error': 'Invalid state'}, status=400)
         
         if session.student:
+            # Anti-fraud validation
+            valid, error_response = validate_tutoring_payment(
+                session.student, session.tutor, session.price, session.subject
+            )
+            if not valid:
+                return error_response
+            
             success = process_subscription_payment(session.student, session.tutor, session.price)
             if not success:
                 return Response({'error': 'Payment failed'}, status=402)
@@ -101,7 +107,6 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         )
         
         return Response({'status': 'completed and paid'})
-
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
         session = self.get_object()
