@@ -44,145 +44,130 @@ export default function WebRTCChat() {
   // ============================================================
   // CONNECT TO MESH
   // ============================================================
-  const connect = useCallback(() => {
+    const connect = useCallback(() => {
+    // FIRST: Clean up any existing connections completely
+    if (dataChannelRef.current) {
+      dataChannelRef.current.close();
+      dataChannelRef.current = null;
+    }
+    if (pcRef.current) {
+      pcRef.current.close();
+      pcRef.current = null;
+    }
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    
     setStarted(true);
     setConnecting(true);
+    makingOffer.current = false;
 
     const wsUrl = `ws://localhost:8000/ws/video/${ROOM_ID}/?token=${token}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      const pc = new RTCPeerConnection({
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
-      });
-      pcRef.current = pc;
-
-      // ---- DATA CHANNEL ----
-      const channel = pc.createDataChannel('mesh-chat', { ordered: true });
-      dataChannelRef.current = channel;
-
-      channel.onopen = () => {
-        setConnected(true);
-        setConnecting(false);
-        setPeerCount(1);
-        toast.success(t('Connected to mesh! 🚀'));
-      };
-
-      channel.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'chat') {
-            setMessages(prev => [...prev, data.text]);
-          }
-        } catch {
-          setMessages(prev => [...prev, event.data]);
-        }
-      };
-
-      channel.onclose = () => {
-        setConnected(false);
-        setPeerCount(0);
-      };
-
-      // ---- ICE CANDIDATES ----
-      pc.onicecandidate = (event) => {
-        if (event.candidate && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({
-            type: 'candidate',
-            candidate: event.candidate.toJSON()
-          }));
-        }
-      };
-
-      // ---- NEGOTIATION ----
-      pc.onnegotiationneeded = async () => {
-        try {
-          makingOffer.current = true;
-          await pc.setLocalDescription();
-          if (pc.localDescription && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({
-              type: 'offer',
-              offer: pc.localDescription.toJSON()
-            }));
-          }
-        } catch (err) {
-          console.warn('Negotiation error:', err);
-        } finally {
-          makingOffer.current = false;
-        }
-      };
-
-      // ---- INCOMING SIGNALING ----
-      ws.onmessage = async (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          const state = getState(pc);
-
-          if (data.type === 'offer') {
-            const isPolite = politePeer.current;
-            const colliding = makingOffer.current || state !== 'stable';
-
-            if (colliding && !isPolite) {
-              return;
-            }
-
-            // ✅ Only set remote description if in stable state
-            if (state !== 'stable') {
-              console.warn('Cannot handle offer in state:', state);
-              return;
-            }
-
-            await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-
-            // ✅ Only create answer if we have remote offer
-            if (getState(pc) === 'have-remote-offer') {
-              const answer = await pc.createAnswer();
-              await pc.setLocalDescription(answer);
-              if (pc.localDescription && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({
-                  type: 'answer',
-                  answer: pc.localDescription.toJSON()
-                }));
-              }
-            }
-          } else if (data.type === 'answer') {
-            // ✅ Only accept answer if we have a local offer pending
-            if (state === 'have-local-offer') {
-              await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-            }
-          } else if (data.type === 'candidate') {
-            // ✅ Only add ICE candidates when we have a remote description
-            if (!pc.remoteDescription) {
-              return;
-            }
-            try {
-              await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-            } catch (err) {
-              // Ignore invalid candidates
-            }
-          } else if (data.type === 'chat') {
-            setMessages(prev => [...prev, data.text]);
-          }
-        } catch (err) {
-          console.warn('Signaling error:', err);
-        }
-      };
-
-      // ---- INITIAL OFFER ----
-      pc.createOffer().then(offer => {
-        pc.setLocalDescription(offer).then(() => {
-          if (pc.localDescription && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({
-              type: 'offer',
-              offer: pc.localDescription.toJSON()
-            }));
-          }
+      // Wait a moment before creating peer connection
+      setTimeout(() => {
+        if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+        
+        const pc = new RTCPeerConnection({
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
         });
-      }).catch(err => {
-        console.warn('Create offer failed:', err);
-        setConnecting(false);
-      });
+        pcRef.current = pc;
+
+        const channel = pc.createDataChannel('mesh-chat', { ordered: true });
+        dataChannelRef.current = channel;
+
+        channel.onopen = () => {
+          setConnected(true);
+          setConnecting(false);
+          setPeerCount(1);
+          toast.success(t('Connected to mesh! 🚀'));
+        };
+
+        channel.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'chat') {
+              setMessages(prev => [...prev, data.text]);
+            }
+          } catch {
+            setMessages(prev => [...prev, event.data]);
+          }
+        };
+
+        channel.onclose = () => {
+          setConnected(false);
+          setPeerCount(0);
+        };
+
+        pc.onicecandidate = (event) => {
+          if (event.candidate && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({
+              type: 'candidate',
+              candidate: event.candidate.toJSON()
+            }));
+          }
+        };
+
+        pc.onnegotiationneeded = async () => {
+          try {
+            makingOffer.current = true;
+            await pc.setLocalDescription();
+            if (pc.localDescription && ws.readyState === WebSocket.OPEN) {
+              ws.send(JSON.stringify({
+                type: 'offer',
+                offer: pc.localDescription.toJSON()
+              }));
+            }
+          } catch (err) {
+            console.warn('Negotiation error:', err);
+          } finally {
+            makingOffer.current = false;
+          }
+        };
+
+        ws.onmessage = async (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            const state = getState(pc);
+
+            if (data.type === 'offer') {
+              const isPolite = politePeer.current;
+              const colliding = makingOffer.current || state !== 'stable';
+              if (colliding && !isPolite) return;
+              if (state !== 'stable') return;
+
+              await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+              if (getState(pc) === 'have-remote-offer') {
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                if (pc.localDescription && ws.readyState === WebSocket.OPEN) {
+                  ws.send(JSON.stringify({
+                    type: 'answer',
+                    answer: pc.localDescription.toJSON()
+                  }));
+                }
+              }
+            } else if (data.type === 'answer') {
+              if (state === 'have-local-offer') {
+                await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+              }
+            } else if (data.type === 'candidate') {
+              if (!pc.remoteDescription) return;
+              try {
+                await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
+              } catch (err) {}
+            } else if (data.type === 'chat') {
+              setMessages(prev => [...prev, data.text]);
+            }
+          } catch (err) {
+            console.warn('Signaling error:', err);
+          }
+        };
+      }, 300);
     };
 
     ws.onerror = () => {
@@ -196,7 +181,6 @@ export default function WebRTCChat() {
       setPeerCount(0);
     };
   }, [token, t]);
-
   // ============================================================
   // SEND MESSAGE
   // ============================================================

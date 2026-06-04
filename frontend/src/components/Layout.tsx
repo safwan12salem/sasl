@@ -86,10 +86,8 @@ export default function Layout() {
                 {isActive && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-sasl-green to-sasl-orange rounded-r-full" />
                 )}
-                <Icon size={18} className={`transition-colors ${isActive ? 'text-sasl-green' : 'text-white/60 group-hover:text-white/90'}`} />
-                <span className={`text-sm ${isActive ? 'text-white' : 'text-white/70 group-hover:text-white'}`}>
-                  {label}
-                </span>
+                <Icon size={18} className={`transition-colors ${isActive ? 'text-sasl-green' : isDark ? 'text-white/60 group-hover:text-white/90' : 'text-gray-500 group-hover:text-gray-900'}`} />
+<span className={`text-sm ${isActive ? (isDark ? 'text-white' : 'text-gray-900 font-semibold') : isDark ? 'text-white/70 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-900'}`}></span>
                 {isActive && (
                   <div className="absolute right-2 w-1.5 h-1.5 rounded-full bg-sasl-green animate-glow" />
                 )}
@@ -104,7 +102,7 @@ export default function Layout() {
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sasl-green to-sasl-orange flex items-center justify-center text-white font-bold text-xs">
                 {user?.username?.[0]?.toUpperCase() || 'U'}
               </div>
-              <span className="text-sm font-medium text-white/80">{user?.username}</span>
+             <span className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-gray-900'}`}>{user?.username}</span>
             </div>
             <motion.button 
               whileTap={{ scale: 0.9 }}
@@ -125,7 +123,9 @@ export default function Layout() {
             <motion.button 
               whileTap={{ scale: 0.9 }}
               onClick={toggleTheme} 
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl hover:bg-white/5 transition text-white/60 hover:text-white/90 text-sm"
+             className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition text-sm ${
+  isDark ? 'text-white/60 hover:text-white/90 hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+}`}
             >
               {isDark ? <Sun size={16} /> : <Moon size={16} />}
               {isDark ? t('light_mode') : t('dark_mode')}
@@ -134,14 +134,16 @@ export default function Layout() {
           
           <button 
             onClick={() => setShowReferral(true)} 
-            className="flex items-center gap-2 w-full py-2.5 px-4 rounded-xl hover:bg-white/5 transition text-white/70 hover:text-white text-sm"
+           className={`flex items-center gap-2 w-full py-2.5 px-4 rounded-xl transition text-sm ${
+  isDark ? 'text-white/70 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+}`}
           >
             <Users size={16} /> {t('invite')}
           </button>
           
           <button 
             onClick={logout} 
-            className="flex items-center gap-2 w-full py-2.5 px-4 rounded-xl bg-red-500/10 hover:bg-red-500/20 transition text-red-400 hover:text-red-300 text-sm"
+           className="flex items-center gap-2 w-full py-2.5 px-4 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 transition text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 text-sm"
           >
             <LogOut size={16} /> {t('logout')}
           </button>
