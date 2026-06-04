@@ -458,7 +458,7 @@ const STATUS_COLORS: Record<string, string> = {
                 )}
                 {showChat && (
                   <div className="w-1/3 border-l">
-                    <WebRTCPrivateChat roomId={inCall} onClose={() => setShowChat(false)} />
+                    <WebRTCPrivateChat roomId={`tutoring-${inCall}`} onClose={() => setShowChat(false)} />
                   </div>
                 )}
                 {showMaterials && (

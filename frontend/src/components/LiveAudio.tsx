@@ -191,7 +191,7 @@ export default function LiveAudio() {
                   </div>
                 ))}
               </div>
-              <span className="text-sm font-semibold">{listenerCount  || room?.current_listeners} {t('listening')}</span>
+             <span className="text-sm font-semibold">{listenerCount} {t('listening')}</span>
               <div className="flex items-center gap-1">
                 <button onClick={toggleMute} className={`p-2.5 rounded-full transition ${isMuted ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
                   {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
