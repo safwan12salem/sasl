@@ -187,28 +187,29 @@ export default function Reels() {
                           <button onClick={(e) => { e.stopPropagation(); setReplyingTo(replyingTo === c.id ? null : c.id); setReplyTexts(prev => ({ ...prev, [c.id]: '' })); }}
                             className="text-white/40 text-[10px] ml-2 hover:text-white/80">Reply</button>
                         </div>
-          <div className="flex items-center gap-0.5">
-  {['❤️', '😂', '🔥', '😢'].map(emoji => (
-    <button 
-      key={emoji}
-      onClick={async (e) => { 
-        e.stopPropagation(); 
-        try { 
-          await api.post(`/content/reels/${reel.id}/like_comment/`, { comment_id: c.id, reaction: emoji }); 
-          fetchReelComments(reel.id); 
-        } catch {} 
-      }}
-      className={`text-[10px] transition-all duration-200 ${
-        c.my_reaction === emoji 
-          ? 'scale-125 brightness-125 opacity-100 drop-shadow-lg' 
-          : 'opacity-40 hover:opacity-70'
-      }`}
-      title={emoji === '❤️' ? 'Love' : emoji === '😂' ? 'Laugh' : emoji === '🔥' ? 'Fire' : 'Sad'}
-    >
-      {emoji}
-    </button>
-  ))}
-  {c.likes_count > 0 && <span className="text-white/50 text-[10px] ml-1">{c.likes_count}</span>}
+     <div className="flex items-center gap-0.5">
+  {['❤️', '😂', '🔥', '😢'].map(emoji => {
+    const count = c.reaction_counts?.[emoji] || 0;
+    return (
+      <button 
+        key={emoji}
+        onClick={async (e) => { 
+          e.stopPropagation(); 
+          try { 
+            await api.post(`/content/reels/${reel.id}/like_comment/`, { comment_id: c.id, reaction: emoji }); 
+            fetchReelComments(reel.id); 
+          } catch {} 
+        }}
+        className={`text-[10px] transition-all duration-200 flex items-center gap-0.5 ${
+          c.my_reaction === emoji 
+            ? 'scale-110 opacity-100' 
+            : 'opacity-40 hover:opacity-70'
+        }`}
+      >
+        {emoji}<span className="text-[8px]">{count > 0 ? count : ''}</span>
+      </button>
+    );
+  })}
 </div>
                       </div>
                       {/* Replies */}
@@ -222,27 +223,29 @@ export default function Reels() {
                         <div>
   <span className="text-white text-[10px] font-semibold">{r.user?.username || 'user'}</span>
   <span className="text-white/60 text-[10px] ml-1">{r.text}</span>
-  <div className="flex items-center gap-0.5 mt-0.5">
-  {['❤️', '😂', '🔥'].map(emoji => (
-    <button 
-      key={emoji}
-      onClick={async (e) => { 
-        e.stopPropagation(); 
-        try { 
-          await api.post(`/content/reels/${reel.id}/like_reply/`, { reply_id: r.id, reaction: emoji }); 
-          fetchReelComments(reel.id); 
-        } catch {} 
-      }}
-      className={`text-[8px] transition-all duration-200 ${
-        r.my_reaction === emoji 
-          ? 'scale-125 brightness-125 opacity-100 drop-shadow-lg' 
-          : 'opacity-40 hover:opacity-70'
-      }`}
-    >
-      {emoji}
-    </button>
-  ))}
-  {r.likes_count > 0 && <span className="text-white/50 text-[8px] ml-1">{r.likes_count}</span>}
+    <div className="flex items-center gap-0.5 mt-0.5">
+  {['❤️', '😂', '🔥'].map(emoji => {
+    const count = r.reaction_counts?.[emoji] || 0;
+    return (
+      <button 
+        key={emoji}
+        onClick={async (e) => { 
+          e.stopPropagation(); 
+          try { 
+            await api.post(`/content/reels/${reel.id}/like_reply/`, { reply_id: r.id, reaction: emoji }); 
+            fetchReelComments(reel.id); 
+          } catch {} 
+        }}
+        className={`text-[8px] transition-all duration-200 flex items-center gap-0.5 ${
+          r.my_reaction === emoji 
+            ? 'scale-110 opacity-100' 
+            : 'opacity-40 hover:opacity-70'
+        }`}
+      >
+        {emoji}<span className="text-[7px]">{count > 0 ? count : ''}</span>
+      </button>
+    );
+  })}
 </div>
   </div>
 </div>

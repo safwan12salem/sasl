@@ -97,26 +97,36 @@ export default function LiveAudio() {
     } catch { toast.error(t('failed_to_create_room')); }
   };
 
-  const joinRoom = async (roomId: string) => {
+    const joinRoom = async (roomId: string) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       localStreamRef.current = stream;
       stream.getAudioTracks()[0].enabled = !isMuted;
       await api.post(`/liveaudio/rooms/${roomId}/join/`);
       setInRoom(roomId);
+      // Update state from the rooms data
+      const foundRoom = rooms.find(r => r.id === roomId);
+      if (foundRoom) {
+        setListenerCount(foundRoom.current_listeners + 1);
+        setSpeakers(foundRoom.speakers || []);
+      }
       fetchRooms();
       toast.success(t('Joined room! 🎉'));
     } catch { toast.error(t('Microphone access needed')); }
   };
 
-  const leaveRoom = async (roomId: string) => {
+
+    const leaveRoom = async (roomId: string) => {
     try { await api.post(`/liveaudio/rooms/${roomId}/leave/`); } catch {}
     localStreamRef.current?.getTracks().forEach(t => t.stop());
     localStreamRef.current = null;
-    setInRoom(null); setIsSpeaker(false); setHandRaised(false);
+    setInRoom(null);
+    setIsSpeaker(false);
+    setHandRaised(false);
+    setSpeakers([]);
+    setListenerCount(0);
     fetchRooms();
   };
-
   const toggleMute = () => {
     if (localStreamRef.current) {
       const track = localStreamRef.current.getAudioTracks()[0];
@@ -181,7 +191,7 @@ export default function LiveAudio() {
                   </div>
                 ))}
               </div>
-              <span className="text-sm font-semibold">{listenerCount} {t('listening')}</span>
+              <span className="text-sm font-semibold">{listenerCount  || room?.current_listeners} {t('listening')}</span>
               <div className="flex items-center gap-1">
                 <button onClick={toggleMute} className={`p-2.5 rounded-full transition ${isMuted ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
                   {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
@@ -287,9 +297,13 @@ export default function LiveAudio() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <div className="relative">
-                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg">
-                        {room.host.username[0]?.toUpperCase()}
-                      </div>
+                      {room.host.avatar_url ? (
+  <img src={room.host.avatar_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+) : (
+  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg">
+    {room.host.username[0]?.toUpperCase()}
+  </div>
+)}
                       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
                     </div>
                     <div>

@@ -811,5 +811,47 @@
   "Watch ads daily – Earn up to $15/month": "रोज़ विज्ञापन देखें – 15 $/माह तक कमाएं",
   "Aucune publication pour l'instant.": "अभी कोई पोस्ट नहीं।",
   "host_audio_room": "ऑडियो रूम होस्ट करें",
-"hosted_by": "द्वारा होस्ट किया गया"
+"hosted_by": "द्वारा होस्ट किया गया",
+
+
+
+
+  "Gig Central": "गिग केंद्र",
+  "Find work, hire talent, earn money – all in one place": "काम खोजें, प्रतिभा नियुक्त करें, पैसा कमाएँ – सब एक ही स्थान पर",
+  "Badges": "बैज",
+  "Portfolio": "पोर्टफोलियो",
+  "Post a Gig": "गिग पोस्ट करें",
+  "Total Gigs": "कुल गिग्स",
+  "Completed": "पूरा हुआ",
+  "Earned": "कमा लिया",
+  "Avg Rating": "औसत रेटिंग",
+  "Search gigs...": "गिग्स खोजें...",
+  "Open": "खुला",
+  "In Progress": "प्रगति में",
+  "My Gigs": "मेरे गिग्स",
+  "by": "द्वारा",
+  "other": "अन्य",
+  "open": "खुला",
+  "Sasl AI Hub": "ससल AI हब",
+  "Your all-in-one AI toolbox": "आपका ऑल-इन-वन AI टूलबॉक्स",
+  "Content Assistant": "सामग्री सहायक",
+  "Voice AI": "वॉयस AI",
+  "Sasl Brain": "ससल ब्रेन",
+  "Post Ideas": "पोस्ट विचार",
+  "Hashtags": "हैशटैग",
+  "Image Caption": "छवि विवरण",
+  "Generate": "बनाएँ",
+  "Enter a topic for post ideas...": "पोस्ट विचार के लिए विषय दर्ज करें...",
+  "💡 All AI features work offline": "💡 सभी AI सुविधाएँ ऑफलाइन काम करती हैं",
+  "Mesh Chat": "मेश चैट",
+  "Peer-to-peer chat that works completely offline!": "पीयर-टू-पीयर चैट जो पूरी तरह से ऑफलाइन काम करता है!",
+  "Connect directly to nearby Sasl users via WaveMesh": "WaveMesh के माध्यम से निकटतम Sasl उपयोगकर्ताओं से सीधे कनेक्ट करें",
+  "Works without internet": "इंटरनेट के बिना काम करता है",
+  "Connect to nearby peers": "निकटतम साथियों से कनेक्ट करें",
+  "Real-time messaging": "रियल-टाइम मैसेजिंग",
+  "🚀 Join Mesh Chat": "🚀 मेश चैट में शामिल हों",
+  "Open Sasl on another device or tab to test P2P messaging": "P2P मैसेजिंग का परीक्षण करने के लिए किसी अन्य डिवाइस या टैब पर Sasl खोलें",
+  "Connecting to Mesh...": "मेश से जुड़ रहे हैं...",
+  "Discovering nearby peers": "निकटतम साथियों की खोज"
+
 }

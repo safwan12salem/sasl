@@ -73,9 +73,10 @@ def validate_tutoring_payment(student, tutor, amount, subject):
 
 
 def validate_donation(donor, streamer, amount):
-    """Validate stream donation"""
-    return validate_transaction(donor, amount, 'donation', f'Donation to {streamer.username}')
-
+    """Validate stream donation — no balance check needed for donations"""
+    valid, error = validate_transaction(donor, amount, 'donation', f'Donation to {streamer.username}')
+    return valid, error
+    # NOTE: Donations don't require donor balance — they're processed via external payment
 
 def validate_subscription(subscriber, creator, amount):
     """Validate creator subscription"""

@@ -5,13 +5,17 @@ import { Globe } from 'lucide-react';
 const languages = [
   { code: 'en', name: 'English' },
   { code: 'es', name: 'Español' },
-  { code: 'fr', name: 'Français' },
-  { code: 'it', name: 'Italiano' },
-  { code: 'ja', name: '日本語' },
-  { code: 'hi', name: 'हिन्दी' },
-  { code: 'ar', name: 'العربية' },
-  { code: 'pt-BR', name: 'Português (BR)' },
   { code: 'zh', name: '中文' },
+  { code: 'ja', name: '日本語' }, 
+  {code:'ko', name:'한국어'},
+  { code: 'hi', name: 'हिन्दी' },
+  { code: 'fr', name: 'Français' },
+  {code:'gr', name:'German'},
+  { code: 'it', name: 'Italiano' },
+   { code: 'pt-BR', name: 'Português (BR)' },
+  {code:'ru', name:'Pусский'},  
+   { code: 'ar', name: 'العربية' },
+  {code:'tr', name:'Turkçe'},    
 ];
 
 export default function LanguageSwitcher() {

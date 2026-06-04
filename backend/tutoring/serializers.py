@@ -3,7 +3,7 @@ Sasl - Social Asynchronous Sharing Layer
 Tutoring serializers with materials, whiteboard, certificates
 """
 from rest_framework import serializers
-from .models import TutorProfile, TutoringSession, SessionMaterial, WhiteboardSession, Certificate
+from .models import TutorProfile, TutoringChatMessage, TutoringSession, SessionMaterial, WhiteboardSession, Certificate
 from users.serializers import UserProfileSerializer
 
 
@@ -55,6 +55,12 @@ class TutoringSessionSerializer(serializers.ModelSerializer):
     def get_students_enrolled(self, obj):
         return obj.max_students  # Placeholder — would track actual enrollments
     
-
+class TutoringChatMessageSerializer(serializers.ModelSerializer):
+    sender_name = serializers.ReadOnlyField(source='sender.username')
+    
+    class Meta:
+        model = TutoringChatMessage
+        fields = ['id', 'sender', 'sender_name', 'text', 'created_at']
+        read_only_fields = ['sender', 'created_at']
 
 

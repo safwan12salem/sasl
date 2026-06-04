@@ -28,6 +28,7 @@ export default function Layout() {
   const [showReferral, setShowReferral] = useState(false);
   
   const navItems = [
+    { to: '/', icon: Home, label: t('feed') },
     { to: '/meshchat', icon: MessageCircle, label: t('meshchat') },
     { to: '/ai-hub', icon: Sparkles, label: t('Sasl AI Hub') },
     { to: '/gigs', icon: Briefcase, label: t('Gig Central') },
@@ -39,7 +40,7 @@ export default function Layout() {
     { to: '/snap', icon: Camera, label: t('Snap') },
     { to: '/reels', icon: Video, label: t('Reels') },
     { to: '/ar-filters', icon: Camera, label: t('AR Filters') },
-    { to: '/', icon: Home, label: t('feed') },        
+           
     { to: '/analytics', icon: TrendingUp, label: t('Analytics') },
     { to: '/progress', icon: Star, label: t('Progress') },   
     { to: '/earnings', icon: DollarSign, label: t('Earnings') },
@@ -116,9 +117,13 @@ export default function Layout() {
         <div className={`border-t pt-4 mt-4 relative z-10 space-y-2 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sasl-green to-sasl-orange flex items-center justify-center text-white font-bold text-xs">
-                {user?.username?.[0]?.toUpperCase() || 'U'}
-              </div>
+                {user?.avatar_url ? (
+  <img src={user.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+) : (
+  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sasl-green to-sasl-orange flex items-center justify-center text-white font-bold text-xs">
+    {user?.username?.[0]?.toUpperCase() || 'U'}
+  </div>
+)}
               <span className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-gray-900'}`}>{user?.username}</span>
             </div>
             <motion.button 

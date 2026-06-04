@@ -10,16 +10,17 @@ from django.db.models import Q, Avg
 from django.utils import timezone
 from .models import (
     TutorProfile, TutoringSession, SessionMaterial,
-    WhiteboardSession, Certificate
+    WhiteboardSession, Certificate, TutoringChatMessage
 )
 from .serializers import (
     TutorProfileSerializer, TutoringSessionSerializer,
-    SessionMaterialSerializer, WhiteboardSerializer, CertificateSerializer
+    SessionMaterialSerializer, WhiteboardSerializer, CertificateSerializer,TutoringChatMessageSerializer
 )
 from monetization.services import process_subscription_payment
 from notifications.services import create_notification
 from django.contrib.auth import get_user_model
 from monetization.transaction_validator import validate_tutoring_payment
+
 User = get_user_model()
 
 
@@ -154,3 +155,19 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
     def my_certificates(self, request):
         certificates = Certificate.objects.filter(student=request.user)
         return Response(CertificateSerializer(certificates, many=True).data)
+    
+
+    @action(detail=True, methods=['get', 'post'])
+    def chat(self, request, pk=None):
+        session = self.get_object()
+        if request.method == 'GET':
+            messages = TutoringChatMessage.objects.filter(session=session).order_by('created_at')[:100]
+            return Response(TutoringChatMessageSerializer(messages, many=True).data)
+        else:
+            text = request.data.get('text', '')
+            if not text.strip():
+                return Response({'error': 'Text required'}, status=400)
+            msg = TutoringChatMessage.objects.create(
+                session=session, sender=request.user, text=text
+            )
+            return Response(TutoringChatMessageSerializer(msg).data, status=201)
