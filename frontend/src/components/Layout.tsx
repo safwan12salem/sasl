@@ -32,8 +32,8 @@ export default function Layout() {
     { to: '/ai-hub', icon: Sparkles, label: t('Sasl AI Hub') },
     { to: '/gigs', icon: Briefcase, label: t('Gig Central') },
     { to: '/marketplace', icon: ShoppingBag, label: t('marketplace') },
-    { to: '/group-chat', icon: Users, label: t('Group Chat') },
     { to: '/tutoring', icon: GraduationCap, label: t('tutoring') },
+    { to: '/group-chat', icon: Users, label: t('Group Chat') },
     { to: '/live-audio', icon: Mic, label: t('Live Audio') },
     { to: '/streaming', icon: Radio, label: t('streaming') },
     { to: '/snap', icon: Camera, label: t('Snap') },
@@ -41,8 +41,7 @@ export default function Layout() {
     { to: '/ar-filters', icon: Camera, label: t('AR Filters') },
     { to: '/', icon: Home, label: t('feed') },        
     { to: '/analytics', icon: TrendingUp, label: t('Analytics') },
-    { to: '/progress', icon: Star, label: t('Progress') },
-   
+    { to: '/progress', icon: Star, label: t('Progress') },   
    // { to: '/referral', icon: Users, label: t('referrals') },//
     { to: '/earnings', icon: DollarSign, label: t('Earnings') },
      { to: '/wallet', icon: Wallet, label: t('wallet') },
@@ -59,10 +58,10 @@ export default function Layout() {
       </div>
 
       {/* Sidebar */}
-        <aside className={`w-72 p-4 flex flex-col shadow-2xl z-20 relative border-r transition-colors duration-300 ${
+       <aside className={`w-72 p-4 flex flex-col shadow-2xl z-20 relative border-r transition-colors duration-300 ${
   isDark 
     ? 'bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 text-white border-white/5' 
-    : 'bg-gradient-to-b from-white via-gray-50 to-white text-gray-800 border-gray-200'
+    : 'bg-gradient-to-b from-white via-gray-50 to-white text-gray-900 border-gray-200'
 }`}>
         {/* Sidebar glow effect */}
         <div className="absolute inset-0 bg-gradient-to-b from-sasl-green/10 via-transparent to-sasl-orange/5 pointer-events-none" />
