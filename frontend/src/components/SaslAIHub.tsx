@@ -32,6 +32,134 @@ interface VoiceConversation {
 
 
 
+
+
+function detectLanguage(text: string): string {
+  // Unicode ranges for different scripts
+  const scripts: Record<string, RegExp> = {
+    ar: /[\u0600-\u06FF]/,
+    zh: /[\u4E00-\u9FFF]/,
+    ja: /[\u3040-\u309F\u30A0-\u30FF]/,
+    ko: /[\uAC00-\uD7AF\u1100-\u11FF]/,
+    hi: /[\u0900-\u097F]/,
+    ru: /[\u0400-\u04FF]/,
+    el: /[\u0370-\u03FF]/,
+  };
+  
+  for (const [lang, regex] of Object.entries(scripts)) {
+    if (regex.test(text)) return lang;
+  }
+  
+  // Detect via common words
+  const lower = text.toLowerCase();
+  if (/\b(el|la|los|las|de|en|que|es|por|para)\b/.test(lower) && 
+      !/\b(the|is|are|was|were|have|has|had|will|would|can|could|should|may|might|shall|must|do|does|did|go|goes|went|come|comes|came|get|gets|got|make|makes|made|take|takes|took|give|gives|gave|know|knew|see|sees|saw|think|thought|say|says|said|tell|tells|told|ask|asks|asked|try|tries|tried|use|uses|used)\b/.test(lower))
+    return 'es';
+  if (/\b(le|la|les|des|de|du|un|une|est|sont|que|qui|dans|pour|sur|avec|par|pas|plus|bien|fait|faire|être|avoir)\b/.test(lower))
+    return 'fr';
+  if (/\b(der|die|das|und|ist|sind|war|waren|hat|haben|wird|werden|kann|können|muss|müssen|nicht|mit|auf|für|von|bei|aus|nach|vor|seit|durch|um|über|unter|zwischen|auch|noch|schon|nur|wieder|immer|nie|oft|selten|bald|gern|gut|groß|klein|alt|neu|hoch|tief|lang|kurz|weit|nah)\b/.test(lower))
+    return 'de';
+  if (/\b(di|che|e|il|la|un|una|sono|era|ho|ha|fatto|fare|essere|avere|per|con|da|in|su|tra|fra|di|a|da|in|con|su|per|tra|fra|non|più|meno|molto|poco|bene|male|grande|piccolo|vecchio|nuovo|alto|basso)\b/.test(lower))
+    return 'it';
+  if (/\b(e|o|de|do|da|em|um|uma|não|sim|mais|menos|muito|pouco|bem|mal|grande|pequeno|novo|velho|alto|baixo|para|com|por|que|se|mas|ou|como|quando|onde|porque)\b/.test(lower))
+    return 'pt';
+  
+  return 'en'; // Default English
+}
+
+function getResponseLanguage(): string {
+  try {
+    return navigator.language?.split('-')[0] || 'en';
+  } catch {
+    return 'en';
+  }
+}
+
+
+function generateSpanishResponse(topic: string): string[] {
+  return [
+    `📖 ${topic} — Análisis Completo\n\nAquí tienes información detallada sobre "${topic}".\n\n• Contexto: Este tema es relevante porque afecta a muchas personas.\n• Datos clave: La información sobre ${topic} está en constante evolución.\n• Recomendación: Mantente actualizado siguiendo fuentes confiables.\n\n¿Quieres que genere más ideas sobre este tema?`,
+    `🔍 Investigación: ${topic}\n\nHe buscado información sobre "${topic}" y esto es lo que encontré:\n\n📌 Puntos importantes:\n1. ${topic} es un tema de gran interés actual\n2. Hay múltiples perspectivas para analizar\n3. La comunidad está discutiendo activamente\n\n💡 Te sugiero explorar diferentes fuentes y formar tu propia opinión.`,
+  ];
+}
+
+
+
+function generateHindiResponse(topic: string): string[] {
+  return [
+    `📖 ${topic} — विस्तृत विश्लेषण\n\nयहाँ "${topic}" पर विस्तृत जानकारी दी गई है।\n\n• संदर्भ: यह विषय महत्वपूर्ण है क्योंकि यह कई लोगों को प्रभावित करता है।\n• मुख्य तथ्य: ${topic} के बारे में जानकारी लगातार बदल रही है।\n• सुझाव: विश्वसनीय स्रोतों का अनुसरण करके अपडेट रहें।\n\nक्या आप इस विषय पर और अधिक विचार चाहते हैं?`,
+    `🔍 शोध: ${topic}\n\nमैंने "${topic}" के बारे में जानकारी खोजी और यह मिला:\n\n📌 महत्वपूर्ण बिंदु:\n1. ${topic} वर्तमान में बहुत रुचि का विषय है\n2. विश्लेषण के लिए कई दृष्टिकोण हैं\n3. समुदाय सक्रिय रूप से चर्चा कर रहा है\n\n💡 मैं सुझाव देता हूँ कि आप विभिन्न स्रोतों का पता लगाएँ और अपनी स्वयं की राय बनाएँ।`,
+  ];
+}
+
+function generateItalianResponse(topic: string): string[] {
+  return [
+    `📖 ${topic} — Analisi Completa\n\nEcco informazioni dettagliate su "${topic}".\n\n• Contesto: Questo argomento è rilevante perché coinvolge molte persone.\n• Dati chiave: Le informazioni su ${topic} sono in continua evoluzione.\n• Raccomandazione: Resta aggiornato seguendo fonti affidabili.\n\nVuoi che generi altre idee su questo argomento?`,
+    `🔍 Ricerca: ${topic}\n\nHo cercato informazioni su "${topic}" ed ecco cosa ho trovato:\n\n📌 Punti importanti:\n1. ${topic} è un argomento di grande interesse attuale\n2. Ci sono molteplici prospettive da analizzare\n3. La comunità ne discute attivamente\n\n💡 Ti suggerisco di esplorare fonti diverse e formare la tua opinione.`,
+  ];
+}
+
+function generateJapaneseResponse(topic: string): string[] {
+  return [
+    `📖 ${topic} — 詳細分析\n\n「${topic}」についての詳細な情報をご紹介します。\n\n• 背景: このテーマは多くの人に影響を与えるため重要です。\n• 重要データ: ${topic}に関する情報は常に進化しています。\n• 推奨: 信頼できる情報源をフォローして最新情報を入手してください。\n\nこのテーマについてさらにアイデアが必要ですか？`,
+    `🔍 調査: ${topic}\n\n「${topic}」について情報を検索した結果をご紹介します：\n\n📌 重要なポイント:\n1. ${topic}は現在大きな関心を集めています\n2. 分析すべき複数の視点があります\n3. コミュニティで活発に議論されています\n\n💡 さまざまな情報源を探索し、ご自身の意見を形成することをお勧めします。`,
+  ];
+}
+
+function generateKoreanResponse(topic: string): string[] {
+  return [
+    `📖 ${topic} — 종합 분석\n\n"${topic}"에 대한 자세한 정보를 알려드립니다.\n\n• 배경: 이 주제는 많은 사람들에게 영향을 미치기 때문에 중요합니다.\n• 핵심 데이터: ${topic}에 대한 정보는 끊임없이 변화하고 있습니다.\n• 권장사항: 신뢰할 수 있는 출처를 팔로우하여 최신 정보를 유지하세요.\n\n이 주제에 대해 더 많은 아이디어를 원하시나요?`,
+    `🔍 조사: ${topic}\n\n"${topic}"에 대해 정보를 검색한 결과입니다:\n\n📌 중요 사항:\n1. ${topic}은 현재 큰 관심을 받고 있는 주제입니다\n2. 분석할 다양한 관점이 있습니다\n3. 커뮤니티에서 활발하게 논의되고 있습니다\n\n💡 다양한 출처를 탐색하고 자신만의 의견을 형성하는 것을 제안합니다.`,
+  ];
+}
+
+function generatePortugueseBRResponse(topic: string): string[] {
+  return [
+    `📖 ${topic} — Análise Completa\n\nAqui estão informações detalhadas sobre "${topic}".\n\n• Contexto: Este assunto é relevante porque afeta muitas pessoas.\n• Dados-chave: As informações sobre ${topic} estão em constante evolução.\n• Recomendação: Mantenha-se atualizado seguindo fontes confiáveis.\n\nVocê quer mais ideias sobre este assunto?`,
+    `🔍 Pesquisa: ${topic}\n\nPesquisei informações sobre "${topic}" e isso é o que encontrei:\n\n📌 Pontos importantes:\n1. ${topic} é um assunto de grande interesse atual\n2. Há múltiplas perspectivas para analisar\n3. A comunidade está discutindo ativamente\n\n💡 Sugiro explorar diferentes fontes e formar sua própria opinião.`,
+  ];
+}
+
+function generateRussianResponse(topic: string): string[] {
+  return [
+    `📖 ${topic} — Полный анализ\n\nВот подробная информация о "${topic}".\n\n• Контекст: Эта тема важна, так как затрагивает многих людей.\n• Ключевые данные: Информация о ${topic} постоянно развивается.\n• Рекомендация: Следите за надёжными источниками, чтобы быть в курсе.\n\nХотите больше идей по этой теме?`,
+    `🔍 Исследование: ${topic}\n\nЯ нашёл информацию о "${topic}" и вот что обнаружил:\n\n📌 Важные моменты:\n1. ${topic} — тема большого интереса в настоящее время\n2. Существует множество точек зрения для анализа\n3. Сообщество активно обсуждает эту тему\n\n💡 Рекомендую изучить разные источники и сформировать собственное мнение.`,
+  ];
+}
+
+function generateGermanResponse(topic: string): string[] {
+  return [
+    `📖 ${topic} — Vollständige Analyse\n\nHier finden Sie detaillierte Informationen über "${topic}".\n\n• Kontext: Dieses Thema ist relevant, da es viele Menschen betrifft.\n• Wichtige Daten: Die Informationen über ${topic} entwickeln sich ständig weiter.\n• Empfehlung: Bleiben Sie auf dem Laufenden, indem Sie zuverlässige Quellen verfolgen.\n\nMöchten Sie weitere Ideen zu diesem Thema?`,
+    `🔍 Recherche: ${topic}\n\nIch habe nach Informationen über "${topic}" gesucht und Folgendes gefunden:\n\n📌 Wichtige Punkte:\n1. ${topic} ist ein Thema von großem aktuellen Interesse\n2. Es gibt multiple Perspektiven zur Analyse\n3. Die Community diskutiert aktiv darüber\n\n💡 Ich empfehle, verschiedene Quellen zu erkunden und sich eine eigene Meinung zu bilden.`,
+  ];
+}
+
+function generateTurkishResponse(topic: string): string[] {
+  return [
+    `📖 ${topic} — Kapsamlı Analiz\n\n"${topic}" hakkında detaylı bilgiler burada.\n\n• Bağlam: Bu konu birçok kişiyi etkilediği için önemlidir.\n• Temel veriler: ${topic} hakkındaki bilgiler sürekli gelişmektedir.\n• Öneri: Güvenilir kaynakları takip ederek güncel kalın.\n\nBu konu hakkında daha fazla fikir ister misiniz?`,
+    `🔍 Araştırma: ${topic}\n\n"${topic}" hakkında bilgi aradım ve bulduklarım şunlar:\n\n📌 Önemli noktalar:\n1. ${topic} şu anda büyük ilgi gören bir konudur\n2. Analiz etmek için birden fazla bakış açısı vardır\n3. Topluluk aktif olarak tartışıyor\n\n💡 Farklı kaynakları keşfetmenizi ve kendi görüşünüzü oluşturmanızı öneririm.`,
+  ];
+}
+
+function generateChineseResponse(topic: string): string[] {
+  return [
+    `📖 ${topic} — 全面分析\n\n以下是关于"${topic}"的详细信息。\n\n• 背景：这个主题很重要，因为它影响着很多人。\n• 关键数据：关于${topic}的信息在不断更新。\n• 建议：请关注可靠的信息来源以保持更新。\n\n您想获取更多关于这个主题的想法吗？`,
+    `🔍 研究：${topic}\n\n我搜索了关于"${topic}"的信息，以下是发现的内容：\n\n📌 重要要点：\n1. ${topic}是当前备受关注的话题\n2. 有多个角度可以进行分析\n3. 社区正在积极讨论\n\n💡 建议您探索不同的信息来源，形成自己的观点。`,
+  ];
+}
+function generateArabicResponse(topic: string): string[] {
+  return [
+    `📖 ${topic} — تحليل شامل\n\nإليك معلومات مفصلة عن "${topic}".\n\n• السياق: هذا الموضوع مهم لأنه يؤثر على الكثير من الناس.\n• بيانات رئيسية: المعلومات عن ${topic} في تطور مستمر.\n• توصية: ابق على اطلاع من خلال متابعة مصادر موثوقة.\n\nهل تريد المزيد من الأفكار حول هذا الموضوع؟`,
+    `🔍 بحث: ${topic}\n\nبحثت عن معلومات حول "${topic}" وهذا ما وجدته:\n\n📌 نقاط مهمة:\n1. ${topic} موضوع ذو أهمية كبيرة حالياً\n2. هناك وجهات نظر متعددة للتحليل\n3. المجتمع يناقش بنشاط\n\n💡 أقترح استكشاف مصادر مختلفة وتكوين رأيك الخاص.`,
+  ];
+}
+
+function generateFrenchResponse(topic: string): string[] {
+  return [
+    `📖 ${topic} — Analyse Complète\n\nVoici des informations détaillées sur "${topic}".\n\n• Contexte: Ce sujet est pertinent car il affecte de nombreuses personnes.\n• Données clés: Les informations sur ${topic} évoluent constamment.\n• Recommandation: Restez à jour en suivant des sources fiables.\n\nVoulez-vous plus d'idées sur ce sujet?`,
+    `🔍 Recherche: ${topic}\n\nJ'ai cherché des informations sur "${topic}" et voici ce que j'ai trouvé:\n\n📌 Points importants:\n1. ${topic} est un sujet de grand intérêt\n2. Il y a plusieurs perspectives à analyser\n3. La communauté en discute activement\n\n💡 Je suggère d'explorer différentes sources.`,
+  ];
+}
 // ============================================================
 // BREAKTHROUGH CONTENT ASSISTANT — Detailed, Unique Responses
 // ============================================================
@@ -40,6 +168,52 @@ function generateLocalSuggestions(topic: string): string[] {
   const capitalized = t.charAt(0).toUpperCase() + t.slice(1);
   const lower = t.toLowerCase();
   
+
+   
+  
+   const detectedLang = detectLanguage(topic);
+  const responseLang = detectedLang !== 'en' ? detectedLang : getResponseLanguage();
+  
+  // If user typed in non-English, respond in that language
+  if (responseLang === 'es') {
+    return generateSpanishResponse(topic);
+  }
+  if (responseLang === 'ar') {
+    return generateArabicResponse(topic);
+  }
+  if (responseLang === 'fr') {
+    return generateFrenchResponse(topic);
+  }
+    if (responseLang === 'gr') {
+    return generateGermanResponse(topic);
+  }
+  if (responseLang === 'hi') {
+    return generateHindiResponse(topic);
+  }
+  if (responseLang === 'it') {
+    return generateItalianResponse(topic);
+  }
+  if (responseLang === 'ja') {
+    return generateJapaneseResponse(topic);
+  }
+  if (responseLang === 'ko') {
+    return generateKoreanResponse(topic);
+  }
+  if (responseLang === 'pt-BR') {
+    return generatePortugueseBRResponse(topic);
+  }
+  if (responseLang === 'ru') {
+    return generateRussianResponse(topic);
+  }
+  if (responseLang === 'tr') {
+    return generateTurkishResponse(topic);
+  }
+  if (responseLang === 'zh') {
+    return generateChineseResponse(topic);
+  }
+
+
+   
   // Try web-style response for any multi-word query
   const wordCount = t.split(/\s+/).length;
   
@@ -55,6 +229,7 @@ function generateLocalSuggestions(topic: string): string[] {
       `💡 Expert Insights: ${capitalized}\n\nLet me provide a detailed analysis of "${t}":\n\n🧠 Understanding The Basics:\n${capitalized} encompasses several key aspects that are worth exploring. Whether you're a beginner or experienced, there's always something new to learn.\n\n🌟 Key Highlights:\n• Innovation: ${capitalized} represents cutting-edge developments\n• Community: A growing community discusses and shares ideas\n• Opportunity: Knowledge of ${capitalized} opens doors\n\n📖 Recommended Approach:\n1. Start with fundamentals\n2. Follow thought leaders\n3. Engage with the community\n4. Practice and experiment\n5. Share your journey\n\nRemember: The best way to master any topic is through consistent learning and practical application.`,
     ];
   }
+  
   
   // Single word — use category detection (existing logic)
   const isPerson = /^[A-Z][a-z]+(\s[A-Z][a-z]+)?$/.test(capitalized) && !/^[A-Z]{2,}$/.test(t);
@@ -381,10 +556,19 @@ export default function SaslAIHub() {
         setVoiceConversation(prev => [...prev, { type: 'ai', text: aiResponse }]);
         speakResponse(aiResponse);
       } catch {
+              // Try Sasl Brain for unknown questions
+      try {
+        const aiResponse = await saslBrain.chatbotResponse(command);
+        setVoiceResponse(aiResponse);
+        setVoiceConversation(prev => [...prev, { type: 'ai', text: aiResponse }]);
+        speakResponse(aiResponse);
+      } catch {
         const fallback = "I didn't quite catch that. Try saying: 'Feed', 'Marketplace', 'How to earn', 'Create post', or 'Help'";
         setVoiceResponse(fallback);
         setVoiceConversation(prev => [...prev, { type: 'ai', text: fallback }]);
         speakResponse(fallback);
+      }
+       
       }
     }
 
