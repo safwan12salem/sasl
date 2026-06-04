@@ -3,6 +3,8 @@ Sasl - Social Asynchronous Sharing Layer
 Content serializers with polls, comments, reports.
 """
 from rest_framework import serializers
+
+from events import models
 from .models import Post, PostLike, Comment, Reel, ReelComment, ReelCommentReply, ReelLike, Story, Notification, Poll, PollOption, PollVote, Report, ReelCommentLike, ReelCommentReplyLike
 from users.serializers import UserProfileSerializer
 
@@ -128,10 +130,18 @@ class ReelCommentSerializer(serializers.ModelSerializer):
     liked_by_me = serializers.SerializerMethodField()
     my_reaction = serializers.SerializerMethodField() 
     replies = serializers.SerializerMethodField()    
+    reaction_counts = serializers.SerializerMethodField()
     class Meta:
         model = ReelComment
-        fields = ['id', 'user', 'text', 'likes_count', 'liked_by_me','my_reaction','replies', 'created_at']
-    
+        fields = ['id', 'user', 'text', 'likes_count', 'liked_by_me','my_reaction','reaction_counts','replies', 'created_at']
+
+    def get_reaction_counts(self, obj):
+        from django.db.models import Count
+        counts = ReelCommentLike.objects.filter(comment=obj).values('reaction').annotate(
+            count=Count('id')
+        )
+        return {item['reaction']: item['count'] for item in counts}
+
     def get_likes_count(self, obj):
         return ReelCommentLike.objects.filter(comment=obj).count()
     
@@ -164,9 +174,10 @@ class ReelCommentReplySerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
     liked_by_me = serializers.SerializerMethodField()
     my_reaction = serializers.SerializerMethodField() 
+    reaction_counts = serializers.SerializerMethodField()
     class Meta:
         model = ReelCommentReply
-        fields = ['id', 'user', 'text', 'likes_count', 'liked_by_me','my_reaction', 'created_at']
+        fields = ['id', 'user', 'text', 'likes_count', 'liked_by_me','my_reaction','reaction_counts', 'created_at']
 
     def get_likes_count(self, obj):
         return ReelCommentReplyLike.objects.filter(reply=obj).count()
@@ -188,3 +199,11 @@ class ReelCommentReplySerializer(serializers.ModelSerializer):
         except Exception:
             pass
         return None
+    
+
+    def get_reaction_counts(self, obj):
+        from django.db.models import Count
+        counts = ReelCommentReplyLike.objects.filter(reply=obj).values('reaction').annotate(
+            count=Count('id')
+        )
+        return {item['reaction']: item['count'] for item in counts}

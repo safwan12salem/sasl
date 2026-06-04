@@ -42,9 +42,8 @@ export default function Layout() {
     { to: '/', icon: Home, label: t('feed') },        
     { to: '/analytics', icon: TrendingUp, label: t('Analytics') },
     { to: '/progress', icon: Star, label: t('Progress') },   
-   // { to: '/referral', icon: Users, label: t('referrals') },//
     { to: '/earnings', icon: DollarSign, label: t('Earnings') },
-     { to: '/wallet', icon: Wallet, label: t('wallet') },
+    { to: '/wallet', icon: Wallet, label: t('wallet') },
     { to: '/profile', icon: User, label: t('profile') },
   ];
 
@@ -58,11 +57,11 @@ export default function Layout() {
       </div>
 
       {/* Sidebar */}
-       <aside className={`w-72 p-4 flex flex-col shadow-2xl z-20 relative border-r transition-colors duration-300 ${
-  isDark 
-    ? 'bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 text-white border-white/5' 
-    : 'bg-gradient-to-b from-white via-gray-50 to-white text-gray-900 border-gray-200'
-}`}>
+      <aside className={`w-72 p-4 flex flex-col shadow-2xl z-20 relative border-r transition-colors duration-300 ${
+        isDark 
+          ? 'bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 text-white border-white/5' 
+          : 'bg-gradient-to-b from-white via-gray-50 to-white text-gray-900 border-gray-200'
+      }`}>
         {/* Sidebar glow effect */}
         <div className="absolute inset-0 bg-gradient-to-b from-sasl-green/10 via-transparent to-sasl-orange/5 pointer-events-none" />
         
@@ -79,15 +78,33 @@ export default function Layout() {
                 to={to}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative ${
                   isActive
-                    ? 'bg-gradient-to-r from-sasl-green/30 to-sasl-green/10 shadow-lg shadow-sasl-green/10 font-semibold border border-sasl-green/20'
-                    : 'hover:bg-white/5 hover:translate-x-1'
+                    ? isDark 
+                      ? 'bg-white/10 shadow-lg font-semibold border border-white/20' 
+                      : 'bg-sasl-green/10 shadow-lg font-semibold border border-sasl-green/20'
+                    : isDark
+                      ? 'hover:bg-white/5 hover:translate-x-1'
+                      : 'hover:bg-gray-100 hover:translate-x-1'
                 }`}
               >
                 {isActive && (
                   <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-sasl-green to-sasl-orange rounded-r-full" />
                 )}
-                <Icon size={18} className={`transition-colors ${isActive ? 'text-sasl-green' : isDark ? 'text-white/60 group-hover:text-white/90' : 'text-gray-500 group-hover:text-gray-900'}`} />
-<span className={`text-sm ${isActive ? (isDark ? 'text-white' : 'text-gray-900 font-semibold') : isDark ? 'text-white/70 group-hover:text-white' : 'text-gray-600 group-hover:text-gray-900'}`}></span>
+                <Icon size={18} className={`transition-colors flex-shrink-0 ${
+                  isActive 
+                    ? 'text-sasl-green' 
+                    : isDark 
+                      ? 'text-white/50 group-hover:text-white/80' 
+                      : 'text-gray-400 group-hover:text-gray-700'
+                }`} />
+                <span className={`text-sm truncate ${
+                  isActive 
+                    ? isDark ? 'text-white font-semibold' : 'text-gray-900 font-semibold'
+                    : isDark 
+                      ? 'text-white/60 group-hover:text-white/90' 
+                      : 'text-gray-600 group-hover:text-gray-900'
+                }`}>
+                  {label}
+                </span>
                 {isActive && (
                   <div className="absolute right-2 w-1.5 h-1.5 rounded-full bg-sasl-green animate-glow" />
                 )}
@@ -96,13 +113,13 @@ export default function Layout() {
           })}
         </nav>
         
-        <div className="border-t border-white/10 pt-4 mt-4 relative z-10 space-y-2">
+        <div className={`border-t pt-4 mt-4 relative z-10 space-y-2 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-sasl-green to-sasl-orange flex items-center justify-center text-white font-bold text-xs">
                 {user?.username?.[0]?.toUpperCase() || 'U'}
               </div>
-             <span className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-gray-900'}`}>{user?.username}</span>
+              <span className={`text-sm font-medium ${isDark ? 'text-white/80' : 'text-gray-900'}`}>{user?.username}</span>
             </div>
             <motion.button 
               whileTap={{ scale: 0.9 }}
@@ -123,9 +140,11 @@ export default function Layout() {
             <motion.button 
               whileTap={{ scale: 0.9 }}
               onClick={toggleTheme} 
-             className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition text-sm ${
-  isDark ? 'text-white/60 hover:text-white/90 hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-}`}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl transition text-sm ${
+                isDark 
+                  ? 'text-white/60 hover:text-white/90 hover:bg-white/5' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              }`}
             >
               {isDark ? <Sun size={16} /> : <Moon size={16} />}
               {isDark ? t('light_mode') : t('dark_mode')}
@@ -134,16 +153,18 @@ export default function Layout() {
           
           <button 
             onClick={() => setShowReferral(true)} 
-           className={`flex items-center gap-2 w-full py-2.5 px-4 rounded-xl transition text-sm ${
-  isDark ? 'text-white/70 hover:text-white hover:bg-white/5' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-}`}
+            className={`flex items-center gap-2 w-full py-2.5 px-4 rounded-xl transition text-sm ${
+              isDark 
+                ? 'text-white/70 hover:text-white hover:bg-white/5' 
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            }`}
           >
             <Users size={16} /> {t('invite')}
           </button>
           
           <button 
             onClick={logout} 
-           className="flex items-center gap-2 w-full py-2.5 px-4 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 transition text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 text-sm"
+            className="flex items-center gap-2 w-full py-2.5 px-4 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 transition text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300 text-sm"
           >
             <LogOut size={16} /> {t('logout')}
           </button>
