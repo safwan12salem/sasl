@@ -809,5 +809,7 @@
   "Tutor students – Teachers earn $4,500/month": "علّم الطلاب – المعلمون يكسبون 4,500$/شهر",
   "Complete gigs – Gig workers average $1,200/month": "أكمل المهام – المستقلون يكسبون 1,200$/شهر في المتوسط",
   "Watch ads daily – Earn up to $15/month": "شاهد الإعلانات يومياً – اكسب حتى 15$/شهر",
-  "Aucune publication pour l'instant.": "لا توجد منشورات حالياً."
+  "Aucune publication pour l'instant.": "لا توجد منشورات حالياً.",
+  "host_audio_room": "إنشاء غرفة صوتية",
+"hosted_by": "مقدم من قبل"
 }

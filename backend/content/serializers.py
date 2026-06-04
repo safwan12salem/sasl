@@ -142,11 +142,14 @@ class ReelCommentSerializer(serializers.ModelSerializer):
         return False
     
 
-    def get_my_reaction(self, obj):  # ← ADD THIS
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            like = ReelCommentLike.objects.filter(comment=obj, user=request.user).first()
-            return like.reaction if like else None
+    def get_my_reaction(self, obj):
+        try:
+            request = self.context.get('request')
+            if request and request.user and request.user.is_authenticated:
+                like = ReelCommentLike.objects.filter(comment=obj, user=request.user).first()
+                return like.reaction if like else None
+        except Exception:
+            pass
         return None
     
     def get_replies(self, obj):
@@ -176,9 +179,12 @@ class ReelCommentReplySerializer(serializers.ModelSerializer):
     
 
 
-    def get_my_reaction(self, obj):  # ← ADD THIS
-        request = self.context.get('request')
-        if request and request.user.is_authenticated:
-            like = ReelCommentReplyLike.objects.filter(reply=obj, user=request.user).first()
-            return like.reaction if like else None
+    def get_my_reaction(self, obj):
+        try:
+            request = self.context.get('request')
+            if request and request.user and request.user.is_authenticated:
+                like = ReelCommentReplyLike.objects.filter(reply=obj, user=request.user).first()
+                return like.reaction if like else None
+        except Exception:
+            pass
         return None

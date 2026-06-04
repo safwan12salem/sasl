@@ -1,17 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { Send } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
-
-
 interface Props {
   roomId: string;
   onClose: () => void;
-  onVideoCall?: () => void;
-  onVoiceCall?: () => void;
 }
 
 export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
@@ -23,113 +19,90 @@ export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
   const { t } = useTranslation();
   const [chatType, setChatType] = useState<'gig' | 'tutoring'>('gig');
   const { user } = useAuth();
-  
-  
+
+  // Determine chat type
+  useEffect(() => {
+    if (roomId?.startsWith('gig-')) setChatType('gig');
+    else if (roomId?.startsWith('tutoring-')) setChatType('tutoring');
+  }, [roomId]);
+
+  // Fetch chat history
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const id = roomId.replace('gig-', '').replace('tutoring-', '');
+        const endpoint = chatType === 'gig'
+          ? `/gigs/gigs/${id}/chat/`
+          : `/tutoring/sessions/${id}/chat/`;
+        const res = await api.get(endpoint);
+        const dataArray = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+        const historyMsgs = dataArray.map((m: any) => {
+          const sender = m.sender_name || m.sender?.username || 'Unknown';
+          return sender === user?.username ? `Me: ${m.text}` : `${sender}: ${m.text}`;
+        });
+        setMessages(historyMsgs);
+      } catch {
+        // Silent fail — chat history not critical
+      }
+    };
+    if (roomId) fetchHistory();
+  }, [roomId, chatType, user]);
+
+  // WebSocket connection
   useEffect(() => {
     const isLocal = window.location.hostname === 'localhost';
-const wsUrl = isLocal 
-  ? `ws://localhost:8000/ws/video/${roomId}/?token=${token}`
-  : `wss://sasl.pythonanywhere.com/ws/video/${roomId}/?token=${token}`;
+    const wsUrl = isLocal
+      ? `ws://localhost:8000/ws/video/${roomId}/?token=${token}`
+      : `wss://sasl.pythonanywhere.com/ws/video/${roomId}/?token=${token}`;
+    
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
-    ws.onopen = () => {
-      setConnected(true);
-    };
+    ws.onopen = () => setConnected(true);
 
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        // Handle chat messages (text type)
-        if (data.type === 'chat') {
+        if (data.type === 'chat' && data.text) {
           setMessages(prev => [...prev, data.text]);
         }
-        // Also try to parse as plain text (some servers send raw text)
       } catch {
-        // If not JSON, treat as plain text message
         setMessages(prev => [...prev, event.data]);
       }
     };
 
-    ws.onclose = () => {
-      setConnected(false);
-    };
+    ws.onclose = () => setConnected(false);
+    ws.onerror = () => setConnected(false);
 
     return () => {
       ws.close();
+      wsRef.current = null;
     };
   }, [roomId, token]);
 
+  // Send message
+  const send = async () => {
+    if (!input.trim()) return;
 
+    // Send via WebSocket
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: 'chat', text: input }));
+    }
 
-
-
-
-useEffect(() => {
-  if (roomId.startsWith('gig-')) setChatType('gig');
-  else if (roomId.startsWith('tutoring-')) setChatType('tutoring');
-}, [roomId]);
-
-
-
-
-
-
-useEffect(() => {
-  const fetchHistory = async () => {
+    // Persist to backend
     try {
       const id = roomId.replace('gig-', '').replace('tutoring-', '');
-      const endpoint = chatType === 'gig' 
+      const endpoint = chatType === 'gig'
         ? `/gigs/gigs/${id}/chat/`
         : `/tutoring/sessions/${id}/chat/`;
-      const res = await api.get(endpoint);
-      setMessages(res.data.map((m: any) => 
-        m.sender_name === user?.username ? `Me: ${m.text}` : `${m.sender_name}: ${m.text}`
-      ));
+      await api.post(endpoint, { text: input });
     } catch {
-      toast.error('Failed to fetch chat history');
+      // Silent fail — message still sent via WebSocket
     }
+
+    setMessages(prev => [...prev, `Me: ${input}`]);
+    setInput('');
   };
-  fetchHistory();
-}, [roomId, chatType]);
-
-
-
-// Inside WebRTCPrivateChat component, add:
-useEffect(() => {
-  if (roomId?.startsWith('gig-')) {
-    const gigId = roomId.replace('gig-', '');
-    api.get(`/gigs/gigs/${gigId}/chat/`).then(res => {
-      // Load history into messages state
-      const history = (res.data || []).map((m: any) => ({
-        text: m.text,
-        sender: m.sender_name,
-        timestamp: m.created_at,
-      }));
-      setMessages(history);
-    }).catch(() => {});
-  }
-}, [roomId]);
-
-
-  const send = async () => {
-  if (!input.trim()) return;
-  if (wsRef.current?.readyState === WebSocket.OPEN) {
-    wsRef.current.send(JSON.stringify({ type: 'chat', text: input }));
-  }
-
-
- try {
-    const id = roomId.replace('gig-', '').replace('tutoring-', '');
-    const endpoint = chatType === 'gig'
-      ? `/gigs/gigs/${id}/chat/`
-      : `/tutoring/sessions/${id}/chat/`;
-    await api.post(endpoint, { text: input });
-  } catch {}
-  
-  setMessages(prev => [...prev, `Me: ${input}`]);
-  setInput('');
-};
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -163,7 +136,7 @@ useEffect(() => {
             </p>
           )}
           {messages.map((m, i) => {
-            const isMe = m.startsWith('Me:');
+            const isMe = typeof m === 'string' && m.startsWith('Me:');
             return (
               <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                 <div
@@ -173,7 +146,7 @@ useEffect(() => {
                       : 'bg-white shadow-sm border text-gray-700 rounded-bl-md'
                   }`}
                 >
-                  {m}
+                  {typeof m === 'string' ? m : JSON.stringify(m)}
                 </div>
               </div>
             );

@@ -711,5 +711,7 @@
   "private": "Private",
   "group_created_successfully": "Group created successfully!",
   "failed_to_create_group": "Failed to create group",
-  "left_group": "Left the group"
+  "left_group": "Left the group",
+  "host_audio_room": "Host Audio Room",
+"hosted_by": "Hosted by"
 }

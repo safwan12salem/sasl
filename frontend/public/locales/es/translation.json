@@ -807,5 +807,7 @@
   "Analytics": "Analíticas",
   "Earnings": "Ganancias",
   "Sasl AI Hub": "Centro IA Sasl",
-  "Mesh Chat": "Chat Malla"
+  "Mesh Chat": "Chat Malla",
+  "host_audio_room": "Crear Sala de Audio",
+"hosted_by": "Presentado por"
 }

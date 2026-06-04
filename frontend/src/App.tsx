@@ -77,29 +77,31 @@ function InstallPrompt() {
 
 function AppContent() {
   const { user, loading } = useAuth();
-  const [splashDone, setSplashDone] = useState(false);
+    const [splashDone, setSplashDone] = useState(() => {
+    return sessionStorage.getItem('sasl_splash_done') === 'true';
+  });
 
-  const handleSplashFinish = useCallback(() => setSplashDone(true), []);
-
-  // 🌍 Start Global Mesh Network
-  useEffect(() => {
-    globalMesh.start();
-    
-    const interval = setInterval(() => {
-      const stats = globalMesh.getStats();
-      console.log('🌍 Mesh Stats:', stats);
-      console.log(`📡 Estimated Range: ${globalMesh.getEstimatedRange().toFixed(1)}km`);
-    }, 30000);
-    
-    return () => {
-      clearInterval(interval);
-    };
+  const handleSplashFinish = useCallback(() => {
+    sessionStorage.setItem('sasl_splash_done', 'true');
+    setSplashDone(true);
   }, []);
-
-  if (!splashDone) {
+  
+  
+  useEffect(() => {
+    // Reset splash when user explicitly logs out
+    const handleLogout = () => {
+      sessionStorage.removeItem('sasl_splash_done');
+    };
+    window.addEventListener('sasl_logout', handleLogout);
+    return () => window.removeEventListener('sasl_logout', handleLogout);
+  }, []);
+  
+   if (!splashDone) {
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
-
+    if (!splashDone) {
+    return <SplashScreen onFinish={handleSplashFinish} />;
+  }
   // ✅ FIXED: Show nothing while checking auth
   if (loading) return null;
 

@@ -119,20 +119,50 @@ class StripeViewSet(viewsets.GenericViewSet):
             return Response({'error': 'Invalid amount'}, status=400)
         
         wallet = request.user.wallet
+        
+        # Check minimum withdrawal
+        if float(amount) < 10:
+            return Response({'error': 'Minimum withdrawal is $10'}, status=400)
+        
+        # Check balance
         if wallet.balance < Decimal(str(amount)):
             return Response({'error': 'Insufficient balance'}, status=400)
         
-        wallet.balance -= Decimal(str(amount))
-        wallet.save()
+        # Check wallet not frozen
+        if wallet.is_frozen:
+            return Response({'error': 'Wallet is frozen. Contact support.'}, status=403)
         
-        Transaction.objects.create(
-            user=request.user,
-            amount=-Decimal(str(amount)),
-            transaction_type='withdrawal',
-            description=f'Withdrawal of ${amount}'
-        )
-        return Response({'status': 'pending', 'new_balance': float(wallet.balance)}) 
-
+        # Process via Stripe Connect
+        try:
+            from .stripe_service import create_payout
+            payout_id = create_payout(request.user, float(amount))
+            
+            if payout_id:
+                wallet.balance -= Decimal(str(amount))
+                wallet.save()
+                
+                Transaction.objects.create(
+                    user=request.user,
+                    amount=-Decimal(str(amount)),
+                    transaction_type='withdrawal',
+                    description=f'Withdrawal via Stripe — Ref: {payout_id}'
+                )
+                
+                return Response({
+                    'status': 'processing',
+                    'new_balance': float(wallet.balance),
+                    'payout_id': payout_id,
+                    'message': 'Withdrawal processing. Funds arrive in 3-5 business days.'
+                })
+            else:
+                return Response({
+                    'error': 'Stripe Connect not configured. Please set up your payout method in Settings.'
+                }, status=400)
+                
+        except Exception as e:
+            return Response({
+                'error': 'Withdrawal service temporarily unavailable. Please try again later.'
+            }, status=503)
 
 class RevenueViewSet(viewsets.GenericViewSet):
     permission_classes = [permissions.IsAuthenticated]

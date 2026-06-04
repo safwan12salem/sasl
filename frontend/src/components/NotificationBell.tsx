@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Bell, Heart, MessageCircle, UserPlus, DollarSign, ShoppingCart, Star } from 'lucide-react';
+import { Bell, Heart, MessageCircle, UserPlus, DollarSign, ShoppingCart, Star, Volume2, VolumeX } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -25,6 +25,10 @@ const iconMap: Record<string, JSX.Element> = {
   money: <DollarSign className="text-yellow-500" size={16} />,
   purchase: <ShoppingCart className="text-orange-500" size={16} />,
   subscription: <Star className="text-purple-500" size={16} />,
+  donation: <DollarSign className="text-yellow-500" size={16} />,
+  gig_completed: <Star className="text-green-500" size={16} />,
+  badge: <Star className="text-yellow-500" size={16} />,
+  snap: <MessageCircle className="text-purple-500" size={16} />,
 };
 
 export default function NotificationBell() {
@@ -38,6 +42,19 @@ export default function NotificationBell() {
   const wsRef = useRef<WebSocket | null>(null);
   const { t } = useTranslation();
   
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    return localStorage.getItem('sasl_notification_sound') !== 'off';
+  });
+
+  const playNotificationSound = () => {
+    if (!soundEnabled) return;
+    try {
+      const audio = new Audio('/notification.mp3');
+      audio.volume = 0.5;
+      audio.play().catch(() => {});
+    } catch {}
+  };
+
   useEffect(() => {
     if (!user) return;
     fetchNotifications();
@@ -52,6 +69,7 @@ export default function NotificationBell() {
     const subscription = subscribeToNotifications((payload) => {
       setNotifications(prev => [payload.new, ...prev]);
       setUnreadCount(prev => prev + 1);
+      playNotificationSound();
     });
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -60,31 +78,57 @@ export default function NotificationBell() {
       document.removeEventListener('mousedown', handleClickOutside);
       wsRef.current?.close();
     };
-  }, [user]);
+  }, [user, soundEnabled]);
 
   const connectWebSocket = () => {
     const token = localStorage.getItem('sasl_token');
-    const wsUrl = `wss://sasl.pythonanywhere.com/ws/notifications/?token=${token}`;
-    const ws = new WebSocket(wsUrl);
-    ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'unread_count') setUnreadCount(data.count);
-      else if (data.type === 'new_notification') {
-        setNotifications(prev => [data.notification, ...prev]);
-        setUnreadCount(prev => prev + 1);
-        toast(data.notification.message, { icon: iconMap[data.notification.type] || '🔔' });
-      }
-    };
-    wsRef.current = ws;
+    const isLocal = window.location.hostname === 'localhost';
+    const wsUrl = isLocal 
+      ? `ws://localhost:8000/ws/notifications/?token=${token}`
+      : `wss://sasl.pythonanywhere.com/ws/notifications/?token=${token}`;
+    
+    try {
+      const ws = new WebSocket(wsUrl);
+      ws.onopen = () => console.log('🔔 Notification WebSocket connected');
+      
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'unread_count') {
+            setUnreadCount(data.count);
+          } else if (data.type === 'new_notification') {
+            setNotifications(prev => [data.notification, ...prev]);
+            setUnreadCount(prev => prev + 1);
+            playNotificationSound();
+            toast(data.notification.message, { 
+              icon: iconMap[data.notification.notification_type] || '🔔',
+              duration: 4000,
+            });
+          }
+        } catch (err) {
+          console.warn('WebSocket message parse error:', err);
+        }
+      };
+      
+      ws.onerror = () => console.log('🔔 WebSocket error — falling back to polling');
+      ws.onclose = () => console.log('🔔 Notification WebSocket closed');
+      
+      wsRef.current = ws;
+    } catch (err) {
+      console.log('🔔 WebSocket connection failed — using polling');
+    }
   };
 
   const fetchNotifications = async () => {
     setLoading(true);
     try {
       const res = await api.get('/content/notifications/');
-      setNotifications(res.data.results || res.data || []);
-      setUnreadCount((res.data.results || res.data || []).filter((n: Notification) => !n.is_read).length);
-    } catch {} finally { setLoading(false); }
+      const data = res.data.results || res.data || [];
+      setNotifications(data);
+      setUnreadCount(data.filter((n: Notification) => !n.is_read).length);
+    } catch {} finally { 
+      setLoading(false); 
+    }
   };
 
   const markAsRead = async (id: string) => {
@@ -106,7 +150,16 @@ export default function NotificationBell() {
   const handleClick = (notification: Notification) => {
     if (!notification.is_read) markAsRead(notification.id);
     setOpen(false);
-    if (notification.post_id) navigate(`/post/${notification.post_id}`);
+    if (notification.post_id) {
+      navigate(`/post/${notification.post_id}`);
+    }
+  };
+
+  const toggleSound = () => {
+    const newState = !soundEnabled;
+    setSoundEnabled(newState);
+    localStorage.setItem('sasl_notification_sound', newState ? 'on' : 'off');
+    toast(newState ? '🔊 Notification sounds ON' : '🔇 Notification sounds OFF');
   };
 
   return (
@@ -138,11 +191,16 @@ export default function NotificationBell() {
           >
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700">
               <h3 className="font-bold text-gray-900 dark:text-white">{t('Notifications')}</h3>
-              {unreadCount > 0 && (
-                <button onClick={markAllRead} className="text-sm text-green-600 hover:underline font-medium">
-                  {t('Mark all read')}
+              <div className="flex items-center gap-2">
+                <button onClick={toggleSound} className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition" title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}>
+                  {soundEnabled ? <Volume2 size={14} className="text-green-500" /> : <VolumeX size={14} className="text-gray-400" />}
                 </button>
-              )}
+                {unreadCount > 0 && (
+                  <button onClick={markAllRead} className="text-sm text-green-600 hover:underline font-medium">
+                    {t('Mark all read')}
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="max-h-96 overflow-y-auto">
