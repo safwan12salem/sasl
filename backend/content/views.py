@@ -453,22 +453,22 @@ class ReelViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Comment not found'}, status=404)
         
         like, created = ReelCommentLike.objects.get_or_create(
-            comment=comment, user=request.user
+            comment=comment, user=request.user,
+            defaults={'reaction': reaction}
         )
         if not created:
+            # Already liked — check if same reaction
             if like.reaction == reaction:
+                # Same reaction — toggle off
                 like.delete()
-                return Response({'status': 'unliked', 'reaction': None})
-            # If different reaction, update it
-            like.reaction = reaction
-            like.save()
-            like.delete()
-            return Response({'status': 'unliked'})
-        return Response({'status': 'liked', 'reaction': reaction, 'likes_count': ReelCommentLike.objects.filter(comment=comment).count()})  
-    
-
-
-
+                return Response({'status': 'unliked', 'reaction': None, 'likes_count': ReelCommentLike.objects.filter(comment=comment).count()})
+            else:
+                # Different reaction — update it
+                like.reaction = reaction
+                like.save()
+                return Response({'status': 'updated', 'reaction': reaction, 'likes_count': ReelCommentLike.objects.filter(comment=comment).count()})
+        
+        return Response({'status': 'liked', 'reaction': reaction, 'likes_count': ReelCommentLike.objects.filter(comment=comment).count()})
     @action(detail=True, methods=['post'])
     def reply_comment(self, request, pk=None):
         reel = self.get_object()
@@ -486,6 +486,8 @@ class ReelViewSet(viewsets.ModelViewSet):
         )
         return Response(ReelCommentReplySerializer(reply).data, status=201)
 
+
+     
 
 
     @action(detail=True, methods=['post'])
@@ -505,7 +507,15 @@ class ReelViewSet(viewsets.ModelViewSet):
             defaults={'reaction': reaction}
         )
         if not created:
-          if like.reaction == reaction:
-            like.delete()
-            return Response({'status': 'unliked', 'reaction': None, 'likes_count': ReelCommentReplyLike.objects.filter(reply=reply).count()})
-        return Response({'status': 'liked', 'reaction': reaction, 'likes_count': ReelCommentReplyLike.objects.filter(reply=reply).count()})    
+            # Already liked — check if same reaction
+            if like.reaction == reaction:
+                # Same reaction — toggle off
+                like.delete()
+                return Response({'status': 'unliked', 'reaction': None, 'likes_count': ReelCommentReplyLike.objects.filter(reply=reply).count()})
+            else:
+                # Different reaction — update it
+                like.reaction = reaction
+                like.save()
+                return Response({'status': 'updated', 'reaction': reaction, 'likes_count': ReelCommentReplyLike.objects.filter(reply=reply).count()})
+        
+        return Response({'status': 'liked', 'reaction': reaction, 'likes_count': ReelCommentReplyLike.objects.filter(reply=reply).count()}) 
