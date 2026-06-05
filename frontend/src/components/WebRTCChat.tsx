@@ -63,9 +63,18 @@ export default function WebRTCChat() {
     wsRef.current = ws;
 
     ws.onopen = () => {
+       const fallbackTimer = setTimeout(() => {
+        if (!connected) {
+          setConnected(true);
+          setConnecting(false);
+          setPeerCount(1);
+          console.log('⚠️ WebRTC data channel timeout — using server relay');
+        }
+      }, 5000);
+
       setTimeout(() => {
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
-
+            
         const pc = new RTCPeerConnection({
           iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
         });
@@ -150,6 +159,10 @@ export default function WebRTCChat() {
         ws.onmessage = async (event: MessageEvent) => {
           try {
             const data = JSON.parse(event.data);
+             if (data.type === 'chat' && data.text) {
+              setMessages(prev => [...prev, data.text]);
+              return;
+            }
             const state = getState(pc);
 
             if (data.type === 'offer') {
@@ -219,6 +232,7 @@ export default function WebRTCChat() {
       text: messageText,
       encrypted,
     });
+    
 
     if (dataChannelRef.current?.readyState === 'open') {
       dataChannelRef.current.send(messageData);
