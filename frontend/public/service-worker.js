@@ -34,6 +34,15 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+self.addEventListener('fetch', event => {
+  // Skip non-GET requests (POST, PUT, DELETE)
+  if (event.request.method !== 'GET') return;
+  
+  event.respondWith(
+    caches.match(event.request).then(response => response || fetch(event.request))
+  );
+});
+
 // Fetch: network-first with cache fallback for API; cache-first for static
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
