@@ -187,7 +187,7 @@ export default function Reels() {
                           <button onClick={(e) => { e.stopPropagation(); setReplyingTo(replyingTo === c.id ? null : c.id); setReplyTexts(prev => ({ ...prev, [c.id]: '' })); }}
                             className="text-white/40 text-[10px] ml-2 hover:text-white/80">Reply</button>
                         </div>
-     <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-0.5">
   {['❤️', '😂', '🔥', '😢'].map(emoji => {
     const count = c.reaction_counts?.[emoji] || 0;
     return (
@@ -202,11 +202,11 @@ export default function Reels() {
         }}
         className={`text-[10px] transition-all duration-200 flex items-center gap-0.5 ${
           c.my_reaction === emoji 
-            ? 'scale-110 opacity-100' 
+            ? 'scale-125 opacity-100' 
             : 'opacity-40 hover:opacity-70'
         }`}
       >
-        {emoji}<span className="text-[8px]">{count > 0 ? count : ''}</span>
+        {emoji}<span className="text-[8px] font-bold">{count > 0 ? count : ''}</span>
       </button>
     );
   })}

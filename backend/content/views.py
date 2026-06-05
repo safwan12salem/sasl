@@ -430,13 +430,12 @@ class ReelViewSet(viewsets.ModelViewSet):
         comment = ReelComment.objects.create(reel=reel, user=request.user, text=text)
         reel.comments_count = ReelComment.objects.filter(reel=reel).count()
         reel.save(update_fields=['comments_count'])
-        return Response(ReelCommentSerializer(comment).data, status=201)
-
+        return Response(ReelCommentSerializer(comment, context={'request': request}).data, status=201)
     @action(detail=True, methods=['get'])
     def comments(self, request, pk=None):
         reel = self.get_object()
         reel_comments = ReelComment.objects.filter(reel=reel).order_by('-created_at')[:50]
-        return Response(ReelCommentSerializer(reel_comments, many=True).data)
+        return Response(ReelCommentSerializer(reel_comments, many=True, context={'request': request}).data)
 
 
 
