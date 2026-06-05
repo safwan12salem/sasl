@@ -12,6 +12,11 @@ const urlsToCache = [
   '/locales/ar/translation.json',
   '/locales/pt-BR/translation.json',
   '/locales/zh/translation.json',
+  '/locales/ru/translation.json',
+  'locales/tr/translation.json',
+  'locales/ko/translation.json',
+  'locales/gr/translation.json',
+  ''
 ];
 
 // Install: cache core assets
@@ -35,9 +40,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', event => {
-  // Skip non-GET requests (POST, PUT, DELETE)
   if (event.request.method !== 'GET') return;
-  
   event.respondWith(
     caches.match(event.request).then(response => response || fetch(event.request))
   );

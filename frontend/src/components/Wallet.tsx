@@ -11,19 +11,28 @@ interface CategoryTotal { category: string; total: number; count: number; icon: 
 
 export default function Wallet() {
   const { user } = useAuth();
+  const [cachedBalance] = useState(() => {
+    return localStorage.getItem('sasl_cached_balance') || '0.00';
+  });
   const [wallet, setWallet] = useState<{ balance: number; total_earned: number } | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [withdrawing, setWithdrawing] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'earnings' | 'spending'>('all');
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [topUpAmount, setTopUpAmount] = useState('');
   const { t } = useTranslation();
+  
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const walletRes = await api.get('/users/wallet/'); setWallet(walletRes.data);
-        const txRes = await api.get('/monetization/transactions/'); setTransactions(txRes.data.results || txRes.data || []);
+        const walletRes = await api.get('/users/wallet/');
+        setWallet(walletRes.data);
+        localStorage.setItem('sasl_cached_balance', String(walletRes.data.balance));
+        const txRes = await api.get('/monetization/transactions/');
+        setTransactions(txRes.data.results || txRes.data || []);
       } catch { setError(t('Failed to load wallet')); } finally { setLoading(false); }
     };
     fetchData();
@@ -32,14 +41,17 @@ export default function Wallet() {
   const handleWithdraw = async () => {
     setWithdrawing(true);
     try {
-      await api.post('/monetization/withdraw/', { amount: wallet?.balance });
-      toast.success(t('Withdrawal request sent!'));
-      const walletRes = await api.get('/users/wallet/'); setWallet(walletRes.data);
-    } catch (err: any) { toast.error(err.response?.data?.error || t('Withdrawal failed')); } finally { setWithdrawing(false); }
+      await api.post('/monetization/stripe/withdraw/', { amount: wallet?.balance });
+      toast.success(t('Withdrawal request sent! Funds arrive in 3-5 days.'));
+      const walletRes = await api.get('/users/wallet/');
+      setWallet(walletRes.data);
+      localStorage.setItem('sasl_cached_balance', String(walletRes.data.balance));
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || t('Withdrawal failed'));
+    } finally {
+      setWithdrawing(false);
+    }
   };
-
-   const [showTopUpModal, setShowTopUpModal] = useState(false);
-  const [topUpAmount, setTopUpAmount] = useState('');
 
   const handleTopUp = async () => {
     if (!topUpAmount || parseFloat(topUpAmount) < 1) {
@@ -54,6 +66,7 @@ export default function Wallet() {
     }
     setShowTopUpModal(false);
   };
+
   const categoryMap: Record<string, { label: string; icon: JSX.Element; color: string }> = {
     engagement_reward: { label: t('Engagement'), icon: <Heart size={14} />, color: 'text-pink-500' },
     donation: { label: t('Donations'), icon: <DollarSign size={14} />, color: 'text-yellow-500' },
@@ -84,45 +97,44 @@ export default function Wallet() {
 
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 rounded-2xl mb-6 text-center">
         <p className="text-gray-500 mb-1">{t('Current Balance')}</p>
-        <p className="text-5xl font-extrabold text-green-600">${Number(wallet?.balance || 0).toFixed(2)}</p>
+        <p className="text-5xl font-extrabold text-green-600">${Number(wallet?.balance ?? cachedBalance).toFixed(2)}</p>
         <p className="text-gray-400 mt-1">{t('Total earned')}: <span className="font-semibold">${Number(wallet?.total_earned || 0).toFixed(2)}</span></p>
         <div className="flex gap-2 mt-4">
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowTopUpModal(true)}
+          <motion.button whileTap={{ scale: 0.95 }} onClick={handleWithdraw} disabled={withdrawing || Number(wallet?.balance || 0) <= 0}
             className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 rounded-full font-semibold hover:shadow-lg transition disabled:opacity-50">
             <ArrowDownCircle size={18} /> {withdrawing ? t('Processing...') : t('Withdraw')}
           </motion.button>
-          <motion.button whileTap={{ scale: 0.95 }} onClick={handleTopUp}
+          <motion.button whileTap={{ scale: 0.95 }} onClick={() => setShowTopUpModal(true)}
             className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 rounded-full font-semibold hover:shadow-lg transition">
             <CreditCard size={18} /> {t('Top Up')}
           </motion.button>
-
-
-          {showTopUpModal && (
-  <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowTopUpModal(false)}>
-    <div className="glass-card p-6 rounded-2xl max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-      <h3 className="font-bold text-lg mb-4">💳 Top Up Wallet</h3>
-      <p className="text-sm text-gray-500 mb-3">Enter amount to add to your wallet</p>
-      <div className="flex gap-2 mb-4">
-        {['5', '10', '25', '50', '100'].map(amt => (
-          <button key={amt} onClick={() => setTopUpAmount(amt)}
-            className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${
-              topUpAmount === amt ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-gray-200'
-            }`}>
-            ${amt}
-          </button>
-        ))}
-      </div>
-      <input type="number" className="input-field mb-4" placeholder="Custom amount" 
-        value={topUpAmount} onChange={e => setTopUpAmount(e.target.value)} />
-      <div className="flex gap-2">
-        <button onClick={handleTopUp} className="btn-primary flex-1">Pay with Stripe</button>
-        <button onClick={() => setShowTopUpModal(false)} className="btn-ghost">Cancel</button>
-      </div>
-    </div>
-  </div>
-)}
         </div>
       </motion.div>
+
+      {showTopUpModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowTopUpModal(false)}>
+          <div className="glass-card p-6 rounded-2xl max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <h3 className="font-bold text-lg mb-4">💳 Top Up Wallet</h3>
+            <p className="text-sm text-gray-500 mb-3">Enter amount to add to your wallet</p>
+            <div className="flex gap-2 mb-4">
+              {['5', '10', '25', '50', '100'].map(amt => (
+                <button key={amt} onClick={() => setTopUpAmount(amt)}
+                  className={`px-3 py-1.5 rounded-full text-sm font-semibold transition ${
+                    topUpAmount === amt ? 'bg-green-500 text-white' : 'bg-gray-100 hover:bg-gray-200'
+                  }`}>
+                  ${amt}
+                </button>
+              ))}
+            </div>
+            <input type="number" className="input-field mb-4" placeholder="Custom amount" 
+              value={topUpAmount} onChange={e => setTopUpAmount(e.target.value)} />
+            <div className="flex gap-2">
+              <button onClick={handleTopUp} className="btn-primary flex-1">Pay with Stripe</button>
+              <button onClick={() => setShowTopUpModal(false)} className="btn-ghost">Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {categoryTotals.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-4 rounded-2xl mb-6">
