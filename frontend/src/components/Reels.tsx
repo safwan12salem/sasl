@@ -187,9 +187,10 @@ export default function Reels() {
                           <button onClick={(e) => { e.stopPropagation(); setReplyingTo(replyingTo === c.id ? null : c.id); setReplyTexts(prev => ({ ...prev, [c.id]: '' })); }}
                             className="text-white/40 text-[10px] ml-2 hover:text-white/80">Reply</button>
                         </div>
-    <div className="flex items-center gap-0.5">
+    <div className="flex items-center gap-1">
   {['❤️', '😂', '🔥', '😢'].map(emoji => {
     const count = c.reaction_counts?.[emoji] || 0;
+    const isMyReaction = c.my_reaction === emoji;
     return (
       <button 
         key={emoji}
@@ -200,13 +201,17 @@ export default function Reels() {
             fetchReelComments(reel.id); 
           } catch {} 
         }}
-        className={`text-[10px] transition-all duration-200 flex items-center gap-0.5 ${
-          c.my_reaction === emoji 
-            ? 'scale-125 opacity-100' 
-            : 'opacity-40 hover:opacity-70'
+        className={`text-[11px] transition-all duration-200 flex items-center gap-0.5 px-1 py-0.5 rounded-full ${
+          isMyReaction 
+            ? 'bg-white/20 scale-110 opacity-100' 
+            : 'opacity-50 hover:opacity-80'
         }`}
+        title={emoji === '❤️' ? 'Love' : emoji === '😂' ? 'Laugh' : emoji === '🔥' ? 'Fire' : 'Sad'}
       >
-        {emoji}<span className="text-[8px] font-bold">{count > 0 ? count : ''}</span>
+        {emoji}
+        <span className={`text-[9px] font-semibold ${isMyReaction ? 'text-white' : 'text-white/60'}`}>
+          {count}
+        </span>
       </button>
     );
   })}
@@ -223,9 +228,10 @@ export default function Reels() {
                         <div>
   <span className="text-white text-[10px] font-semibold">{r.user?.username || 'user'}</span>
   <span className="text-white/60 text-[10px] ml-1">{r.text}</span>
-    <div className="flex items-center gap-0.5 mt-0.5">
+   <div className="flex items-center gap-1 mt-0.5">
   {['❤️', '😂', '🔥'].map(emoji => {
     const count = r.reaction_counts?.[emoji] || 0;
+    const isMyReaction = r.my_reaction === emoji;
     return (
       <button 
         key={emoji}
@@ -236,13 +242,17 @@ export default function Reels() {
             fetchReelComments(reel.id); 
           } catch {} 
         }}
-        className={`text-[8px] transition-all duration-200 flex items-center gap-0.5 ${
-          r.my_reaction === emoji 
-            ? 'scale-110 opacity-100' 
-            : 'opacity-40 hover:opacity-70'
+        className={`text-[9px] transition-all duration-200 flex items-center gap-0.5 px-1 py-0.5 rounded-full ${
+          isMyReaction 
+            ? 'bg-white/20 scale-110 opacity-100' 
+            : 'opacity-50 hover:opacity-80'
         }`}
+        title={emoji === '❤️' ? 'Love' : emoji === '😂' ? 'Laugh' : '🔥' ? 'Fire' : 'Sad'}
       >
-        {emoji}<span className="text-[7px]">{count > 0 ? count : ''}</span>
+        {emoji}
+        <span className={`text-[7px] font-semibold ${isMyReaction ? 'text-white' : 'text-white/60'}`}>
+          {count}
+        </span>
       </button>
     );
   })}
