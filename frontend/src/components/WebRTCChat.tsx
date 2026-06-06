@@ -1,10 +1,11 @@
 /**
- * Sasl - WebRTC Chat – peer‑to‑peer text messaging with E2E encryption
- * Legendary Edition: All 8 features fully implemented
+ * Sasl - WebRTC Chat – Legendary Edition
+ * Peer‑to‑peer text messaging with E2E encryption
+ * Features: Saved peer rooms, emoji counters, file sharing, avatars, chat history, offline persistence
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { MessageCircle, Send, Loader2, Wifi, WifiOff, Users, Paperclip } from 'lucide-react';
+import { MessageCircle, Send, Loader2, Wifi, WifiOff, Users, Paperclip, UserPlus, Clock } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { e2e } from '../services/encryption';
@@ -37,6 +38,10 @@ export default function WebRTCChat() {
 
   const [acceptedPeers, setAcceptedPeers] = useState<string[]>(() => {
     const saved = localStorage.getItem('sasl_mesh_peers');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [savedPeers, setSavedPeers] = useState<string[]>(() => {
+    const saved = localStorage.getItem('sasl_saved_peers');
     return saved ? JSON.parse(saved) : [];
   });
   const [showRequest, setShowRequest] = useState(false);
@@ -239,6 +244,9 @@ export default function WebRTCChat() {
               const updatedPeers = [...acceptedPeers, data.from];
               setAcceptedPeers(updatedPeers);
               localStorage.setItem('sasl_mesh_peers', JSON.stringify(updatedPeers));
+              const updatedSaved = [...new Set([...savedPeers, data.from])];
+              setSavedPeers(updatedSaved);
+              localStorage.setItem('sasl_saved_peers', JSON.stringify(updatedSaved));
               setConnected(true);
               setConnecting(false);
               setPeerCount(prev => prev + 1);
@@ -293,9 +301,8 @@ export default function WebRTCChat() {
     ws.onclose = () => {
       setConnected(false); setConnecting(false); setPeerCount(0);
       localStorage.removeItem('sasl_mesh_connected');
-      toast('Connection closed');
     };
-  }, [token, t, myUsername, acceptedPeers]);
+  }, [token, t, myUsername, acceptedPeers, savedPeers]);
 
   // Send message
   const sendMessage = useCallback(async () => {
@@ -373,6 +380,9 @@ export default function WebRTCChat() {
             const updatedPeers = [...acceptedPeers, requestFrom];
             setAcceptedPeers(updatedPeers);
             localStorage.setItem('sasl_mesh_peers', JSON.stringify(updatedPeers));
+            const updatedSaved = [...new Set([...savedPeers, requestFrom])];
+            setSavedPeers(updatedSaved);
+            localStorage.setItem('sasl_saved_peers', JSON.stringify(updatedSaved));
             setShowRequest(false); setConnected(true); setConnecting(false);
             setPeerCount(prev => prev + 1);
             localStorage.setItem('sasl_mesh_connected', 'true');
@@ -402,13 +412,41 @@ export default function WebRTCChat() {
           </div>
           <h2 className="text-3xl font-bold gradient-text mb-3">Mesh Chat</h2>
           <p className="text-gray-500 mb-2">Peer-to-peer chat that works completely offline!</p>
-          <p className="text-sm text-gray-400 mb-8">Connect directly to nearby Sasl users via WaveMesh. No internet required.</p>
+          <p className="text-sm text-gray-400 mb-4">Connect directly to nearby Sasl users via WaveMesh. No internet required.</p>
+
+          {/* Saved Peers */}
+          {savedPeers.length > 0 && (
+            <div className="mb-6 text-left">
+              <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1">
+                <Clock size={14} /> Saved Peers
+              </p>
+              <div className="space-y-2">
+                {savedPeers.map(peer => (
+                  <button key={peer} onClick={() => {
+                    setRequestFrom(peer);
+                    connect();
+                  }} className="w-full flex items-center gap-3 p-3 bg-white rounded-xl hover:bg-green-50 transition border">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold">
+                      {peer[0]?.toUpperCase()}
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-sm">@{peer}</p>
+                      <p className="text-xs text-gray-500">Tap to reconnect</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="space-y-3 mb-6">
             <div className="flex items-center gap-2 text-sm text-gray-500"><WifiOff size={14} className="text-purple-500" /><span>Works without internet</span></div>
             <div className="flex items-center gap-2 text-sm text-gray-500"><Users size={14} className="text-blue-500" /><span>Connect to nearby peers</span></div>
             <div className="flex items-center gap-2 text-sm text-gray-500"><MessageCircle size={14} className="text-green-500" /><span>Real-time messaging</span></div>
           </div>
-          <button onClick={connect} className="btn-primary text-lg px-10 py-4 rounded-2xl shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all">🚀 Join Mesh Chat</button>
+          <button onClick={connect} className="btn-primary text-lg px-10 py-4 rounded-2xl shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all">
+            <UserPlus size={18} className="inline mr-2" /> Join Mesh Chat
+          </button>
           <p className="text-xs text-gray-400 mt-4">Open Sasl on another device or tab to test P2P messaging</p>
         </motion.div>
       </div>
@@ -476,15 +514,24 @@ export default function WebRTCChat() {
                       displayText
                     )}
                   </div>
-                  <div className="flex gap-1 mt-0.5">
-                    {['❤️', '😂', '🔥', '👍'].map(emoji => (
-                      <button key={emoji} onClick={() => {
-                        setReactions(prev => ({ ...prev, [i]: [...(prev[i] || []), emoji] }));
-                      }} className="text-[10px] hover:scale-125 transition-transform">{emoji}</button>
-                    ))}
-                    {(reactions[i]?.length > 0) && (
-                      <span className="text-[10px] text-gray-400 ml-1">{reactions[i]?.join('')}</span>
-                    )}
+                  <div className="flex items-center gap-1 mt-1">
+                    {['❤️', '😂', '🔥', '👍'].map(emoji => {
+                      const count = (reactions[i] || []).filter((r: string) => r === emoji).length;
+                      const hasReacted = (reactions[i] || []).includes(emoji);
+                      return (
+                        <button key={emoji} onClick={() => {
+                          setReactions(prev => ({
+                            ...prev,
+                            [i]: [...(prev[i] || []), emoji],
+                          }));
+                        }}
+                        className={`text-[11px] transition-all flex items-center gap-0.5 px-1 py-0.5 rounded-full ${
+                          hasReacted ? 'bg-white/20 scale-110' : 'opacity-50 hover:opacity-80'
+                        }`}>
+                          {emoji}<span className="text-[9px] font-semibold">{count > 0 ? count : ''}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                   <p className={`text-[10px] text-gray-400 mt-0.5 ${isMe ? 'text-right' : 'text-left'}`}>
                     {time} {isMe && '· Sent'} {isQueued && '· Queued'}
