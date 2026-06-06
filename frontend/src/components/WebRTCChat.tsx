@@ -170,16 +170,19 @@ export default function WebRTCChat() {
               return;
             }
 
-            if (data.type === 'chat' && data.text) {
+          if (data.type === 'chat' && data.text) {
+
               if (data.sender && data.sender !== myUsername) {
                 setMessages((prev: string[]) => [...prev, `${data.sender}: ${data.text}`]);
               } else if (!data.sender) {
                 setMessages((prev: string[]) => [...prev, data.text]);
               }
-              db.messages.add({
-                roomId: ROOM_ID, sender: data.sender || 'Peer',
-                text: data.text, timestamp: Date.now(), type: 'text',
-              }).catch(() => {});
+              // Add sender prefix for relayed messages
+              const displayText = data.sender && data.sender !== myUsername 
+                ? `${data.sender}: ${data.text}` 
+                : data.text;
+              setMessages((prev: string[]) => [...prev, displayText]);
+              return;
             }
 
             if (data.type === 'image' && data.fileData) {
