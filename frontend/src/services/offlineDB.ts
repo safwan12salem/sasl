@@ -20,15 +20,27 @@ export interface OfflineProduct {
   stock: number;
 }
 
+export interface OfflineMessage {
+  id?: number;
+  roomId: string;
+  sender: string;
+  text: string;
+  timestamp: number;
+  type: string;
+  fileUrl?: string;
+}
+
 class SaslDB extends Dexie {
   posts!: Table<OfflinePost>;
   products!: Table<OfflineProduct>;
+  messages!: Table<OfflineMessage>;
 
   constructor() {
     super('sasl');
     this.version(3).stores({
       posts: 'id, created_at',
       products: 'id',
+      messages: '++id, roomId, timestamp',
     });
   }
 }

@@ -7,6 +7,7 @@ import { MessageCircle, Send, Loader2, Wifi, WifiOff, Users } from 'lucide-react
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { e2e } from '../services/encryption';
+import { db } from '../services/offlineDB';
 
 const ROOM_ID = 'sasl-mesh-chat';
 
@@ -28,7 +29,21 @@ export default function WebRTCChat() {
   const token = localStorage.getItem('sasl_token');
   const { t } = useTranslation();
 
+  const [acceptedPeers, setAcceptedPeers] = useState<string[]>([]);
+  const [showRequest, setShowRequest] = useState(false);
+  const [requestFrom, setRequestFrom] = useState('');
+
   const getState = (pc: RTCPeerConnection): string => pc.signalingState as string;
+  
+  // Load chat history on mount
+  useEffect(() => {
+    db.messages.where('roomId').equals(ROOM_ID).toArray().then(msgs => {
+      const historyMsgs = msgs.map(m => 
+        m.sender === 'Me' ? `Me: ${m.text}` : `${m.sender}: ${m.text}`
+      );
+      if (historyMsgs.length > 0) setMessages(historyMsgs);
+    }).catch(() => {});
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -63,12 +78,18 @@ export default function WebRTCChat() {
     wsRef.current = ws;
 
     ws.onopen = () => {
-       const fallbackTimer = setTimeout(() => {
+      // Send connection request
+      ws.send(JSON.stringify({ 
+        type: 'connect_request', 
+        from: localStorage.getItem('sasl_username') || 'User',
+      }));
+
+      // Fallback timer — if WebRTC doesn't connect, use server relay
+      setTimeout(() => {
         if (!connected) {
           setConnected(true);
           setConnecting(false);
           setPeerCount(1);
-          console.log('⚠️ WebRTC data channel timeout — using server relay');
         }
       }, 5000);
 
@@ -86,7 +107,7 @@ export default function WebRTCChat() {
         channel.onopen = async () => {
           setConnected(true);
           setConnecting(false);
-          setPeerCount(1);
+          setPeerCount(prev => prev + 1);
 
           try {
             const key = await e2e.generateKey();
@@ -109,16 +130,16 @@ export default function WebRTCChat() {
             }
 
             if (data.type === 'chat' && data.text) {
-              if (encryptionKey) {
-                try {
-                  const decrypted = await e2e.decryptMessage(encryptionKey, data.text);
-                  setMessages((prev: string[]) => [...prev, decrypted]);
-                } catch {
-                  setMessages((prev: string[]) => [...prev, data.text]);
-                }
-              } else {
-                setMessages((prev: string[]) => [...prev, data.text]);
-              }
+              const displayText = data.sender ? `${data.sender}: ${data.text}` : data.text;
+              setMessages((prev: string[]) => [...prev, displayText]);
+              // Save to history
+              db.messages.add({
+                roomId: ROOM_ID,
+                sender: data.sender || 'Peer',
+                text: data.text,
+                timestamp: Date.now(),
+                type: 'text',
+              }).catch(() => {});
             }
           } catch {
             setMessages((prev: string[]) => [...prev, event.data]);
@@ -127,7 +148,7 @@ export default function WebRTCChat() {
 
         channel.onclose = () => {
           setConnected(false);
-          setPeerCount(0);
+          setPeerCount(prev => Math.max(0, prev - 1));
         };
 
         pc.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
@@ -156,15 +177,42 @@ export default function WebRTCChat() {
           }
         };
 
+        // Handle signaling and connection requests
         ws.onmessage = async (event: MessageEvent) => {
           try {
             const data = JSON.parse(event.data);
-             if (data.type === 'chat' && data.text) {
-              setMessages(prev => [...prev, data.text]);
+
+            // Connection request handling
+            if (data.type === 'connect_request') {
+              setRequestFrom(data.from || 'Unknown User');
+              setShowRequest(true);
               return;
             }
-            const state = getState(pc);
+            if (data.type === 'connect_accepted') {
+              setAcceptedPeers(prev => [...prev, data.from]);
+              setPeerCount(prev => prev + 1);
+              toast.success(`${data.from} accepted your request!`);
+              return;
+            }
+            if (data.type === 'connect_declined') {
+              toast(`${data.from} declined your request`);
+              return;
+            }
 
+            // Chat message via server relay
+            if (data.type === 'chat' && data.text) {
+              setMessages(prev => {
+                const lastMsg = prev[prev.length - 1];
+                if (lastMsg?.startsWith('Me:') && lastMsg.includes(data.text)) {
+                  return prev;
+                }
+                return [...prev, data.text];
+              });
+              return;
+            }
+
+            // WebRTC signaling
+            const state = getState(pc);
             if (data.type === 'offer') {
               const isPolite = politePeer.current;
               const colliding = makingOffer.current || state !== 'stable';
@@ -191,8 +239,6 @@ export default function WebRTCChat() {
               try {
                 await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
               } catch {}
-            } else if (data.type === 'chat') {
-              setMessages((prev: string[]) => [...prev, data.text]);
             }
           } catch (err) {
             console.warn('Signaling error:', err);
@@ -231,8 +277,17 @@ export default function WebRTCChat() {
       type: 'chat',
       text: messageText,
       encrypted,
+      sender: localStorage.getItem('sasl_username') || 'Me',
     });
-    
+
+    // Save to local history
+    db.messages.add({
+      roomId: ROOM_ID,
+      sender: 'Me',
+      text: input,
+      timestamp: Date.now(),
+      type: 'text',
+    }).catch(() => {});
 
     if (dataChannelRef.current?.readyState === 'open') {
       dataChannelRef.current.send(messageData);
@@ -251,7 +306,7 @@ export default function WebRTCChat() {
     setMessages((prev: string[]) => [...prev, `Me: ${input} (queued)`]);
     setInput('');
     toast('Message queued – will send when connected');
-  }, [input, encryptionKey]);
+  }, [input, encryptionKey, connected]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -264,6 +319,30 @@ export default function WebRTCChat() {
   if (!started) {
     return (
       <div className="max-w-md mx-auto p-6">
+        {showRequest && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3">
+                {requestFrom[0]?.toUpperCase()}
+              </div>
+              <h3 className="font-bold text-lg mb-2">{requestFrom} wants to connect</h3>
+              <p className="text-gray-500 text-sm mb-4">Accept to start peer-to-peer chat</p>
+              <div className="flex gap-2">
+                <button onClick={() => {
+                  wsRef.current?.send(JSON.stringify({ type: 'connect_accepted', from: localStorage.getItem('sasl_username') }));
+                  setAcceptedPeers(prev => [...prev, requestFrom]);
+                  setShowRequest(false);
+                  setConnected(true);
+                  setPeerCount(prev => prev + 1);
+                }} className="btn-primary flex-1">Accept</button>
+                <button onClick={() => {
+                  wsRef.current?.send(JSON.stringify({ type: 'connect_declined', from: localStorage.getItem('sasl_username') }));
+                  setShowRequest(false);
+                }} className="btn-ghost flex-1">Decline</button>
+              </div>
+            </div>
+          </div>
+        )}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass p-8 rounded-3xl text-center">
           <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center">
             <MessageCircle size={40} className="text-white" />
@@ -287,6 +366,30 @@ export default function WebRTCChat() {
   if (connecting) {
     return (
       <div className="max-w-md mx-auto p-6 text-center">
+        {showRequest && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3">
+                {requestFrom[0]?.toUpperCase()}
+              </div>
+              <h3 className="font-bold text-lg mb-2">{requestFrom} wants to connect</h3>
+              <p className="text-gray-500 text-sm mb-4">Accept to start peer-to-peer chat</p>
+              <div className="flex gap-2">
+                <button onClick={() => {
+                  wsRef.current?.send(JSON.stringify({ type: 'connect_accepted', from: localStorage.getItem('sasl_username') }));
+                  setAcceptedPeers(prev => [...prev, requestFrom]);
+                  setShowRequest(false);
+                  setConnected(true);
+                  setPeerCount(prev => prev + 1);
+                }} className="btn-primary flex-1">Accept</button>
+                <button onClick={() => {
+                  wsRef.current?.send(JSON.stringify({ type: 'connect_declined', from: localStorage.getItem('sasl_username') }));
+                  setShowRequest(false);
+                }} className="btn-ghost flex-1">Decline</button>
+              </div>
+            </div>
+          </div>
+        )}
         <div className="glass p-12 rounded-3xl">
           <Loader2 className="animate-spin mx-auto text-green-500 mb-4" size={48} />
           <h3 className="text-xl font-bold text-gray-700 mb-2">Connecting to Mesh...</h3>
@@ -299,6 +402,30 @@ export default function WebRTCChat() {
   // Connected
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6">
+      {showRequest && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-3">
+              {requestFrom[0]?.toUpperCase()}
+            </div>
+            <h3 className="font-bold text-lg mb-2">{requestFrom} wants to connect</h3>
+            <p className="text-gray-500 text-sm mb-4">Accept to start peer-to-peer chat</p>
+            <div className="flex gap-2">
+              <button onClick={() => {
+                wsRef.current?.send(JSON.stringify({ type: 'connect_accepted', from: localStorage.getItem('sasl_username') }));
+                setAcceptedPeers(prev => [...prev, requestFrom]);
+                setShowRequest(false);
+                setConnected(true);
+                setPeerCount(prev => prev + 1);
+              }} className="btn-primary flex-1">Accept</button>
+              <button onClick={() => {
+                wsRef.current?.send(JSON.stringify({ type: 'connect_declined', from: localStorage.getItem('sasl_username') }));
+                setShowRequest(false);
+              }} className="btn-ghost flex-1">Decline</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-2xl font-bold gradient-text flex items-center gap-2"><MessageCircle size={24} /> Mesh Chat</h2>
@@ -307,7 +434,7 @@ export default function WebRTCChat() {
               <span className="flex items-center gap-1 text-green-600"><Wifi size={14} /> Connected · {peerCount} peer{peerCount !== 1 ? 's' : ''} online</span>
             ) : (
               <span className="flex items-center gap-1 text-gray-400"><WifiOff size={14} /> Disconnected</span>
-            )}
+            )}  
           </p>
         </div>
         {!connected && <button onClick={connect} className="btn-primary text-sm">Reconnect</button>}
