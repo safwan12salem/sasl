@@ -18,10 +18,10 @@ class GroupChatViewSet(viewsets.ModelViewSet):
         group.members.add(self.request.user)
 
     def get_queryset(self):
-     user = self.request.user
-     return GroupChat.objects.filter(
-        Q(members=user) | Q(is_private=False)
-     ).distinct()
+        user = self.request.user
+        return GroupChat.objects.filter(
+            Q(members=user) | Q(is_private=False) | Q(creator=user)
+        ).distinct()
 
     @action(detail=True, methods=['get'])
     def messages(self, request, pk=None):

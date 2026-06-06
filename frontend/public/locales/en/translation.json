@@ -715,4 +715,15 @@
   "host_audio_room": "Host Audio Room",
 "hosted_by": "Hosted by",
 "all_caught_up": "You're all caught up!",
+
+"new_group": "New Group",
+"group_name": "Group Name",
+"mesh": "Mesh",
+"private": "Private",
+"sasl_groups": "Sasl Groups",
+"select_group_from_sidebar_or_create_new": "Select a group or create a new one",
+"create_your_first_group": "Create Your First Group",
+"create_group_to_chat": "Create a group to start chatting",
+"no_groups_yet": "No groups yet",
+"enter_group_name": "Enter a group name"
 }

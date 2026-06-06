@@ -260,15 +260,30 @@ export default function GroupChat() {
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold">
                     {group.name[0]?.toUpperCase() || 'G'}
                   </div>
-                  <div>
-                    <p className="font-semibold text-sm flex items-center gap-1">
-                      {group.name}
-                      {group.is_mesh && <WifiOff size={10} className="text-purple-500" />}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {group.members_count || group.members?.length || 0} members
-                    </p>
-                  </div>
+                                <div>
+                <p className="font-semibold text-sm flex items-center gap-1">
+                  {group.name}
+                  {group.is_mesh && <WifiOff size={10} className="text-purple-500" />}
+                  {group.is_private && <span className="text-xs bg-gray-200 px-1.5 py-0.5 rounded-full">Private</span>}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {group.members_count || group.members?.length || 0} members
+                </p>
+                {group.is_private && group.creator?.username !== user?.username && !group.members?.some((m: any) => m.username === user?.username) && (
+                  <button 
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      try {
+                        await api.post(`/groupchat/groups/${group.id}/request_join/`);
+                        toast.success('Join request sent!');
+                      } catch {}
+                    }}
+                    className="mt-1 text-xs text-green-600 hover:underline"
+                  >
+                    Request to Join
+                  </button>
+                )}
+              </div>
                 </div>
                 <button
                   onClick={(e) => { e.stopPropagation(); leaveGroup(group.id); }}

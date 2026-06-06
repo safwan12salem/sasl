@@ -183,9 +183,14 @@ export default function WebRTCChat() {
             }
             if (data.type === 'connect_accepted') {
               setAcceptedPeers(prev => [...prev, data.from]);
+              setConnected(true);
+  setConnecting(false);
               setPeerCount(prev => prev + 1);
+              
               toast.success(`${data.from} accepted your request!`);
+              toast.success(`Connected with ${data.from}!`);
               return;
+         
             }
             if (data.type === 'connect_declined') {
               toast(`${data.from} declined your request`);
