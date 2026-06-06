@@ -713,5 +713,6 @@
   "failed_to_create_group": "Failed to create group",
   "left_group": "Left the group",
   "host_audio_room": "Host Audio Room",
-"hosted_by": "Hosted by"
+"hosted_by": "Hosted by",
+"all_caught_up": "You're all caught up!",
 }

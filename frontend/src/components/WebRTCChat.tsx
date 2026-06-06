@@ -32,7 +32,7 @@ export default function WebRTCChat() {
   const [acceptedPeers, setAcceptedPeers] = useState<string[]>([]);
   const [showRequest, setShowRequest] = useState(false);
   const [requestFrom, setRequestFrom] = useState('');
-
+  const myMessages = useRef<Set<number>>(new Set());
   const getState = (pc: RTCPeerConnection): string => pc.signalingState as string;
   
   // Load chat history on mount
@@ -84,14 +84,7 @@ export default function WebRTCChat() {
         from: localStorage.getItem('sasl_username') || 'User',
       }));
 
-      // Fallback timer — if WebRTC doesn't connect, use server relay
-      setTimeout(() => {
-        if (!connected) {
-          setConnected(true);
-          setConnecting(false);
-          setPeerCount(1);
-        }
-      }, 5000);
+     
 
       setTimeout(() => {
         if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
@@ -203,7 +196,7 @@ export default function WebRTCChat() {
             if (data.type === 'chat' && data.text) {
               setMessages(prev => {
                 const lastMsg = prev[prev.length - 1];
-                if (lastMsg?.startsWith('Me:') && lastMsg.includes(data.text)) {
+                              if (lastMsg && data.text && lastMsg.includes(data.text)) {
                   return prev;
                 }
                 return [...prev, data.text];
@@ -288,22 +281,34 @@ export default function WebRTCChat() {
       timestamp: Date.now(),
       type: 'text',
     }).catch(() => {});
-
-    if (dataChannelRef.current?.readyState === 'open') {
+     
+        if (dataChannelRef.current?.readyState === 'open') {
       dataChannelRef.current.send(messageData);
-      setMessages((prev: string[]) => [...prev, `Me: ${input}`]);
+      setMessages((prev: string[]) => {
+        const idx = prev.length;
+        myMessages.current.add(idx);
+        return [...prev, input];
+      });
       setInput('');
       return;
     }
 
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(messageData);
-      setMessages((prev: string[]) => [...prev, `Me: ${input}`]);
+      setMessages((prev: string[]) => {
+        const idx = prev.length;
+        myMessages.current.add(idx);
+        return [...prev, input];
+      });
       setInput('');
       return;
     }
 
-    setMessages((prev: string[]) => [...prev, `Me: ${input} (queued)`]);
+    setMessages((prev: string[]) => {
+      const idx = prev.length;
+      myMessages.current.add(idx);
+      return [...prev, `${input} (queued)`];
+    });
     setInput('');
     toast('Message queued – will send when connected');
   }, [input, encryptionKey, connected]);
@@ -447,7 +452,7 @@ export default function WebRTCChat() {
           </div>
         ) : (
           messages.map((msg: string, i: number) => {
-            const isMe = msg.startsWith('Me:');
+                       const isMe = myMessages.current.has(i);
             const isQueued = msg.includes('(queued)');
             return (
               <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>

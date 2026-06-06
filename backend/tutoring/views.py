@@ -80,6 +80,8 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         session.save()
         return Response({'status': 'ongoing'})
 
+
+    @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
         session = self.get_object()
         if session.tutor != request.user or session.status != 'ongoing':

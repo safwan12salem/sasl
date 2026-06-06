@@ -59,6 +59,36 @@ class GroupChatViewSet(viewsets.ModelViewSet):
         )
         return Response({'status': 'added'})
 
+
+    @action(detail=True, methods=['post'])
+    def request_join(self, request, pk=None):
+        group = self.get_object()
+        if not group.is_private:
+            group.members.add(request.user)
+            return Response({'status': 'joined'})
+        
+        create_notification(
+            recipient=group.creator,
+            actor=request.user,
+            notification_type='group_join_request',
+            message=f'{request.user.username} wants to join "{group.name}"'
+        )
+        return Response({'status': 'request_sent'})
+
+    @action(detail=True, methods=['post'])
+    def approve_join(self, request, pk=None):
+        group = self.get_object()
+        if request.user != group.creator:
+            return Response({'error': 'Only group creator can approve'}, status=403)
+        username = request.data.get('username')
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
+        group.members.add(user)
+        return Response({'status': 'approved'})
+
+      
     @action(detail=True, methods=['post'])
     def leave(self, request, pk=None):
         group = self.get_object()
