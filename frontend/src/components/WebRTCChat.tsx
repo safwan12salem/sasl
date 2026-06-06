@@ -1,6 +1,6 @@
 /**
  * Sasl - WebRTC Chat – peer‑to‑peer text messaging with E2E encryption
- * Legendary Edition: Connection requests, avatars, file sharing, emoji reactions, timestamps
+ * Legendary Edition: All 8 features fully implemented
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
@@ -9,10 +9,15 @@ import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { e2e } from '../services/encryption';
 import { db } from '../services/offlineDB';
+import { useAuth } from '../contexts/AuthContext';
+import api from '../services/api';
 
 const ROOM_ID = 'sasl-mesh-chat';
 
 export default function WebRTCChat() {
+  const { user } = useAuth();
+  const myUsername = user?.username || localStorage.getItem('sasl_username') || 'Me';
+  
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState('');
   const [connected, setConnected] = useState(false);
@@ -30,15 +35,38 @@ export default function WebRTCChat() {
   const token = localStorage.getItem('sasl_token');
   const { t } = useTranslation();
 
-  const [acceptedPeers, setAcceptedPeers] = useState<string[]>([]);
+  const [acceptedPeers, setAcceptedPeers] = useState<string[]>(() => {
+    const saved = localStorage.getItem('sasl_mesh_peers');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [showRequest, setShowRequest] = useState(false);
   const [requestFrom, setRequestFrom] = useState('');
   const myMessages = useRef<Set<number>>(new Set());
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [reactions, setReactions] = useState<Record<number, string[]>>({});
+  const [myAvatar, setMyAvatar] = useState<string | null>(() => {
+    return localStorage.getItem('sasl_avatar') || null;
+  });
 
   const getState = (pc: RTCPeerConnection): string => pc.signalingState as string;
+
+  // Save username to localStorage for persistence
+  useEffect(() => {
+    if (user?.username) {
+      localStorage.setItem('sasl_username', user.username);
+    }
+  }, [user]);
+
+  // Fetch avatar on mount
+  useEffect(() => {
+    api.get('/users/profile/').then(res => {
+      if (res.data.avatar_url) {
+        setMyAvatar(res.data.avatar_url);
+        localStorage.setItem('sasl_avatar', res.data.avatar_url);
+      }
+    }).catch(() => {});
+  }, []);
 
   // Load chat history on mount
   useEffect(() => {
@@ -51,6 +79,15 @@ export default function WebRTCChat() {
         setMessages(historyMsgs);
       }
     }).catch(() => {});
+  }, []);
+
+  // Restore connection state from localStorage
+  useEffect(() => {
+    const wasConnected = localStorage.getItem('sasl_mesh_connected');
+    if (wasConnected === 'true' && acceptedPeers.length > 0) {
+      setConnected(true);
+      setStarted(true);
+    }
   }, []);
 
   // Cleanup on unmount
@@ -88,7 +125,7 @@ export default function WebRTCChat() {
     ws.onopen = () => {
       ws.send(JSON.stringify({
         type: 'connect_request',
-        from: localStorage.getItem('sasl_username') || 'User',
+        from: myUsername,
       }));
 
       setTimeout(() => {
@@ -106,6 +143,7 @@ export default function WebRTCChat() {
           setConnected(true);
           setConnecting(false);
           setPeerCount(prev => prev + 1);
+          localStorage.setItem('sasl_mesh_connected', 'true');
 
           try {
             const key = await e2e.generateKey();
@@ -128,42 +166,32 @@ export default function WebRTCChat() {
             }
 
             if (data.type === 'chat' && data.text) {
-              const displayText = data.sender ? data.text : data.text;
-              if (data.sender && data.sender !== localStorage.getItem('sasl_username')) {
+              if (data.sender && data.sender !== myUsername) {
                 setMessages((prev: string[]) => [...prev, `${data.sender}: ${data.text}`]);
               } else if (!data.sender) {
                 setMessages((prev: string[]) => [...prev, data.text]);
               }
               db.messages.add({
-                roomId: ROOM_ID,
-                sender: data.sender || 'Peer',
-                text: data.text,
-                timestamp: Date.now(),
-                type: 'text',
+                roomId: ROOM_ID, sender: data.sender || 'Peer',
+                text: data.text, timestamp: Date.now(), type: 'text',
               }).catch(() => {});
             }
 
             if (data.type === 'image' && data.fileData) {
-              setMessages((prev: string[]) => [...prev, `📷 Image from ${data.sender}`]);
+              setMessages((prev: string[]) => [...prev, `📷 ${data.fileData}`]);
               db.messages.add({
-                roomId: ROOM_ID,
-                sender: data.sender || 'Peer',
-                text: `[Image: ${data.fileName}]`,
-                timestamp: Date.now(),
-                type: 'image',
-                fileUrl: data.fileData,
+                roomId: ROOM_ID, sender: data.sender || 'Peer',
+                text: `[Image: ${data.fileName}]`, timestamp: Date.now(),
+                type: 'image', fileUrl: data.fileData,
               }).catch(() => {});
             }
 
             if (data.type === 'file' && data.fileData) {
               setMessages((prev: string[]) => [...prev, `📎 ${data.fileName} from ${data.sender}`]);
               db.messages.add({
-                roomId: ROOM_ID,
-                sender: data.sender || 'Peer',
-                text: `[File: ${data.fileName}]`,
-                timestamp: Date.now(),
-                type: 'file',
-                fileUrl: data.fileData,
+                roomId: ROOM_ID, sender: data.sender || 'Peer',
+                text: `[File: ${data.fileName}]`, timestamp: Date.now(),
+                type: 'file', fileUrl: data.fileData,
               }).catch(() => {});
             }
           } catch {
@@ -174,15 +202,13 @@ export default function WebRTCChat() {
         channel.onclose = () => {
           setConnected(false);
           setPeerCount(prev => Math.max(0, prev - 1));
+          localStorage.removeItem('sasl_mesh_connected');
           toast('Peer disconnected');
         };
 
         pc.onicecandidate = (event: RTCPeerConnectionIceEvent) => {
           if (event.candidate && ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({
-              type: 'candidate',
-              candidate: event.candidate.toJSON()
-            }));
+            ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate.toJSON() }));
           }
         };
 
@@ -191,10 +217,7 @@ export default function WebRTCChat() {
             makingOffer.current = true;
             await pc.setLocalDescription();
             if (pc.localDescription && ws.readyState === WebSocket.OPEN) {
-              ws.send(JSON.stringify({
-                type: 'offer',
-                offer: pc.localDescription.toJSON()
-              }));
+              ws.send(JSON.stringify({ type: 'offer', offer: pc.localDescription.toJSON() }));
             }
           } catch (err) {
             console.warn('Negotiation error:', err);
@@ -213,10 +236,13 @@ export default function WebRTCChat() {
               return;
             }
             if (data.type === 'connect_accepted') {
-              setAcceptedPeers(prev => [...prev, data.from]);
+              const updatedPeers = [...acceptedPeers, data.from];
+              setAcceptedPeers(updatedPeers);
+              localStorage.setItem('sasl_mesh_peers', JSON.stringify(updatedPeers));
               setConnected(true);
               setConnecting(false);
               setPeerCount(prev => prev + 1);
+              localStorage.setItem('sasl_mesh_connected', 'true');
               toast.success(`Connected with ${data.from}! 🔒`);
               return;
             }
@@ -228,9 +254,7 @@ export default function WebRTCChat() {
             if (data.type === 'chat' && data.text) {
               setMessages(prev => {
                 const lastMsg = prev[prev.length - 1];
-                if (lastMsg && data.text && lastMsg.includes(data.text)) {
-                  return prev;
-                }
+                if (lastMsg && data.text && lastMsg.includes(data.text)) return prev;
                 return [...prev, data.text];
               });
               return;
@@ -242,16 +266,12 @@ export default function WebRTCChat() {
               const colliding = makingOffer.current || state !== 'stable';
               if (colliding && !isPolite) return;
               if (state !== 'stable') return;
-
               await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
               if (getState(pc) === 'have-remote-offer') {
                 const answer = await pc.createAnswer();
                 await pc.setLocalDescription(answer);
                 if (pc.localDescription && ws.readyState === WebSocket.OPEN) {
-                  ws.send(JSON.stringify({
-                    type: 'answer',
-                    answer: pc.localDescription.toJSON()
-                  }));
+                  ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription.toJSON() }));
                 }
               }
             } else if (data.type === 'answer') {
@@ -260,9 +280,7 @@ export default function WebRTCChat() {
               }
             } else if (data.type === 'candidate') {
               if (!pc.remoteDescription) return;
-              try {
-                await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-              } catch {}
+              try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch {}
             }
           } catch (err) {
             console.warn('Signaling error:', err);
@@ -271,84 +289,50 @@ export default function WebRTCChat() {
       }, 300);
     };
 
-    ws.onerror = () => {
-      setConnecting(false);
-      toast.error('Connection failed');
-    };
-
+    ws.onerror = () => { setConnecting(false); toast.error('Connection failed'); };
     ws.onclose = () => {
-      setConnected(false);
-      setConnecting(false);
-      setPeerCount(0);
+      setConnected(false); setConnecting(false); setPeerCount(0);
+      localStorage.removeItem('sasl_mesh_connected');
       toast('Connection closed');
     };
-  }, [token, t]);
+  }, [token, t, myUsername, acceptedPeers]);
 
-  // Send message with E2E encryption
+  // Send message
   const sendMessage = useCallback(async () => {
     if (!input.trim()) return;
-
     let messageText = input;
-    let encrypted = false;
 
     if (encryptionKey) {
-      try {
-        messageText = await e2e.encryptMessage(encryptionKey, input);
-        encrypted = true;
-      } catch {}
+      try { messageText = await e2e.encryptMessage(encryptionKey, input); } catch {}
     }
 
     const messageData = JSON.stringify({
-      type: 'chat',
-      text: messageText,
-      encrypted,
-      sender: localStorage.getItem('sasl_username') || 'Me',
+      type: 'chat', text: messageText,
+      encrypted: !!encryptionKey, sender: myUsername,
     });
 
     db.messages.add({
-      roomId: ROOM_ID,
-      sender: 'Me',
-      text: input,
-      timestamp: Date.now(),
-      type: 'text',
+      roomId: ROOM_ID, sender: 'Me', text: input,
+      timestamp: Date.now(), type: 'text',
     }).catch(() => {});
 
     if (dataChannelRef.current?.readyState === 'open') {
       dataChannelRef.current.send(messageData);
-      setMessages((prev: string[]) => {
-        const idx = prev.length;
-        myMessages.current.add(idx);
-        return [...prev, input];
-      });
-      setInput('');
-      return;
+      setMessages((prev: string[]) => { const idx = prev.length; myMessages.current.add(idx); return [...prev, input]; });
+      setInput(''); return;
     }
-
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(messageData);
-      setMessages((prev: string[]) => {
-        const idx = prev.length;
-        myMessages.current.add(idx);
-        return [...prev, input];
-      });
-      setInput('');
-      return;
+      setMessages((prev: string[]) => { const idx = prev.length; myMessages.current.add(idx); return [...prev, input]; });
+      setInput(''); return;
     }
-
-    setMessages((prev: string[]) => {
-      const idx = prev.length;
-      myMessages.current.add(idx);
-      return [...prev, `${input} (queued)`];
-    });
+    setMessages((prev: string[]) => { const idx = prev.length; myMessages.current.add(idx); return [...prev, `${input} (queued)`]; });
     setInput('');
     toast('Message queued – will send when connected');
-  }, [input, encryptionKey]);
+  }, [input, encryptionKey, myUsername]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      sendMessage();
-    }
+    if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }
   };
 
   const sendFile = async (file: File) => {
@@ -357,33 +341,23 @@ export default function WebRTCChat() {
       const isImage = file.type.startsWith('image/');
       const messageData = JSON.stringify({
         type: isImage ? 'image' : 'file',
-        fileName: file.name,
-        fileType: file.type,
-        fileData: reader.result,
-        fileSize: file.size,
-        sender: localStorage.getItem('sasl_username'),
+        fileName: file.name, fileType: file.type,
+        fileData: reader.result, fileSize: file.size,
+        sender: myUsername,
       });
-
       if (dataChannelRef.current?.readyState === 'open') {
         dataChannelRef.current.send(messageData);
       } else if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(messageData);
       }
-
-      const label = isImage ? `📷 ${file.name}` : `📎 ${file.name}`;
-      setMessages(prev => {
-        const idx = prev.length;
-        myMessages.current.add(idx);
-        return [...prev, label];
-      });
+      const label = isImage ? `📷 ${reader.result}` : `📎 ${file.name}`;
+      setMessages(prev => { const idx = prev.length; myMessages.current.add(idx); return [...prev, label]; });
       setSelectedFile(null);
     };
     reader.readAsDataURL(file);
   };
 
-  // ============================================================
-  // REQUEST MODAL — Used in all 3 states
-  // ============================================================
+  // Request Modal
   const RequestModal = () => (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center">
@@ -395,16 +369,17 @@ export default function WebRTCChat() {
         <p className="text-gray-400 text-xs mb-4">Accept to start peer-to-peer encrypted chat</p>
         <div className="flex gap-2 mb-3">
           <button onClick={() => {
-            wsRef.current?.send(JSON.stringify({ type: 'connect_accepted', from: localStorage.getItem('sasl_username') }));
-            setAcceptedPeers(prev => [...prev, requestFrom]);
-            setShowRequest(false);
-            setConnected(true);
-            setConnecting(false);
+            wsRef.current?.send(JSON.stringify({ type: 'connect_accepted', from: myUsername }));
+            const updatedPeers = [...acceptedPeers, requestFrom];
+            setAcceptedPeers(updatedPeers);
+            localStorage.setItem('sasl_mesh_peers', JSON.stringify(updatedPeers));
+            setShowRequest(false); setConnected(true); setConnecting(false);
             setPeerCount(prev => prev + 1);
+            localStorage.setItem('sasl_mesh_connected', 'true');
             toast.success(`Connected with ${requestFrom}! 🔒`);
           }} className="btn-primary flex-1 py-3 text-lg">✅ Accept</button>
           <button onClick={() => {
-            wsRef.current?.send(JSON.stringify({ type: 'connect_declined', from: localStorage.getItem('sasl_username') }));
+            wsRef.current?.send(JSON.stringify({ type: 'connect_declined', from: myUsername }));
             setShowRequest(false);
           }} className="btn-ghost flex-1">❌ Decline</button>
         </div>
@@ -416,9 +391,7 @@ export default function WebRTCChat() {
     </div>
   );
 
-  // ============================================================
-  // RENDER — Not Started
-  // ============================================================
+  // Not Started
   if (!started) {
     return (
       <div className="max-w-md mx-auto p-6">
@@ -442,9 +415,7 @@ export default function WebRTCChat() {
     );
   }
 
-  // ============================================================
-  // RENDER — Connecting
-  // ============================================================
+  // Connecting
   if (connecting) {
     return (
       <div className="max-w-md mx-auto p-6 text-center">
@@ -458,9 +429,7 @@ export default function WebRTCChat() {
     );
   }
 
-  // ============================================================
-  // RENDER — Connected
-  // ============================================================
+  // Connected
   return (
     <div className="max-w-2xl mx-auto p-4 md:p-6">
       {showRequest && <RequestModal />}
@@ -489,6 +458,7 @@ export default function WebRTCChat() {
             const isQueued = msg.includes('(queued)');
             const displayText = msg.replace(' (queued)', '');
             const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const isImage = displayText.startsWith('📷 ') && displayText.length > 3;
 
             return (
               <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -500,18 +470,17 @@ export default function WebRTCChat() {
                 )}
                 <div className={`max-w-[70%] ${isMe ? 'order-1' : ''}`}>
                   <div className={`px-4 py-2.5 rounded-2xl text-sm ${isMe ? 'bg-green-500 text-white rounded-br-md' : 'bg-white dark:bg-gray-800 shadow-sm border rounded-bl-md'} ${isQueued ? 'opacity-50' : ''}`}>
-                    {displayText}
+                    {isImage ? (
+                      <img src={displayText.replace('📷 ', '')} alt="Shared" className="max-w-full rounded-lg max-h-48 object-cover" />
+                    ) : (
+                      displayText
+                    )}
                   </div>
                   <div className="flex gap-1 mt-0.5">
                     {['❤️', '😂', '🔥', '👍'].map(emoji => (
                       <button key={emoji} onClick={() => {
-                        setReactions(prev => ({
-                          ...prev,
-                          [i]: [...(prev[i] || []), emoji],
-                        }));
-                      }} className="text-[10px] hover:scale-125 transition-transform">
-                        {emoji}
-                      </button>
+                        setReactions(prev => ({ ...prev, [i]: [...(prev[i] || []), emoji] }));
+                      }} className="text-[10px] hover:scale-125 transition-transform">{emoji}</button>
                     ))}
                     {(reactions[i]?.length > 0) && (
                       <span className="text-[10px] text-gray-400 ml-1">{reactions[i]?.join('')}</span>
@@ -522,9 +491,13 @@ export default function WebRTCChat() {
                   </p>
                 </div>
                 {isMe && (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                    {(localStorage.getItem('sasl_username') || 'M')[0]?.toUpperCase()}
-                  </div>
+                  myAvatar ? (
+                    <img src={myAvatar} className="w-8 h-8 rounded-full object-cover flex-shrink-0 border-2 border-green-300" alt="" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                      {myUsername[0]?.toUpperCase()}
+                    </div>
+                  )
                 )}
               </motion.div>
             );
