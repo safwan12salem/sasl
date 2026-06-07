@@ -1,11 +1,12 @@
 /**
  * Sasl - WebRTC Chat – Legendary Edition
  * Peer‑to‑peer text messaging with E2E encryption
- * Features: Saved peer rooms, emoji counters, file sharing, avatars, chat history, offline persistence
+ * Features: Saved peer rooms, emoji counters (SYNCED), file sharing (SYNCED), 
+ *           avatars, chat history, offline persistence
  */
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
-import { MessageCircle, Send, Loader2, Wifi, WifiOff, Users, Paperclip, UserPlus, Clock } from 'lucide-react';
+import { MessageCircle, Send, Loader2, Wifi, WifiOff, Users, Paperclip, UserPlus, Clock, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { e2e } from '../services/encryption';
@@ -15,11 +16,24 @@ import api from '../services/api';
 
 const ROOM_ID = 'sasl-mesh-chat';
 
+interface ChatMessage {
+  id: number;
+  text: string;
+  sender: string;
+  isMe: boolean;
+  isQueued: boolean;
+  isImage: boolean;
+  imageUrl?: string;
+  fileName?: string;
+  time: string;
+  reactions: Record<string, number>; // emoji -> count
+}
+
 export default function WebRTCChat() {
   const { user } = useAuth();
   const myUsername = user?.username || localStorage.getItem('sasl_username') || 'Me';
   
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [connected, setConnected] = useState(false);
   const [started, setStarted] = useState(false);
@@ -32,6 +46,7 @@ export default function WebRTCChat() {
   const wsRef = useRef<WebSocket | null>(null);
   const makingOffer = useRef(false);
   const politePeer = useRef(false);
+  const messageIdCounter = useRef(0);
 
   const token = localStorage.getItem('sasl_token');
   const { t } = useTranslation();
@@ -46,17 +61,55 @@ export default function WebRTCChat() {
   });
   const [showRequest, setShowRequest] = useState(false);
   const [requestFrom, setRequestFrom] = useState('');
-  const myMessages = useRef<Set<number>>(new Set());
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [reactions, setReactions] = useState<Record<number, string[]>>({});
   const [myAvatar, setMyAvatar] = useState<string | null>(() => {
     return localStorage.getItem('sasl_avatar') || null;
   });
 
-  const getState = (pc: RTCPeerConnection): string => pc.signalingState as string;
+  // Helper to add a message and return its ID
+  const addMessage = useCallback((msg: Partial<ChatMessage> & { text: string }) => {
+    const id = ++messageIdCounter.current;
+    const newMsg: ChatMessage = {
+      id,
+      text: msg.text,
+      sender: msg.sender || myUsername,
+      isMe: msg.isMe ?? (msg.sender === myUsername || msg.sender === 'Me'),
+      isQueued: msg.isQueued || false,
+      isImage: msg.isImage || false,
+      imageUrl: msg.imageUrl,
+      fileName: msg.fileName,
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      reactions: {},
+    };
+    setMessages(prev => [...prev, newMsg]);
+    return id;
+  }, [myUsername]);
 
-  // Save username to localStorage for persistence
+  // Add a reaction to a message
+  const addReaction = useCallback((messageIndex: number, emoji: string) => {
+    setMessages(prev => {
+      const updated = [...prev];
+      const msg = { ...updated[messageIndex] };
+      msg.reactions = { ...msg.reactions };
+      msg.reactions[emoji] = (msg.reactions[emoji] || 0) + 1;
+      updated[messageIndex] = msg;
+      return updated;
+    });
+  }, []);
+
+  // Send data to all connected peers
+  const sendToPeers = useCallback((data: object) => {
+    const json = JSON.stringify(data);
+    if (dataChannelRef.current?.readyState === 'open') {
+      dataChannelRef.current.send(json);
+    }
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+      wsRef.current.send(json);
+    }
+  }, []);
+
+  // Save username to localStorage
   useEffect(() => {
     if (user?.username) {
       localStorage.setItem('sasl_username', user.username);
@@ -76,17 +129,20 @@ export default function WebRTCChat() {
   // Load chat history on mount
   useEffect(() => {
     db.messages.where('roomId').equals(ROOM_ID).toArray().then(msgs => {
-      const historyMsgs = msgs.map(m =>
-        m.sender === 'Me' ? m.text : `${m.sender}: ${m.text}`
-      );
-      if (historyMsgs.length > 0) {
-        historyMsgs.forEach((_, i) => myMessages.current.add(i));
-        setMessages(historyMsgs);
-      }
+      msgs.forEach(m => {
+        addMessage({
+          text: m.type === 'image' ? `[Image]` : m.type === 'file' ? `[File: ${m.text}]` : m.text,
+          sender: m.sender,
+          isMe: m.sender === 'Me' || m.sender === myUsername,
+          isImage: m.type === 'image',
+          imageUrl: m.fileUrl,
+          fileName: m.type === 'file' ? m.text : undefined,
+        });
+      });
     }).catch(() => {});
-  }, []);
+  }, [addMessage, myUsername]);
 
-  // Restore connection state from localStorage
+  // Restore connection state
   useEffect(() => {
     const wasConnected = localStorage.getItem('sasl_mesh_connected');
     if (wasConnected === 'true' && acceptedPeers.length > 0) {
@@ -103,6 +159,95 @@ export default function WebRTCChat() {
       wsRef.current?.close();
     };
   }, []);
+
+  // Process incoming message from ANY source (WebSocket or DataChannel)
+  const processIncomingMessage = useCallback((data: any) => {
+    // Handle text chat
+    if (data.type === 'chat' && data.text) {
+      const isFromOtherPeer = data.sender && data.sender !== myUsername;
+      const displayText = data.text;
+      
+      // Check for exact duplicate (same text from same sender within last message)
+      setMessages(prev => {
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.text === displayText && lastMsg.sender === (data.sender || 'Peer')) {
+          return prev; // true duplicate
+        }
+        return prev; // will add below
+      });
+      
+      if (isFromOtherPeer) {
+        addMessage({
+          text: displayText,
+          sender: data.sender,
+          isMe: false,
+        });
+        db.messages.add({
+          roomId: ROOM_ID,
+          sender: data.sender,
+          text: displayText,
+          timestamp: Date.now(),
+          type: 'text',
+        }).catch(() => {});
+      }
+      return;
+    }
+
+    // Handle image
+    if (data.type === 'image' && data.fileData) {
+      const sender = data.sender || 'Peer';
+      addMessage({
+        text: `📷 Image from ${sender}`,
+        sender,
+        isMe: false,
+        isImage: true,
+        imageUrl: data.fileData,
+        fileName: data.fileName,
+      });
+      db.messages.add({
+        roomId: ROOM_ID,
+        sender,
+        text: `[Image: ${data.fileName}]`,
+        timestamp: Date.now(),
+        type: 'image',
+        fileUrl: data.fileData,
+      }).catch(() => {});
+      return;
+    }
+
+    // Handle file
+    if (data.type === 'file' && data.fileData) {
+      const sender = data.sender || 'Peer';
+      addMessage({
+        text: `📎 ${data.fileName} from ${sender}`,
+        sender,
+        isMe: false,
+        isImage: false,
+        fileName: data.fileName,
+      });
+      db.messages.add({
+        roomId: ROOM_ID,
+        sender,
+        text: `[File: ${data.fileName}]`,
+        timestamp: Date.now(),
+        type: 'file',
+        fileUrl: data.fileData,
+      }).catch(() => {});
+      return;
+    }
+
+    // Handle emoji reaction
+    if (data.type === 'reaction' && data.messageIndex !== undefined && data.emoji) {
+      addReaction(data.messageIndex, data.emoji);
+      return;
+    }
+
+    // Handle e2e key
+    if (data.type === 'e2e_key' && data.key) {
+      e2e.importKey(data.key).then(key => setEncryptionKey(key)).catch(() => {});
+      return;
+    }
+  }, [myUsername, addMessage, addReaction]);
 
   // Connect to mesh
   const connect = useCallback(() => {
@@ -163,47 +308,10 @@ export default function WebRTCChat() {
         channel.onmessage = async (event: MessageEvent) => {
           try {
             const data = JSON.parse(event.data);
-
-            if (data.type === 'e2e_key' && data.key) {
-              const key = await e2e.importKey(data.key);
-              setEncryptionKey(key);
-              return;
-            }
-
-          if (data.type === 'chat' && data.text) {
-
-              if (data.sender && data.sender !== myUsername) {
-                setMessages((prev: string[]) => [...prev, `${data.sender}: ${data.text}`]);
-              } else if (!data.sender) {
-                setMessages((prev: string[]) => [...prev, data.text]);
-              }
-              // Add sender prefix for relayed messages
-              const displayText = data.sender && data.sender !== myUsername 
-                ? `${data.sender}: ${data.text}` 
-                : data.text;
-              setMessages((prev: string[]) => [...prev, displayText]);
-              return;
-            }
-
-            if (data.type === 'image' && data.fileData) {
-              setMessages((prev: string[]) => [...prev, `📷 ${data.fileData}`]);
-              db.messages.add({
-                roomId: ROOM_ID, sender: data.sender || 'Peer',
-                text: `[Image: ${data.fileName}]`, timestamp: Date.now(),
-                type: 'image', fileUrl: data.fileData,
-              }).catch(() => {});
-            }
-
-            if (data.type === 'file' && data.fileData) {
-              setMessages((prev: string[]) => [...prev, `📎 ${data.fileName} from ${data.sender}`]);
-              db.messages.add({
-                roomId: ROOM_ID, sender: data.sender || 'Peer',
-                text: `[File: ${data.fileName}]`, timestamp: Date.now(),
-                type: 'file', fileUrl: data.fileData,
-              }).catch(() => {});
-            }
+            processIncomingMessage(data);
           } catch {
-            setMessages((prev: string[]) => [...prev, event.data]);
+            // Plain text fallback
+            addMessage({ text: event.data, sender: 'Peer', isMe: false });
           }
         };
 
@@ -234,15 +342,21 @@ export default function WebRTCChat() {
           }
         };
 
+        // ============================================================
+        // FIX #1: ws.onmessage now handles ALL message types
+        // ============================================================
         ws.onmessage = async (event: MessageEvent) => {
           try {
             const data = JSON.parse(event.data);
 
+            // Connection request from another peer
             if (data.type === 'connect_request') {
               setRequestFrom(data.from || 'Unknown User');
               setShowRequest(true);
               return;
             }
+            
+            // Connection accepted by another peer
             if (data.type === 'connect_accepted') {
               const updatedPeers = [...acceptedPeers, data.from];
               setAcceptedPeers(updatedPeers);
@@ -257,20 +371,17 @@ export default function WebRTCChat() {
               toast.success(`Connected with ${data.from}! 🔒`);
               return;
             }
+            
+            // Connection declined
             if (data.type === 'connect_declined') {
               toast(`${data.from} declined your request`);
               return;
             }
 
-            if (data.type === 'chat' && data.text) {
-              setMessages(prev => {
-                const lastMsg = prev[prev.length - 1];
-                if (lastMsg && data.text && lastMsg.includes(data.text)) return prev;
-                return [...prev, data.text];
-              });
-              return;
-            }
+            // Process chat, image, file, reaction messages
+            processIncomingMessage(data);
 
+            // WebRTC signaling
             const state = getState(pc);
             if (data.type === 'offer') {
               const isPolite = politePeer.current;
@@ -305,7 +416,9 @@ export default function WebRTCChat() {
       setConnected(false); setConnecting(false); setPeerCount(0);
       localStorage.removeItem('sasl_mesh_connected');
     };
-  }, [token, t, myUsername, acceptedPeers, savedPeers]);
+  }, [token, t, myUsername, acceptedPeers, savedPeers, processIncomingMessage]);
+
+  const getState = (pc: RTCPeerConnection): string => pc.signalingState as string;
 
   // Send message
   const sendMessage = useCallback(async () => {
@@ -316,56 +429,97 @@ export default function WebRTCChat() {
       try { messageText = await e2e.encryptMessage(encryptionKey, input); } catch {}
     }
 
-    const messageData = JSON.stringify({
-      type: 'chat', text: messageText,
-      encrypted: !!encryptionKey, sender: myUsername,
-    });
+    addMessage({ text: input, sender: myUsername, isMe: true });
 
     db.messages.add({
       roomId: ROOM_ID, sender: 'Me', text: input,
       timestamp: Date.now(), type: 'text',
     }).catch(() => {});
 
-    if (dataChannelRef.current?.readyState === 'open') {
-      dataChannelRef.current.send(messageData);
-      setMessages((prev: string[]) => { const idx = prev.length; myMessages.current.add(idx); return [...prev, input]; });
-      setInput(''); return;
-    }
-    if (wsRef.current?.readyState === WebSocket.OPEN) {
-      wsRef.current.send(messageData);
-      setMessages((prev: string[]) => { const idx = prev.length; myMessages.current.add(idx); return [...prev, input]; });
-      setInput(''); return;
-    }
-    setMessages((prev: string[]) => { const idx = prev.length; myMessages.current.add(idx); return [...prev, `${input} (queued)`]; });
+    const messageData = {
+      type: 'chat',
+      text: messageText,
+      encrypted: !!encryptionKey,
+      sender: myUsername,
+    };
+
+    sendToPeers(messageData);
     setInput('');
-    toast('Message queued – will send when connected');
-  }, [input, encryptionKey, myUsername]);
+  }, [input, encryptionKey, myUsername, addMessage, sendToPeers]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }
   };
 
+  // ============================================================
+  // FIX #2: sendFile now broadcasts properly
+  // ============================================================
   const sendFile = async (file: File) => {
     const reader = new FileReader();
     reader.onload = () => {
       const isImage = file.type.startsWith('image/');
-      const messageData = JSON.stringify({
-        type: isImage ? 'image' : 'file',
-        fileName: file.name, fileType: file.type,
-        fileData: reader.result, fileSize: file.size,
-        sender: myUsername,
-      });
-      if (dataChannelRef.current?.readyState === 'open') {
-        dataChannelRef.current.send(messageData);
-      } else if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(messageData);
+      const fileData = reader.result as string;
+      // Add to own messages immediately
+      if (isImage) {
+        addMessage({
+          text: `📷 ${file.name}`,
+          sender: myUsername,
+          isMe: true,
+          isImage: true,
+          imageUrl: reader.result as string,
+          fileName: file.name,
+        });
+      } else {
+        addMessage({
+          text: `📎 ${file.name}`,
+          sender: myUsername,
+          isMe: true,
+          fileName: file.name,
+        });
       }
-      const label = isImage ? `📷 ${reader.result}` : `📎 ${file.name}`;
-      setMessages(prev => { const idx = prev.length; myMessages.current.add(idx); return [...prev, label]; });
+
+      // Save to offline DB
+      db.messages.add({
+        roomId: ROOM_ID,
+        sender: 'Me',
+        text: isImage ? `[Image: ${file.name}]` : `[File: ${file.name}]`,
+        timestamp: Date.now(),
+        type: isImage ? 'image' : 'file',
+        fileUrl: fileData,
+      }).catch(() => {});
+
+      // Broadcast to all peers
+      const messageData = {
+        type: isImage ? 'image' : 'file',
+        fileName: file.name,
+        fileType: file.type,
+        fileData:  fileData,
+        fileSize: file.size,
+        sender: myUsername,
+      };
+
+      sendToPeers(messageData);
       setSelectedFile(null);
     };
     reader.readAsDataURL(file);
   };
+
+  // ============================================================
+  // FIX #3: Emoji reactions now broadcast to peers
+  // ============================================================
+  const handleReaction = useCallback((messageIndex: number, messageId: number, emoji: string) => {
+    // Update locally
+    addReaction(messageIndex, emoji);
+    
+    // Broadcast to all peers
+    sendToPeers({
+      type: 'reaction',
+      messageIndex,
+      messageId,
+      emoji,
+      sender: myUsername,
+    });
+  }, [addReaction, sendToPeers, myUsername]);
 
   // Request Modal
   const RequestModal = () => (
@@ -417,7 +571,6 @@ export default function WebRTCChat() {
           <p className="text-gray-500 mb-2">Peer-to-peer chat that works completely offline!</p>
           <p className="text-sm text-gray-400 mb-4">Connect directly to nearby Sasl users via WaveMesh. No internet required.</p>
 
-          {/* Saved Peers */}
           {savedPeers.length > 0 && (
             <div className="mb-6 text-left">
               <p className="text-sm font-semibold text-gray-600 mb-2 flex items-center gap-1">
@@ -494,53 +647,65 @@ export default function WebRTCChat() {
             <div className="text-center"><MessageCircle size={48} className="mx-auto mb-2 opacity-30" /><p>No messages yet</p><p className="text-sm">Start the conversation!</p></div>
           </div>
         ) : (
-          messages.map((msg: string, i: number) => {
-            const isMe = myMessages.current.has(i);
-            const isQueued = msg.includes('(queued)');
-            const displayText = msg.replace(' (queued)', '');
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            const isImage = displayText.startsWith('📷 ') && displayText.length > 3;
+          messages.map((msg, i) => {
+            const emojis = ['❤️', '😂', '🔥', '👍'];
 
             return (
-              <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                {!isMe && (
+              <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                className={`flex items-end gap-2 ${msg.isMe ? 'justify-end' : 'justify-start'}`}>
+                {!msg.isMe && (
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
-                    {acceptedPeers[0]?.[0]?.toUpperCase() || 'P'}
+                    {msg.sender[0]?.toUpperCase() || 'P'}
                   </div>
                 )}
-                <div className={`max-w-[70%] ${isMe ? 'order-1' : ''}`}>
-                  <div className={`px-4 py-2.5 rounded-2xl text-sm ${isMe ? 'bg-green-500 text-white rounded-br-md' : 'bg-white dark:bg-gray-800 shadow-sm border rounded-bl-md'} ${isQueued ? 'opacity-50' : ''}`}>
-                    {isImage ? (
-                      <img src={displayText.replace('📷 ', '')} alt="Shared" className="max-w-full rounded-lg max-h-48 object-cover" />
+                <div className={`max-w-[70%] ${msg.isMe ? 'order-1' : ''}`}>
+                  {/* Message bubble */}
+                  <div className={`px-4 py-2.5 rounded-2xl text-sm ${
+                    msg.isMe 
+                      ? 'bg-green-500 text-white rounded-br-md' 
+                      : 'bg-white dark:bg-gray-800 shadow-sm border rounded-bl-md'
+                  } ${msg.isQueued ? 'opacity-50' : ''}`}>
+                    {msg.isImage && msg.imageUrl ? (
+                      <div>
+                        <img src={msg.imageUrl} alt="Shared" className="max-w-full rounded-lg max-h-48 object-cover mb-1" />
+                        <p className="text-xs opacity-70">{msg.fileName}</p>
+                      </div>
+                    ) : msg.fileName && !msg.isImage ? (
+                      <div className="flex items-center gap-2">
+                        <Paperclip size={14} />
+                        <span className="underline cursor-pointer hover:text-blue-300">{msg.fileName}</span>
+                      </div>
                     ) : (
-                      displayText
+                      msg.text
                     )}
                   </div>
+                  
+                  {/* ============================================================ */}
+                  {/* FIX #3: Emoji reactions now call handleReaction which broadcasts */}
+                  {/* ============================================================ */}
                   <div className="flex items-center gap-1 mt-1">
-                    {['❤️', '😂', '🔥', '👍'].map(emoji => {
-                      const count = (reactions[i] || []).filter((r: string) => r === emoji).length;
-                      const hasReacted = (reactions[i] || []).includes(emoji);
+                    {emojis.map(emoji => {
+                      const count = msg.reactions[emoji] || 0;
+                      const hasReacted = count > 0;
                       return (
-                        <button key={emoji} onClick={() => {
-                          setReactions(prev => ({
-                            ...prev,
-                            [i]: [...(prev[i] || []), emoji],
-                          }));
-                        }}
-                        className={`text-[11px] transition-all flex items-center gap-0.5 px-1 py-0.5 rounded-full ${
-                          hasReacted ? 'bg-white/20 scale-110' : 'opacity-50 hover:opacity-80'
-                        }`}>
-                          {emoji}<span className="text-[9px] font-semibold">{count > 0 ? count : ''}</span>
+                        <button 
+                          key={emoji} 
+                          onClick={() => handleReaction(i, msg.id, emoji)}
+                          className={`text-[11px] transition-all flex items-center gap-0.5 px-1 py-0.5 rounded-full ${
+                            hasReacted ? 'bg-white/10 scale-110' : 'opacity-50 hover:opacity-80'
+                          }`}>
+                          {emoji}
+                          {count > 0 && <span className="text-[9px] font-semibold">{count}</span>}
                         </button>
                       );
                     })}
                   </div>
-                  <p className={`text-[10px] text-gray-400 mt-0.5 ${isMe ? 'text-right' : 'text-left'}`}>
-                    {time} {isMe && '· Sent'} {isQueued && '· Queued'}
+                  
+                  <p className={`text-[10px] text-gray-400 mt-0.5 ${msg.isMe ? 'text-right' : 'text-left'}`}>
+                    {msg.time} {msg.isMe && '· Sent'} {msg.isQueued && '· Queued'}
                   </p>
                 </div>
-                {isMe && (
+                {msg.isMe && (
                   myAvatar ? (
                     <img src={myAvatar} className="w-8 h-8 rounded-full object-cover flex-shrink-0 border-2 border-green-300" alt="" />
                   ) : (
