@@ -36,6 +36,7 @@ import SaslAIHub from './components/SaslAIHub';
 import AdvertisePage from './components/AdvertisePage';
 import { globalMesh } from './services/globalMesh';
 import ReferralModal from './components/ReferralModal';
+import MeshChatHub from './components/MeshChatHub';
 
 // ✅ FIXED: Added loading check
 function PrivateRoute({ children }: { children: JSX.Element }) {
@@ -96,9 +97,7 @@ function AppContent() {
     return () => window.removeEventListener('sasl_logout', handleLogout);
   }, []);
   
-   if (!splashDone) {
-    return <SplashScreen onFinish={handleSplashFinish} />;
-  }
+  
     if (!splashDone) {
     return <SplashScreen onFinish={handleSplashFinish} />;
   }
@@ -126,7 +125,7 @@ function AppContent() {
           <Route path="/snap" element={<PrivateRoute><SnapSender /></PrivateRoute>} />
           <Route path="/progress" element={<PrivateRoute><ProgressHub /></PrivateRoute>} />
           <Route path="/gigs" element={<PrivateRoute><GigCentral /></PrivateRoute>} />
-          <Route path="/meshchat" element={<PrivateRoute><WebRTCChat /></PrivateRoute>} />
+           <Route path="/meshchat" element={<PrivateRoute><MeshChatHub /></PrivateRoute>} />
           <Route path="/earnings" element={<PrivateRoute><EarningsDashboard /></PrivateRoute>} />
           <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
           <Route path="/ar-filters" element={<PrivateRoute><ARFilters /></PrivateRoute>} />
@@ -137,6 +136,7 @@ function AppContent() {
           <Route path="/referral" element={<PrivateRoute><ReferralModal referralCode={user?.username || ''} onClose={() => window.history.back()} /></PrivateRoute>} />
           <Route path="/qr-profile" element={<PrivateRoute><QRProfile username={user?.username || ''} /></PrivateRoute>} />
           <Route path="/advertise" element={<AdvertisePage />} />
+         
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

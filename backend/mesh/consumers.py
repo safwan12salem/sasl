@@ -101,6 +101,7 @@ class VideoSignalConsumer(AsyncWebsocketConsumer):
     """
     WebSocket for /ws/video/<room_id>/ – WebRTC signaling + mesh chat relay.
     RELAYS MESSAGES TO ALL PEERS IN THE ROOM INCLUDING THE SENDER.
+    NOW WITH: avatar forwarding, system messages, proper disconnect handling.
     """
 
     async def connect(self):
@@ -117,21 +118,69 @@ class VideoSignalConsumer(AsyncWebsocketConsumer):
             user = await self.get_user_from_token(token)
             if user:
                 self.scope['user'] = user
+                self.scope['username'] = user.username
+                # Get avatar URL
+                try:
+                    self.scope['avatar_url'] = await self.get_avatar_url(user)
+                except:
+                    self.scope['avatar_url'] = None
             else:
                 await self.close()
                 return
+        else:
+            await self.close()
+            return
 
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
-        logger.info(f"Mesh peer connected to room {self.room_name}: {getattr(user, 'username', 'anonymous')}")
+        logger.info(f"Mesh peer connected to room {self.room_name}: {self.scope.get('username', 'anonymous')}")
+
+        # Notify others that a new peer joined
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'signal_message',
+                'message': {
+                    'type': 'system',
+                    'content': f"{self.scope.get('username', 'A user')} joined the room",
+                    'sender_channel': self.channel_name,
+                },
+            }
+        )
 
     async def disconnect(self, close_code):
+        # Notify others that peer left
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {
+                'type': 'signal_message',
+                'message': {
+                    'type': 'system',
+                    'content': f"{self.scope.get('username', 'A user')} left the room",
+                    'sender_channel': self.channel_name,
+                },
+            }
+        )
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
         logger.info(f"Mesh peer disconnected from room {self.room_name}")
 
     async def receive(self, text_data):
         """Receive message from one peer and relay to ALL peers in the room."""
         data = json.loads(text_data)
+        
+        # Attach sender info if not present
+        if 'sender' not in data and hasattr(self.scope, 'username'):
+            data['sender'] = self.scope['username']
+        
+        # Attach avatar URL to chat messages
+        if data.get('type') == 'chat_message' and 'message' in data:
+            if 'sender' not in data['message'] or not data['message'].get('sender'):
+                data['message']['sender'] = {
+                    'id': self.scope.get('user').id if hasattr(self.scope, 'user') else None,
+                    'username': self.scope.get('username', 'Unknown'),
+                    'avatar_url': self.scope.get('avatar_url', None),
+                }
+        
         # Broadcast to EVERYONE in the room (including sender for confirmation)
         await self.channel_layer.group_send(
             self.room_group_name,
@@ -154,3 +203,18 @@ class VideoSignalConsumer(AsyncWebsocketConsumer):
             return User.objects.get(id=user_id)
         except Exception:
             return None
+
+    @database_sync_to_async
+    def get_avatar_url(self, user):
+        try:
+            profile = user.profile
+            if hasattr(profile, 'avatar_url') and profile.avatar_url:
+                return profile.avatar_url
+        except:
+            pass
+        try:
+            if hasattr(user, 'profile_picture') and user.profile_picture:
+                return user.profile_picture.url
+        except:
+            pass
+        return None
