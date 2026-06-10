@@ -259,7 +259,6 @@ export default function Reels() {
           })}
         </div>
 
-{/* Replies */}
 {(c.replies || []).map((r: any) => (
   <div key={r.id} className="flex items-start gap-2 ml-6 mt-1">
     <div className="w-4 h-4 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-[8px] font-bold flex-shrink-0">
@@ -268,6 +267,29 @@ export default function Reels() {
     <div>
       <span className="text-white text-[10px] font-semibold">{r.user?.username || 'user'}</span>
       <span className="text-white/60 text-[10px] ml-1">{r.text}</span>
+      <button onClick={(e) => { e.stopPropagation(); setReplyingTo(replyingTo === r.id ? null : r.id); setReplyTexts(prev => ({ ...prev, [r.id]: '' })); }}
+        className="text-white/40 text-[8px] ml-1 hover:text-white/80">Reply</button>
+      {/* Emoji reactions on replies */}
+      <div className="flex items-center gap-1 mt-0.5">
+        {['❤️', '😂', '🔥'].map(emoji => {
+          const count = r.reaction_counts?.[emoji] || 0;
+          return (
+            <button key={emoji} onClick={async (e) => { e.stopPropagation(); try { await api.post(`/content/reels/${reel.id}/like_reply/`, { reply_id: r.id, reaction: emoji }); fetchReelComments(reel.id); } catch {} }}
+              className={`text-[9px] transition-all flex items-center gap-0.5 px-1 py-0.5 rounded-full ${r.my_reaction === emoji ? 'bg-white/20 scale-110' : 'opacity-50 hover:opacity-80'}`}>
+              {emoji}<span className="text-[7px]">{count}</span>
+            </button>
+          );
+        })}
+      </div>
+      {/* Reply input for reply */}
+      {replyingTo === r.id && (
+        <div className="flex gap-1 mt-1">
+          <input value={replyTexts[r.id] || ''} onChange={e => setReplyTexts(prev => ({ ...prev, [r.id]: e.target.value }))}
+            placeholder="Reply..." className="flex-1 bg-white/10 text-white px-2 py-0.5 rounded-full text-[8px] outline-none"
+            onKeyDown={e => e.key === 'Enter' && handleReply(reel.id, r.id)} />
+          <button onClick={() => handleReply(reel.id, r.id)} className="text-green-400 text-[8px] font-semibold">Send</button>
+        </div>
+      )}
     </div>
   </div>
 ))}

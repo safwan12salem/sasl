@@ -992,7 +992,7 @@
       "Discover": "Descubrir",
       "Requests": "Solicitudes",
       "No conversations yet": "No hay conversaciones aún",
-      "Search for users to start chatting via WaveMesh!": "¡Busca usuarios para chatear por WaveMesh!"
+      "Search for users to start chatting via WaveMesh!": "¡Busca usuarios para chatear por WaveMesh!",
       "Start chatting...": "Empezar a chatear...",
       "No users discovered": "No se descubrieron usuarios",
       "Open another tab and log in to see peers!": "¡Abre otra pestaña e inicia sesión para ver compañeros!",
@@ -1032,5 +1032,8 @@
       "Copy invite code": "Copiar código de invitación",
       "Leave": "Salir",
       "Today": "Hoy",
-      "Yesterday": "Ayer",
+      "Yesterday": "Ayer"
+
+
+}
      
