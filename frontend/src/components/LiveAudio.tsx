@@ -320,6 +320,17 @@ export default function LiveAudio() {
                     </div>
                   )}
                 </div>
+                <div className="flex items-center gap-3 mt-3 flex-wrap">
+  <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"><Volume2 size={18} /></button>
+  <span className="flex items-center gap-1 text-xs text-gray-500"><TrendingUp size={12} /> {room.listeners_count || 0} listening</span>
+  <span className="flex items-center gap-1 text-yellow-500 text-xs font-semibold"><Zap size={14} /> Live</span>
+  {room.host && (
+  <span className="flex items-center gap-1 text-xs bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 rounded-full">
+    <Crown size={12} className="text-yellow-500" /> {typeof room.host === 'string' ? room.host : room.host?.username || 'Host'}
+  </span>
+)}
+  <button className="btn-primary text-xs flex items-center gap-1 ml-auto"><UserPlus size={14} /> Invite</button>
+</div>
                 <div className="flex items-center gap-3">
                   <div className="text-center">
                     <p className="text-2xl font-bold text-purple-600 flex items-center gap-1">

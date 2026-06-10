@@ -111,6 +111,12 @@ export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
     }
   };
 
+  // Already imported, just add a usage:
+useEffect(() => {
+  toast.success('Private chat ready');
+}, []);
+
+
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">

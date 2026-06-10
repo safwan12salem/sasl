@@ -385,8 +385,9 @@ export default function SnapSender() {
               ) : (
                 <>
                   <button onClick={flipCamera} className="bg-black/40 text-white p-3 rounded-full">
-                    <FlipHorizontal size={20} />
+                    <RotateCcw size={22} />
                   </button>
+      
                   <button onClick={mediaType === 'video' ? startRecording : capturePhoto}
                     className={`p-5 rounded-full border-4 border-white shadow-lg transition ${
                       recording ? 'bg-red-500 scale-110' : 'bg-white'
@@ -434,6 +435,7 @@ export default function SnapSender() {
           </div>
 
           {/* Preview & Send */}
+         
           {blob && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass p-4 rounded-2xl space-y-3">
               {mediaType === 'video' ? (

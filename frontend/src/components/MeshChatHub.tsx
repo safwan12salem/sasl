@@ -60,6 +60,8 @@ interface DiscoveredPeer {
   avatar_url: string | null;
 }
 
+
+
 // ============================================================
 // CONSTANTS
 // ============================================================
@@ -133,7 +135,7 @@ export default function MeshChatHub() {
   const activeRoomRef = useRef<ChatRoom | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-
+const [justSent, setJustSent] = useState(false);
   const token = localStorage.getItem('sasl_token');
 
   useEffect(() => { activeRoomRef.current = activeRoom; }, [activeRoom]);
@@ -346,7 +348,8 @@ const fetchRooms = useCallback(async () => {
 
     setMessages(prev => [...prev, msg]);
     setInput('');
-    setTimeout(scrollToBottom, 100);
+    setJustSent(true);
+    setTimeout(() => setJustSent(false), 1000);
     inputRef.current?.focus();
 
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -752,7 +755,11 @@ const fetchRooms = useCallback(async () => {
                 <Avatar src={activeRoom.other_user?.avatar_url} name={activeRoom.other_user?.username || activeRoom.name} size="md" />
                 <div>
                   <h3 className="font-bold text-sm">{activeRoom.room_type === 'private' && activeRoom.other_user ? `@${activeRoom.other_user.username}` : activeRoom.name}</h3>
-                  <p className="text-xs text-gray-500">{connecting ? 'Connecting...' : '🟢 Connected via WaveMesh'}</p>
+                  <p className="text-xs text-gray-500">
+  {connecting ? 'Connecting...' : (
+    <span className="flex items-center gap-1 text-green-600"><Wifi size={12} /> Connected via WaveMesh</span>
+  )}
+</p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -831,9 +838,10 @@ const fetchRooms = useCallback(async () => {
                 <motion.button whileTap={{ scale: 0.9 }} onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/30 transition-all">
                   <Smile size={20} />
                 </motion.button>
-                <motion.button whileTap={{ scale: 0.9 }} onClick={() => fileInputRef.current?.click()} className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/30 transition-all">
-                  <Image size={20} />
-                </motion.button>
+             
+<motion.button whileTap={{ scale: 0.9 }} onClick={() => fileInputRef.current?.click()} className="p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-900/30 transition-all">
+  <Paperclip size={20} />
+</motion.button>
                 <div className="flex-1 relative">
                   <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Message via WaveMesh..." className="w-full px-5 py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-green-400/50 focus:bg-white dark:focus:bg-gray-700 transition-all placeholder-gray-400" />
                   {showEmojiPicker && (
@@ -850,7 +858,12 @@ const fetchRooms = useCallback(async () => {
              
 
                             <motion.button whileTap={{ scale: 0.9 }} onClick={sendMessage} disabled={!input.trim()} className="p-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl hover:from-green-600 hover:to-emerald-600 transition disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-green-500/25">
-                  <Send size={20} />
+           
+                  {justSent ? (
+  <Check size={20} className="text-white" />
+) : (
+  <Send size={20} />
+)}
                 </motion.button>
               </div>
             </div>

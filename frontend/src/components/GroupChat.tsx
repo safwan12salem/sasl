@@ -52,6 +52,7 @@ export default function GroupChat() {
   const [sending, setSending] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [showEmoji, setShowEmoji] = useState(false);
   const chatRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -402,7 +403,19 @@ export default function GroupChat() {
                 <button onClick={() => { setSelectedImage(null); setImagePreview(null); }} className="p-1 rounded-full bg-red-500 text-white"><X size={14} /></button>
               </div>
             )}
-
+               
+               <button onClick={() => setShowEmoji(!showEmoji)} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500">
+  <Smile size={18} />
+</button>
+{showEmoji && (
+  <div className="absolute bottom-14 left-0 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border p-3 z-50">
+    <div className="grid grid-cols-8 gap-1">
+      {['😀','😂','❤️','🔥','👍','🎉','😢','😡','🥰','😍','🤩','😎','🥳','💪','🙏','👋'].map(e => (
+        <button key={e} onClick={() => { setInput(prev => prev + e); setShowEmoji(false); }} className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-lg">{e}</button>
+      ))}
+    </div>
+  </div>
+)}
             <div className="p-3 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
               <input type="file" accept="image/*,video/*" ref={fileInputRef} className="hidden" onChange={handleImageSelect} />
               <button onClick={() => fileInputRef.current?.click()} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"><Image size={18} /></button>

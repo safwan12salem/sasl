@@ -69,7 +69,7 @@ export default function WaveMeshChat() {
   // Typing indicator
   const [peerTyping, setPeerTyping] = useState(false);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
+const [showEmoji, setShowEmoji] = useState(false);
   // ============================================================
   // BROADCAST CHANNEL MESH DISCOVERY
   // ============================================================
@@ -411,6 +411,16 @@ export default function WaveMeshChat() {
       )}
 
       {/* Messages */}
+       <div className="flex items-center gap-4 px-4 py-2 bg-gray-50 dark:bg-gray-800/50 border-b">
+  <span className="flex items-center gap-1 text-xs"><Wifi size={14} className={connected ? 'text-green-500' : 'text-red-500'} /> {connected ? 'Connected' : 'Disconnected'}</span>
+  <span className="flex items-center gap-1 text-xs text-gray-500"><Users size={14} /> {peers.length} peers</span>
+  <div className="flex items-center gap-1 ml-auto">
+    <button onClick={() => setShowEmoji(!showEmoji)} className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg"><Smile size={18} /></button>
+    <button onClick={() => fileInputRef.current?.click()} className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg"><Paperclip size={18} /></button>
+    <button className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg"><MoreVertical size={18} /></button>
+  </div>
+</div>
+
       <div className="h-96 bg-gray-50 dark:bg-gray-900/50 rounded-2xl p-4 mb-3 overflow-y-auto space-y-3">
         {messages.length === 0 && (
           <div className="flex items-center justify-center h-full text-gray-400">

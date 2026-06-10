@@ -466,7 +466,7 @@ const Feed: React.FC = () => {
       <img src={post.media_url} className="w-full max-h-96 object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="" loading="lazy" />
     )}
     <a href={post.media_url} download className="absolute top-2 right-2 bg-white/90 rounded-full p-2 shadow opacity-0 group-hover:opacity-100 transition-opacity">
-      <Download size={16} />
+      <Download size={16}  className="text-gray-700" />
     </a>
   </div>
 )}

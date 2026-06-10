@@ -216,8 +216,8 @@ export default function Marketplace() {
             <input className="input-field pl-10" placeholder={t('search_products')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
           </div>
           <button onClick={() => setShowFilters(!showFilters)} className="btn-ghost flex items-center gap-1">
-            <Filter size={18} /> {t('filters')}
-          </button>
+  <Filter size={18} /> {t('filters')} <ChevronDown size={14} className={`transition ${showFilters ? 'rotate-180' : ''}`} />
+</button>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1">
           <button onClick={() => setSelectedCategory('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${!selectedCategory ? 'bg-green-500 text-white shadow-lg shadow-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{t('all')}</button>
@@ -261,9 +261,11 @@ export default function Marketplace() {
                 {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
               </select>
             </div>
-            <div className="flex items-center gap-3">
-              <label className="btn-ghost cursor-pointer flex items-center gap-1"><ImageIcon size={18} /> {newImage ? newImage.name : 'Upload Image'}<input type="file" accept="image/*" className="hidden" onChange={handleImageChange} /></label>
-              {imagePreview && <img src={imagePreview} alt="preview" className="h-12 w-12 rounded-lg object-cover shadow" />}
+                        <div className="flex items-center gap-3 flex-wrap">
+              <label className="btn-ghost cursor-pointer flex items-center gap-1"><ImageIcon size={18} /> Upload Images (max 10)<input type="file" accept="image/*" multiple className="hidden" onChange={handleImageChange} /></label>
+              {imagePreviews.map((preview, i) => (
+                <img key={i} src={preview} alt={`preview ${i}`} className="h-12 w-12 rounded-lg object-cover shadow" />
+              ))}
             </div>
             <motion.button whileTap={{ scale: 0.98 }} onClick={createProduct} className="btn-primary w-full">🚀 List Product</motion.button>
           </motion.div>
@@ -295,6 +297,7 @@ export default function Marketplace() {
                   className={`absolute top-2 right-2 p-2 rounded-full shadow transition ${p.is_wishlisted ? 'bg-red-500 text-white' : 'bg-white/90 text-gray-400 hover:text-red-500'}`}>
                   <Heart size={16} className={p.is_wishlisted ? 'fill-white like-burst' : ''} />
                 </motion.button>
+                {wishlist.includes(p.id) && <span className="absolute top-2 right-12 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">❤️ Saved</span>}
                 {p.stock <= 3 && p.stock > 0 && <span className="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">Only {p.stock} left</span>}
                 {p.stock === 0 && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><span className="text-white font-bold text-lg">Sold Out</span></div>}
               </div>
@@ -303,7 +306,7 @@ export default function Marketplace() {
                 <div className="flex items-center gap-1 mt-1">{p.average_rating ? renderStars(p.average_rating) : null}{p.review_count ? <span className="text-xs text-gray-400">({p.review_count})</span> : null}</div>
                 <p className="text-xs text-gray-500 mt-1">by {p.seller_name}</p>
                 <div className="flex items-center justify-between mt-3">
-                  <span className="text-xl font-bold text-green-600">${p.price}</span>
+                  <span className="text-xl font-bold text-green-600"><DollarSign size={16} />{p.price}</span>
                   <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); buy(p.id); }} disabled={p.stock === 0}
                     className="flex items-center gap-1 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition disabled:opacity-50">
                     <ShoppingCart size={14} /> {t('buy')}
@@ -340,7 +343,7 @@ export default function Marketplace() {
                 <h2 className="text-2xl font-bold">{selectedProduct.title}</h2>
                 <p className="text-gray-500 mt-1">{selectedProduct.description || 'No description'}</p>
                 <div className="flex items-center gap-3 mt-3">
-                  <span className="text-3xl font-bold text-green-600">${selectedProduct.price}</span>
+                  <span className="text-3xl font-bold text-green-600"><DollarSign size={16} />{selectedProduct.price}</span>
                   <span className={`text-sm px-3 py-1 rounded-full ${selectedProduct.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{selectedProduct.stock > 0 ? `${selectedProduct.stock} in stock` : 'Sold Out'}</span>
                 </div>
                 <div className="flex gap-2 mt-4">
