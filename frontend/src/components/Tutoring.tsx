@@ -689,17 +689,17 @@ const STATUS_COLORS: Record<string, string> = {
   </div>
 )}
 <div className="flex items-center gap-2 mt-3 flex-wrap">
-  <button className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 transition"><Filter size={14} /> Filter</button>
-  <button className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition"><Video size={14} /> Start Class</button>
-  <button className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition"><Pause size={14} /> Pause</button>
-  <button className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition"><Upload size={14} /> Materials</button>
-  <button className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition"><X size={14} /> Cancel</button>
+  <button onClick={() => { setSelectedSubject(''); fetchSessions(); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 transition"><Filter size={14} /> Filter</button>
+  <button onClick={() => startVideoCall(session.id)} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition"><Video size={14} /> Start Class</button>
+  <button onClick={() => { if (inCall) endCall(); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition"><Pause size={14} /> Pause</button>
+  <button onClick={() => setShowMaterials(true)} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition"><Upload size={14} /> Materials</button>
+  <button onClick={() => cancelSession(session.id)} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition"><X size={14} /> Cancel</button>
 </div>
 <div className="flex items-center gap-2 mt-2">
-  <span className="flex items-center gap-1 text-xs text-gray-500"><BarChart3 size={14} /> Progress</span>
-  <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-yellow-500"><Bookmark size={14} /> Save</button>
-  <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500"><Share2 size={14} /> Share</button>
-  <span className="flex items-center gap-1 text-xs text-amber-500"><Zap size={14} /> Quick Session</span>
+  <span className="flex items-center gap-1 text-xs text-gray-500"><BarChart3 size={14} /> {session.students_enrolled || 0}/{session.max_students || '∞'} enrolled</span>
+  <button onClick={() => toast.success('Session saved!')} className="flex items-center gap-1 text-xs text-gray-500 hover:text-yellow-500"><Bookmark size={14} /> Save</button>
+  <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/tutoring/${session.id}`); toast.success('Link copied!'); }} className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500"><Share2 size={14} /> Share</button>
+  <span className="flex items-center gap-1 text-xs text-amber-500"><Zap size={14} /> {session.duration_minutes}min</span>
 </div>
                       <div>
                         <h3 className="font-bold text-lg flex items-center gap-2">

@@ -596,10 +596,11 @@ export default function GigCentral() {
                     </div>
                     {/* Action Buttons Row */}
                     <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex-wrap">
-                      <button className="flex items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition"><ThumbsUp size={14} /> Like</button>
+                      <button onClick={async () => { try { await api.post(`/gigs/gigs/${gig.id}/like/`); toast.success('Liked!'); } catch {} }} className="flex items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition"><ThumbsUp size={14} /> Like</button>
+<button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/gigs/${gig.id}`); toast.success('Link copied!'); }} className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600"><Link size={14} /> Copy</button>
                       <span className="flex items-center gap-1 text-xs text-gray-400"><Users size={14} /> {gig.applicants_count || 0}</span>
                       <span className="flex items-center gap-1 text-xs text-gray-400"><BarChart3 size={14} /> {gig.views || 0}</span>
-                      <button className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600"><Link size={14} /> Copy</button>
+                      
                       <span className="flex items-center gap-1 text-xs text-orange-500"><TrendingUp size={14} /> Trending</span>
                       <span className="flex items-center gap-1 text-xs text-gray-400"><Calendar size={14} /> {gig.deadline || 'Open'}</span>
                       <span className="flex items-center gap-1 text-xs text-green-500"><Shield size={14} /> Verified</span>

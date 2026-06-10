@@ -221,14 +221,29 @@ export default function Reels() {
               <div className="absolute bottom-24 left-4 right-16 max-h-56 overflow-y-auto bg-black/80 rounded-xl p-3 z-20">
                 <button onClick={(e) => { e.stopPropagation(); setShowComments(null); }} className="absolute top-2 right-2 text-white/60 hover:text-white">✕</button>
                 <p className="text-white text-xs font-semibold mb-2">Comments</p>
-                {(reelComments[reel.id] || []).map((c: any) => (
-                  <div key={c.id} className="mb-2">
-                    <div className="flex items-start gap-2">
-                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{c.user?.username?.[0]?.toUpperCase() || 'U'}</div>
-                      <div className="flex-1">
-                        <span className="text-white text-xs font-semibold">{c.user?.username || 'user'}</span>
-                        <span className="text-white/70 text-xs ml-2">{c.text}</span>
-                        <button onClick={(e) => { e.stopPropagation(); setReplyingTo(replyingTo === c.id ? null : c.id); }} className="text-white/40 text-[10px] ml-2 hover:text-white/80">Reply</button>
+                           
+
+                           {(reelComments[reel.id] || []).map((c: any) => (
+  <div key={c.id} className="mb-2">
+    <div className="flex items-start gap-2">
+      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{c.user?.username?.[0]?.toUpperCase() || 'U'}</div>
+      <div className="flex-1">
+        <span className="text-white text-xs font-semibold">{c.user?.username || 'user'}</span>
+        <span className="text-white/70 text-xs ml-2">{c.text}</span>
+        <button onClick={(e) => { e.stopPropagation(); setReplyingTo(replyingTo === c.id ? null : c.id); }} className="text-white/40 text-[10px] ml-2 hover:text-white/80">Reply</button>
+        {/* EMOJI REACTIONS ON COMMENTS */}
+        <div className="flex items-center gap-1 mt-1">
+          {['❤️', '😂', '🔥', '😢'].map(emoji => {
+            const count = c.reaction_counts?.[emoji] || 0;
+            const isMyReaction = c.my_reaction === emoji;
+            return (
+              <button key={emoji} onClick={async (e) => { e.stopPropagation(); try { await api.post(`/content/reels/${reel.id}/like_comment/`, { comment_id: c.id, reaction: emoji }); fetchReelComments(reel.id); } catch {} }}
+                className={`text-[11px] transition-all flex items-center gap-0.5 px-1 py-0.5 rounded-full ${isMyReaction ? 'bg-white/20 scale-110' : 'opacity-50 hover:opacity-80'}`}>
+                {emoji}<span className="text-[9px] font-semibold">{count}</span>
+              </button>
+            );
+          })}
+        </div>
                         {replyingTo === c.id && (
                           <div className="flex gap-1 mt-1">
                             <input value={replyTexts[c.id] || ''} onChange={e => setReplyTexts(prev => ({ ...prev, [c.id]: e.target.value }))} placeholder="Reply..." className="flex-1 bg-white/10 text-white px-2 py-1 rounded-full text-[10px] outline-none" onKeyDown={e => e.key === 'Enter' && handleReply(reel.id, c.id)} />

@@ -419,8 +419,14 @@ class ReelViewSet(viewsets.ModelViewSet):
         reel.save(update_fields=['likes_count'])
         return Response({'status': 'unliked', 'likes_count': reel.likes_count})  
 
-   
-    
+    @action(detail=True, methods=['post'])
+    def dislike(self, request, pk=None):
+        reel = self.get_object()
+        # Simple dislike counter
+        reel.dislikes_count = getattr(reel, 'dislikes_count', 0) + 1
+        reel.save(update_fields=['dislikes_count'] if hasattr(reel, 'dislikes_count') else [])
+        return Response({'status': 'disliked'}) 
+     
     @action(detail=True, methods=['post'])
     def comment(self, request, pk=None):
         reel = self.get_object()

@@ -329,7 +329,7 @@ export default function LiveAudio() {
     <Crown size={12} className="text-yellow-500" /> {typeof room.host === 'string' ? room.host : room.host?.username || 'Host'}
   </span>
 )}
-  <button className="btn-primary text-xs flex items-center gap-1 ml-auto"><UserPlus size={14} /> Invite</button>
+  <button onClick={() => setShowInvite(true)} className="btn-primary text-xs flex items-center gap-1 ml-auto"><UserPlus size={14} /> Invite</button>
 </div>
                 <div className="flex items-center gap-3">
                   <div className="text-center">
@@ -361,6 +361,22 @@ export default function LiveAudio() {
               </div>
             </motion.div>
           ))}
+
+                {/* Invite Modal */}
+      <AnimatePresence>
+        {showInvite && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowInvite(false)}>
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+              <h3 className="font-bold text-xl mb-4">Invite to Room</h3>
+              <input className="input-field mb-4" placeholder="Enter username..." value={inviteUsername} onChange={e => setInviteUsername(e.target.value)} onKeyDown={e => e.key === 'Enter' && inviteSpeaker()} />
+              <div className="flex gap-2">
+                <button onClick={inviteSpeaker} className="btn-primary flex-1">Invite</button>
+                <button onClick={() => setShowInvite(false)} className="btn-ghost">Cancel</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
         </div>
       )}
     </div>

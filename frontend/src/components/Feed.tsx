@@ -465,9 +465,30 @@ const Feed: React.FC = () => {
     ) : (
       <img src={post.media_url} className="w-full max-h-96 object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="" loading="lazy" />
     )}
-    <a href={post.media_url} download className="absolute top-2 right-2 bg-white/90 rounded-full p-2 shadow opacity-0 group-hover:opacity-100 transition-opacity">
-      <Download size={16}  className="text-gray-700" />
-    </a>
+    <a 
+  href={post.media_url} 
+  download={post.media_url?.split('/').pop() || 'sasl-image.jpg'}
+  target="_blank"
+  rel="noopener noreferrer"
+  onClick={(e) => {
+    e.stopPropagation();
+    // Force download instead of navigation
+    fetch(post.media_url)
+      .then(r => r.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = post.media_url?.split('/').pop() || 'sasl-image.jpg';
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => window.open(post.media_url, '_blank'));
+  }}
+  className="absolute top-2 right-2 bg-white/90 rounded-full p-2 shadow opacity-0 group-hover:opacity-100 transition-opacity"
+>
+  <Download size={16} className="text-gray-700" />
+</a>
   </div>
 )}
         
