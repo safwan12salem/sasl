@@ -162,18 +162,29 @@ export default function MeshChatHub() {
   }, []);
   // ============================================================
   // DATA FETCHING
-  // ============================================================
-  const fetchRooms = useCallback(async () => {
+const fetchRooms = useCallback(async () => {
     try {
       const res = await api.get('/mesh/rooms/');
       const data = Array.isArray(res.data) ? res.data : (res.data.results || []);
+      // Save to localStorage for offline persistence
+      localStorage.setItem('sasl_cached_rooms', JSON.stringify(data));
       setRooms(data);
-       if (activeRoomRef.current) {
+      if (activeRoomRef.current) {
         const updated = data.find((r: ChatRoom) => r.id === activeRoomRef.current?.id);
         if (updated) setActiveRoom(updated);
       }
     } catch (err) {
-        console.log('Offline: keeping cached rooms');
+      // OFFLINE: Load cached rooms from localStorage
+      const cached = localStorage.getItem('sasl_cached_rooms');
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setRooms(parsed);
+          }
+        } catch {}
+      }
+      console.log('Offline: using cached rooms');
     } finally {
       setLoading(false);
     }

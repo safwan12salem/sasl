@@ -22,6 +22,7 @@ interface Product {
   description?: string;
   price: string;
   seller_name: string;
+  seller_phone?: string;
   seller_avatar?: string;
   seller_rating?: number;
   image_url: string | null;
@@ -84,6 +85,9 @@ export default function Marketplace() {
   const [reviewComment, setReviewComment] = useState('');
   const [chatRoom, setChatRoom] = useState<string | null>(null);
   const [wishlist, setWishlist] = useState<string[]>([]);
+   const [newImages, setNewImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -168,9 +172,13 @@ export default function Marketplace() {
     setNewCategory(''); setNewImage(null); setImagePreview(null);
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) { setNewImage(file); setImagePreview(URL.createObjectURL(file)); }
+   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      setNewImages(prev => [...prev, ...files].slice(0, 10)); // Max 10 images
+      const previews = files.map(f => URL.createObjectURL(f));
+      setImagePreviews(prev => [...prev, ...previews].slice(0, 10));
+    }
   };
 
   const renderStars = (rating: number) => {
@@ -338,6 +346,22 @@ export default function Marketplace() {
                 <div className="flex gap-2 mt-4">
                   <button onClick={() => { buy(selectedProduct.id); setSelectedProduct(null); }} disabled={selectedProduct.stock === 0} className="btn-primary flex-1 flex items-center justify-center gap-2"><ShoppingCart size={18} /> {t('buy_now')}</button>
                   <button onClick={() => toggleWishlist(selectedProduct.id)} className="btn-ghost"><Heart size={20} className={selectedProduct.is_wishlisted ? 'fill-red-500 text-red-500' : ''} /></button>
+
+                </div>
+                 <div className="flex gap-2 mt-3 pt-3 border-t">
+                  <button 
+                    onClick={() => setChatRoom(selectedProduct.seller_name)}
+                    className="flex-1 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:from-blue-600 hover:to-indigo-600 transition"
+                  >
+                    <MessageCircle size={16} /> Chat with Seller
+                  </button>
+                  <button 
+                    onClick={() => window.open(`tel:${selectedProduct.seller_phone || ''}`, '_self')}
+                    className="flex-1 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:from-green-600 hover:to-emerald-600 transition"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+                    Call Seller
+                  </button>
                 </div>
                 <div className="mt-4 pt-4 border-t">
                   <button onClick={() => setShowReviews(!showReviews)} className="font-semibold text-sm flex items-center gap-1"><Star size={16} /> {t('reviews')} ({selectedProduct.review_count || 0})</button>

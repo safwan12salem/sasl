@@ -392,15 +392,19 @@ export default function GroupChat() {
               <div ref={messagesEndRef} />
             </div>
 
-            {imagePreview && (
+                       {imagePreview && (
               <div className="px-4 py-2 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
-                <img src={imagePreview} alt="Preview" className="h-16 w-16 object-cover rounded-lg" />
+                {selectedImage?.type.startsWith('video/') ? (
+                  <video src={imagePreview} className="h-16 w-16 object-cover rounded-lg" controls />
+                ) : (
+                  <img src={imagePreview} alt="Preview" className="h-16 w-16 object-cover rounded-lg" />
+                )}
                 <button onClick={() => { setSelectedImage(null); setImagePreview(null); }} className="p-1 rounded-full bg-red-500 text-white"><X size={14} /></button>
               </div>
             )}
 
             <div className="p-3 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2">
-              <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleImageSelect} />
+              <input type="file" accept="image/*,video/*" ref={fileInputRef} className="hidden" onChange={handleImageSelect} />
               <button onClick={() => fileInputRef.current?.click()} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"><Image size={18} /></button>
               <input className="input-field flex-1 text-sm" placeholder="Type a message..." value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} />
               <button onClick={sendMessage} disabled={sending || (!input.trim() && !selectedImage)} className="btn-primary p-2 rounded-full disabled:opacity-50">

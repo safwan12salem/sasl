@@ -6,7 +6,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   Heart, MessageCircle, Share2, Image, Smile, BarChart2,
-  Loader2, ChevronDown, ChevronUp, X, Wifi
+  Loader2, ChevronDown, ChevronUp, X, Wifi,
+  Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../services/api';
@@ -458,11 +459,17 @@ const Feed: React.FC = () => {
         <p className="mb-3 text-gray-800 dark:text-gray-200 leading-relaxed">{post.text}</p>
         
         {post.media_url && (
-          <div className="rounded-xl overflow-hidden mb-3 relative group">
-            <img src={post.media_url} className="w-full max-h-96 object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="" loading="lazy" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
-        )}
+  <div className="rounded-xl overflow-hidden mb-3 relative group">
+    {post.media_url.match(/\.(mp4|webm|mov)$/i) ? (
+      <video src={post.media_url} className="w-full max-h-96 object-cover" controls />
+    ) : (
+      <img src={post.media_url} className="w-full max-h-96 object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="" loading="lazy" />
+    )}
+    <a href={post.media_url} download className="absolute top-2 right-2 bg-white/90 rounded-full p-2 shadow opacity-0 group-hover:opacity-100 transition-opacity">
+      <Download size={16} />
+    </a>
+  </div>
+)}
         
         {post.poll && <PollSection poll={post.poll} postId={post.id} />}
         

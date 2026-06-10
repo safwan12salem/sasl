@@ -1,9 +1,8 @@
 /**
  * Sasl AR Filters — Viral Camera Effects
- * Works with or without WebGL, face detection, beauty filters, recording
  */
-import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { Camera, Sparkles, Heart, Star, Sun, Zap, Video, Image, X, Download, RotateCcw } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { Camera, Sparkles, Heart, Star, Sun, Zap, Video, X, Download, RotateCcw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Filter {
@@ -42,10 +41,12 @@ export default function ARFilters() {
   useEffect(() => {
     startCamera();
     return () => { stopCamera(); };
-  }, [facingMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const startCamera = async () => {
     try {
+      if (streamRef.current) stopCamera();
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
         audio: true,
@@ -60,20 +61,23 @@ export default function ARFilters() {
         };
       }
     } catch (err: any) {
-      if (err.name === 'NotAllowedError') toast.error('Camera permission denied');
+      if (err.name === 'NotAllowedError') toast.error('Camera permission denied. Please allow in browser settings.');
       else toast.error('No camera found');
     }
   };
 
   const stopCamera = () => {
     streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
     cancelAnimationFrame(animationRef.current);
     setCameraReady(false);
   };
 
   const flipCamera = () => {
-    stopCamera();
     setFacingMode(prev => prev === 'user' ? 'environment' : 'user');
+    // Restart camera with new facing mode
+    stopCamera();
+    setTimeout(() => startCamera(), 300);
   };
 
   const drawFrame = () => {
@@ -87,11 +91,9 @@ export default function ARFilters() {
     canvas.width = video.videoWidth || 640;
     canvas.height = video.videoHeight || 480;
 
-    // Apply CSS filter via canvas
     const filter = FILTERS.find(f => f.id === activeFilter);
     ctx.filter = filter?.style || 'none';
     
-    // Mirror for front camera
     if (facingMode === 'user') {
       ctx.save();
       ctx.scale(-1, 1);
@@ -102,7 +104,6 @@ export default function ARFilters() {
     }
     ctx.filter = 'none';
 
-    // Draw AR effects
     if (activeFilter === 'hearts') drawHearts(ctx, canvas);
     if (activeFilter === 'stars') drawStars(ctx, canvas);
     if (activeFilter === 'glow') drawGlow(ctx, canvas);
@@ -217,12 +218,18 @@ export default function ARFilters() {
         <Sparkles className="text-purple-500" /> AR Filters
       </h2>
 
-      {/* Camera View */}
       <div className="relative bg-black rounded-3xl overflow-hidden shadow-2xl">
         <video ref={videoRef} className="hidden" playsInline muted />
         <canvas ref={canvasRef} className="w-full aspect-[4/3] object-cover" />
+        
+        {!cameraReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/80">
+            <button onClick={startCamera} className="bg-white text-gray-800 px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:scale-105 transition">
+              <Camera size={24} /> Start Camera
+            </button>
+          </div>
+        )}
 
-        {/* Filter Picker */}
         <div className="absolute bottom-24 left-0 right-0 overflow-x-auto">
           <div className="flex gap-2 px-4 justify-center">
             {FILTERS.map(filter => (
@@ -244,7 +251,6 @@ export default function ARFilters() {
           </div>
         </div>
 
-        {/* Controls */}
         <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
           <button onClick={flipCamera} className="bg-black/40 text-white p-3 rounded-full hover:bg-black/60 transition">
             <RotateCcw size={22} />
@@ -272,7 +278,6 @@ export default function ARFilters() {
         </div>
       </div>
 
-      {/* Captured Photo Preview */}
       {capturedImage && (
         <div className="mt-4 p-4 glass rounded-2xl">
           <div className="flex items-center justify-between mb-3">
@@ -293,7 +298,6 @@ export default function ARFilters() {
         </div>
       )}
 
-      {/* Instructions */}
       <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl">
         <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
           ✨ Apply filters in real-time · 📸 Tap to capture · 🎥 Hold for video · 🔄 Flip camera
