@@ -140,6 +140,8 @@ export default function GigCentral() {
   const [proposalMessage, setProposalMessage] = useState('');
   const [proposalBudget, setProposalBudget] = useState('');
   
+  const [likedGigs, setLikedGigs] = useState<Set<string>>(new Set());
+
   // ============================================================
   // FETCH
   // ============================================================
@@ -596,7 +598,14 @@ export default function GigCentral() {
                     </div>
                     {/* Action Buttons Row */}
                     <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex-wrap">
-                      <button onClick={async () => { try { await api.post(`/gigs/gigs/${gig.id}/like/`); toast.success('Liked!'); } catch {} }} className="flex items-center gap-1 text-xs text-gray-500 hover:text-green-500 transition"><ThumbsUp size={14} /> Like</button>
+                      <button onClick={async () => { 
+  const newLiked = new Set(likedGigs);
+  if (newLiked.has(gig.id)) { newLiked.delete(gig.id); } else { newLiked.add(gig.id); }
+  setLikedGigs(newLiked);
+  try { await api.post(`/gigs/gigs/${gig.id}/like/`); } catch {} 
+}} className={`flex items-center gap-1 text-xs transition ${likedGigs.has(gig.id) ? 'text-green-500 font-bold' : 'text-gray-500 hover:text-green-500'}`}>
+  <ThumbsUp size={14} className={likedGigs.has(gig.id) ? 'fill-green-500' : ''} /> Like
+</button>
 <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/gigs/${gig.id}`); toast.success('Link copied!'); }} className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600"><Link size={14} /> Copy</button>
                       <span className="flex items-center gap-1 text-xs text-gray-400"><Users size={14} /> {gig.applicants_count || 0}</span>
                       <span className="flex items-center gap-1 text-xs text-gray-400"><BarChart3 size={14} /> {gig.views || 0}</span>

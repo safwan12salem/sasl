@@ -290,53 +290,35 @@ export default function LiveAudio() {
       ) : (
         <div className="space-y-3">
           {rooms.map(room => (
-            <motion.div key={room.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                        <motion.div key={room.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: -2 }}
               className="glass-card rounded-2xl p-5 transition">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <div className="relative">
-                      {room.host.avatar_url ? (
-  <img src={room.host.avatar_url} className="w-12 h-12 rounded-full object-cover" alt="" />
-) : (
-  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg">
-    {room.host.username[0]?.toUpperCase()}
-  </div>
-)}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-lg">{room.title}</h3>
-                      <p className="text-sm text-gray-500">{t('hosted_by')} @{room.host.username}</p>
-                    </div>
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                {/* LEFT: Host info */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="relative flex-shrink-0">
+                    {room.host.avatar_url ? (
+                      <img src={room.host.avatar_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                    ) : (
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg">
+                        {room.host.username[0]?.toUpperCase()}
+                      </div>
+                    )}
+                    <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-green-500 rounded-full border-2 border-white" />
                   </div>
-                  {room.description && <p className="text-sm text-gray-600 mt-1">{room.description}</p>}
-                  {room.topics && (
-                    <div className="flex gap-1 mt-2 flex-wrap">
-                      {room.topics.split(',').map((topic, i) => (
-                        <span key={i} className="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full">{topic.trim()}</span>
-                      ))}
-                    </div>
-                  )}
+                  <div className="min-w-0">
+                    <h3 className="font-bold text-lg truncate">{room.title}</h3>
+                    <p className="text-sm text-gray-500">Hosted by @{room.host.username}</p>
+                    {room.description && <p className="text-xs text-gray-400 truncate mt-0.5">{room.description}</p>}
+                  </div>
                 </div>
-                <div className="flex items-center gap-3 mt-3 flex-wrap">
-  <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"><Volume2 size={18} /></button>
-  <span className="flex items-center gap-1 text-xs text-gray-500"><TrendingUp size={12} /> {room.listeners_count || 0} listening</span>
-  <span className="flex items-center gap-1 text-yellow-500 text-xs font-semibold"><Zap size={14} /> Live</span>
-  {room.host && (
-  <span className="flex items-center gap-1 text-xs bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 rounded-full">
-    <Crown size={12} className="text-yellow-500" /> {typeof room.host === 'string' ? room.host : room.host?.username || 'Host'}
-  </span>
-)}
-  <button onClick={() => setShowInvite(true)} className="btn-primary text-xs flex items-center gap-1 ml-auto"><UserPlus size={14} /> Invite</button>
-</div>
-                <div className="flex items-center gap-3">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-purple-600 flex items-center gap-1">
-                      <Users size={18} /> {room.current_listeners}
-                    </p>
-                    <p className="text-xs text-gray-500">{t('listening')}</p>
+
+                {/* CENTER: Stats */}
+                <div className="flex items-center gap-4 flex-shrink-0">
+                  <div className="flex items-center gap-1 text-purple-600">
+                    <Users size={16} />
+                    <span className="font-bold">{room.current_listeners}</span>
+                    <span className="text-xs text-gray-500">listening</span>
                   </div>
                   {room.speakers && room.speakers.length > 0 && (
                     <div className="flex -space-x-2">
@@ -347,18 +329,36 @@ export default function LiveAudio() {
                       ))}
                     </div>
                   )}
-                  <motion.button 
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => joinRoom(room.id)} 
-                    className="btn-primary text-sm px-6"
-                  >
-                    {t('join')}
-                  </motion.button>
+                </div>
+
+                {/* RIGHT: Actions */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <button className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"><Volume2 size={18} /></button>
+                    <span className="flex items-center gap-1 text-xs text-gray-500"><TrendingUp size={12} /> {room.listeners_count || 0}</span>
+                    <span className="flex items-center gap-1 text-yellow-500 text-xs font-semibold"><Zap size={14} /> Live</span>
+                    {room.host && (
+                      <span className="flex items-center gap-1 text-xs bg-purple-100 dark:bg-purple-900/30 px-2 py-0.5 rounded-full">
+                        <Crown size={12} className="text-yellow-500" /> {typeof room.host === 'string' ? room.host : room.host?.username || 'Host'}
+                      </span>
+                    )}
+                    <button onClick={() => setShowInvite(true)} className="btn-primary text-xs flex items-center gap-1"><UserPlus size={14} /> Invite</button>
+                  </div>
+                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => joinRoom(room.id)} className="btn-primary text-sm px-6">{t('join')}</motion.button>
                   {room.host.username === user?.username && (
                     <button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline">{t('end')}</button>
                   )}
                 </div>
               </div>
+
+              {/* Topics */}
+              {room.topics && (
+                <div className="flex gap-1 mt-2 flex-wrap">
+                  {room.topics.split(',').map((topic, i) => (
+                    <span key={i} className="text-xs bg-purple-50 text-purple-600 px-2 py-0.5 rounded-full">{topic.trim()}</span>
+                  ))}
+                </div>
+              )}
             </motion.div>
           ))}
 

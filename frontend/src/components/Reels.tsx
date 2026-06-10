@@ -37,7 +37,7 @@ export default function Reels() {
   const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState<string | null>(null);
-
+  const [dislikedReels, setDislikedReels] = useState<Set<string>>(new Set());
   const handleDislike = async (reelId: string) => {
     if (reelId === 'demo-reel') return;
     try { await api.post(`/content/reels/${reelId}/dislike/`); toast('Feedback recorded'); } catch {}
@@ -80,7 +80,10 @@ export default function Reels() {
   }, []);
 
   const handleLike = async (reelId: string) => {
+
     if (reelId === 'demo-reel') return;
+     setDislikedReels(prev => { const n = new Set(prev); n.delete(reelId); return n; });
+
     const reel = reels.find(r => r.id === reelId);
     if (!reel) return;
     const newLiked = !reel.liked_by_me;
@@ -180,9 +183,20 @@ export default function Reels() {
                 <Heart size={32} className={reel.liked_by_me ? 'fill-red-500 text-red-500' : 'text-white drop-shadow-lg'} />
                 <span className="text-xs font-semibold">{reel.likes_count}</span>
               </button>
-              <button onClick={() => handleDislike(reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-gray-400 transition">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="drop-shadow-lg"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3zm7-13h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>
-              </button>
+              <button onClick={() => {
+  const newDisliked = new Set(dislikedReels);
+  if (newDisliked.has(reel.id)) {
+    newDisliked.delete(reel.id);
+  } else {
+    newDisliked.add(reel.id);
+    // Remove from liked if present
+    if (reel.liked_by_me) handleLike(reel.id);
+  }
+  setDislikedReels(newDisliked);
+  handleDislike(reel.id);
+}} className={`flex flex-col items-center gap-1 transition ${dislikedReels.has(reel.id) ? 'text-red-400' : 'text-white hover:text-gray-400'}`}>
+  <svg width="32" height="32" viewBox="0 0 24 24" fill={dislikedReels.has(reel.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" className="drop-shadow-lg"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3zm7-13h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>
+</button>
               <button onClick={() => { setShowComments(showComments === reel.id ? null : reel.id); fetchReelComments(reel.id); }} className="flex flex-col items-center gap-1 text-white hover:text-blue-400 transition">
                 <MessageCircle size={32} className="drop-shadow-lg" />
                 <span className="text-xs font-semibold">{reel.comments_count}</span>
@@ -244,6 +258,20 @@ export default function Reels() {
             );
           })}
         </div>
+
+{/* Replies */}
+{(c.replies || []).map((r: any) => (
+  <div key={r.id} className="flex items-start gap-2 ml-6 mt-1">
+    <div className="w-4 h-4 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-[8px] font-bold flex-shrink-0">
+      {r.user?.username?.[0]?.toUpperCase() || 'U'}
+    </div>
+    <div>
+      <span className="text-white text-[10px] font-semibold">{r.user?.username || 'user'}</span>
+      <span className="text-white/60 text-[10px] ml-1">{r.text}</span>
+    </div>
+  </div>
+))}
+
                         {replyingTo === c.id && (
                           <div className="flex gap-1 mt-1">
                             <input value={replyTexts[c.id] || ''} onChange={e => setReplyTexts(prev => ({ ...prev, [c.id]: e.target.value }))} placeholder="Reply..." className="flex-1 bg-white/10 text-white px-2 py-1 rounded-full text-[10px] outline-none" onKeyDown={e => e.key === 'Enter' && handleReply(reel.id, c.id)} />

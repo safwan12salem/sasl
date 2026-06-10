@@ -44,6 +44,13 @@ export default function ARFilters() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+    // Restart frame drawing when filter changes
+  useEffect(() => {
+    if (cameraReady) {
+      drawFrame();
+    }
+  }, [activeFilter, cameraReady]);
+
   const startCamera = async () => {
     try {
       if (streamRef.current) stopCamera();
@@ -79,6 +86,14 @@ export default function ARFilters() {
     stopCamera();
     setTimeout(() => startCamera(), 300);
   };
+
+
+  useEffect(() => {
+  if (cameraReady) {
+    cancelAnimationFrame(animationRef.current);
+    drawFrame();
+  }
+}, [activeFilter]);
 
   const drawFrame = () => {
     const video = videoRef.current;
@@ -211,6 +226,9 @@ export default function ARFilters() {
     mediaRecorderRef.current?.stop();
     setRecording(false);
   };
+
+
+
 
   return (
     <div className="max-w-2xl mx-auto p-4">

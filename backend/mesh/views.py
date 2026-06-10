@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 import uuid
 import secrets
+from django.db import models  # ← ADD THIS LINE
 
 from .models import (
     MeshNode, PeerConnection, MeshMessage,
