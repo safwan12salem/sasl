@@ -12,7 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-
+import { offlineMesh } from '../services/offlineMesh';
 // ============================================================
 // TYPES
 // ============================================================
@@ -137,6 +137,11 @@ export default function MeshChatHub() {
   const inputRef = useRef<HTMLInputElement>(null);
 const [justSent, setJustSent] = useState(false);
   const token = localStorage.getItem('sasl_token');
+  
+
+  const [meshPeers, setMeshPeers] = useState<Array<{ id: string; username: string; signalStrength: number; isDirect: boolean }>>([]);
+const [meshActive, setMeshActive] = useState(false);
+
 
   useEffect(() => { activeRoomRef.current = activeRoom; }, [activeRoom]);
 
@@ -162,6 +167,39 @@ const [justSent, setJustSent] = useState(false);
       if (saved) setMyAvatar(saved);
     });
   }, []);
+
+    // ============================================================
+  // OFFLINE MESH INTEGRATION
+  // ============================================================
+  useEffect(() => {
+    if (!myUsername) return;
+    
+    // Start offline mesh
+    offlineMesh.start(myUsername);
+    setMeshActive(true);
+    
+    // Listen for mesh messages
+    offlineMesh.onMessage((msg) => {
+      if (msg.type === 'chat_message') {
+        setMessages(prev => {
+          const exists = prev.some(m => m.id === msg.id);
+          if (exists) return prev;
+          return [...prev, msg];
+        });
+        scrollToBottom();
+      }
+    });
+    
+    // Listen for peer updates
+    offlineMesh.onPeerUpdate(() => {
+      setMeshPeers(offlineMesh.getPeers());
+    });
+    
+    return () => {
+      offlineMesh.stop();
+    };
+  }, [myUsername]);
+
   // ============================================================
   // DATA FETCHING
 const fetchRooms = useCallback(async () => {
@@ -352,8 +390,20 @@ const fetchRooms = useCallback(async () => {
     setTimeout(() => setJustSent(false), 1000);
     inputRef.current?.focus();
 
+
+   
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: 'chat_message', room_id: activeRoom.room_id, message: msg, sender: myUsername }));
+    }
+
+        // Fallback: send via offline mesh if WebSocket fails
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
+      offlineMesh.broadcast({
+        type: 'chat_message',
+        room_id: activeRoom.room_id,
+        message: msg,
+        sender: myUsername,
+      });
     }
 
     api.post(`/mesh/rooms/${activeRoom.id}/send_message/`, { content: input, message_type: 'text' }).catch(() => { });
