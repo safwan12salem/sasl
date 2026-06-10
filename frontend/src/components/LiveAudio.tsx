@@ -130,7 +130,10 @@ export default function LiveAudio() {
   const toggleMute = () => {
     if (localStreamRef.current) {
       const track = localStreamRef.current.getAudioTracks()[0];
-      if (track) { track.enabled = isMuted; setIsMuted(!isMuted); }
+      if (track) {
+        track.enabled = !track.enabled;
+        setIsMuted(!track.enabled);
+      }
     }
   };
 
@@ -309,7 +312,7 @@ export default function LiveAudio() {
                   <div className="min-w-0">
                     <h3 className="font-bold text-lg truncate">{room.title}</h3>
                     <p className="text-sm text-gray-500">Hosted by @{room.host.username}</p>
-                    {room.description && <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{room.description}</p>}
+                  {room.description && <p className="text-xs text-gray-400 mt-0.5 whitespace-normal break-words">{room.description}</p>}
                   </div>
                 </div>
 
