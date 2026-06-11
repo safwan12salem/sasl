@@ -38,6 +38,7 @@ urlpatterns = [
     path('api/events/', include('events.urls')),
     path('api/nftbadges/', include('nftbadges.urls')),
     path('api/payments/', include('payments.urls')),
+    path('api/creatorstudio/', include('creatorstudio.urls')),
     #path('api/payments/create-checkout/', payments_views.create_checkout_session, name='create-checkout'),
     #path('api/payments/withdraw/', payments_views.create_withdrawal, name='withdraw'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

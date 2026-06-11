@@ -39,7 +39,7 @@ export default function Layout() {
     { to: '/streaming', icon: Radio, label: t('streaming') },
     { to: '/snap', icon: Camera, label: t('Snap') },
     { to: '/reels', icon: Video, label: t('Reels') },
-    { to: '/ar-filters', icon: Camera, label: t('AR Filters') },
+    {to: '/creator-studio', icon: Brain, label: t('Creator Studio') },
            
     { to: '/analytics', icon: TrendingUp, label: t('Analytics') },
     { to: '/progress', icon: Star, label: t('Progress') },   

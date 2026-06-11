@@ -23,7 +23,7 @@ import SnapSender from './components/SnapSender';
 import ProgressHub from './components/ProgressHub';
 import EarningsDashboard from './components/EarningsDashboard';
 import Analytics from './components/Analytics';
-import ARFilters from './components/ARFilters';
+import CreatorStudio from './components/CreatorStudio';
 import LiveAudio from './components/LiveAudio';
 import GroupChat from './components/GroupChat';
 import Events from './components/Events';
@@ -128,7 +128,7 @@ function AppContent() {
            <Route path="/meshchat" element={<PrivateRoute><MeshChatHub /></PrivateRoute>} />
           <Route path="/earnings" element={<PrivateRoute><EarningsDashboard /></PrivateRoute>} />
           <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
-          <Route path="/ar-filters" element={<PrivateRoute><ARFilters /></PrivateRoute>} />
+          <Route path="/creator-studio" element={<PrivateRoute><CreatorStudio /></PrivateRoute>} />
           <Route path="/live-audio" element={<PrivateRoute><LiveAudio /></PrivateRoute>} />
           <Route path="/ai-hub" element={<PrivateRoute><SaslAIHub /></PrivateRoute>} />
           <Route path="/group-chat" element={<PrivateRoute><GroupChat /></PrivateRoute>} />

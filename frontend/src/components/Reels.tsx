@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { Heart, MessageCircle, Share2, Loader2, Video, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import PaymentModal from './PaymentModal';
 
 interface Reel {
   id: string;
@@ -17,6 +18,7 @@ interface Reel {
   likes_count: number;
   comments_count: number;
   liked_by_me: boolean;
+  views_count?: number;
 }
 
 export default function Reels() {
@@ -38,9 +40,22 @@ export default function Reels() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [dislikedReels, setDislikedReels] = useState<Set<string>>(new Set());
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState(0);
+  const [tipReelId, setTipReelId] = useState<string | null>(null);
   const handleDislike = async (reelId: string) => {
     if (reelId === 'demo-reel') return;
     try { await api.post(`/content/reels/${reelId}/dislike/`); toast('Feedback recorded'); } catch {}
+  };
+
+  const MONETIZATION_THRESHOLD = 1000;
+
+  const isMonetized = (reel: Reel) => (reel.views_count || 0) >= MONETIZATION_THRESHOLD;
+
+  const handleTip = (reelId: string) => {
+    setTipReelId(reelId);
+    setPaymentAmount(1);
+    setShowPayment(true);
   };
 
   const fetchReels = useCallback(async () => {
@@ -52,9 +67,10 @@ export default function Reels() {
         id: r.id, user: r.user || { username: 'unknown' }, video_url: r.video_url,
         caption: r.caption || '', likes_count: r.likes_count || 0,
         comments_count: r.comments_count || 0, liked_by_me: r.liked_by_me || false,
+        views_count: r.views_count || 0,
       }));
       if (videoReels.length === 0) {
-        videoReels.push({ id: 'demo-reel', user: { username: 'Sasl' }, video_url: 'https://www.w3schools.com/html/mov_bbb.mp4', caption: 'Welcome to Sasl Reels! 🌍✨', likes_count: 120, comments_count: 15, liked_by_me: false });
+        videoReels.push({ id: 'demo-reel', user: { username: 'Sasl' }, video_url: 'https://www.w3schools.com/html/mov_bbb.mp4', caption: 'Welcome to Sasl Reels! 🌍✨', likes_count: 120, comments_count: 15, liked_by_me: false, views_count: 1500 });
       }
       setReels(videoReels);
     } catch (err) { setError(t('Could not load reels.')); }
@@ -205,7 +221,21 @@ export default function Reels() {
                 <Share2 size={32} className="drop-shadow-lg" />
                 <span className="text-xs font-semibold">Share</span>
               </button>
+              {isMonetized(reel) && (
+                <button onClick={() => handleTip(reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-yellow-400 transition">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="drop-shadow-lg"><circle cx="12" cy="12" r="10"/><path d="M9.5 8.5c.7-.7 1.5-1 2.5-1 1.4 0 2.5.8 2.5 2s-1.1 2-2.5 2h-.5v2"/><path d="M11 17h1"/></svg>
+                  <span className="text-xs font-semibold">Tip</span>
+                </button>
+              )}
             </div>
+
+            {/* MONETIZED BADGE */}
+            {isMonetized(reel) && (
+              <div className="absolute top-16 right-4 z-10 bg-gradient-to-r from-yellow-400 to-amber-500 text-black text-[10px] font-bold px-2 py-1 rounded-full flex items-center gap-1 shadow-lg">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/><path d="M9.5 8.5c.7-.7 1.5-1 2.5-1 1.4 0 2.5.8 2.5 2s-1.1 2-2.5 2h-.5v2M11 17h1" fill="none" stroke="black" strokeWidth="2"/></svg>
+                Monetized
+              </div>
+            )}
 
             {/* BOTTOM INFO */}
             <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
@@ -225,7 +255,8 @@ export default function Reels() {
               </button>
               {showDetails === reel.id && (
                 <div className="mt-1 text-white/70 text-xs space-y-0.5">
-                  <p>❤️ {reel.likes_count} likes · 💬 {reel.comments_count} comments</p>
+                  <p>❤️ {reel.likes_count} likes · 💬 {reel.comments_count} comments · 👁️ {reel.views_count || 0} views</p>
+                  {isMonetized(reel) && <p className="text-yellow-400">💰 This reel is monetized — support the creator with a tip!</p>}
                 </div>
               )}
             </div>
@@ -313,6 +344,28 @@ export default function Reels() {
           </div>
         ))
       )}
+
+      {/* PAYMENT MODAL - Tip Creator */}
+      <PaymentModal
+        amount={paymentAmount}
+        type="tip"
+        onSuccess={async () => {
+          if (tipReelId) {
+            try {
+              await api.post(`/content/reels/${tipReelId}/tip/`, { amount: paymentAmount });
+              toast.success('Tip sent! 🎉');
+            } catch {
+              toast.error('Tip failed');
+            }
+          }
+          setShowPayment(false);
+          setTipReelId(null);
+        }}
+        onClose={() => {
+          setShowPayment(false);
+          setTipReelId(null);
+        }}
+      />
     </div>
   );
 }
