@@ -15,6 +15,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import WebRTCPrivateChat from './WebRTCPrivateChat';
 import { useTranslation } from 'react-i18next';
+import PaymentModal from './PaymentModal';
+
 
 interface Product {
   id: string;
@@ -85,9 +87,10 @@ export default function Marketplace() {
   const [reviewComment, setReviewComment] = useState('');
   const [chatRoom, setChatRoom] = useState<string | null>(null);
   const [wishlist, setWishlist] = useState<string[]>([]);
-   const [newImages, setNewImages] = useState<File[]>([]);
+  const [newImages, setNewImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState(0);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -172,7 +175,7 @@ export default function Marketplace() {
     setNewCategory(''); setNewImage(null); setImagePreview(null);
   };
 
-   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (files.length > 0) {
       setNewImages(prev => [...prev, ...files].slice(0, 10)); // Max 10 images
@@ -216,8 +219,8 @@ export default function Marketplace() {
             <input className="input-field pl-10" placeholder={t('search_products')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
           </div>
           <button onClick={() => setShowFilters(!showFilters)} className="btn-ghost flex items-center gap-1">
-  <Filter size={18} /> {t('filters')} <ChevronDown size={14} className={`transition ${showFilters ? 'rotate-180' : ''}`} />
-</button>
+            <Filter size={18} /> {t('filters')} <ChevronDown size={14} className={`transition ${showFilters ? 'rotate-180' : ''}`} />
+          </button>
         </div>
         <div className="flex gap-2 overflow-x-auto pb-1">
           <button onClick={() => setSelectedCategory('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${!selectedCategory ? 'bg-green-500 text-white shadow-lg shadow-green-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{t('all')}</button>
@@ -261,7 +264,7 @@ export default function Marketplace() {
                 {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
               </select>
             </div>
-                        <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-3 flex-wrap">
               <label className="btn-ghost cursor-pointer flex items-center gap-1"><ImageIcon size={18} /> Upload Images (max 10)<input type="file" accept="image/*" multiple className="hidden" onChange={handleImageChange} /></label>
               {imagePreviews.map((preview, i) => (
                 <img key={i} src={preview} alt={`preview ${i}`} className="h-12 w-12 rounded-lg object-cover shadow" />
@@ -297,9 +300,9 @@ export default function Marketplace() {
                   className={`absolute top-2 right-2 p-2 rounded-full shadow transition ${p.is_wishlisted ? 'bg-red-500 text-white' : 'bg-white/90 text-gray-400 hover:text-red-500'}`}>
                   <Heart size={16} className={p.is_wishlisted ? 'fill-white like-burst' : ''} />
                 </motion.button>
-                {wishlist.includes(p.id) && <span className="absolute top-2 right-12 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">❤️ Saved</span>}
-                {p.stock <= 3 && p.stock > 0 && <span className="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">Only {p.stock} left</span>}
-                {p.stock === 0 && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><span className="text-white font-bold text-lg">Sold Out</span></div>}
+                {wishlist.includes(p.id) && <span className="absolute top-2 right-12 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">❤️ {t('saved')}</span>}
+                {p.stock <= 3 && p.stock > 0 && <span className="absolute top-2 left-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full">Only {p.stock} {t('left')}</span>}
+                {p.stock === 0 && <div className="absolute inset-0 bg-black/50 flex items-center justify-center"><span className="text-white font-bold text-lg">{t('sold_out')}</span></div>}
               </div>
               <div className="p-4">
                 <h3 className="font-semibold text-sm line-clamp-1">{p.title}</h3>
@@ -307,8 +310,7 @@ export default function Marketplace() {
                 <p className="text-xs text-gray-500 mt-1">by {p.seller_name}</p>
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-xl font-bold text-green-600"><DollarSign size={16} />{p.price}</span>
-                  <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); buy(p.id); }} disabled={p.stock === 0}
-                    className="flex items-center gap-1 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition disabled:opacity-50">
+                  <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); setPaymentAmount(parseFloat(p.price)); setShowPayment(true); }} disabled={p.stock === 0} className="flex items-center gap-1 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition disabled:opacity-50">
                     <ShoppingCart size={14} /> {t('buy')}
                   </motion.button>
                 </div>
@@ -323,8 +325,8 @@ export default function Marketplace() {
               <div className="w-20 h-20 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
                 {p.image_url ? <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400"><Package size={24} /></div>}
               </div>
-              <div className="flex-1"><h3 className="font-semibold">{p.title}</h3><p className="text-sm text-gray-500">by {p.seller_name} · {p.stock} in stock</p></div>
-              <div className="text-right"><p className="text-xl font-bold text-green-600">${p.price}</p><button onClick={(e) => { e.stopPropagation(); buy(p.id); }} disabled={p.stock === 0} className="btn-primary text-xs mt-1">{t('buy_now')}</button></div>
+              <div className="flex-1"><h3 className="font-semibold">{p.title}</h3><p className="text-sm text-gray-500">by {p.seller_name} · {p.stock} {t('in_stock')}</p></div>
+              <div className="text-right"><p className="text-xl font-bold text-green-600">${p.price}</p><button onClick={(e) => { e.stopPropagation(); setPaymentAmount(parseFloat(p.price)); setShowPayment(true); }} disabled={p.stock === 0} className="btn-primary text-xs mt-1">{t('buy_now')}</button></div>
             </motion.div>
           ))}
         </div>
@@ -344,26 +346,25 @@ export default function Marketplace() {
                 <p className="text-gray-500 mt-1">{selectedProduct.description || 'No description'}</p>
                 <div className="flex items-center gap-3 mt-3">
                   <span className="text-3xl font-bold text-green-600"><DollarSign size={16} />{selectedProduct.price}</span>
-                  <span className={`text-sm px-3 py-1 rounded-full ${selectedProduct.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{selectedProduct.stock > 0 ? `${selectedProduct.stock} in stock` : 'Sold Out'}</span>
+                  <span className={`text-sm px-3 py-1 rounded-full ${selectedProduct.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{selectedProduct.stock > 0 ? `${selectedProduct.stock} ${t('in_stock')}` : t('sold_out')}</span>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => { buy(selectedProduct.id); setSelectedProduct(null); }} disabled={selectedProduct.stock === 0} className="btn-primary flex-1 flex items-center justify-center gap-2"><ShoppingCart size={18} /> {t('buy_now')}</button>
+                  <button onClick={() => { setPaymentAmount(parseFloat(selectedProduct.price)); setShowPayment(true); }} disabled={selectedProduct.stock === 0} className="btn-primary flex-1 flex items-center justify-center gap-2"><ShoppingCart size={18} /> {t('buy_now')}</button>
                   <button onClick={() => toggleWishlist(selectedProduct.id)} className="btn-ghost"><Heart size={20} className={selectedProduct.is_wishlisted ? 'fill-red-500 text-red-500' : ''} /></button>
-
                 </div>
-                 <div className="flex gap-2 mt-3 pt-3 border-t">
-                  <button 
+                <div className="flex gap-2 mt-3 pt-3 border-t">
+                  <button
                     onClick={() => setChatRoom(selectedProduct.seller_name)}
                     className="flex-1 py-2.5 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:from-blue-600 hover:to-indigo-600 transition"
                   >
-                    <MessageCircle size={16} /> Chat with Seller
+                    <MessageCircle size={16} /> {t('chat_with_seller')}
                   </button>
-                  <button 
+                  <button
                     onClick={() => window.open(`tel:${selectedProduct.seller_phone || ''}`, '_self')}
                     className="flex-1 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-2 hover:from-green-600 hover:to-emerald-600 transition"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
-                    Call Seller
+                    {t('call_seller')}
                   </button>
                 </div>
                 <div className="mt-4 pt-4 border-t">
@@ -384,7 +385,13 @@ export default function Marketplace() {
           </motion.div>
         )}
       </AnimatePresence>
-      {chatRoom && <WebRTCPrivateChat roomId={chatRoom} onClose={() => setChatRoom(null)} />}
+
+      {showPayment && (
+        <PaymentModal amount={paymentAmount} type="purchase"
+          onSuccess={() => { setShowPayment(false); fetchProducts(); toast.success('Payment successful!'); }}
+          onClose={() => setShowPayment(false)} />
+      )}
+
     </div>
   );
 }

@@ -140,11 +140,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'sasl.wsgi.application'
 ASGI_APPLICATION = 'sasl.asgi.application'
 
-
-
-
-
-
 # ============================================================
 # DATABASE CONFIGURATION (SQLite -> Postgres auto-switch)
 # ============================================================
@@ -214,11 +209,6 @@ ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'password1*', 'password2*']
 ACCOUNT_RATE_LIMITS = {'login_failed': '5/300s'}
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
-
-
-
-
-
 
 
 
@@ -357,9 +347,6 @@ LOGGING = {
 
 
 
-
-
-
 # ============================================================
 # INTERNATIONALISATION
 # ============================================================
@@ -374,6 +361,17 @@ LANGUAGES = [
     ('fr', 'French'),
     ('zh', 'Chinese'),
     ('ar', 'Arabic'),
+    ('hi', 'Hindi'),
+    ('pt-BR', 'Portuguese'),
+    ('ru', 'Russian'),
+    ('ja', 'Japanese'),
+    ('gr', 'German'),
+    ('ko', 'Korean'),
+    ('it', 'Italian'),
+    ('tr', 'Turkish'),
+    
+
+
 ]
 # ============================================================
 # STATIC & MEDIA

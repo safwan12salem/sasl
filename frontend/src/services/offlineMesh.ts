@@ -82,6 +82,11 @@ class OfflineMeshService {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
         { urls: 'stun:stun1.l.google.com:19302' },
+           {
+      urls: 'turn:YOUR_TURN_SERVER:3478',
+      username: 'username',
+      credential: 'password',
+    },
       ],
     });
 

@@ -17,6 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { WebRTCConnection } from '../services/webrtc';
 import WebRTCPrivateChat from './WebRTCPrivateChat';
 import { useTranslation } from 'react-i18next';
+import PaymentModal from './PaymentModal';
 
 interface Session {
   id: string;
@@ -146,6 +147,11 @@ const STATUS_COLORS: Record<string, string> = {
 
   // Stats
   const [stats, setStats] = useState({ totalSessions: 0, completedSessions: 0, totalEarned: '0', totalLearned: '0' });
+
+  // Payment state
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState(0);
+  const [pendingJoinSession, setPendingJoinSession] = useState<string | null>(null);
 
   // ============================================================
   // FETCH
@@ -502,11 +508,9 @@ const STATUS_COLORS: Record<string, string> = {
           <button onClick={() => setShowCertificates(!showCertificates)} className="btn-ghost text-sm flex items-center gap-1">
             <Award size={16} /> {t('Certificates')}
           </button>
-           (
-            <button onClick={() => setShowCreateForm(!showCreateForm)} className="btn-primary flex items-center gap-2">
-              <ClipboardList size={16} /> {showCreateForm ? t('Cancel') : t('Create Session')}
-            </button>
-          )
+          <button onClick={() => setShowCreateForm(!showCreateForm)} className="btn-primary flex items-center gap-2">
+            <ClipboardList size={16} /> {showCreateForm ? t('Cancel') : t('Create Session')}
+          </button>
         </div>
       </div>
 
@@ -682,25 +686,12 @@ const STATUS_COLORS: Record<string, string> = {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
                       {session.tutor.avatar_url ? (
-  <img src={session.tutor.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
-) : (
-  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-    {session.tutor.username[0]?.toUpperCase()}
-  </div>
-)}
-<div className="flex items-center gap-2 mt-3 flex-wrap">
-  <button onClick={() => { setSelectedSubject(''); fetchSessions(); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 transition"><Filter size={14} /> Filter</button>
-  <button onClick={() => startVideoCall(session.id)} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition"><Video size={14} /> Start Class</button>
-  <button onClick={() => { if (inCall) endCall(); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition"><Pause size={14} /> Pause</button>
-  <button onClick={() => setShowMaterials(true)} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition"><Upload size={14} /> Materials</button>
-  <button onClick={() => cancelSession(session.id)} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition"><X size={14} /> Cancel</button>
-</div>
-<div className="flex items-center gap-2 mt-2">
-  <span className="flex items-center gap-1 text-xs text-gray-500"><BarChart3 size={14} /> {session.students_enrolled || 0}/{session.max_students || '∞'} enrolled</span>
-  <button onClick={() => toast.success('Session saved!')} className="flex items-center gap-1 text-xs text-gray-500 hover:text-yellow-500"><Bookmark size={14} /> Save</button>
-  <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/tutoring/${session.id}`); toast.success('Link copied!'); }} className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500"><Share2 size={14} /> Share</button>
-  <span className="flex items-center gap-1 text-xs text-amber-500"><Zap size={14} /> {session.duration_minutes}min</span>
-</div>
+                        <img src={session.tutor.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
+                          {session.tutor.username[0]?.toUpperCase()}
+                        </div>
+                      )}
                       <div>
                         <h3 className="font-bold text-lg flex items-center gap-2">
                           {session.subject}
@@ -726,9 +717,22 @@ const STATUS_COLORS: Record<string, string> = {
                     {session.students_enrolled !== undefined && (
                       <p className="text-xs text-purple-600 mt-1">{session.students_enrolled}/{session.max_students} students enrolled</p>
                     )}
+                    <div className="flex items-center gap-2 mt-3 flex-wrap">
+                      <button onClick={(e) => { e.stopPropagation(); setSelectedSubject(''); fetchSessions(); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 transition"><Filter size={14} /> Filter</button>
+                      <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition"><Video size={14} /> Start Class</button>
+                      <button onClick={(e) => { e.stopPropagation(); if (inCall) endCall(); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition"><Pause size={14} /> Pause</button>
+                      <button onClick={(e) => { e.stopPropagation(); setShowMaterials(true); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition"><Upload size={14} /> Materials</button>
+                      <button onClick={(e) => { e.stopPropagation(); cancelSession(session.id); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition"><X size={14} /> Cancel</button>
+                    </div>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="flex items-center gap-1 text-xs text-gray-500"><BarChart3 size={14} /> {session.students_enrolled || 0}/{session.max_students || '∞'} enrolled</span>
+                      <button onClick={(e) => { e.stopPropagation(); toast.success('Session saved!'); }} className="flex items-center gap-1 text-xs text-gray-500 hover:text-yellow-500"><Bookmark size={14} /> Save</button>
+                      <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`${window.location.origin}/tutoring/${session.id}`); toast.success('Link copied!'); }} className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500"><Share2 size={14} /> Share</button>
+                      <span className="flex items-center gap-1 text-xs text-amber-500"><Zap size={14} /> {session.duration_minutes}min</span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
+                    <button onClick={(e) => { e.stopPropagation(); setPaymentAmount(parseFloat(session.price)); setPendingJoinSession(session.id); setShowPayment(true); }}
                       className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 flex items-center gap-1">
                       <Play size={14} /> {t('Join Class')}
                     </button>
@@ -750,10 +754,10 @@ const STATUS_COLORS: Record<string, string> = {
                     </button>
 
                     {session.status !== 'cancelled' && session.status !== 'completed' && (
-  <button onClick={() => cancelSession(session.id)} className="text-red-500 text-xs hover:underline">
-    {t('cancel_session')}
-  </button>
-)}
+                      <button onClick={() => cancelSession(session.id)} className="text-red-500 text-xs hover:underline">
+                        {t('cancel_session')}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -789,6 +793,22 @@ const STATUS_COLORS: Record<string, string> = {
           ))}
         </div>
       )}
+
+      {/* Payment Modal */}
+      {showPayment && (
+        <PaymentModal amount={paymentAmount} type="tutoring"
+          onSuccess={() => {
+            setShowPayment(false);
+            if (pendingJoinSession) {
+              startVideoCall(pendingJoinSession);
+              setPendingJoinSession(null);
+            }
+            fetchSessions();
+            toast.success('Payment successful!');
+          }}
+          onClose={() => { setShowPayment(false); setPendingJoinSession(null); }} />
+      )}
+
     </div>
   );
 }

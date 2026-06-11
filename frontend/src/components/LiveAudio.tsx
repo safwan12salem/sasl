@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import PaymentModal from './PaymentModal';
 
 interface AudioRoom {
   id: string;
@@ -26,6 +27,7 @@ interface AudioRoom {
   listeners_count: number;
   topics?: string;
   created_at: string;
+  price?: string;
 }
 
 interface Speaker {
@@ -65,6 +67,10 @@ export default function LiveAudio() {
   const [showInvite, setShowInvite] = useState(false);
   const [inviteUsername, setInviteUsername] = useState('');
 
+  // Payment state
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState(0);
+
   const fetchRooms = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -97,7 +103,7 @@ export default function LiveAudio() {
     } catch { toast.error(t('failed_to_create_room')); }
   };
 
-    const joinRoom = async (roomId: string) => {
+  const joinRoom = async (roomId: string) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       localStreamRef.current = stream;
@@ -115,8 +121,7 @@ export default function LiveAudio() {
     } catch { toast.error(t('Microphone access needed')); }
   };
 
-
-    const leaveRoom = async (roomId: string) => {
+  const leaveRoom = async (roomId: string) => {
     try { await api.post(`/liveaudio/rooms/${roomId}/leave/`); } catch {}
     localStreamRef.current?.getTracks().forEach(t => t.stop());
     localStreamRef.current = null;
@@ -127,6 +132,7 @@ export default function LiveAudio() {
     setListenerCount(0);
     fetchRooms();
   };
+
   const toggleMute = () => {
     if (localStreamRef.current) {
       const track = localStreamRef.current.getAudioTracks()[0];
@@ -194,7 +200,7 @@ export default function LiveAudio() {
                   </div>
                 ))}
               </div>
-             <span className="text-sm font-semibold">{listenerCount} {t('listening')}</span>
+              <span className="text-sm font-semibold">{listenerCount} {t('listening')}</span>
               <div className="flex items-center gap-1">
                 <button onClick={toggleMute} className={`p-2.5 rounded-full transition ${isMuted ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
                   {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
@@ -293,7 +299,7 @@ export default function LiveAudio() {
       ) : (
         <div className="space-y-3">
           {rooms.map(room => (
-                        <motion.div key={room.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+            <motion.div key={room.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: -2 }}
               className="glass-card rounded-2xl p-5 transition">
               <div className="flex items-center justify-between gap-4 flex-wrap">
@@ -312,7 +318,7 @@ export default function LiveAudio() {
                   <div className="min-w-0">
                     <h3 className="font-bold text-lg truncate">{room.title}</h3>
                     <p className="text-sm text-gray-500">Hosted by @{room.host.username}</p>
-                  {room.description && <p className="text-xs text-gray-400 mt-0.5 whitespace-normal break-words">{room.description}</p>}
+                    {room.description && <p className="text-xs text-gray-400 mt-0.5 whitespace-normal break-words">{room.description}</p>}
                   </div>
                 </div>
 
@@ -345,9 +351,14 @@ export default function LiveAudio() {
                         <Crown size={12} className="text-yellow-500" /> {typeof room.host === 'string' ? room.host : room.host?.username || 'Host'}
                       </span>
                     )}
+                    {room.price && (
+                      <span className="flex items-center gap-1 text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-semibold">
+                        💰 ${room.price}
+                      </span>
+                    )}
                     <button onClick={() => setShowInvite(true)} className="btn-primary text-xs flex items-center gap-1"><UserPlus size={14} /> Invite</button>
                   </div>
-                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => joinRoom(room.id)} className="btn-primary text-sm px-6">{t('join')}</motion.button>
+                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => { if (room.price) { setPaymentAmount(parseFloat(room.price)); setShowPayment(true); } else { joinRoom(room.id); } }} className="btn-primary text-sm px-6">{t('join')}</motion.button>
                   {room.host.username === user?.username && (
                     <button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline">{t('end')}</button>
                   )}
@@ -365,23 +376,31 @@ export default function LiveAudio() {
             </motion.div>
           ))}
 
-                {/* Invite Modal */}
-      <AnimatePresence>
-        {showInvite && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowInvite(false)}>
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-              <h3 className="font-bold text-xl mb-4">Invite to Room</h3>
-              <input className="input-field mb-4" placeholder="Enter username..." value={inviteUsername} onChange={e => setInviteUsername(e.target.value)} onKeyDown={e => e.key === 'Enter' && inviteSpeaker()} />
-              <div className="flex gap-2">
-                <button onClick={inviteSpeaker} className="btn-primary flex-1">Invite</button>
-                <button onClick={() => setShowInvite(false)} className="btn-ghost">Cancel</button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          {/* Invite Modal */}
+          <AnimatePresence>
+            {showInvite && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowInvite(false)}>
+                <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+                  <h3 className="font-bold text-xl mb-4">Invite to Room</h3>
+                  <input className="input-field mb-4" placeholder="Enter username..." value={inviteUsername} onChange={e => setInviteUsername(e.target.value)} onKeyDown={e => e.key === 'Enter' && inviteSpeaker()} />
+                  <div className="flex gap-2">
+                    <button onClick={inviteSpeaker} className="btn-primary flex-1">Invite</button>
+                    <button onClick={() => setShowInvite(false)} className="btn-ghost">Cancel</button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
+
+      {/* Payment Modal */}
+      {showPayment && (
+        <PaymentModal amount={paymentAmount} type="room"
+          onSuccess={() => { setShowPayment(false); fetchRooms(); toast.success('Payment successful!'); }}
+          onClose={() => setShowPayment(false)} />
+      )}
+
     </div>
   );
 }

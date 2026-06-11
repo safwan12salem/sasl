@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 
 
-const stripePromise = loadStripe('pk_test_your_publishable_key');
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY || 'pk_live_51SkbjBBLibZZQCA9ll6jpkJYbqVu8KcRlIAuPOxOexi2FvVtxS5Jpkfi2oaXg8GZSuo3cEEIoCOgnuvHaWTj6w7600csnBHnaH');
 
 function TopUpForm() {
   const stripe = useStripe();

@@ -13,6 +13,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { WebRTCConnection } from '../services/webrtc';
 import { useTranslation } from 'react-i18next';
+import PaymentModal from './PaymentModal';
 
 interface Stream {
   id: string;
@@ -63,6 +64,10 @@ export default function Streaming() {
   const [amount, setAmount] = useState<{ [key: string]: number }>({});
   const [donationMessage, setDonationMessage] = useState<{ [key: string]: string }>({});
 
+  // Payment modal
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState(0);
+
   // Video call
   const [inCall, setInCall] = useState<{ streamId: string; role: 'streamer' | 'viewer' } | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
@@ -78,7 +83,7 @@ export default function Streaming() {
     setLoading(true);
     setError(null);
     try {
-            const params = new URLSearchParams();
+      const params = new URLSearchParams();
       if (activeCategory) params.set('category', activeCategory);
       const res = await api.get(`/streaming/streams/?${params.toString()}`);
       setStreams(res.data.results || []);
@@ -110,28 +115,29 @@ export default function Streaming() {
       formData.append('category', category);
       formData.append('tags', JSON.stringify(tags.split(',').map(t => t.trim()).filter(Boolean)));
       if (thumbnailFile) formData.append('thumbnail', thumbnailFile);
-      
+
       const res = await api.post('/streaming/streams/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      
+
       // Add to local state immediately — DON'T call fetchStreams() yet
-       setStreams(prev => {
+      setStreams(prev => {
         const exists = prev.find(s => s.id === res.data.id);
         if (exists) return prev;
         return [res.data, ...prev];
       });
-      
+
       toast.success(t('You are now live! 🎥'));
       setTitle(''); setDescription(''); setTags('');
       setThumbnailFile(null); setThumbnailPreview(null);
-      
+
       // Sync with server after a short delay
-      
+
     } catch (err: any) {
       toast.error(err.response?.data?.error || t('Failed to start stream'));
     }
   };
+
   const donate = async (streamId: string) => {
     const amt = amount[streamId] || 1;
     if (amt <= 0) return toast.error(t('Enter an amount'));
@@ -172,7 +178,7 @@ export default function Streaming() {
     toast.success(t('Stream saved!'));
   };
 
-    const endStream = async (streamId: string) => {
+  const endStream = async (streamId: string) => {
     // Remove from UI immediately
     setStreams(prev => prev.filter(s => s.id !== streamId));
     try {
@@ -193,9 +199,9 @@ export default function Streaming() {
       .then(stream => {
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
         const isLocal = window.location.hostname === 'localhost';
-        const wsUrl = isLocal 
-         ? `ws://localhost:8000/ws/video/${streamId}/?token=${token}`
-         : `wss://sasl.pythonanywhere.com/ws/video/${streamId}/?token=${token}`;
+        const wsUrl = isLocal
+          ? `ws://localhost:8000/ws/video/${streamId}/?token=${token}`
+          : `wss://sasl.pythonanywhere.com/ws/video/${streamId}/?token=${token}`;
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
         const rtc = new WebRTCConnection((msg) => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); });
@@ -299,7 +305,7 @@ export default function Streaming() {
             <input className="input-field" placeholder={t('Tags (comma separated)')} value={tags} onChange={e => setTags(e.target.value)} />
           </div>
           <textarea className="input-field" placeholder={t('Description...')} value={description} onChange={e => setDescription(e.target.value)} rows={2} />
-          
+
           {/* Thumbnail Upload */}
           <div className="flex items-center gap-3">
             <label className="btn-ghost cursor-pointer flex items-center gap-1 text-sm">
@@ -316,7 +322,7 @@ export default function Streaming() {
               </div>
             )}
           </div>
-          
+
           <div className="flex gap-2">
             <button onClick={startStream} className="btn-primary bg-red-500 hover:bg-red-600 flex items-center gap-2">
               <span className="w-2 h-2 bg-white rounded-full animate-pulse" /> {t('Go Live Now')}
@@ -395,18 +401,18 @@ export default function Streaming() {
 
               <div className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                 {s.streamer.avatar_url ? (
-  <img src={s.streamer.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
-) : (
-  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs">
-    {s.streamer.username[0]?.toUpperCase()}
-  </div>
-)}
+                  {s.streamer.avatar_url ? (
+                    <img src={s.streamer.avatar_url} className="w-8 h-8 rounded-full object-cover" alt="" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-xs">
+                      {s.streamer.username[0]?.toUpperCase()}
+                    </div>
+                  )}
                   <span className="font-semibold text-sm">{s.streamer.username}</span>
                   {s.category && <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded-full">{s.category}</span>}
                 </div>
                 <h3 className="font-bold text-sm line-clamp-1">{s.title}</h3>
-                
+
                 {/* Top Donors */}
                 {s.top_donors && s.top_donors.length > 0 && (
                   <div className="flex items-center gap-1 mt-2 text-xs text-yellow-500">
@@ -434,7 +440,7 @@ export default function Streaming() {
                   <div className="flex gap-1">
                     <input type="number" min="1" className="w-16 border rounded-full px-2 py-1 text-xs" placeholder="$1"
                       value={amount[s.id] || ''} onChange={e => setAmount(prev => ({ ...prev, [s.id]: Number(e.target.value) }))} />
-                    <button onClick={() => donate(s.id)} className="flex-1 bg-yellow-500 text-white py-1 rounded-full text-xs font-semibold hover:bg-yellow-600 flex items-center justify-center gap-1">
+                    <button onClick={() => { setPaymentAmount(amount[s.id] || 1); setShowPayment(true); }} className="flex-1 bg-yellow-500 text-white py-1 rounded-full text-xs font-semibold hover:bg-yellow-600 flex items-center justify-center gap-1">
                       <DollarSign size={12} /> {t('Donate')}
                     </button>
                   </div>
@@ -448,6 +454,14 @@ export default function Streaming() {
           ))}
         </div>
       )}
+
+      {/* Payment Modal */}
+      {showPayment && (
+        <PaymentModal amount={paymentAmount} type="donation"
+          onSuccess={() => { setShowPayment(false); fetchStreams(); toast.success('Payment successful!'); }}
+          onClose={() => setShowPayment(false)} />
+      )}
+
     </div>
   );
 }

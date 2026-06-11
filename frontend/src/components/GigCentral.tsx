@@ -16,8 +16,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import WebRTCPrivateChat from './WebRTCPrivateChat';
 import { useTranslation } from 'react-i18next';
-  
-
+import PaymentModal from './PaymentModal';
 
 interface Gig {
   id: string;
@@ -90,7 +89,7 @@ const STATUS_ICONS: Record<string, JSX.Element> = {
 export default function GigCentral() {
   const { user } = useAuth();
   const { t } = useTranslation();
-  
+
   // State
   const [gigs, setGigs] = useState<Gig[]>([]);
   const [loading, setLoading] = useState(true);
@@ -100,7 +99,7 @@ export default function GigCentral() {
   const [showForm, setShowForm] = useState(false);
   const [expandedGig, setExpandedGig] = useState<string | null>(null);
   const [chatRoom, setChatRoom] = useState<string | null>(null);
-  
+
   // Form state
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
@@ -110,16 +109,16 @@ export default function GigCentral() {
   const [milestones, setMilestones] = useState<{ title: string; amount: string }[]>([
     { title: '', amount: '' }
   ]);
-  
+
   // Review state
   const [showReview, setShowReview] = useState<string | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
-  
+
   // Dispute state
   const [showDispute, setShowDispute] = useState<string | null>(null);
   const [disputeReason, setDisputeReason] = useState('');
-  
+
   // Portfolio state
   const [portfolio, setPortfolio] = useState<Portfolio[]>([]);
   const [showPortfolioForm, setShowPortfolioForm] = useState(false);
@@ -127,20 +126,24 @@ export default function GigCentral() {
   const [pfDesc, setPfDesc] = useState('');
   const [pfLink, setPfLink] = useState('');
   const [pfImage, setPfImage] = useState<File | null>(null);
-  
+
   // Skill badges
   const [skillBadges, setSkillBadges] = useState<SkillBadge[]>([]);
   const [showBadges, setShowBadges] = useState(false);
-  
+
   // Stats
   const [stats, setStats] = useState({ totalGigs: 0, completedGigs: 0, totalEarned: '0', avgRating: 0 });
-   
+
   // Negotiation state
   const [negotiateGig, setNegotiateGig] = useState<string | null>(null);
   const [proposalMessage, setProposalMessage] = useState('');
   const [proposalBudget, setProposalBudget] = useState('');
-  
+
   const [likedGigs, setLikedGigs] = useState<Set<string>>(new Set());
+
+  // Payment state
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState(0);
 
   // ============================================================
   // FETCH
@@ -153,10 +156,10 @@ export default function GigCentral() {
       if (activeTab !== 'mine') params.set('status', activeTab);
       if (activeTab === 'mine') params.set('mine', 'true');
       if (searchQuery) params.set('search', searchQuery);
-      
+
       const res = await api.get(`/gigs/gigs/?${params.toString()}`);
       setGigs(Array.isArray(res.data) ? res.data : res.data.results || []);
-      
+
       // Calculate stats
       const all = Array.isArray(res.data) ? res.data : res.data.results || [];
       const completed = all.filter((g: Gig) => g.status === 'completed');
@@ -164,8 +167,8 @@ export default function GigCentral() {
         totalGigs: all.length,
         completedGigs: completed.length,
         totalEarned: completed.reduce((sum: number, g: Gig) => sum + parseFloat(g.budget || '0'), 0).toFixed(2),
-        avgRating: completed.length > 0 
-          ? completed.reduce((sum: number, g: Gig) => sum + (g.average_rating || 0), 0) / completed.length 
+        avgRating: completed.length > 0
+          ? completed.reduce((sum: number, g: Gig) => sum + (g.average_rating || 0), 0) / completed.length
           : 0,
       });
     } catch (err) {
@@ -288,7 +291,7 @@ export default function GigCentral() {
     formData.append('description', pfDesc);
     formData.append('link', pfLink);
     if (pfImage) formData.append('image', pfImage);
-    
+
     try {
       await api.post('/gigs/gigs/add_portfolio/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -463,16 +466,16 @@ export default function GigCentral() {
         {showForm && (
           <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="glass p-6 rounded-2xl mb-6 space-y-4 shadow-xl border-2 border-green-200">
             <h3 className="font-bold text-xl flex items-center gap-2"><FileText size={20} /> {t('Create New Gig')}</h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input className="input-field" placeholder="What do you need done? *" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
               <select className="input-field" value={newCategory} onChange={e => setNewCategory(e.target.value)}>
                 {categories.map(cat => <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>)}
               </select>
             </div>
-            
+
             <textarea className="input-field" placeholder="Describe the work in detail..." value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={3} />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <input className="input-field" type="number" placeholder="Total Budget ($) *" value={newBudget} onChange={e => setNewBudget(e.target.value)} />
               <input className="input-field" type="date" placeholder="Deadline" value={newDeadline} onChange={e => setNewDeadline(e.target.value)} />
@@ -561,13 +564,13 @@ export default function GigCentral() {
                 <div className="flex flex-col md:flex-row justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                     {gig.creator_avatar ? (
-  <img src={gig.creator_avatar} className="w-10 h-10 rounded-full object-cover" alt="" />
-) : (
-  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-sm">
-    {gig.creator_name[0]?.toUpperCase()}
-  </div>
-)}
+                      {gig.creator_avatar ? (
+                        <img src={gig.creator_avatar} className="w-10 h-10 rounded-full object-cover" alt="" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-sm">
+                          {gig.creator_name[0]?.toUpperCase()}
+                        </div>
+                      )}
                       <div>
                         <h3 className="font-bold text-lg flex items-center gap-2">
                           {gig.title}
@@ -598,24 +601,24 @@ export default function GigCentral() {
                     </div>
                     {/* Action Buttons Row */}
                     <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex-wrap">
-                      <button onClick={async () => { 
-  const newLiked = new Set(likedGigs);
-  if (newLiked.has(gig.id)) { newLiked.delete(gig.id); } else { newLiked.add(gig.id); }
-  setLikedGigs(newLiked);
-  try { await api.post(`/gigs/gigs/${gig.id}/like/`); } catch {} 
-}} className={`flex items-center gap-1 text-xs transition ${likedGigs.has(gig.id) ? 'text-green-500 font-bold' : 'text-gray-500 hover:text-green-500'}`}>
-  <ThumbsUp size={14} className={likedGigs.has(gig.id) ? 'fill-green-500' : ''} /> Like
-</button>
-<button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/gigs/${gig.id}`); toast.success('Link copied!'); }} className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600"><Link size={14} /> Copy</button>
+                      <button onClick={async () => {
+                        const newLiked = new Set(likedGigs);
+                        if (newLiked.has(gig.id)) { newLiked.delete(gig.id); } else { newLiked.add(gig.id); }
+                        setLikedGigs(newLiked);
+                        try { await api.post(`/gigs/gigs/${gig.id}/like/`); } catch {}
+                      }} className={`flex items-center gap-1 text-xs transition ${likedGigs.has(gig.id) ? 'text-green-500 font-bold' : 'text-gray-500 hover:text-green-500'}`}>
+                        <ThumbsUp size={14} className={likedGigs.has(gig.id) ? 'fill-green-500' : ''} /> Like
+                      </button>
+                      <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/gigs/${gig.id}`); toast.success('Link copied!'); }} className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600"><Link size={14} /> Copy</button>
                       <span className="flex items-center gap-1 text-xs text-gray-400"><Users size={14} /> {gig.applicants_count || 0}</span>
                       <span className="flex items-center gap-1 text-xs text-gray-400"><BarChart3 size={14} /> {gig.views || 0}</span>
-                      
+
                       <span className="flex items-center gap-1 text-xs text-orange-500"><TrendingUp size={14} /> Trending</span>
                       <span className="flex items-center gap-1 text-xs text-gray-400"><Calendar size={14} /> {gig.deadline || 'Open'}</span>
                       <span className="flex items-center gap-1 text-xs text-green-500"><Shield size={14} /> Verified</span>
                     </div>
                   </div>
-                  
+
                   {/* Quick Actions */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {(gig.creator_name === user?.username || gig.taker_name === user?.username) && (
@@ -624,7 +627,7 @@ export default function GigCentral() {
                       </button>
                     )}
                     {gig.creator_name !== user?.username && gig.status === 'open' && (
-                      <button onClick={(e) => { e.stopPropagation(); setNegotiateGig(gig.id); }} className="btn-primary text-sm">
+                      <button onClick={(e) => { e.stopPropagation(); setPaymentAmount(parseFloat(gig.budget)); setShowPayment(true); }} className="btn-primary text-sm">
                         <Zap size={14} className="mr-1" /> {t('Take Gig')}
                       </button>
                     )}
@@ -748,9 +751,9 @@ export default function GigCentral() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setNegotiateGig(null)}>
           <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
             <h3 className="font-bold text-lg mb-4">{t('Send Proposal')}</h3>
-            <textarea className="input-field mb-3" placeholder={t('Introduce yourself and explain why you\'re a good fit...')} 
+            <textarea className="input-field mb-3" placeholder={t('Introduce yourself and explain why you\'re a good fit...')}
               value={proposalMessage} onChange={e => setProposalMessage(e.target.value)} rows={3} />
-            <input className="input-field mb-3" type="number" placeholder={t('Your proposed budget (optional)')} 
+            <input className="input-field mb-3" type="number" placeholder={t('Your proposed budget (optional)')}
               value={proposalBudget} onChange={e => setProposalBudget(e.target.value)} />
             <div className="flex gap-2">
               <button onClick={() => requestGig(negotiateGig)} className="btn-primary flex-1">{t('Send Proposal')}</button>
@@ -762,6 +765,14 @@ export default function GigCentral() {
 
       {/* Chat Modal */}
       {chatRoom && <WebRTCPrivateChat roomId={chatRoom} onClose={() => setChatRoom(null)} />}
+
+      {/* Payment Modal */}
+      {showPayment && (
+        <PaymentModal amount={paymentAmount} type="gig"
+          onSuccess={() => { setShowPayment(false); fetchGigs(); toast.success('Payment successful!'); }}
+          onClose={() => setShowPayment(false)} />
+      )}
+
     </div>
   );
 }

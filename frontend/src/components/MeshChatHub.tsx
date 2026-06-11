@@ -13,6 +13,10 @@ import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { offlineMesh } from '../services/offlineMesh';
+
+import { useTranslation } from 'react-i18next';
+
+
 // ============================================================
 // TYPES
 // ============================================================
@@ -142,6 +146,10 @@ const [justSent, setJustSent] = useState(false);
   const [meshPeers, setMeshPeers] = useState<Array<{ id: string; username: string; signalStrength: number; isDirect: boolean }>>([]);
 const [meshActive, setMeshActive] = useState(false);
 
+const { t } = useTranslation();
+
+
+
 
   useEffect(() => { activeRoomRef.current = activeRoom; }, [activeRoom]);
 
@@ -199,6 +207,28 @@ const [meshActive, setMeshActive] = useState(false);
       offlineMesh.stop();
     };
   }, [myUsername]);
+
+
+
+// Inside the component, add:
+useEffect(() => {
+  if (!myUsername) return;
+  
+  offlineMesh.start(myUsername);
+  
+  offlineMesh.onMessage((msg) => {
+    if (msg.type === 'chat_message') {
+      setMessages(prev => {
+        const exists = prev.some(m => m.id === msg.message?.id);
+        if (exists) return prev;
+        return [...prev, msg.message];
+      });
+      scrollToBottom();
+    }
+  });
+  
+  return () => offlineMesh.stop();
+}, [myUsername]);
 
   // ============================================================
   // DATA FETCHING
@@ -600,21 +630,24 @@ const fetchRooms = useCallback(async () => {
                         <Avatar src={peer.avatar_url} name={peer.username} size="sm" isOnline={peer.is_online} />
                         <div>
                           <p className="font-semibold text-sm">@{peer.username}</p>
-                          <p className="text-xs text-gray-500">{peer.is_online ? '🟢 Online' : '⚫ Offline'}</p>
+                          <p className="text-xs text-gray-500">{peer.is_online ? t('🟢 Online') : t('⚫ Offline')}</p>
                         </div>
                       </button>
+                     
                     ))}
                   </div>
+                
                 )}
               </div>
+             
             </div>
 
             {/* Tabs */}
             <div className="flex mx-4 mt-3 bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-1">
               {[
-                { key: 'rooms', label: 'Chats', icon: MessageCircle },
-                { key: 'contacts', label: 'Discover', icon: Users },
-                { key: 'requests', label: 'Requests', icon: UserPlus },
+                { key: 'rooms', label: t('Chats'), icon: MessageCircle },
+                { key: 'contacts', label: t('Discover'), icon: Users },
+                { key: 'requests', label: t('Requests'), icon: UserPlus },
               ].map(t => (
                 <button
                   key={t.key}
@@ -646,8 +679,8 @@ const fetchRooms = useCallback(async () => {
                       <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 flex items-center justify-center">
                         <MessageCircle size={36} className="text-green-500 opacity-50" />
                       </div>
-                      <p className="font-semibold text-gray-500 mb-1">No conversations yet</p>
-                      <p className="text-sm text-gray-400">Search for users to start chatting via WaveMesh!</p>
+                      <p className="font-semibold text-gray-500 mb-1">{t('No conversations yet')}</p>
+                      <p className="text-sm text-gray-400">{t('Search for users to start chatting via WaveMesh!')}</p>
                     </div>
                   ) : (
                     rooms.map(room => (
@@ -692,8 +725,8 @@ const fetchRooms = useCallback(async () => {
                       <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center">
                         <Users size={36} className="text-blue-500 opacity-50" />
                       </div>
-                      <p className="font-semibold text-gray-500 mb-1">No users discovered</p>
-                      <p className="text-sm text-gray-400">Open another tab and log in to see peers!</p>
+                      <p className="font-semibold text-gray-500 mb-1">{t('No users discovered')}</p>
+                      <p className="text-sm text-gray-400">{t('Open another tab and log in to see peers!')}</p>
                     </div>
                   ) : (
                     peers.map(peer => (
@@ -714,7 +747,7 @@ const fetchRooms = useCallback(async () => {
                             whileTap={{ scale: 0.9 }} 
                             onClick={() => createRoom(peer.username)} 
                             className="p-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition shadow-sm" 
-                            title="Send chat request"
+                            title={t('Send chat request')}
                           >
                             <UserPlus size={16} />
                           </motion.button>
@@ -732,8 +765,8 @@ const fetchRooms = useCallback(async () => {
                       <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 flex items-center justify-center">
                         <UserPlus size={36} className="text-orange-500 opacity-50" />
                       </div>
-                      <p className="font-semibold text-gray-500 mb-1">No pending requests</p>
-                      <p className="text-sm text-gray-400">When someone wants to connect, it'll appear here</p>
+                      <p className="font-semibold text-gray-500 mb-1">{t('No pending requests')}</p>
+                      <p className="text-sm text-gray-400">{t('When someone wants to connect, it\'ll appear here')}</p>
                     </div>
                   ) : (
                     requests.map(req => (
@@ -742,15 +775,15 @@ const fetchRooms = useCallback(async () => {
                           <Avatar src={req.from_user.avatar_url} name={req.from_user.username} size="md" />
                           <div>
                             <p className="font-semibold text-sm">@{req.from_user.username}</p>
-                            <p className="text-xs text-gray-500">{req.message || 'Wants to connect via WaveMesh'}</p>
+                            <p className="text-xs text-gray-500">{req.message || t('Wants to connect via WaveMesh')}</p>
                           </div>
                         </div>
                         <div className="flex gap-2">
                           <motion.button whileTap={{ scale: 0.95 }} onClick={() => acceptRequest(req.id)} className="flex-1 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold hover:from-green-600 hover:to-emerald-600 transition shadow-sm">
-                            ✨ Accept
+                            {t('✨ Accept')}
                           </motion.button>
                           <motion.button whileTap={{ scale: 0.95 }} onClick={() => declineRequest(req.id)} className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition">
-                            Decline
+                            {t('Decline')}
                           </motion.button>
                         </div>
                       </motion.div>
@@ -762,7 +795,7 @@ const fetchRooms = useCallback(async () => {
 
             <div className="p-4 border-t border-gray-100 dark:border-gray-800 text-center">
               <p className="text-[10px] text-gray-400">
-                🌊 <span className="text-green-500 font-bold">S</span><span className="text-orange-500 font-bold">L</span> WaveMesh · Offline P2P
+                🌊 <span className="text-green-500 font-bold">S</span><span className="text-orange-500 font-bold">L</span>{t(' WaveMesh · Offline P2P')}
               </p>
             </div>
           </motion.div>
@@ -777,21 +810,21 @@ const fetchRooms = useCallback(async () => {
               <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 3, repeat: Infinity }} className="w-28 h-28 mx-auto mb-8 rounded-3xl bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 flex items-center justify-center shadow-2xl shadow-green-500/30">
                 <Zap size={56} className="text-white" />
               </motion.div>
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3">Welcome to WaveMesh</h2>
-              <p className="text-gray-500 mb-2 text-lg">The world's first <span className="font-semibold text-green-600">offline P2P</span> chat network</p>
-              <p className="text-gray-400 text-sm mb-8">Connect directly with anyone nearby — no internet required. Your messages hop through the mesh, encrypted end-to-end.</p>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3">{t('Welcome to WaveMesh')}</h2>
+              <p className="text-gray-500 mb-2 text-lg">{t('The world\'s first')} <span className="font-semibold text-green-600">{t('offline P2P')}</span> {t('chat network')}</p>
+              <p className="text-gray-400 text-sm mb-8">{t('Connect directly with anyone nearby — no internet required. Your messages hop through the mesh, encrypted end-to-end.')}</p>
               <div className="flex gap-3 justify-center flex-wrap">
                 <motion.button whileTap={{ scale: 0.95 }} onClick={() => setTab('contacts')} className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-semibold shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all">
-                  🔍 Discover Peers
+                  {t('🔍 Discover Peers')}
                 </motion.button>
                 <motion.button whileTap={{ scale: 0.95 }} onClick={() => setTab('requests')} className="px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-2xl font-semibold border-2 border-gray-200 dark:border-gray-700 hover:border-green-300 transition-all">
-                  📩 View Requests {requests.length > 0 && `(${requests.length})`}
+                  {t('📩 View Requests')} {requests.length > 0 && `(${requests.length})`}
                 </motion.button>
               </div>
               <div className="mt-8 flex items-center justify-center gap-6 text-xs text-gray-400">
-                <span className="flex items-center gap-1"><WifiOff size={12} /> No Internet</span>
-                <span className="flex items-center gap-1"><Shield size={12} /> E2E Encrypted</span>
-                <span className="flex items-center gap-1"><Zap size={12} /> Instant</span>
+                <span className="flex items-center gap-1"><WifiOff size={12} /> {t('No Internet')}</span>
+                <span className="flex items-center gap-1"><Shield size={12} /> {t('E2E Encrypted')}</span>
+                <span className="flex items-center gap-1"><Zap size={12} /> {t('Instant')}</span>
               </div>
             </motion.div>
           </div>
@@ -806,18 +839,18 @@ const fetchRooms = useCallback(async () => {
                 <div>
                   <h3 className="font-bold text-sm">{activeRoom.room_type === 'private' && activeRoom.other_user ? `@${activeRoom.other_user.username}` : activeRoom.name}</h3>
                   <p className="text-xs text-gray-500">
-  {connecting ? 'Connecting...' : (
-    <span className="flex items-center gap-1 text-green-600"><Wifi size={12} /> Connected via WaveMesh</span>
+  {connecting ? t('Connecting...') : (
+    <span className="flex items-center gap-1 text-green-600"><Wifi size={12} /> {t('Connected via WaveMesh')}</span>
   )}
 </p>
                 </div>
               </div>
               <div className="flex items-center gap-1">
                 {activeRoom.invite_code && (
-                  <button onClick={copyInviteCode} className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition text-gray-500" title="Copy invite code"><Copy size={18} /></button>
+                  <button onClick={copyInviteCode} className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition text-gray-500" title={t('Copy invite code')}><Copy size={18} /></button>
                 )}
-                <button onClick={() => setShowInviteModal(true)} className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition text-gray-500" title="Invite"><UserPlus size={18} /></button>
-                <button onClick={() => leaveRoom(activeRoom.id)} className="p-2.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition text-red-400" title="Leave"><LogOut size={18} /></button>
+                <button onClick={() => setShowInviteModal(true)} className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition text-gray-500" title={t('Invite')}><UserPlus size={18} /></button>
+                <button onClick={() => leaveRoom(activeRoom.id)} className="p-2.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition text-red-400" title={t('Leave')}><LogOut size={18} /></button>
               </div>
             </div>
 
@@ -893,7 +926,7 @@ const fetchRooms = useCallback(async () => {
   <Paperclip size={20} />
 </motion.button>
                 <div className="flex-1 relative">
-                  <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Message via WaveMesh..." className="w-full px-5 py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-green-400/50 focus:bg-white dark:focus:bg-gray-700 transition-all placeholder-gray-400" />
+                  <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder={t('Message via WaveMesh...')} className="w-full px-5 py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-green-400/50 focus:bg-white dark:focus:bg-gray-700 transition-all placeholder-gray-400" />
                   {showEmojiPicker && (
                     <div className="absolute bottom-full left-0 mb-3 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-3 z-50 w-72">
                       <div className="grid grid-cols-8 gap-1.5">
@@ -930,13 +963,13 @@ const fetchRooms = useCallback(async () => {
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
               <div className="text-center mb-4">
                 <div className="w-16 h-16 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center"><UserPlus size={28} className="text-white" /></div>
-                <h3 className="font-bold text-xl">Invite to WaveMesh</h3>
-                <p className="text-sm text-gray-500">Add someone to this conversation</p>
+                <h3 className="font-bold text-xl">{t('Invite to WaveMesh')}</h3>
+                <p className="text-sm text-gray-500">{t('Add someone to this conversation')}</p>
               </div>
-              <input value={inviteUsername} onChange={e => setInviteUsername(e.target.value)} placeholder="Enter username..." className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none focus:border-purple-400 mb-4 transition" autoFocus />
+              <input value={inviteUsername} onChange={e => setInviteUsername(e.target.value)} placeholder={t('Enter username...')} className="w-full px-5 py-3.5 rounded-2xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 outline-none focus:border-purple-400 mb-4 transition" autoFocus />
               <div className="flex gap-2">
-                <button onClick={inviteToRoom} className="flex-1 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-semibold hover:from-purple-600 hover:to-pink-600 transition shadow-lg shadow-purple-500/25">✨ Invite</button>
-                <button onClick={() => setShowInviteModal(false)} className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 rounded-2xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition">Cancel</button>
+                <button onClick={inviteToRoom} className="flex-1 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-semibold hover:from-purple-600 hover:to-pink-600 transition shadow-lg shadow-purple-500/25">✨ {t('Invite')}</button>
+                <button onClick={() => setShowInviteModal(false)} className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 rounded-2xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition">{t('Cancel')}</button>
               </div>
             </motion.div>
           </motion.div>
