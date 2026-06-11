@@ -20,7 +20,7 @@ class BrandCampaignAdmin(admin.ModelAdmin):
 
 @admin.register(SponsoredContent)
 class SponsoredContentAdmin(admin.ModelAdmin):
-    list_display = ('creator', 'campaign', 'content_type', 'creator_earnings', 'status', 'created_at')
+    list_display = ('creator', 'campaign', 'content_type', 'creator_earnings', 'status', 'submitted_at')
     list_filter = ('status', 'content_type')
     actions = ['approve_content']
     
