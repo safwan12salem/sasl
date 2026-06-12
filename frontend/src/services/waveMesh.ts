@@ -41,20 +41,26 @@ export class WaveMeshNode {
   /**
    * Discover nearby peers via Web Bluetooth
    */
-  private async startBluetoothDiscovery(): Promise<void> {
+    private async startBluetoothDiscovery(): Promise<void> {
     try {
       // @ts-ignore
       const device = await navigator.bluetooth.requestDevice({
-        filters: [{ services: ['0000sasl-0000-1000-8000-00805f9b34fb'] }],
+        acceptAllDevices: true,
         optionalServices: ['0000sasl-0000-1000-8000-00805f9b34fb'],
       });
       
+      this.bluetoothServer = device; // ← USE the variable
       console.log('🔵 Bluetooth peer found:', device.name);
       await this.connectToPeer(device.id, 'bluetooth');
     } catch (err) {
       console.log('Bluetooth scanning... (requires Bluetooth hardware)');
-      // Fall back to WebRTC only
+      this.bluetoothServer = null; // ← Set to null if failed
     }
+  }
+
+
+    getBluetoothDevice(): any {
+    return this.bluetoothServer;
   }
 
   /**

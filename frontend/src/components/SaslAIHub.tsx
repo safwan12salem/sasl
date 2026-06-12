@@ -14,6 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { saslBrain } from '../services/saslBrain';
 import { Translation, useTranslation } from 'react-i18next';
+import { t } from '../services/translateHelper';
 // ============================================================
 // TYPES
 // ============================================================
@@ -44,6 +45,7 @@ function detectLanguage(text: string): string {
     hi: /[\u0900-\u097F]/,
     ru: /[\u0400-\u04FF]/,
     el: /[\u0370-\u03FF]/,
+
   };
   
   for (const [lang, regex] of Object.entries(scripts)) {
@@ -333,6 +335,28 @@ async function searchWeb(topic: string): Promise<string[]> {
   }
 }
 
+
+
+const [showSuggestions, setShowSuggestions] = useState(false);
+const [suggestionsList, setSuggestionsList] = useState<string[]>([]);
+
+
+
+const TOPICS = [
+  'How do I earn money?', 'What is WaveMesh?', 'How does offline work?',
+  'Tell me about Marketplace', 'Privacy features?', 'How to start streaming?',
+  'How to sell products?', 'How to go live?', 'What are gigs?',
+  'How does tutoring work?', 'How to withdraw money?', 'Creator Studio',
+  'Dark mode', 'Notifications', 'Invite friends', 'Certificates',
+  'Live Audio', 'Group Chat', 'Events', 'Wallet', 'Profile'
+];
+
+const getSuggestions = (text: string): string[] => {
+  if (text.length < 2) return [];
+  const lower = text.toLowerCase();
+  return TOPICS.filter(t => t.toLowerCase().includes(lower));
+};
+
 // ============================================================
 // CONTENT ASSISTANT LOGIC (from AIAssistant.tsx)
 // ============================================================
@@ -610,14 +634,19 @@ export default function SaslAIHub() {
   // ============================================================
   // BRAIN HANDLERS
   // ============================================================
-  const handleBrainSend = async () => {
+    const handleBrainSend = async () => {
     if (!brainInput.trim()) return;
     const userMessage = brainInput.trim();
     setBrainMessages(prev => [...prev, { role: 'user', text: userMessage }]);
     setBrainInput('');
+    setShowSuggestions(false);
     setBrainLoading(true);
 
     try {
+      // Space handling: detect topic from last meaningful words
+      const words = userMessage.split(/\s+/);
+      const searchQuery = words.slice(-3).join(' '); // Last 3 words
+      
       const response = await saslBrain.chatbotResponse(userMessage);
       setBrainMessages(prev => [...prev, { role: 'bot', text: response }]);
     } catch {
@@ -656,10 +685,10 @@ export default function SaslAIHub() {
         <div className="bg-gradient-to-r from-green-500 via-emerald-500 to-teal-600 p-6 text-white">
           <h2 className="text-3xl font-bold mb-2 flex items-center gap-3">
             <Sparkles className="text-yellow-300" size={32} />
-            Sasl AI Hub
+            {t('sasl-ai-hub')}
           </h2>
           <p className="text-white/80 text-sm">
-            Your all-in-one AI toolbox – content creation, voice commands & smart assistant. Works offline!
+            {t('sasl-ai-hub-description')}
           </p>
         </div>
 
@@ -749,7 +778,7 @@ export default function SaslAIHub() {
                       ) : (
                         <Wand2 size={20} />
                       )}
-                      Generate
+                      {t('generate')}
                     </button>
                   </div>
                 ) : (
@@ -776,8 +805,8 @@ export default function SaslAIHub() {
                 {assistantLoading && (
                   <div className="text-center py-12">
                     <Loader2 className="animate-spin mx-auto text-purple-500" size={48} />
-                    <p className="text-gray-500 mt-3 font-semibold">Generating amazing content...</p>
-                    <p className="text-gray-400 text-sm mt-1">Our AI is crafting the perfect suggestions for "{topic}"</p>
+                    <p className="text-gray-500 mt-3 font-semibold">{t('generating-amazing-content')}</p>
+                    <p className="text-gray-400 text-sm mt-1">{t('ai-crafting-suggestions')}, { topic }</p>
                   </div>
                 )}
 
@@ -797,7 +826,7 @@ export default function SaslAIHub() {
                       >
                         <div className="flex-1">
                           <span className="inline-block text-xs bg-purple-100 text-purple-700 px-2.5 py-1 rounded-full font-semibold mb-2">
-                            Option {idx + 1}
+                            {t('option')} {idx + 1}
                           </span>
                           <p className="text-gray-800 dark:text-gray-200">{suggestion}</p>
                         </div>
@@ -821,7 +850,7 @@ export default function SaslAIHub() {
                 {!assistantLoading && assistantMode === 'hashtags' && hashtags.length > 0 && (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                     <h3 className="font-bold text-lg flex items-center gap-2 text-blue-600 mb-4">
-                      <Hash size={20} /> Hashtags for "{topic}"
+                      <Hash size={20} /> {t('hashtags-for')}, { topic }
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       {hashtags.map((tag, idx) => (
@@ -849,7 +878,7 @@ export default function SaslAIHub() {
                       }}
                       className="mt-4 text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1"
                     >
-                      <Copy size={14} /> Copy all hashtags
+                      <Copy size={14} /> {t('copy-all-hashtags')}
                     </button>
                   </motion.div>
                 )}
@@ -858,7 +887,7 @@ export default function SaslAIHub() {
                 {!assistantLoading && assistantMode === 'caption' && caption && (
                   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
                     <h3 className="font-bold text-lg flex items-center gap-2 text-green-600 mb-4">
-                      <ImageIcon size={20} /> Generated Caption
+                      <ImageIcon size={20} /> {t('generated-caption')}
                     </h3>
                     <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
                       <p className="text-xl italic text-gray-700 dark:text-gray-300">"{caption}"</p>
@@ -867,7 +896,7 @@ export default function SaslAIHub() {
                         className="mt-4 flex items-center gap-2 text-green-600 hover:text-green-800 font-semibold text-sm"
                       >
                         {copiedIndex === 0 ? <Check size={16} /> : <Copy size={16} />}
-                        Copy Caption
+                        {t('copy-caption')}
                       </button>
                     </div>
                   </motion.div>
@@ -876,7 +905,7 @@ export default function SaslAIHub() {
                 {captionLoading && (
                   <div className="text-center py-8">
                     <Loader2 className="animate-spin mx-auto text-green-500" size={40} />
-                    <p className="text-gray-500 mt-2">Analyzing image and generating caption...</p>
+                    <p className="text-gray-500 mt-2">{t('analyzing-image-and-generating-caption')}</p>
                   </div>
                 )}
               </motion.div>
@@ -971,7 +1000,7 @@ export default function SaslAIHub() {
 
                 {/* Quick Commands */}
                 <div className="mt-6">
-                  <p className="text-xs text-gray-400 mb-3">Try saying:</p>
+                  <p className="text-xs text-gray-400 mb-3">{t('try-saying')}:</p>
                   <div className="flex flex-wrap justify-center gap-2">
                     {['Feed', 'How to earn', 'Create post', 'Go live', 'Wallet', 'Offline', 'Help'].map(cmd => (
                       <button
@@ -1053,14 +1082,39 @@ export default function SaslAIHub() {
                 </div>
 
                 {/* Input */}
-                <div className="flex gap-2">
-                  <input
-                    value={brainInput}
-                    onChange={e => setBrainInput(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleBrainSend()}
-                    placeholder="Ask me anything about Sasl..."
-                    className="flex-1 px-5 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition outline-none"
-                  />
+                           <div className="flex gap-2 relative">
+                  <div className="flex-1 relative">
+                    <input
+                      value={brainInput}
+                      onChange={e => {
+                        setBrainInput(e.target.value);
+                        const suggestions = getSuggestions(e.target.value);
+                        setSuggestionsList(suggestions);
+                        setShowSuggestions(suggestions.length > 0);
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') handleBrainSend();
+                      }}
+                      placeholder="Ask me anything about Sasl..."
+                      className="w-full px-5 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition outline-none"
+                    />
+                    {showSuggestions && (
+                      <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 rounded-xl shadow-xl border z-50 max-h-48 overflow-y-auto">
+                        {suggestionsList.map((s, i) => (
+                          <button
+                            key={i}
+                            onClick={() => {
+                              setBrainInput(s);
+                              setShowSuggestions(false);
+                            }}
+                            className="w-full text-left px-4 py-2.5 hover:bg-gray-100 dark:hover:bg-gray-700 text-sm border-b last:border-b-0"
+                          >
+                            💡 {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <button
                     onClick={handleBrainSend}
                     disabled={brainLoading || !brainInput.trim()}
@@ -1069,6 +1123,7 @@ export default function SaslAIHub() {
                     {brainLoading ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
                   </button>
                 </div>
+
               </motion.div>
             )}
           </AnimatePresence>
@@ -1076,7 +1131,7 @@ export default function SaslAIHub() {
 
         {/* Footer */}
         <div className="border-t border-gray-200 dark:border-gray-700 px-6 py-3 flex items-center justify-between text-xs text-gray-400">
-          <span>💡 All AI features work offline</span>
+          <span>  && Ask me anything about Sasl...</span>
           <span className="flex items-center gap-1">
             <Globe size={12} /> Sasl AI Hub v1.0
           </span>
