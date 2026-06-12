@@ -46,6 +46,10 @@ class OfflineMeshService {
   async start(username: string): Promise<void> {
     console.log(`🌊 OfflineMesh node ${this.nodeId} starting as @${username}...`);
     
+
+     if (this.discoveryChannel) {
+      this.discoveryChannel.close();
+    }
     // LAN discovery via BroadcastChannel (works across tabs + same network)
     this.discoveryChannel = new BroadcastChannel('sasl-offline-mesh');
     
@@ -57,17 +61,25 @@ class OfflineMeshService {
       }
     };
 
+
+
     // Announce presence every 3 seconds
-    setInterval(() => {
-      this.discoveryChannel?.postMessage({
-        type: 'peer_announce',
-        nodeId: this.nodeId,
-        username,
-        timestamp: Date.now(),
-      });
+      const announceInterval = setInterval(() => {
+      if (this.discoveryChannel && this.discoveryChannel.name) {
+        try {
+          this.discoveryChannel.postMessage({
+            type: 'peer_announce',
+            nodeId: this.nodeId,
+            username,
+            timestamp: Date.now(),
+          });
+        } catch (e) {
+          console.log('BroadcastChannel closed, stopping announcements');
+          clearInterval(announceInterval);
+        }
+      }
     }, 3000);
 
-    // Load queued messages
     await this.loadQueue();
     this.processQueue();
   }

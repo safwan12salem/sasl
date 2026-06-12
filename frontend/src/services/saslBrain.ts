@@ -185,17 +185,23 @@ async function tryOnlineAI(query: string): Promise<string | null> {
 class SaslBrain {
   private initialized = false;
 
-  async initialize(): Promise<void> {
+     async initialize() {
     try {
+      // Original WebGL initialization code
+      await tf.setBackend('webgl');
       await tf.ready();
       console.log('🧠 Sasl Brain initialized – ready to help!');
-      this.initialized = true;
-    } catch (err) {
-      console.warn('Sasl Brain running in basic mode');
-      this.initialized = true;
+    } catch (e) {
+      console.log('WebGL not available, using CPU backend');
+      try {
+        await tf.setBackend('cpu');
+        await tf.ready();
+        console.log('🧠 Sasl Brain initialized on CPU');
+      } catch (e2) {
+        console.log('🧠 Sasl Brain initialized in basic mode');
+      }
     }
   }
-
   async chatbotResponse(question: string): Promise<string> {
     const msg = question.trim();
     if (!msg) return GREETINGS[Math.floor(Math.random() * GREETINGS.length)];

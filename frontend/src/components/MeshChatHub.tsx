@@ -24,7 +24,7 @@ interface ChatMessage {
   id: string;
   room: string;
   sender: { id: string; username: string; avatar_url: string | null } | null; 
-  message_type: 'text' | 'image' | 'file' | 'reaction' | 'system';
+  message_type: 'text' | 'image' | 'file' | 'reaction' | 'system' | 'video';
   content: string;
   file_url?: string;
   file_name?: string;
@@ -149,6 +149,8 @@ const [meshActive, setMeshActive] = useState(false);
 const { t } = useTranslation();
 
 
+const [editingMessage, setEditingMessage] = useState<string | null>(null);
+const [editText, setEditText] = useState('');
 
 
   useEffect(() => { activeRoomRef.current = activeRoom; }, [activeRoom]);
@@ -419,7 +421,7 @@ const fetchRooms = useCallback(async () => {
     setJustSent(true);
     setTimeout(() => setJustSent(false), 1000);
     inputRef.current?.focus();
-
+    scrollToBottom();
 
    
     if (wsRef.current?.readyState === WebSocket.OPEN) {
@@ -502,6 +504,14 @@ const fetchRooms = useCallback(async () => {
     setReactionPicker(null);
   };
 
+
+  const deleteMessage = async (messageId: string) => {
+  setMessages(prev => prev.filter(m => m.id !== messageId));
+  try {
+    await api.delete(`/mesh/rooms/${activeRoom?.id}/messages/${messageId}/`);
+  } catch {}
+};
+
   // ============================================================
   // REQUEST ACTIONS
   // ============================================================
@@ -534,8 +544,10 @@ const fetchRooms = useCallback(async () => {
   // UTILS
   // ============================================================
   const scrollToBottom = () => {
+  setTimeout(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  }, 50);
+};
 
   const searchUsers = (query: string) => {
     setSearchQuery(query);
@@ -632,6 +644,14 @@ const fetchRooms = useCallback(async () => {
                           <p className="font-semibold text-sm">@{peer.username}</p>
                           <p className="text-xs text-gray-500">{peer.is_online ? t('🟢 Online') : t('⚫ Offline')}</p>
                         </div>
+
+                         <motion.button 
+      whileTap={{ scale: 0.9 }}
+      onClick={(e) => { e.stopPropagation(); sendRequest(peer.username); }}
+      className="p-2 bg-green-500 text-white rounded-full hover:bg-green-600 transition"
+      title="Send request">
+      <UserPlus size={14} />
+    </motion.button>
                       </button>
                      
                     ))}
@@ -876,8 +896,13 @@ const fetchRooms = useCallback(async () => {
                         <div className={`group relative max-w-[75%] ${isMe ? 'order-1' : ''}`}>
                           {!isMe && showAvatar && <p className="text-[11px] font-semibold text-gray-500 mb-1 ml-1">@{msg.sender?.username}</p>}
                           <div className={`relative px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${isMe ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-br-lg shadow-md shadow-green-500/20' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-lg shadow-sm border border-gray-100 dark:border-gray-700'}`}>
-                            {msg.message_type === 'image' && msg.file_url ? (
+                                                        {msg.message_type === 'image' && msg.file_url ? (
                               <div><img src={msg.file_url} alt="Shared" className="max-w-full rounded-xl max-h-64 object-cover cursor-pointer hover:opacity-90 transition" />{msg.file_name && <p className="text-xs opacity-70 mt-1">{msg.file_name}</p>}</div>
+                            ) : msg.message_type === 'video' && msg.file_url ? (
+                              <div>
+                                <video src={msg.file_url} controls className="max-w-full rounded-xl max-h-64" />
+                                <a href={msg.file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline mt-1 inline-block">Open video</a>
+                              </div>
                             ) : msg.message_type === 'file' ? (
                               <div className="flex items-center gap-2"><File size={16} /><span className="underline cursor-pointer">{msg.file_name}</span></div>
                             ) : <span>{msg.content}</span>}
@@ -891,6 +916,14 @@ const fetchRooms = useCallback(async () => {
                               ))}
                             </div>
                           )}
+                       
+                         {isMe && (
+  <div className="absolute -top-6 right-0 opacity-0 group-hover:opacity-100 flex gap-1">
+    <button onClick={() => { setEditingMessage(msg.id); setEditText(msg.content); }} className="text-xs bg-white px-2 py-0.5 rounded-full shadow">Edit</button>
+    <button onClick={() => deleteMessage(msg.id)} className="text-xs bg-red-100 text-red-500 px-2 py-0.5 rounded-full shadow">Delete</button>
+  </div>
+)}  
+
                           <p className={`text-[10px] text-gray-400 mt-0.5 ${isMe ? 'text-right mr-1' : 'text-left ml-1'}`}>{formatTime(msg.created_at)}</p>
                           <div className={`absolute ${isMe ? '-left-2 -translate-x-full' : '-right-2 translate-x-full'} top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity`}>
                             <button onClick={() => setReactionPicker(reactionPicker === msg.id ? null : msg.id)} className="p-1.5 bg-white dark:bg-gray-800 rounded-full shadow-lg border border-gray-200 dark:border-gray-700 hover:scale-110 transition">
@@ -954,6 +987,7 @@ const fetchRooms = useCallback(async () => {
         )}
       </div>
 
+ 
       {/* Invite Modal */}
                  
      

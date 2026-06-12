@@ -8,6 +8,7 @@ from pathlib import Path
 from datetime import timedelta
 import logging.config
 import dj_database_url
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 # ============================================================
 # ENVIRONMENT DETECTION
@@ -174,11 +175,6 @@ else:
 # ============================================================
 REDIS_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379')
 
-
-
-
-
-
 CACHES = {
     'default': {
         'BACKEND': 'django_redis.cache.RedisCache',
@@ -191,6 +187,8 @@ CACHES = {
         }
     }
 }
+
+
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
@@ -383,8 +381,8 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 # File upload limits
-FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
-DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
 # Allowed media types
 ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm']

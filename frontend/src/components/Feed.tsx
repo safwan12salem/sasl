@@ -324,6 +324,7 @@ const Feed: React.FC = () => {
       } as any);
       setPosts(prev => [res.data, ...prev]);
       resetComposer();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       toast.success(t('posted'));
     } catch { toast.error(t('failed_to_post')); setUploadProgress(0); }
   };
