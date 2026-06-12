@@ -337,8 +337,6 @@ async function searchWeb(topic: string): Promise<string[]> {
 
 
 
-const [showSuggestions, setShowSuggestions] = useState(false);
-const [suggestionsList, setSuggestionsList] = useState<string[]>([]);
 
 
 
@@ -441,6 +439,8 @@ export default function SaslAIHub() {
   const [brainInput, setBrainInput] = useState('');
   const [brainLoading, setBrainLoading] = useState(false);
   const brainChatRef = useRef<HTMLDivElement>(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+const [suggestionsList, setSuggestionsList] = useState<string[]>([]);
 
   // ============================================================
   // INITIALIZATION

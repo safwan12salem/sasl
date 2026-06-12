@@ -18,6 +18,17 @@ export default function CreatorStudio() {
   const [niche, setNiche] = useState('');
   const [pricePost, setPricePost] = useState('25');
   const [priceVideo, setPriceVideo] = useState('50');
+ 
+  const [showCreateCampaign, setShowCreateCampaign] = useState(false);
+const [campaignBrand, setCampaignBrand] = useState('');
+const [campaignTitle, setCampaignTitle] = useState('');
+const [campaignDesc, setCampaignDesc] = useState('');
+const [campaignBudget, setCampaignBudget] = useState('');
+const [campaignType, setCampaignType] = useState('post');
+const [campaignDeadline, setCampaignDeadline] = useState('');
+
+
+
 
   useEffect(() => {
     loadData();
@@ -62,6 +73,24 @@ export default function CreatorStudio() {
       toast.error(err.response?.data?.error || 'Failed to apply');
     }
   };
+
+
+
+const createCampaign = async () => {
+  try {
+    await api.post('/creatorstudio/campaigns/create/', {
+      brand_name: campaignBrand,
+      title: campaignTitle,
+      description: campaignDesc,
+      budget: parseFloat(campaignBudget),
+      content_type: campaignType,
+      deadline: campaignDeadline,
+    });
+    toast.success('Campaign created!');
+    setShowCreateCampaign(false);
+    loadData();
+  } catch { toast.error('Failed to create campaign'); }
+};
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-purple-500" size={48} /></div>;
 

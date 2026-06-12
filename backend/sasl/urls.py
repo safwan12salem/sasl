@@ -10,7 +10,7 @@ from rest_framework_simplejwt.views import (
 )
 
 import payments.views as payments_views
-
+from django.views.generic import TemplateView
 
 urlpatterns = [
     # Admin
@@ -42,3 +42,12 @@ urlpatterns = [
     #path('api/payments/create-checkout/', payments_views.create_checkout_session, name='create-checkout'),
     #path('api/payments/withdraw/', payments_views.create_withdrawal, name='withdraw'),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+
+
+
+
+
+urlpatterns += [
+    path('', TemplateView.as_view(template_name='index.html')),
+]
