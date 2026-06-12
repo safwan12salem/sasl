@@ -181,35 +181,32 @@ const [editText, setEditText] = useState('');
     // ============================================================
   // OFFLINE MESH INTEGRATION
   // ============================================================
-  useEffect(() => {
-    if (!myUsername) return;
-    
-    // Start offline mesh
-    offlineMesh.start(myUsername);
-    setMeshActive(true);
-    
-    // Listen for mesh messages
-    offlineMesh.onMessage((msg) => {
-      if (msg.type === 'chat_message') {
-        setMessages(prev => {
-          const exists = prev.some(m => m.id === msg.id);
-          if (exists) return prev;
-          return [...prev, msg];
-        });
-        scrollToBottom();
-      }
-    });
-    
-    // Listen for peer updates
-    offlineMesh.onPeerUpdate(() => {
-      setMeshPeers(offlineMesh.getPeers());
-    });
-    
-    return () => {
-      offlineMesh.stop();
-    };
-  }, [myUsername]);
-
+  
+useEffect(() => {
+  if (!myUsername) return;
+  
+  offlineMesh.start(myUsername);
+  setMeshActive(true);
+  
+  offlineMesh.onMessage((msg: any) => {
+    if (msg.type === 'chat_message') {
+      setMessages(prev => {
+        const exists = prev.some(m => m.id === msg.message?.id);
+        if (exists) return prev;
+        return [...prev, msg.message];
+      });
+      scrollToBottom();
+    }
+  });
+  
+  offlineMesh.onPeerUpdate(() => {
+    setMeshPeers(offlineMesh.getPeers());
+  });
+  
+  return () => {
+    offlineMesh.stop();
+  };
+}, [myUsername]);
 
 
 // Inside the component, add:
