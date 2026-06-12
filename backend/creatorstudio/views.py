@@ -68,7 +68,7 @@ class BrandCampaignViewSet(viewsets.ReadOnlyModelViewSet):
 
     @action(detail=False, methods=['get'])
     def my_contents(self, request):
-        contents = SponsoredContent.objects.filter(creator=request.user).order_by('-created_at')
+        contents = SponsoredContent.objects.filter(creator=request.user).order_by('-submitted_at')
         return Response(SponsoredContentSerializer(contents, many=True).data)
 
     @action(detail=False, methods=['post'])

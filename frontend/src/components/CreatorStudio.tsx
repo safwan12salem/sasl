@@ -98,10 +98,10 @@ const createCampaign = async () => {
     <div className="p-6 max-w-5xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-          <Sparkles className="text-purple-500" /> Creator Studio
+          <Sparkles className="text-purple-500" />{t('Creator Studio')}
         </h2>
         <div className="text-right">
-          <p className="text-sm text-gray-500">Total Earned</p>
+          <p className="text-sm text-gray-500">{t('Total Earned')}</p>
           <p className="text-2xl font-bold text-green-600">${Number(profile?.total_earned || 0).toFixed(2)}</p>
         </div>
       </div>
@@ -121,12 +121,37 @@ const createCampaign = async () => {
       </div>
 
       {/* CAMPAIGNS TAB */}
+
+      {/* Create Campaign Button */}
+<button onClick={() => setShowCreateCampaign(!showCreateCampaign)}
+  className="btn-primary text-sm flex items-center gap-1 mb-4">
+  <PlusCircle size={16} /> {t('Create Campaign')}
+</button>
+
+{/* Create Campaign Form */}
+{showCreateCampaign && (
+  <div className="glass-card p-4 rounded-xl mb-4 space-y-3">
+    <input className="input-field text-sm" placeholder={t('Brand Name')} value={campaignBrand} onChange={e => setCampaignBrand(e.target.value)} />
+    <input className="input-field text-sm" placeholder={t('Campaign Title')} value={campaignTitle} onChange={e => setCampaignTitle(e.target.value)} />
+    <textarea className="input-field text-sm" placeholder={t('Description')} value={campaignDesc} onChange={e => setCampaignDesc(e.target.value)} rows={2} />
+    <div className="grid grid-cols-3 gap-2">
+      <input className="input-field text-sm" type="number" placeholder="Budget ($)" value={campaignBudget} onChange={e => setCampaignBudget(e.target.value)} />
+      <select className="input-field text-sm" value={campaignType} onChange={e => setCampaignType(e.target.value)}>
+        <option value="post">{t('Post')}</option>
+        <option value="video">{t('Video')}</option>
+        <option value="story">{t('Story')}</option>
+      </select>
+      <input className="input-field text-sm" type="date" value={campaignDeadline} onChange={e => setCampaignDeadline(e.target.value)} />
+    </div>
+    <button onClick={createCampaign} className="btn-primary w-full text-sm">{t('🚀 Publish Campaign')}</button>
+  </div>
+)}
       {tab === 'campaigns' && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {campaigns.length === 0 ? (
             <div className="col-span-full text-center py-12 text-gray-400">
               <DollarSign size={48} className="mx-auto mb-3 opacity-30" />
-              <p>No brand campaigns available yet</p>
+              <p>{t('No brand campaigns available yet')}</p>
             </div>
           ) : (
             campaigns.map(c => (
@@ -149,7 +174,7 @@ const createCampaign = async () => {
                     Apply Now
                   </motion.button>
                 </div>
-                <p className="text-xs text-gray-400 mt-2">Deadline: {new Date(c.deadline).toLocaleDateString()}</p>
+                <p className="text-xs text-gray-400 mt-2">{t('Deadline')}: {new Date(c.deadline).toLocaleDateString()}</p>
               </motion.div>
             ))
           )}
@@ -162,8 +187,8 @@ const createCampaign = async () => {
           {myContents.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
               <Image size={48} className="mx-auto mb-3 opacity-30" />
-              <p>No content yet</p>
-              <p className="text-sm">Apply to brand campaigns above!</p>
+              <p>{t('No content yet')}</p>
+              <p className="text-sm">{t('Apply to brand campaigns above!')}</p>
             </div>
           ) : (
             myContents.map((c: any) => (
@@ -182,34 +207,34 @@ const createCampaign = async () => {
       {/* PROFILE TAB */}
       {tab === 'profile' && (
         <div className="glass-card p-6 rounded-2xl max-w-lg">
-          <h3 className="font-bold text-lg mb-4">Creator Profile</h3>
+          <h3 className="font-bold text-lg mb-4">{t('Creator Profile')}</h3>
           <div className="space-y-3">
             <input className="input-field" placeholder="Your niche (e.g., Tech, Fashion, Gaming)" value={niche} onChange={e => setNiche(e.target.value)} />
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs text-gray-500">Price per Post ($)</label>
+                <label className="text-xs text-gray-500">{t('Price per Post')}  ($)</label>
                 <input className="input-field" type="number" value={pricePost} onChange={e => setPricePost(e.target.value)} />
               </div>
               <div>
-                <label className="text-xs text-gray-500">Price per Video ($)</label>
+                <label className="text-xs text-gray-500">{t('Price per Video')} ($)</label>
                 <input className="input-field" type="number" value={priceVideo} onChange={e => setPriceVideo(e.target.value)} />
               </div>
             </div>
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="bg-gray-50 p-3 rounded-xl">
                 <p className="text-lg font-bold">{profile?.audience_size || 0}</p>
-                <p className="text-xs text-gray-500">Audience</p>
+                <p className="text-xs text-gray-500">{t('Audience')}</p>
               </div>
               <div className="bg-gray-50 p-3 rounded-xl">
                 <p className="text-lg font-bold">{profile?.engagement_rate || 0}%</p>
-                <p className="text-xs text-gray-500">Engagement</p>
+                <p className="text-xs text-gray-500">{t('Engagement')}</p>
               </div>
               <div className="bg-gray-50 p-3 rounded-xl">
                 <p className="text-lg font-bold">{profile?.is_verified ? '✅' : '⏳'}</p>
-                <p className="text-xs text-gray-500">Verified</p>
+                <p className="text-xs text-gray-500">{t('Verified')}</p>
               </div>
             </div>
-            <button onClick={updateProfile} className="btn-primary w-full py-3">Save Profile</button>
+            <button onClick={updateProfile} className="btn-primary w-full py-3">{t('Save Profile')}</button>
           </div>
         </div>
       )}

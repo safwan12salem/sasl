@@ -345,27 +345,7 @@ export default function Reels() {
         ))
       )}
 
-      {/* PAYMENT MODAL - Tip Creator */}
-      <PaymentModal
-        amount={paymentAmount}
-        type="tip"
-        onSuccess={async () => {
-          if (tipReelId) {
-            try {
-              await api.post(`/content/reels/${tipReelId}/tip/`, { amount: paymentAmount });
-              toast.success('Tip sent! 🎉');
-            } catch {
-              toast.error('Tip failed');
-            }
-          }
-          setShowPayment(false);
-          setTipReelId(null);
-        }}
-        onClose={() => {
-          setShowPayment(false);
-          setTipReelId(null);
-        }}
-      />
+      
     </div>
   );
 }
