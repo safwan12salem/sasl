@@ -84,6 +84,9 @@ class SnapViewSet(viewsets.ModelViewSet):
         ).select_related('user').order_by('-created_at')
         return Response(SnapStorySerializer(stories, many=True, context={'request': request}).data)
 
+
+
+
     @action(detail=False, methods=['post'])
     def post_story(self, request):
         """Post a snap as a story"""
@@ -91,7 +94,6 @@ class SnapViewSet(viewsets.ModelViewSet):
         if not media_file:
             return Response({'error': 'Media file required'}, status=400)
         
-        # Create story with required fields
         from django.utils import timezone
         story = SnapStory.objects.create(
             user=request.user,
@@ -99,7 +101,10 @@ class SnapViewSet(viewsets.ModelViewSet):
             caption=request.data.get('caption', ''),
             expires_at=timezone.now() + timezone.timedelta(hours=24),
         )
-        return Response(SnapStorySerializer(story, context={'request': request}).data, status=201)    @action(detail=False, methods=['get'])
+        return Response(SnapStorySerializer(story, context={'request': request}).data, status=201)
+
+
+
     def inbox(self, request):
         """Get all snaps: unread first, then read, then sent"""
         received = Snap.objects.filter(receiver=request.user).order_by('-created_at')
