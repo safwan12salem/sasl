@@ -1,6 +1,8 @@
 /**
  * Sasl - Social Asynchronous Sharing Layer
  * Streaming – Advanced live streaming with categories, clips, scheduling, top donors
+ * VIRAL EDITION: Live chat overlay, floating comments, donation animations, viewer avatars,
+ * stream previews, schedule countdown, notifications, mobile-optimized viewer
  */
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../services/api';
@@ -8,7 +10,9 @@ import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import {
   Play, Users, DollarSign, Loader2, Radio, AlertCircle, Video, VideoOff,
-  Clock, Calendar, TrendingUp, Crown, Image as ImageIcon, X, Bookmark
+  Clock, Calendar, TrendingUp, Crown, Image as ImageIcon, X, Bookmark,
+  MessageCircle, Heart, Send, Bell, BellOff, Sparkles, Eye, Share2,
+  ChevronUp, ChevronDown, Gift, Star, Zap, Timer, Maximize2, Minimize2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WebRTCConnection } from '../services/webrtc';
@@ -38,7 +42,36 @@ interface ScheduledStream {
   category?: string;
 }
 
+interface ChatMessage {
+  id: string;
+  username: string;
+  avatar_url?: string;
+  message: string;
+  color?: string;
+  is_donation?: boolean;
+  amount?: number;
+  timestamp: string;
+}
+
+interface FloatingComment {
+  id: string;
+  username: string;
+  message: string;
+  color: string;
+  x: number;
+}
+
+interface DonationAnimation {
+  id: string;
+  username: string;
+  amount: number;
+  message: string;
+  x: number;
+}
+
 const CATEGORIES = ['Gaming', 'Music', 'Talk', 'Tutorial', 'Fitness', 'Cooking', 'Art', 'Tech', 'IRL'];
+const CHAT_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F'];
+const DONATION_EMOJIS = ['🎉', '💎', '🚀', '⭐', '🔥', '💖', '👑', '🌟'];
 
 export default function Streaming() {
   const { user } = useAuth();
@@ -76,6 +109,36 @@ export default function Streaming() {
   const rtcRef = useRef<WebRTCConnection | null>(null);
   const token = localStorage.getItem('sasl_token');
 
+  // ========== VIRAL FEATURES STATE ==========
+  // Live chat
+  const [showChat, setShowChat] = useState(true);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatExpanded, setIsChatExpanded] = useState(false);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const chatWsRef = useRef<WebSocket | null>(null);
+
+  // Floating comments (TikTok-style)
+  const [floatingComments, setFloatingComments] = useState<FloatingComment[]>([]);
+
+  // Donation animations
+  const [donationAnimations, setDonationAnimations] = useState<DonationAnimation[]>([]);
+
+  // Viewer avatars
+  const [viewerAvatars, setViewerAvatars] = useState<{ username: string; avatar_url?: string }[]>([]);
+
+  // Schedule countdown
+  const [countdowns, setCountdowns] = useState<{ [key: string]: string }>({});
+
+  // Notifications
+  const [subscribedStreamers, setSubscribedStreamers] = useState<Set<string>>(new Set());
+  const [streamNotifications, setStreamNotifications] = useState<Stream[]>([]);
+  const [showNotifications, setShowNotifications] = useState(false);
+
+  // Mobile viewer
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [activeStreamTab, setActiveStreamTab] = useState<'info' | 'chat' | 'donors'>('chat');
+
   // ============================================================
   // FETCH
   // ============================================================
@@ -104,7 +167,187 @@ export default function Streaming() {
   useEffect(() => { fetchStreams(); fetchSchedules(); }, []);
 
   // ============================================================
-  // ACTIONS
+  // VIRAL: Schedule countdown timer
+  // ============================================================
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newCountdowns: { [key: string]: string } = {};
+      schedules.forEach(s => {
+        const diff = new Date(s.scheduled_at).getTime() - Date.now();
+        if (diff > 0) {
+          const hours = Math.floor(diff / (1000 * 60 * 60));
+          const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+          newCountdowns[s.id] = `${hours}h ${minutes}m ${seconds}s`;
+        } else {
+          newCountdowns[s.id] = t('LIVE NOW');
+        }
+      });
+      setCountdowns(newCountdowns);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [schedules]);
+
+  // ============================================================
+  // VIRAL: Stream notifications polling
+  // ============================================================
+  useEffect(() => {
+    const checkLiveStreams = async () => {
+      try {
+        const res = await api.get('/streaming/streams/?is_live=true');
+        const liveStreams = res.data.results || [];
+        const newNotifications = liveStreams.filter(
+          (s: Stream) => subscribedStreamers.has(s.streamer.username) && 
+          !streams.find(existing => existing.id === s.id)
+        );
+        if (newNotifications.length > 0) {
+          setStreamNotifications(prev => [...newNotifications, ...prev]);
+          newNotifications.forEach((s: Stream) => {
+            toast(`${s.streamer.username} ${t('went live!')} 🔴`, { 
+              icon: '🔔',
+              duration: 5000,
+              style: { background: '#1a1a2e', color: '#fff', border: '1px solid #ef4444' }
+            });
+          });
+        }
+      } catch {}
+    };
+    const interval = setInterval(checkLiveStreams, 30000);
+    return () => clearInterval(interval);
+  }, [subscribedStreamers, streams]);
+
+  // ============================================================
+  // VIRAL: Connect to chat WebSocket when in call
+  // ============================================================
+  const connectChatWebSocket = useCallback((streamId: string) => {
+    if (chatWsRef.current?.readyState === WebSocket.OPEN) return;
+    const isLocal = window.location.hostname === 'localhost';
+    const wsUrl = isLocal
+      ? `ws://localhost:8000/ws/stream-chat/${streamId}/?token=${token}`
+      : `wss://sasl.pythonanywhere.com/ws/stream-chat/${streamId}/?token=${token}`;
+    const ws = new WebSocket(wsUrl);
+    chatWsRef.current = ws;
+
+    ws.onopen = () => {
+      // Send join message
+      ws.send(JSON.stringify({ 
+        type: 'join', 
+        username: user?.username,
+        avatar_url: user?.avatar_url 
+      }));
+    };
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'chat_message') {
+        const newMsg: ChatMessage = {
+          id: `msg-${Date.now()}-${Math.random()}`,
+          username: data.username,
+          avatar_url: data.avatar_url,
+          message: data.message,
+          color: data.color || CHAT_COLORS[Math.floor(Math.random() * CHAT_COLORS.length)],
+          is_donation: data.is_donation || false,
+          amount: data.amount,
+          timestamp: new Date().toISOString()
+        };
+        setChatMessages(prev => [...prev, newMsg]);
+        
+        // TikTok-style floating comment
+        if (data.username !== user?.username) {
+          const floatingComment: FloatingComment = {
+            id: `float-${Date.now()}`,
+            username: data.username,
+            message: data.message,
+            color: data.color || '#fff',
+            x: Math.random() * 60 + 20
+          };
+          setFloatingComments(prev => [...prev, floatingComment]);
+          setTimeout(() => {
+            setFloatingComments(prev => prev.filter(f => f.id !== floatingComment.id));
+          }, 5000);
+        }
+
+        // Donation animation
+        if (data.is_donation && data.amount) {
+          const donationAnim: DonationAnimation = {
+            id: `don-${Date.now()}`,
+            username: data.username,
+            amount: data.amount,
+            message: data.message,
+            x: Math.random() * 70 + 15
+          };
+          setDonationAnimations(prev => [...prev, donationAnim]);
+          setTimeout(() => {
+            setDonationAnimations(prev => prev.filter(d => d.id !== donationAnim.id));
+          }, 6000);
+        }
+      } else if (data.type === 'viewer_update') {
+        setViewerAvatars(data.viewers || []);
+      } else if (data.type === 'donation_alert') {
+        // Big donation alert
+        const donationAnim: DonationAnimation = {
+          id: `don-big-${Date.now()}`,
+          username: data.username,
+          amount: data.amount,
+          message: data.message,
+          x: 50
+        };
+        setDonationAnimations(prev => [...prev, donationAnim]);
+        setTimeout(() => {
+          setDonationAnimations(prev => prev.filter(d => d.id !== donationAnim.id));
+        }, 8000);
+      }
+    };
+
+    ws.onclose = () => {
+      // Auto-reconnect after 3 seconds
+      setTimeout(() => {
+        if (inCall) connectChatWebSocket(streamId);
+      }, 3000);
+    };
+  }, [user, token, inCall]);
+
+  // ============================================================
+  // VIRAL: Auto-scroll chat
+  // ============================================================
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  // ============================================================
+  // VIRAL: Send chat message
+  // ============================================================
+  const sendChatMessage = () => {
+    if (!chatInput.trim() || !chatWsRef.current || chatWsRef.current.readyState !== WebSocket.OPEN) return;
+    chatWsRef.current.send(JSON.stringify({
+      type: 'chat_message',
+      message: chatInput.trim(),
+      color: CHAT_COLORS[Math.floor(Math.random() * CHAT_COLORS.length)]
+    }));
+    setChatInput('');
+  };
+
+  // ============================================================
+  // VIRAL: Toggle streamer subscription
+  // ============================================================
+  const toggleSubscribe = (streamerUsername: string) => {
+    setSubscribedStreamers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(streamerUsername)) {
+        newSet.delete(streamerUsername);
+        toast.success(t('Unsubscribed from {{name}}', { name: streamerUsername }));
+      } else {
+        newSet.add(streamerUsername);
+        toast.success(t('Subscribed to {{name}}! 🔔', { name: streamerUsername }));
+      }
+      return newSet;
+    });
+  };
+
+  // ============================================================
+  // ACTIONS (preserved from original)
   // ============================================================
   const startStream = async () => {
     if (!title.trim()) return toast.error(t('Enter a title'));
@@ -120,7 +363,6 @@ export default function Streaming() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      // Add to local state immediately — DON'T call fetchStreams() yet
       setStreams(prev => {
         const exists = prev.find(s => s.id === res.data.id);
         if (exists) return prev;
@@ -130,8 +372,6 @@ export default function Streaming() {
       toast.success(t('You are now live! 🎥'));
       setTitle(''); setDescription(''); setTags('');
       setThumbnailFile(null); setThumbnailPreview(null);
-
-      // Sync with server after a short delay
 
     } catch (err: any) {
       toast.error(err.response?.data?.error || t('Failed to start stream'));
@@ -147,6 +387,18 @@ export default function Streaming() {
         message: donationMessage[streamId] || '👏',
       });
       toast.success(`Donated $${amt}! 🎉`);
+      
+      // VIRAL: Send donation to chat
+      if (chatWsRef.current?.readyState === WebSocket.OPEN) {
+        chatWsRef.current.send(JSON.stringify({
+          type: 'chat_message',
+          message: `${DONATION_EMOJIS[Math.floor(Math.random() * DONATION_EMOJIS.length)]} Donated $${amt}! ${donationMessage[streamId] || '👏'}`,
+          is_donation: true,
+          amount: amt,
+          color: '#FFD700'
+        }));
+      }
+      
       setAmount(prev => ({ ...prev, [streamId]: 0 }));
       setDonationMessage(prev => ({ ...prev, [streamId]: '' }));
       fetchStreams();
@@ -179,20 +431,18 @@ export default function Streaming() {
   };
 
   const endStream = async (streamId: string) => {
-    // Remove from UI immediately
     setStreams(prev => prev.filter(s => s.id !== streamId));
     try {
       await api.post(`/streaming/streams/${streamId}/end_stream/`);
       toast.success(t('Stream ended'));
     } catch (err: any) {
-      // If fails, add it back
       fetchStreams();
       toast.error(t('Failed to end stream'));
     }
   };
 
   // ============================================================
-  // VIDEO CALL
+  // VIDEO CALL (enhanced with chat + viewer features)
   // ============================================================
   const startVideoCall = (streamId: string, role: 'streamer' | 'viewer') => {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
@@ -219,6 +469,10 @@ export default function Streaming() {
         };
 
         setInCall({ streamId, role });
+        // VIRAL: Connect to chat when entering call
+        connectChatWebSocket(streamId);
+        // VIRAL: Join stream
+        api.post(`/streaming/streams/${streamId}/join/`).catch(() => {});
       })
       .catch(() => toast.error(t('Camera access denied')));
   };
@@ -226,11 +480,19 @@ export default function Streaming() {
   const endCall = () => {
     rtcRef.current?.disconnect();
     wsRef.current?.close();
+    chatWsRef.current?.close();
+    if (inCall) {
+      api.post(`/streaming/streams/${inCall.streamId}/leave/`).catch(() => {});
+    }
     setInCall(null);
+    setChatMessages([]);
+    setFloatingComments([]);
+    setDonationAnimations([]);
+    setViewerAvatars([]);
   };
 
   // ============================================================
-  // RENDER
+  // RENDER: Loading skeleton (preserved)
   // ============================================================
   if (loading) {
     return (
@@ -246,32 +508,236 @@ export default function Streaming() {
     );
   }
 
+  // ============================================================
+  // RENDER: Main
+  // ============================================================
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto">
-      {/* Video Call Overlay */}
+      {/* ========== VIRAL: Stream Notifications Dropdown ========== */}
+      <AnimatePresence>
+        {showNotifications && streamNotifications.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            className="fixed top-16 right-4 z-50 glass rounded-2xl p-4 shadow-2xl max-w-sm w-full border border-red-200">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-bold flex items-center gap-2"><Bell size={16} className="text-red-500" /> {t('Live Now')}</h4>
+              <button onClick={() => { setStreamNotifications([]); setShowNotifications(false); }} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+            </div>
+            {streamNotifications.map(s => (
+              <div key={s.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-xl cursor-pointer"
+                onClick={() => { startVideoCall(s.id, 'viewer'); setStreamNotifications([]); setShowNotifications(false); }}>
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center">
+                  <Radio size={16} className="text-white" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm truncate">{s.streamer.username}</p>
+                  <p className="text-xs text-gray-500 truncate">{s.title}</p>
+                </div>
+                <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ========== VIRAL: Video Call Overlay with Chat ========== */}
       <AnimatePresence>
         {inCall && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-2xl p-4 max-w-5xl w-full">
-              <div className="flex justify-between mb-3">
-                <h3 className="text-white font-bold flex items-center gap-2">
-                  <span className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                  {inCall.role === 'streamer' ? t('Streaming LIVE') : t('Watching Stream')}
-                </h3>
-                <button onClick={endCall} className="bg-red-500 text-white px-4 py-2 rounded-full flex items-center gap-2">
-                  <VideoOff size={16} /> {t('End')}
-                </button>
+            className="fixed inset-0 bg-black/95 z-50 flex flex-col">
+            
+            {/* Donation Animations Overlay */}
+            {donationAnimations.map(anim => (
+              <motion.div key={anim.id}
+                initial={{ opacity: 0, scale: 0.5, y: 0 }}
+                animate={{ opacity: [0, 1, 1, 0], scale: [0.5, 1.2, 1, 0.8], y: [-20, -80, -120, -180] }}
+                transition={{ duration: 6, ease: 'easeOut' }}
+                className="absolute z-50 pointer-events-none"
+                style={{ left: `${anim.x}%`, bottom: '40%' }}>
+                <div className="text-center">
+                  <p className="text-4xl animate-bounce">{DONATION_EMOJIS[Math.floor(Math.random() * DONATION_EMOJIS.length)]}</p>
+                  <p className="text-yellow-400 font-bold text-xl drop-shadow-lg">@{anim.username}</p>
+                  <p className="text-yellow-300 font-bold text-3xl drop-shadow-lg">${anim.amount}</p>
+                  {anim.message && <p className="text-white text-sm drop-shadow-md">{anim.message}</p>}
+                </div>
+              </motion.div>
+            ))}
+
+            {/* Floating Comments (TikTok-style) */}
+            {floatingComments.map(comment => (
+              <motion.div key={comment.id}
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: [0, 1, 1, 0], x: [0, 20, 40, 60] }}
+                transition={{ duration: 5, ease: 'linear' }}
+                className="absolute z-40 pointer-events-none"
+                style={{ left: `${comment.x}%`, bottom: `${30 + Math.random() * 30}%` }}>
+                <div className="flex items-center gap-1" style={{ color: comment.color }}>
+                  <span className="font-bold text-sm drop-shadow-lg">@{comment.username}</span>
+                  <span className="text-sm drop-shadow-lg">{comment.message}</span>
+                </div>
+              </motion.div>
+            ))}
+
+            {/* Main Video Area */}
+            <div className="flex-1 flex flex-col md:flex-row">
+              <div className="flex-1 relative bg-black flex items-center justify-center"
+                onClick={() => setIsFullscreen(!isFullscreen)}>
+                <video ref={remoteVideoRef} autoPlay className={`${isFullscreen ? 'w-full h-full object-contain' : 'max-w-full max-h-full'}`} />
+                <video ref={localVideoRef} autoPlay muted className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl" />
+
+                {/* Viewer Count with Avatars */}
+                <div className="absolute top-4 left-4 flex items-center gap-1">
+                  <div className="flex -space-x-2">
+                    {viewerAvatars.slice(0, 5).map((v, i) => (
+                      v.avatar_url ? (
+                        <img key={i} src={v.avatar_url} className="w-8 h-8 rounded-full border-2 border-black object-cover" alt="" />
+                      ) : (
+                        <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 border-2 border-black flex items-center justify-center text-white text-xs font-bold">
+                          {v.username[0]?.toUpperCase()}
+                        </div>
+                      )
+                    ))}
+                    {viewerAvatars.length > 5 && (
+                      <div className="w-8 h-8 rounded-full bg-gray-700 border-2 border-black flex items-center justify-center text-white text-xs font-bold">
+                        +{viewerAvatars.length - 5}
+                      </div>
+                    )}
+                  </div>
+                  <span className="text-white text-sm font-semibold ml-1">{viewerAvatars.length}</span>
+                </div>
+
+                {/* Stream Info Overlay */}
+                <div className="absolute top-4 right-4 flex items-center gap-2">
+                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE
+                  </span>
+                  <button onClick={() => setShowChat(!showChat)} className="bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition">
+                    <MessageCircle size={16} />
+                  </button>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="relative rounded-xl overflow-hidden bg-black">
-                  <video ref={localVideoRef} autoPlay muted className="w-full" />
-                  <span className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">You</span>
+
+              {/* Chat Panel (mobile: tab-based) */}
+              {showChat && (
+                <div className="w-full md:w-80 bg-gray-900 flex flex-col">
+                  {/* Mobile Tabs */}
+                  <div className="flex md:hidden border-b border-gray-700">
+                    {(['chat', 'info', 'donors'] as const).map(tab => (
+                      <button key={tab} onClick={() => setActiveStreamTab(tab)}
+                        className={`flex-1 py-2 text-xs font-semibold ${activeStreamTab === tab ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-400'}`}>
+                        {tab === 'chat' ? t('Chat') : tab === 'info' ? t('Info') : t('Top Donors')}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Chat Messages */}
+                  {(activeStreamTab === 'chat' || window.innerWidth >= 768) && (
+                    <>
+                      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-3 space-y-2">
+                        {chatMessages.length === 0 && (
+                          <div className="text-center text-gray-500 mt-8">
+                            <MessageCircle size={32} className="mx-auto mb-2 opacity-50" />
+                            <p className="text-sm">{t('No messages yet')}</p>
+                            <p className="text-xs">{t('Be the first to chat!')}</p>
+                          </div>
+                        )}
+                        {chatMessages.map((msg, i) => (
+                          <motion.div key={msg.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: Math.min(i * 0.02, 0.3) }}
+                            className={`flex items-start gap-2 ${msg.is_donation ? 'bg-yellow-500/10 rounded-lg p-2 border border-yellow-500/30' : ''}`}>
+                            {msg.avatar_url ? (
+                              <img src={msg.avatar_url} className="w-6 h-6 rounded-full object-cover flex-shrink-0" alt="" />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
+                                {msg.username[0]?.toUpperCase()}
+                              </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <span className="font-semibold text-xs" style={{ color: msg.color || '#fff' }}>@{msg.username}</span>
+                              {msg.is_donation && <span className="text-yellow-400 text-xs ml-1">${msg.amount}</span>}
+                              <p className="text-white text-sm break-words">{msg.message}</p>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                      {/* Chat Input */}
+                      <div className="p-3 border-t border-gray-700">
+                        <div className="flex gap-2">
+                          <input
+                            className="flex-1 bg-gray-800 text-white rounded-full px-4 py-2 text-sm border border-gray-700 focus:border-red-500 focus:outline-none"
+                            placeholder={t('Send a message...')}
+                            value={chatInput}
+                            onChange={e => setChatInput(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') sendChatMessage(); }}
+                          />
+                          <button onClick={sendChatMessage}
+                            className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition">
+                            <Send size={16} />
+                          </button>
+                        </div>
+                        {/* Quick Emojis */}
+                        <div className="flex gap-1 mt-2">
+                          {['❤️', '🔥', '👏', '😂', '🎉', '💎'].map(emoji => (
+                            <button key={emoji} onClick={() => setChatInput(prev => prev + emoji)}
+                              className="hover:scale-125 transition-transform text-lg">{emoji}</button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Info Tab */}
+                  {activeStreamTab === 'info' && window.innerWidth < 768 && (
+                    <div className="flex-1 p-4 text-white">
+                      <h3 className="font-bold text-lg">{streams.find(s => s.id === inCall?.streamId)?.title}</h3>
+                      <p className="text-gray-400 text-sm mt-2">{streams.find(s => s.id === inCall?.streamId)?.description}</p>
+                      <div className="mt-4 flex items-center gap-2">
+                        <Users size={16} className="text-gray-400" />
+                        <span className="text-sm">{viewerAvatars.length} {t('viewers')}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Top Donors Tab */}
+                  {activeStreamTab === 'donors' && window.innerWidth < 768 && (
+                    <div className="flex-1 p-4 text-white">
+                      <h4 className="font-bold mb-3">{t('Top Donors')}</h4>
+                      {streams.find(s => s.id === inCall?.streamId)?.top_donors?.map((d, i) => (
+                        <div key={i} className="flex items-center justify-between py-2 border-b border-gray-700">
+                          <div className="flex items-center gap-2">
+                            <span className="text-yellow-400">{i === 0 ? '👑' : i === 1 ? '🥈' : i === 2 ? '🥉' : '⭐'}</span>
+                            <span>@{d.username}</span>
+                          </div>
+                          <span className="text-yellow-400 font-bold">${d.total}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div className="relative rounded-xl overflow-hidden bg-black">
-                  <video ref={remoteVideoRef} autoPlay className="w-full" />
-                  <span className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">Remote</span>
-                </div>
+              )}
+            </div>
+
+            {/* Bottom Controls */}
+            <div className="bg-gray-900 p-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-white font-bold text-sm">{streams.find(s => s.id === inCall?.streamId)?.streamer.username}</span>
+                <span className="text-gray-400 text-xs">{streams.find(s => s.id === inCall?.streamId)?.title}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                {inCall.role === 'viewer' && (
+                  <button onClick={() => {
+                    const streamId = inCall.streamId;
+                    setPaymentAmount(amount[streamId] || 1);
+                    setShowPayment(true);
+                  }} className="bg-yellow-500 text-white px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 hover:bg-yellow-600">
+                    <Gift size={14} /> {t('Donate')}
+                  </button>
+                )}
+                <button onClick={() => setIsFullscreen(!isFullscreen)} className="text-white p-2 hover:bg-gray-800 rounded-full">
+                  {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                </button>
+                <button onClick={endCall} className="bg-red-500 text-white px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 hover:bg-red-600">
+                  <VideoOff size={14} /> {t('Leave')}
+                </button>
               </div>
             </div>
           </motion.div>
@@ -287,13 +753,24 @@ export default function Streaming() {
           <p className="text-gray-500 text-sm mt-1">{t('Watch, stream, and earn from anywhere')}</p>
         </div>
         <div className="flex items-center gap-2">
+          <div className="relative">
+            <button onClick={() => setShowNotifications(!showNotifications)}
+              className={`btn-ghost flex items-center gap-1 text-sm relative ${streamNotifications.length > 0 ? 'text-red-500' : ''}`}>
+              <Bell size={16} />
+              {streamNotifications.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-xs flex items-center justify-center">
+                  {streamNotifications.length}
+                </span>
+              )}
+            </button>
+          </div>
           <button onClick={() => setShowSchedule(!showSchedule)} className="btn-ghost flex items-center gap-1 text-sm">
             <Calendar size={16} /> {t('Schedule')}
           </button>
         </div>
       </div>
 
-      {/* Create Stream Form */}
+      {/* Create Stream Form (preserved) */}
       {user?.is_creator && (
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass p-5 rounded-2xl mb-6 space-y-3 border-l-4 border-red-500">
           <h3 className="font-bold flex items-center gap-2"><Video size={18} className="text-red-500" /> {t('Go Live')}</h3>
@@ -334,7 +811,7 @@ export default function Streaming() {
         </motion.div>
       )}
 
-      {/* Scheduled Streams */}
+      {/* Scheduled Streams with Countdown (enhanced) */}
       <AnimatePresence>
         {showSchedule && schedules.length > 0 && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-6">
@@ -342,9 +819,21 @@ export default function Streaming() {
               <h4 className="font-bold mb-3 flex items-center gap-2"><Calendar size={16} /> {t('Upcoming Streams')}</h4>
               <div className="space-y-2">
                 {schedules.map(s => (
-                  <div key={s.id} className="flex items-center justify-between bg-white p-3 rounded-xl">
-                    <div><p className="font-semibold text-sm">{s.title}</p><p className="text-xs text-gray-500">by @{s.streamer_name} · {new Date(s.scheduled_at).toLocaleString()}</p></div>
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">{t('Upcoming')}</span>
+                  <div key={s.id} className="flex items-center justify-between bg-white p-3 rounded-xl hover:shadow-md transition">
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm truncate">{s.title}</p>
+                      <p className="text-xs text-gray-500">by @{s.streamer_name} · {new Date(s.scheduled_at).toLocaleString()}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-mono bg-red-50 text-red-600 px-2 py-1 rounded-full flex items-center gap-1">
+                        <Timer size={12} />
+                        {countdowns[s.id] || t('Loading...')}
+                      </span>
+                      <button onClick={() => toggleSubscribe(s.streamer_name)}
+                        className={`p-1.5 rounded-full transition ${subscribedStreamers.has(s.streamer_name) ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:text-red-500'}`}>
+                        {subscribedStreamers.has(s.streamer_name) ? <Bell size={14} /> : <BellOff size={14} />}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -353,7 +842,7 @@ export default function Streaming() {
         )}
       </AnimatePresence>
 
-      {/* Category Pills */}
+      {/* Category Pills (preserved) */}
       <div className="flex gap-2 overflow-x-auto pb-1 mb-6">
         <button onClick={() => setActiveCategory('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${!activeCategory ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{t('All')}</button>
         {CATEGORIES.map(cat => (
@@ -361,7 +850,7 @@ export default function Streaming() {
         ))}
       </div>
 
-      {/* Streams Grid */}
+      {/* Streams Grid (enhanced with notification bell + share) */}
       {error ? (
         <div className="glass p-12 rounded-2xl text-center">
           <AlertCircle className="mx-auto mb-3 text-red-500" size={48} />
@@ -394,6 +883,19 @@ export default function Streaming() {
                 <span className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
                   <Users size={12} /> {s.viewers_count}
                 </span>
+                
+                {/* VIRAL: Subscribe bell + Share */}
+                <div className="absolute bottom-2 left-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                  <button onClick={(e) => { e.stopPropagation(); toggleSubscribe(s.streamer.username); }}
+                    className={`p-1.5 rounded-full ${subscribedStreamers.has(s.streamer.username) ? 'bg-red-500 text-white' : 'bg-black/40 text-white hover:bg-red-500'}`}>
+                    {subscribedStreamers.has(s.streamer.username) ? <Bell size={14} /> : <BellOff size={14} />}
+                  </button>
+                  <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(window.location.origin + '/streaming?stream=' + s.id); toast.success(t('Link copied!')); }}
+                    className="bg-black/40 text-white p-1.5 rounded-full hover:bg-black/60">
+                    <Share2 size={14} />
+                  </button>
+                </div>
+                
                 <button onClick={() => saveStream(s.id)} className="absolute bottom-2 right-2 bg-black/40 text-white p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition">
                   <Bookmark size={14} />
                 </button>
@@ -420,6 +922,13 @@ export default function Streaming() {
                     {s.top_donors.map((d, i) => (
                       <span key={i}>@{d.username} ${d.total}{i < s.top_donors!.length - 1 ? ',' : ''}</span>
                     ))}
+                  </div>
+                )}
+
+                {/* VIRAL: Stream Preview (total donations) */}
+                {s.total_donations && s.total_donations > 0 && (
+                  <div className="flex items-center gap-1 mt-1 text-xs text-green-500">
+                    <DollarSign size={12} /> ${s.total_donations.toFixed(2)} {t('earned')}
                   </div>
                 )}
 
@@ -455,7 +964,7 @@ export default function Streaming() {
         </div>
       )}
 
-      {/* Payment Modal */}
+      {/* Payment Modal (preserved) */}
       {showPayment && (
         <PaymentModal amount={paymentAmount} type="donation"
           onSuccess={() => { setShowPayment(false); fetchStreams(); toast.success('Payment successful!'); }}

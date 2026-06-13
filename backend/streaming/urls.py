@@ -9,4 +9,5 @@ router.register(r'schedules', StreamScheduleViewSet, basename='schedule')
 
 urlpatterns = [
     *router.urls,
+    path('', include(router.urls)),
 ]
