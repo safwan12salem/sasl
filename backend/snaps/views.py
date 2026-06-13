@@ -87,12 +87,23 @@ class SnapViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def post_story(self, request):
         """Post a snap as a story"""
-        serializer = SnapStorySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
-
+        media_file = request.FILES.get('media')
+        if not media_file:
+            return Response({'error': 'Media file required'}, status=400)
+        
+        # Auto-detect media type
+        media_type = 'video' if media_file.content_type.startswith('video') else 'image'
+        
+        # Create story with all required fields
+        from django.utils import timezone
+        story = SnapStory.objects.create(
+            user=request.user,
+            media=media_file,
+            media_type=media_type,
+            caption=request.data.get('caption', ''),
+            expires_at=timezone.now() + timezone.timedelta(hours=24),
+        )
+        return Response(SnapStorySerializer(story, context={'request': request}).data, status=201)
     @action(detail=False, methods=['get'])
     def inbox(self, request):
         """Get all snaps: unread first, then read, then sent"""
