@@ -91,20 +91,15 @@ class SnapViewSet(viewsets.ModelViewSet):
         if not media_file:
             return Response({'error': 'Media file required'}, status=400)
         
-        # Auto-detect media type
-        media_type = 'video' if media_file.content_type.startswith('video') else 'image'
-        
-        # Create story with all required fields
+        # Create story with required fields
         from django.utils import timezone
         story = SnapStory.objects.create(
             user=request.user,
             media=media_file,
-            media_type=media_type,
             caption=request.data.get('caption', ''),
             expires_at=timezone.now() + timezone.timedelta(hours=24),
         )
-        return Response(SnapStorySerializer(story, context={'request': request}).data, status=201)
-    @action(detail=False, methods=['get'])
+        return Response(SnapStorySerializer(story, context={'request': request}).data, status=201)    @action(detail=False, methods=['get'])
     def inbox(self, request):
         """Get all snaps: unread first, then read, then sent"""
         received = Snap.objects.filter(receiver=request.user).order_by('-created_at')
