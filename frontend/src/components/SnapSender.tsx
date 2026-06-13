@@ -77,7 +77,6 @@ export default function SnapSender() {
   const [storyFile, setStoryFile] = useState<File | null>(null);
   const [storyPreview, setStoryPreview] = useState<string | null>(null);
   const [recentContacts, setRecentContacts] = useState<{ id: string; username: string; avatar?: string }[]>([]);
-  const [showContacts, setShowContacts] = useState(false);
 
   const FILTERS = [
     { name: 'none', label: t('Normal'), style: '' },
@@ -94,10 +93,7 @@ export default function SnapSender() {
         video: { facingMode, width: { ideal: 720 }, height: { ideal: 1280 } },
         audio: mediaType === 'video',
       });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.style.filter = FILTERS.find(f => f.name === filter)?.style || '';
-      }
+      if (videoRef.current) { videoRef.current.srcObject = stream; }
       setCameraActive(true);
     } catch (err: any) {
       if (err.name === 'NotAllowedError') toast.error('Camera permission denied');
@@ -120,13 +116,8 @@ export default function SnapSender() {
     canvas.width = video.videoWidth; canvas.height = video.videoHeight;
     const ctx = canvas.getContext('2d'); if (!ctx) return;
     ctx.filter = FILTERS.find(f => f.name === filter)?.style || 'none';
-    ctx.drawImage(video, 0, 0);
-    drawings.forEach(stroke => {
-      ctx.beginPath(); ctx.strokeStyle = stroke[0]?.color || '#fff';
-      ctx.lineWidth = stroke[0]?.size || 4; ctx.lineCap = 'round';
-      stroke.forEach((point, i) => { if (i === 0) ctx.moveTo(point.x, point.y); else ctx.lineTo(point.x, point.y); });
-      ctx.stroke();
-    });
+    if (facingMode === 'user') { ctx.save(); ctx.scale(-1, 1); ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height); ctx.restore(); }
+    else ctx.drawImage(video, 0, 0);
     canvas.toBlob(b => { if (b) { setBlob(b); setMediaType('image'); } }, 'image/jpeg', 0.9);
   };
 
@@ -140,14 +131,6 @@ export default function SnapSender() {
     setTimeout(() => { recorder.stop(); setRecording(false); }, duration * 1000);
   };
 
-  const getCanvasPoint = (e: React.MouseEvent | React.TouchEvent): { x: number; y: number } => {
-    const canvas = canvasRef.current; if (!canvas) return { x: 0, y: 0 };
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
-    if ('touches' in e) return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
-    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
-  };
-
   const sendSnap = async () => {
     if (!blob || !receiver.trim()) return toast.error(t('Capture content and enter a username'));
     setUploading(true);
@@ -156,10 +139,9 @@ export default function SnapSender() {
       formData.append(mediaType === 'video' ? 'video' : 'image', blob, `snap.${mediaType === 'video' ? 'webm' : 'jpg'}`);
       formData.append('receiver_username', receiver);
       formData.append('caption', caption);
-      formData.append('duration', String(duration));
       await api.post('/snaps/snaps/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success(t('Snap sent! 📸'));
-      setBlob(null); setReceiver(''); setCaption(''); setDrawings([]); fetchSnaps();
+      setBlob(null); setReceiver(''); setCaption(''); fetchSnaps();
     } catch (err: any) { toast.error(err.response?.data?.detail || 'Failed to send snap'); }
     finally { setUploading(false); }
   };
@@ -218,10 +200,7 @@ export default function SnapSender() {
         <div>
           <div className="relative bg-black rounded-2xl overflow-hidden mb-4 aspect-[9/16] max-h-[60vh]">
             <video ref={videoRef} autoPlay muted playsInline className="w-full h-full object-cover" style={{ filter: FILTERS.find(f => f.name === filter)?.style, transform: facingMode === 'user' ? 'scaleX(-1)' : '' }} />
-            <canvas ref={canvasRef} className={`absolute inset-0 w-full h-full ${drawingMode ? 'cursor-crosshair' : 'pointer-events-none'}`}
-              onMouseDown={(e) => { const p = getCanvasPoint(e); setCurrentStroke([{ ...p, color: penColor, size: penSize }]); setIsDrawing(true); }}
-              onMouseMove={(e) => { if (!isDrawing) return; const p = getCanvasPoint(e); setCurrentStroke(prev => [...prev, { ...p, color: penColor, size: penSize }]); }}
-              onMouseUp={() => { if (currentStroke.length > 0) setDrawings(prev => [...prev, currentStroke]); setCurrentStroke([]); setIsDrawing(false); }} />
+            <canvas ref={canvasRef} className={`absolute inset-0 w-full h-full pointer-events-none`} />
             {recording && <div className="absolute top-4 left-4 flex items-center gap-2 bg-red-500 text-white px-3 py-1.5 rounded-full"><span className="w-2 h-2 bg-white rounded-full animate-pulse" /> REC</div>}
             <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4">
               {!cameraActive ? <button onClick={startCamera} className="bg-white text-gray-800 p-4 rounded-full shadow-lg"><Camera size={24} /></button> : <>
@@ -234,7 +213,7 @@ export default function SnapSender() {
             </div>
             {cameraActive && (
               <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2">
-                <select value={filter} onChange={e => { setFilter(e.target.value); if (videoRef.current) videoRef.current.style.filter = FILTERS.find(f => f.name === e.target.value)?.style || ''; }} className="bg-black/60 text-white text-xs rounded-full px-3 py-1.5 border-none outline-none">
+                <select value={filter} onChange={e => setFilter(e.target.value)} className="bg-black/60 text-white text-xs rounded-full px-3 py-1.5 border-none outline-none">
                   {FILTERS.map(f => <option key={f.name} value={f.name}>{f.label}</option>)}
                 </select>
                 <select value={duration} onChange={e => setDuration(Number(e.target.value))} className="bg-black/60 text-white text-xs rounded-full px-3 py-1.5 border-none outline-none">
@@ -247,7 +226,7 @@ export default function SnapSender() {
           {blob && (
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass p-4 rounded-2xl space-y-3">
               {mediaType === 'video' ? <video src={URL.createObjectURL(blob)} controls className="w-full rounded-lg max-h-48" /> : <img src={URL.createObjectURL(blob)} alt="Captured" className="w-full rounded-lg max-h-48 object-cover" />}
-              <button onClick={() => { setBlob(null); setDrawings([]); }} className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow"><X size={14} /></button>
+              <button onClick={() => { setBlob(null); }} className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow"><X size={14} /></button>
               <input value={caption} onChange={e => setCaption(e.target.value)} placeholder={t('Add a caption...')} className="input-field text-sm" />
               <div>
                 <p className="text-xs text-gray-500 mb-2 font-semibold">{t('Send to:')}</p>
@@ -258,11 +237,9 @@ export default function SnapSender() {
                     </button>
                   )) : <p className="text-xs text-gray-400 italic">No recent contacts. Enter a username below.</p>}
                 </div>
-                <div className="flex gap-2 mt-2">
-                  <input value={receiver} onChange={e => setReceiver(e.target.value)} placeholder={t('Or type any username...')} className="input-field flex-1 text-sm rounded-full" />
-                </div>
+                <input value={receiver} onChange={e => setReceiver(e.target.value)} placeholder={t('Or type any username...')} className="input-field flex-1 text-sm rounded-full mt-2" />
               </div>
-              <button onClick={sendSnap} disabled={uploading || !receiver.trim()} className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-lg font-bold rounded-2xl bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 hover:from-yellow-500 hover:via-orange-600 hover:to-red-600 shadow-xl shadow-orange-500/25 transition-all disabled:opacity-50">
+              <button onClick={sendSnap} disabled={uploading || !receiver.trim()} className="btn-primary w-full flex items-center justify-center gap-2 py-3 text-lg font-bold rounded-2xl bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 shadow-xl disabled:opacity-50">
                 {uploading ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
                 {receiver.trim() ? `Send to @${receiver}` : t('Send Snap')} 🔥
               </button>
@@ -280,7 +257,7 @@ export default function SnapSender() {
           {snaps.length === 0 ? <div className="glass p-8 rounded-2xl text-center"><Inbox size={48} className="mx-auto mb-3 text-gray-300" /><p className="text-gray-500">{t('No new snaps')}</p></div> : (
             <div className="space-y-2">
               {snaps.map(snap => (
-                <motion.div key={snap.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className={`glass p-3 rounded-xl flex items-center gap-3 cursor-pointer hover:shadow-md transition ${!snap.viewed ? 'ring-2 ring-red-300 bg-red-50' : 'opacity-75'}`} onClick={() => viewSnap(snap)}>
+                <motion.div key={snap.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className={`glass p-3 rounded-xl flex items-center gap-3 cursor-pointer ${!snap.viewed ? 'ring-2 ring-red-300 bg-red-50' : 'opacity-75'}`} onClick={() => viewSnap(snap)}>
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-red-500 flex items-center justify-center text-white font-bold">{snap.sender_name[0]?.toUpperCase()}</div>
                   <div className="flex-1"><p className="font-semibold text-sm">{snap.sender_name}</p><p className="text-xs text-gray-500">{snap.caption || '📸 Snap'} · {new Date(snap.created_at).toLocaleTimeString()}</p></div>
                   {!snap.viewed && <span className="w-2.5 h-2.5 bg-red-500 rounded-full" />}
@@ -297,15 +274,19 @@ export default function SnapSender() {
           {showStoryForm && (
             <div className="glass p-4 rounded-2xl mb-4 space-y-2">
               <input type="file" accept="image/*,video/*" onChange={e => { const file = e.target.files?.[0]; if (file) { setStoryFile(file); setStoryPreview(URL.createObjectURL(file)); } }} className="text-sm" />
-              {storyPreview && <img src={storyPreview || ''} alt="Preview" className="w-full h-32 object-cover rounded-lg" />}
+              {storyPreview && (storyFile?.type.startsWith('video/') ? <video src={storyPreview || ''} controls className="w-full h-32 object-cover rounded-lg" /> : <img src={storyPreview || ''} alt="Preview" className="w-full h-32 object-cover rounded-lg" />)}
               <div className="flex gap-2"><button onClick={postStory} className="btn-primary flex-1 text-sm">{t('Post Story')}</button><button onClick={() => { setShowStoryForm(false); setStoryFile(null); setStoryPreview(null); }} className="btn-ghost text-sm">{t('Cancel')}</button></div>
             </div>
           )}
           <div className="flex gap-3 overflow-x-auto pb-2">
-            {stories.map(story => (
+            {stories.length === 0 ? <p className="text-gray-400 text-sm py-4">{t('No stories yet')}</p> : stories.map(story => (
               <div key={story.id} className="flex-shrink-0 cursor-pointer" onClick={() => setViewingStory(story)}>
-                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-yellow-500 p-[3px]"><div className="w-full h-full rounded-full overflow-hidden bg-gray-200">{story.media_url ? <img src={story.media_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl">📖</div>}</div></div>
-                <p className="text-xs text-center mt-1">{story.user.username}</p>
+                <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-yellow-500 p-[3px]">
+                  <div className="w-full h-full rounded-full overflow-hidden bg-gray-200">
+                    {story.media_url ? (story.media_url.match(/\.(mp4|webm|mov)$/i) ? <video src={story.media_url} className="w-full h-full object-cover" muted /> : <img src={story.media_url} alt="" className="w-full h-full object-cover" />) : <div className="w-full h-full flex items-center justify-center text-2xl">📖</div>}
+                  </div>
+                </div>
+                <p className="text-xs text-center mt-1 truncate w-16">{story.user?.username || 'user'}</p>
               </div>
             ))}
           </div>
@@ -315,7 +296,14 @@ export default function SnapSender() {
       {mode === 'streaks' && (
         <div>
           <h3 className="font-bold mb-3 flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> {t('Snap Streaks')}</h3>
-          {streaks.length === 0 ? <div className="glass p-8 rounded-2xl text-center"><Zap size={48} className="mx-auto mb-3 text-gray-300" /><p className="text-gray-500">{t('No streaks yet')}</p></div> : (
+          {streaks.length === 0 ? (
+            <div className="glass p-8 rounded-2xl text-center">
+              <Zap size={48} className="mx-auto mb-3 text-gray-300" />
+              <p className="text-gray-500 font-semibold">{t('No streaks yet')}</p>
+              <p className="text-sm text-gray-400 mt-1">{t('Send snaps daily to build streaks!')}</p>
+              <p className="text-xs text-gray-400 mt-2">🔥 Send a snap to the same person 2 days in a row to start a streak!</p>
+            </div>
+          ) : (
             <div className="space-y-2">
               {streaks.map(streak => (
                 <div key={streak.id} className="glass p-4 rounded-xl flex items-center justify-between">
@@ -335,7 +323,7 @@ export default function SnapSender() {
               {viewingSnap.video_url ? <video src={viewingSnap.video_url} autoPlay className="w-full max-h-[80vh] object-contain" /> : viewingSnap.image_url ? <img src={viewingSnap.image_url} alt="" className="w-full max-h-[80vh] object-contain" /> : null}
               <p className="absolute top-4 left-4 text-white font-bold">{viewingSnap.sender_name}</p>
               <p className="absolute top-4 right-4 text-white text-sm">{snapTimer}s</p>
-              {viewingSnap.caption && <p className="absolute bottom-20 left-4 right-4 text-white text-lg font-semibold">{viewingSnap.caption}</p>}
+              {viewingSnap.caption && <p className="absolute bottom-20 left-4 right-4 text-white text-lg">{viewingSnap.caption}</p>}
               <button onClick={() => setViewingSnap(null)} className="absolute top-4 right-16 text-white"><X size={24} /></button>
             </div>
           </motion.div>
@@ -345,10 +333,10 @@ export default function SnapSender() {
       <AnimatePresence>
         {viewingStory && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black z-50 flex items-center justify-center" onClick={() => setViewingStory(null)}>
-            <div className="relative max-w-md w-full">
-              {viewingStory.media_url && <img src={viewingStory.media_url} alt="" className="w-full max-h-[80vh] object-contain" />}
-              <p className="absolute top-4 left-4 text-white font-bold">@{viewingStory.user.username}</p>
-              <p className="absolute top-4 right-4 text-white text-xs">{viewingStory.views_count} {t('views')}</p>
+            <div className="relative max-w-md w-full h-full flex items-center justify-center">
+              {viewingStory.media_url ? (viewingStory.media_url.match(/\.(mp4|webm|mov)$/i) ? <video src={viewingStory.media_url} autoPlay controls className="w-full max-h-[80vh] object-contain" /> : <img src={viewingStory.media_url} alt="" className="w-full max-h-[80vh] object-contain" />) : <div className="text-white text-center"><Camera size={48} className="mx-auto mb-2 opacity-50" /><p>No media</p></div>}
+              <div className="absolute top-4 left-4 right-4"><p className="text-white font-bold text-lg">@{viewingStory.user?.username || 'user'}</p><p className="text-white/60 text-xs">{viewingStory.views_count} {t('views')}</p></div>
+              <button onClick={(e) => { e.stopPropagation(); setViewingStory(null); }} className="absolute top-4 right-4 bg-white/20 hover:bg-white/40 rounded-full p-2 transition"><X size={20} className="text-white" /></button>
             </div>
           </motion.div>
         )}
