@@ -1,0 +1,541 @@
+
+,
+/content/notifications/
+/content/notifications/mark_all_read/
+/content/reels/
+/content/stories/
+/events/
+/gigs/gigs/my_badges/
+/gigs/gigs/portfolio/
+/groupchat/groups/
+/marketplace/categories/
+/monetization/ads/serve_ad/
+/monetization/revenue/my_earnings/
+/monetization/transactions/
+/snaps/snaps/inbox/
+/snaps/snaps/recent_contacts/
+/snaps/snaps/stories/
+/snaps/snaps/streaks/
+/streaming/schedules/upcoming/
+/tutoring/profiles/
+/tutoring/sessions/my_certificates/
+/users/leaderboard/earnings/
+/users/leaderboard/popularity/
+/users/profile/
+/users/suggested/
+/users/wallet/
+1 hour
+1.5 hours
+10 Likes
+100 XP
+2 hours
+2d
+30 minutes
+a
+Action failed
+Ad Rewards
+Add a caption...
+Add Portfolio Item
+Add Project
+Add Story
+Add to Portfolio
+AI/ML
+all
+All
+all_caught_up
+Allow multiple students to join
+An error occurred while fetching streams.
+Analytics
+analytics_dashboard
+Approve & Pay
+AR Filters
+Art
+Avg Rating
+B&W
+Badges
+Balance
+Basic
+Be the first to post a gig!
+be_first_event
+be_first_to_say_something
+be_the_first_to_host_one
+Best
+Biology
+Browse available sessions!
+business
+Business
+buy
+buy_now
+buy_sell_tagline
+by
+Camera access denied
+Camera permission denied. Please allow camera access in browser settings.
+Camera
+camera_access_denied
+cancel
+Cancel
+cancel_session
+cancelled
+Capture content and enter a username
+Certificates
+Chat
+Check back soon!
+Chemistry
+Clear
+Complete gigs to earn skill badges!
+Complete sessions to earn certificates!
+Complete
+complete_gigs
+completed
+Completed
+Completion failed
+Confirm
+confirm_password
+Connected via Bluetooth
+Connecting...
+Contacts
+Cool
+Copied!
+Copy Link
+Could not access camera.
+Could not load gigs.
+Could not load reels. Please try again.
+could_not_share
+Create New Gig
+Create New Session
+Create Session
+Create your first session!
+create_account
+create_event
+create_group_to_chat
+create_your_first_group
+Current Balance
+daily_challenge
+dark_mode
+Data Science
+delete
+delete_failed
+Describe the issue...
+description
+Description
+Description...
+design
+Design
+development
+Device does not support Sasl Mesh
+Device
+discover_and_create_offline_events
+Dispute filed. Our team will review within 24 hours.
+do_it
+Donate
+Donation failed
+Donations
+Download
+Downloaded!
+Earned
+earned_this_month
+Earnings Breakdown
+earnings
+Earnings
+earnings_breakdown
+Economics
+email
+enable_show_earnings_in_your_profile_to_appear_here
+End Stream
+end
+End
+Engagement
+English
+Enter a title
+Enter amount in USD:
+Enter an amount
+enter_group_name
+enter_room_title
+enter_username_to_invite
+error_occurred
+event_created
+event_title
+events
+export
+face_detection_model_loaded_in_basic_mode
+Failed to add portfolio item
+Failed to cancel
+Failed to confirm
+Failed to end stream
+Failed to file dispute
+Failed to load certificates.
+Failed to load sessions.
+Failed to load streams.
+Failed to load tutor profiles.
+Failed to load wallet
+Failed to load whiteboard data.
+Failed to post gig
+Failed to post story
+Failed to save
+Failed to schedule
+Failed to send
+Failed to start stream
+Failed to upload
+Failed
+failed_to_add_member
+failed_to_create_group
+failed_to_create_room
+failed_to_leave_group
+failed_to_load_messages
+failed_to_load_rooms
+failed_to_post
+failed_to_send_message
+feed
+File Dispute
+File
+Fill all required fields
+fill_all_fields
+filters
+Find Tutors
+First Post
+follow
+Follow
+followers
+Followers
+Following
+For Bluetooth, click "Scan & Connect" on both devices.
+Geography
+GIF fetch error
+GIFs
+Gig Central
+Gigs
+glow
+Go Live Now
+Go Live
+Group Chat
+Group Class
+Group
+group_created_successfully
+group_name
+groups
+have_account
+hearts
+Hide Chat
+History
+host_audio_room
+host_room
+hosted_by
+how_to_earn_more
+In Progress
+in_stock_only
+Invite Friends
+invite
+Join Class
+Join me on Sasl!
+Join Sasl - the social network that works offline! Use my referral link and we both get $1!
+join
+join_conversations_share_ideas_connect_with_voices
+Language
+Last snap
+leaderboard
+Leaderboard
+Learn from experts, teach your skills, earn money
+Leave Review
+leave_group
+left_group
+level
+Level
+light_mode
+Likes
+Link (optional)
+Link copied!
+link_copied
+list_new_product
+listening
+Live Audio
+Live Class
+Live Streams
+Live
+live_audio
+Load more
+load_more_comments
+Local mesh active
+local-user
+location
+login_error
+login_tagline
+logout
+Mark all read
+marketing
+Marketing
+marketplace
+Material title
+Material uploaded!
+Materials
+Mathematics
+Max students
+max_attendees
+mesh
+meshchat
+Message queued – will send when connected
+Message saved – will send when peer connects
+message
+Messages sent via BroadcastChannel
+Microphone access denied
+Microphone access needed
+Milestone approved & paid!
+month_passively
+music
+Music
+My Certificates
+My Gigs
+My Sessions
+My Skill Badges
+my_earnings
+near you
+new_group
+No bio yet.
+No camera found.
+No gigs found
+No live streams right now
+No mesh peers detected
+No messages yet
+No new snaps
+No notifications yet
+No reels yet. Be the first to create one!
+No sessions found
+No streaks yet
+No transactions yet.
+no_account
+no_events
+no_gigs
+no_groups_yet
+no_growth_data_yet
+no_live_rooms
+no_messages_yet
+no_one_has_chosen_to_share_their_earnings_yet
+no_posts_data_yet
+no_posts_yet
+no_products
+no_products_found
+no_reels_yet
+none
+Normal
+Notifications
+offline
+offline_posts_synced
+ongoing
+online
+only_users_who_chose_to_share_their_earnings_appear_here
+Open Sasl on another device or tab to test local mesh.
+Open
+other
+password
+password_mismatch
+password_short
+Pay
+Payment failed
+Peer is typing...
+peer(s) nearby
+peer_discovery
+percentile
+Photo
+Photography
+Physics
+Please provide a reason
+popularity
+Portfolio item added!
+Portfolio
+Post a Gig
+Post Story
+post
+Post, chat, and search without internet via WaveMesh
+posted
+posted_via_wavemesh
+Posts
+Price ($) *
+price
+privacy_controls
+privacy_controls_description
+privacy_update_failed
+private
+Pro
+Processing...
+product_title
+Products
+Profile not found
+Profile updated!
+profile
+Programming
+Progress Hub
+Progress
+Project title *
+projected_monthly
+public_ranking_based_on_followers
+queued
+queued_sync_online
+rank
+Rating
+Received
+Recording...
+recording_saved
+recording_started
+recording_stopped
+Reels
+referrals
+register_here
+registration_error
+registration_success
+retry
+Retry
+revenue_trend
+Review failed
+Review submitted!
+reviews
+Reviews
+room_created
+room_ended
+s
+Sales
+Sasl AI Hub
+sasl_groups
+sasl-mesh-chat
+Save
+Scan for Devices
+Schedule date & time (YYYY-MM-DDTHH:MM):
+Schedule for Later
+Schedule
+scheduled
+Search GIFs...
+Search gigs...
+Search sessions by subject or tutor...
+search_products
+Select a video
+Select an image or video
+Select Subject *
+select_group_from_sidebar_or_create_new
+sell_item
+sell_products
+Seller
+Send Message
+Send Proposal
+Send Snap
+Send snaps daily to build streaks!
+Sent
+Sepia
+Session cancelled
+Session Materials
+Session started!
+Session
+Share Sasl with friends and you both earn
+Share
+share_your_profile_instantly
+shared
+show_balance
+show_earnings
+show_rank
+sign_in
+sign_up
+Snap Streaks
+Snap
+speaker_invited
+Spent
+stars
+Start chatting via mesh!
+Start streaming above!
+Start the conversation!
+Start
+stock
+Stop
+Stories
+Story uploaded!
+Streaks
+Stream ended
+Stream saved!
+Stream title...
+stream_regularly
+Streamer View
+Streamer
+Streaming LIVE
+streaming
+Student
+Submit
+submit_review
+Subscribe
+Subscribed
+Subscriptions
+sunshine
+sync
+sync_failed
+Synced!
+Syncing offline data...
+Tags (comma separated)
+Take Gig
+Teacher
+Title & budget required
+Title and file required
+Title required
+Top Tutors
+Top Up Wallet
+Top Up
+top_posts
+Total earned
+Total Gigs
+Total Sessions
+Transaction History
+try_adjusting_filters
+Tutor
+tutor_students
+tutoring
+Tutoring
+Type a message (local mesh)...
+Type a message...
+typing
+Unfollowed
+Unknown Device
+Unsubscribed
+Upcoming Streams
+Upcoming
+Update failed
+Upload failed
+Upload Image
+Upload Reel
+Upload Thumbnail
+Upload
+user_growth
+Username to send to
+username
+users
+verified
+Verified
+video
+views
+Vintage
+VIP
+voice
+Voice
+Vote
+vote_failed
+wallet
+Wallet
+Warm
+Watch
+Watch, stream, and earn from anywhere
+watch_ads_daily
+Watching Stream
+Web Development
+web-vitals
+welcome_back
+whats_happening
+when they join!
+Whiteboard saved!
+Whiteboard
+Withdraw
+Withdrawal failed
+Withdrawal request sent!
+Works offline via WaveMesh
+Write a caption...
+Write your review...
+write_review
+writing
+XP
+Your proposed budget (optional)
+Your QR Profile
+Your referral code
+Your referral link
+your_story

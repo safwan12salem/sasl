@@ -1,0 +1,656 @@
+/**
+ * Sasl - Social Asynchronous Sharing Layer
+ * Complete Feed component with posts, likes, comments, polls, GIFs, ads, offline sync.
+ * Posts persist across reloads via sessionStorage cache.
+ */
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import {
+  Heart, MessageCircle, Share2, Image, Smile, BarChart2,
+  Loader2, ChevronDown, ChevronUp, X, Wifi,
+  Download
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import api from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
+import { useMesh } from '../hooks/useMesh';
+import toast from 'react-hot-toast';
+import GifPicker from './GifPicker';
+import CommentThread from './CommentThread';
+import AdBanner from './AdBanner';
+import StoryRecorder from './StoryRecorder';
+import { db } from '../services/offlineDB';
+import NativeAd from './NativeAd';
+import { saslBrain } from '../services/saslBrain';
+import EmojiPicker from 'emoji-picker-react';
+import { contentModerator } from '../services/contentModeration';
+import { getMeshNode } from './OfflineMeshStatus';
+import { useTranslation } from 'react-i18next';
+
+// ---------- TYPES ----------
+interface Post {
+  id: string;
+  author: { username: string; avatar_url?: string };
+  text: string;
+  media_url: string | null;
+  likes_count: number;
+  comments_count: number;
+  shares_count: number;
+  liked_by_me: boolean;
+  created_at: string;
+  poll?: {
+    id: string;
+    question: string;
+    options: { id: string; text: string; votes_count: number; voted_by_me: boolean }[];
+  };
+}
+
+interface Story {
+  id: string;
+  user: { username: string; avatar_url?: string };
+  media_url: string;
+}
+
+interface SuggestedUser {
+  id: string;
+  username: string;
+  avatar_url?: string;
+}
+
+interface OfflinePost {
+  text: string;
+  timestamp: number;
+}
+
+const MAX_OFFLINE_POSTS = 100;
+const POSTS_CACHE_KEY = 'sasl_feed_cache';
+
+const cachePosts = (p: Post[]) => {
+  try { sessionStorage.setItem(POSTS_CACHE_KEY, JSON.stringify(p)); } catch {}
+};
+const getCachedPosts = (): Post[] => {
+  try { const raw = sessionStorage.getItem(POSTS_CACHE_KEY); return raw ? JSON.parse(raw) : []; }
+  catch { return []; }
+};
+
+const Feed: React.FC = () => {
+  const { user } = useAuth();
+  const { isOnline, syncOfflinePosts } = useMesh();
+  const [posts, setPosts] = useState<Post[]>(getCachedPosts);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const loader = useRef<HTMLDivElement | null>(null);
+  const [composing, setComposing] = useState('');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreview, setFilePreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [composingWithPoll, setComposingWithPoll] = useState(false);
+  const [pollOptions, setPollOptions] = useState(['', '']);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [stories, setStories] = useState<Story[]>([]);
+  const [suggestedUsers, setSuggestedUsers] = useState<SuggestedUser[]>([]);
+  const [offlineQueue, setOfflineQueue] = useState<OfflinePost[]>([]);
+  const [syncing, setSyncing] = useState(false);
+  const [showStoryRecorder, setShowStoryRecorder] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const isFetching = useRef(false);
+  const { t } = useTranslation();
+
+  useEffect(() => { cachePosts(posts); }, [posts]);
+
+  // ============================================================
+  // FETCH POSTS
+  // ============================================================
+  const fetchPosts = useCallback(async (pageNum: number, append = false) => {
+    if (isFetching.current) return;
+    isFetching.current = true;
+    if (!append) setLoading(true);
+
+    try {
+      if (!isOnline) {
+        const offlinePosts = await db.posts.orderBy('created_at').reverse().toArray();
+        setPosts(offlinePosts.map(p => ({
+          id: p.id, author: { username: p.author }, text: p.text,
+          media_url: p.media_url || null, likes_count: p.likes_count,
+          comments_count: p.comments_count, shares_count: p.shares_count,
+          liked_by_me: false, created_at: p.created_at, poll: undefined,
+        })));
+        setHasMore(false);
+        return;
+      }
+
+      const res = await api.get(`/content/posts/?page=${pageNum}`);
+      const data = res.data;
+      const results = Array.isArray(data?.results) ? data.results : [];
+
+      let sortedResults = results;
+      try {
+        const ranked = await saslBrain.rankPosts(results);
+        sortedResults = ranked
+          .map((score: { postId: string }) => results.find((p: any) => p.id === score.postId))
+          .filter(Boolean);
+      } catch { sortedResults = results; }
+
+      setPosts(prev => {
+        if (append) {
+          const existingIds = new Set(prev.map(p => p.id));
+          const newPosts = sortedResults.filter((p: Post) => !existingIds.has(p.id));
+          return [...prev, ...newPosts];
+        }
+        const localOnly = prev.filter(p => p.id.startsWith('offline-'));
+        const merged = [...sortedResults];
+        for (const lp of localOnly) {
+          if (!merged.find(m => m.id === lp.id)) merged.unshift(lp);
+        }
+        return merged;
+      });
+
+      for (const p of results) {
+        await db.posts.put({
+          id: p.id, text: p.text, author: p.author?.username,
+          media_url: p.media_url, likes_count: p.likes_count,
+          comments_count: p.comments_count, shares_count: p.shares_count,
+          created_at: p.created_at,
+        });
+      }
+
+      const nextPage = data?.next;
+      setHasMore(!!nextPage && results.length > 0);
+    } catch (err) {
+      if (posts.length === 0) console.warn('Feed fetch failed', err);
+    } finally {
+      setLoading(false);
+      setInitialLoad(false);
+      isFetching.current = false;
+    }
+  }, [isOnline, posts.length]);
+
+  // ============================================================
+  // INITIAL LOAD
+  // ============================================================
+  useEffect(() => {
+    const token = localStorage.getItem('sasl_token');
+    if (token) api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    fetchPosts(1, false);
+    loadStories();
+    loadSuggestedUsers();
+    loadOfflineQueue();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ============================================================
+  // INFINITE SCROLL
+  // ============================================================
+  useEffect(() => {
+    if (!loader.current) return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && hasMore && !loading && !isFetching.current) {
+        setPage(prev => {
+          const nextPage = prev + 1;
+          if (nextPage > 50) { setHasMore(false); return prev; }
+          fetchPosts(nextPage, true);
+          return nextPage;
+        });
+      }
+    }, { rootMargin: '200px' });
+    observer.observe(loader.current);
+    return () => observer.disconnect();
+  }, [hasMore, loading, fetchPosts]);
+
+  // ============================================================
+  // HELPERS
+  // ============================================================
+  const loadStories = async () => {
+    try { const res = await api.get('/content/stories/'); setStories(res.data.results || []); } catch {}
+  };
+  const loadSuggestedUsers = async () => {
+    try { const res = await api.get('/users/suggested/'); setSuggestedUsers(res.data || []); } catch {}
+  };
+  const loadOfflineQueue = () => {
+    const raw = localStorage.getItem('sasl_offline_posts');
+    if (raw) setOfflineQueue(JSON.parse(raw).slice(0, MAX_OFFLINE_POSTS));
+  };
+
+  // ============================================================
+  // LIKE
+  // ============================================================
+  const handleLike = async (postId: string) => {
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    const newLiked = !post.liked_by_me;
+    const newCount = newLiked ? post.likes_count + 1 : post.likes_count - 1;
+
+    setPosts(prev => prev.map(p => p.id === postId ? {
+      ...p, liked_by_me: newLiked, likes_count: Math.max(0, newCount)
+    } : p));
+
+    try {
+      const res = await api.post(`/content/posts/${postId}/like/`);
+      if (res.data && typeof res.data.likes_count === 'number') {
+        setPosts(prev => prev.map(p => p.id === postId ? {
+          ...p, likes_count: res.data.likes_count, liked_by_me: res.data.status === 'liked'
+        } : p));
+      }
+      if (navigator.vibrate) navigator.vibrate(10);
+    } catch {
+      setPosts(prev => prev.map(p => p.id === postId ? {
+        ...p, liked_by_me: post.liked_by_me, likes_count: post.likes_count
+      } : p));
+    }
+  };
+
+  // ============================================================
+  // POLL VOTE
+  // ============================================================
+  const handleVote = async (postId: string, optionId: string) => {
+    try {
+      const res = await api.post(`/content/posts/${postId}/vote_poll/`, { option_id: optionId });
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, poll: res.data } : p));
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || t('vote_failed'));
+    }
+  };
+
+  // ============================================================
+  // SHARE
+  // ============================================================
+  const handleShare = async (postId: string) => {
+    try {
+      const res = await api.post(`/content/posts/${postId}/share/`);
+      setPosts(prev => prev.map(p => p.id === postId ? { ...p, shares_count: res.data.shares_count } : p));
+      const post = posts.find(p => p.id === postId);
+      if (post && navigator.share) {
+        await navigator.share({
+          title: `Post by ${post.author.username}`,
+          text: post.text,
+          url: `${window.location.origin}/post/${postId}`,
+        });
+        toast.success(t('shared'));
+      } else {
+        await navigator.clipboard.writeText(`${window.location.origin}/post/${postId}`);
+        toast.success(t('link_copied'));
+      }
+    } catch (err: any) {
+      if (err.name !== 'AbortError') toast.error(t('could_not_share'));
+    }
+  };
+
+  // ============================================================
+  // COMPOSER
+  // ============================================================
+  const resetComposer = () => {
+    setComposing(''); setSelectedFile(null); setFilePreview(null);
+    setUploadProgress(0); setComposingWithPoll(false);
+    setPollOptions(['', '']); setShowGifPicker(false); setShowEmojiPicker(false);
+  };
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) { setSelectedFile(file); setFilePreview(URL.createObjectURL(file)); }
+  };
+  const handleDelete = async (postId: string) => {
+    if (!window.confirm('Delete this post?')) return;
+    try {
+      await api.delete(`/content/posts/${postId}/delete_post/`);
+      setPosts(prev => prev.filter(p => p.id !== postId));
+      toast.success(t('delete'));
+    } catch { toast.error(t('delete_failed')); }
+  };
+
+  // ============================================================
+  // SUBMIT POST
+  // ============================================================
+  const submitPost = async () => {
+    if (!composing.trim() && !selectedFile) return;
+    if (!isOnline) { createOfflinePost(); return; }
+    const moderation = await contentModerator.moderateText(composing);
+    if (moderation.isSpam || moderation.isHateful) {
+      toast.error(t('content_flagged', { reason: moderation.reason })); return;
+    }
+    const formData = new FormData();
+    formData.append('text', composing);
+    if (selectedFile) formData.append('media', selectedFile);
+    if (composingWithPoll) {
+      formData.append('poll', JSON.stringify({
+        question: composing,
+        options: pollOptions.filter(o => o.trim()),
+        expires_in_days: 1
+      }));
+    }
+    try {
+      const res = await api.post('/content/posts/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (e: any) => { if (e.total) setUploadProgress(Math.round((e.loaded * 100) / e.total)); },
+      } as any);
+      setPosts(prev => [res.data, ...prev]);
+      resetComposer();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast.success(t('posted'));
+    } catch { toast.error(t('failed_to_post')); setUploadProgress(0); }
+  };
+
+  // ============================================================
+  // OFFLINE POST
+  // ============================================================
+  const createOfflinePost = () => {
+    const updatedQueue = [...offlineQueue, { text: composing, timestamp: Date.now() }].slice(0, MAX_OFFLINE_POSTS);
+    setOfflineQueue(updatedQueue);
+    localStorage.setItem('sasl_offline_posts', JSON.stringify(updatedQueue));
+    const mesh = getMeshNode();
+    if (mesh) mesh.sendPostViaMesh({ text: composing, author: user?.username, timestamp: Date.now() });
+    setPosts(prev => [{
+      id: `offline-${Date.now()}`, author: { username: user?.username || 'You' },
+      text: composing, media_url: filePreview, likes_count: 0, comments_count: 0,
+      shares_count: 0, liked_by_me: false, created_at: new Date().toISOString(),
+    }, ...prev]);
+    resetComposer();
+    toast.success(mesh ? t('posted_via_wavemesh') : t('queued_sync_online'));
+  };
+
+  const syncOfflineQueue = async () => {
+    setSyncing(true);
+    try {
+      await api.post('/content/posts/sync_offline_posts/', { posts: offlineQueue });
+      setOfflineQueue([]); localStorage.removeItem('sasl_offline_posts');
+      toast.success(t('offline_posts_synced')); fetchPosts(1, false);
+    } catch { toast.error(t('sync_failed')); }
+    finally { setSyncing(false); }
+  };
+
+  useEffect(() => { if (isOnline && offlineQueue.length > 0) syncOfflineQueue(); }, [isOnline]);
+
+  const handleGifSelect = (url: string) => { setComposing(p => p + ' ' + url); setShowGifPicker(false); };
+
+  // ============================================================
+  // SUB-COMPONENTS
+  // ============================================================
+  const StoryRing = () => (
+    <div className="flex gap-3 overflow-x-auto py-2 mb-4">
+      <div className="flex flex-col items-center cursor-pointer" onClick={() => setShowStoryRecorder(true)}>
+        <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-400 to-orange-400 p-[3px]">
+          <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-2xl">+</div>
+        </div>
+        <span className="text-xs mt-1">{t('your_story')}</span>
+      </div>
+      {stories.slice(0, 10).map(s => (
+        <div key={s.id} className="flex flex-col items-center">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-r from-pink-500 to-yellow-500 p-[3px]">
+            <img src={s.media_url || '/avatar.png'} className="w-full h-full rounded-full object-cover" alt="" />
+          </div>
+          <span className="text-xs mt-1">{s.user.username}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  const SuggestedBar = () => (
+    <div className="flex gap-2 overflow-x-auto py-2 mb-4">
+      {suggestedUsers.map(u => (
+        <div key={u.id} className="flex items-center gap-1 bg-white rounded-full px-3 py-1 shadow-sm text-sm">
+          <div className="w-6 h-6 rounded-full bg-gray-300" />
+          <span>{u.username}</span>
+          <button 
+  className="text-green-500 ml-1 text-xs"
+  onClick={async (e) => {
+    e.stopPropagation();
+    try {
+      await api.post('/users/follow/toggle/', { username: u.username });
+      toast.success('Followed!');
+      loadSuggestedUsers();
+    } catch {}
+  }}
+>
+  {t('follow')}
+</button>
+        </div>
+      ))}
+    </div>
+  );
+
+  const PollSection = ({ poll, postId }: { poll: Post['poll']; postId: string }) => {
+    if (!poll) return null;
+    const voted = poll.options.some(o => o.voted_by_me);
+    return (
+      <div className="mt-2 space-y-2">
+        {poll.options.map(opt => (
+          <div key={opt.id} className="flex items-center justify-between">
+            <button onClick={() => handleVote(postId, opt.id)} disabled={voted}
+              className="text-left text-sm hover:bg-gray-100 p-1 rounded w-full flex items-center gap-2">
+              <span className={`w-4 h-4 rounded-full border-2 ${opt.voted_by_me ? 'bg-green-500' : 'border-gray-400'}`} />
+              {opt.text}
+              <span className="ml-auto text-xs text-gray-500">({opt.votes_count})</span>
+            </button>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const PostCard = ({ post }: { post: Post }) => {
+    const [showComments, setShowComments] = useState(false);
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ y: -2 }}
+        className="glass-card p-5 mb-4 transition-all duration-300"
+      >
+        <div className="flex items-center gap-3 mb-3">
+          <div className="relative">
+       {post.author?.avatar_url ? (
+  <img src={post.author.avatar_url} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow cursor-pointer hover:scale-105 transition"
+       onClick={(e) => { e.stopPropagation(); window.location.href = `/profile/${post.author.username}`; }} alt="" />
+) : (
+  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sasl-green to-sasl-orange flex items-center justify-center text-white font-bold cursor-pointer hover:scale-105 transition"
+       onClick={(e) => { e.stopPropagation(); window.location.href = `/profile/${post.author.username}`; }}>
+    {post.author.username[0].toUpperCase()}
+  </div>
+)}
+            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white" />
+          </div>
+          <div>
+            <p className="font-semibold cursor-pointer hover:text-sasl-green transition-colors" 
+   onClick={(e) => { e.stopPropagation(); window.location.href = `/profile/${post.author.username}`; }}>
+  {post.author.username}
+</p>
+            <p className="text-xs text-gray-500">{new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+          </div>
+        </div>
+        
+        <p className="mb-3 text-gray-800 dark:text-gray-200 leading-relaxed">{post.text}</p>
+        
+        {post.media_url && (
+  <div className="rounded-xl overflow-hidden mb-3 relative group">
+    {post.media_url.match(/\.(mp4|webm|mov)$/i) ? (
+      <video src={post.media_url} className="w-full max-h-96 object-cover" controls />
+    ) : (
+      <img src={post.media_url} className="w-full max-h-96 object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="" loading="lazy" />
+    )}
+       <a 
+  href={post.media_url || '#'} 
+  download={post.media_url?.split('/').pop() || 'sasl-image.jpg'}
+  target="_blank"
+  rel="noopener noreferrer"
+  onClick={(e) => {
+    e.stopPropagation();
+    if (!post.media_url) return;
+    // Force download instead of navigation
+    fetch(post.media_url)
+      .then(r => r.blob())
+      .then(blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = post.media_url?.split('/').pop() || 'sasl-image.jpg';
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => window.open(post.media_url!, '_blank'));
+  }}
+  className="absolute top-2 right-2 bg-white/90 rounded-full p-2 shadow opacity-0 group-hover:opacity-100 transition-opacity"
+>
+  <Download size={16} className="text-gray-700" />
+</a>
+  </div>
+)}
+        
+        {post.poll && <PollSection poll={post.poll} postId={post.id} />}
+        
+        <div className="flex justify-between text-gray-500 mb-2 pt-2 border-t border-gray-100 dark:border-gray-700/50">
+          <motion.button 
+            whileTap={{ scale: 0.8 }}
+            onClick={() => handleLike(post.id)} 
+            className="flex items-center gap-1.5 hover:text-red-500 transition-colors group"
+          >
+            <Heart className={`w-5 h-5 transition-all ${post.liked_by_me ? 'fill-red-500 text-red-500 like-burst' : 'group-hover:scale-110'}`} />
+            <span className="text-sm font-medium">{post.likes_count}</span>
+          </motion.button>
+          <motion.button 
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowComments(!showComments)} 
+            className="flex items-center gap-1.5 hover:text-blue-500 transition-colors"
+          >
+            <MessageCircle className="w-5 h-5" /> 
+            <span className="text-sm font-medium">{post.comments_count}</span>
+          </motion.button>
+          <motion.button 
+            whileTap={{ scale: 0.95 }}
+            onClick={() => handleShare(post.id)} 
+            className="flex items-center gap-1.5 hover:text-green-500 transition-colors"
+          >
+            <Share2 className="w-5 h-5" /> 
+            <span className="text-sm font-medium">{post.shares_count}</span>
+          </motion.button>
+          {post.author.username === user?.username && (
+            <button onClick={() => handleDelete(post.id)} className="text-red-400 hover:text-red-600 text-xs font-medium transition-colors">{t('delete')}</button>
+          )}
+        </div>
+        
+        <AnimatePresence>
+          {showComments && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }} 
+              animate={{ height: 'auto', opacity: 1 }} 
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="pt-3 border-t border-gray-100 dark:border-gray-700/50">
+                <CommentThread postId={post.id} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    );
+  };
+
+  // ============================================================
+  // MAIN RENDER
+  // ============================================================
+  return (
+    <div className="max-w-2xl mx-auto p-4">
+      <div className="flex justify-between items-center mb-3">
+        <h1 className="text-2xl font-bold gradient-text">Sasl Feed</h1>
+        <div className="flex items-center gap-2">
+          {!isOnline && <span className="mesh-badge mesh-offline text-xs">Offline</span>}
+          {offlineQueue.length > 0 && (
+            <button onClick={syncOfflineQueue} disabled={syncing} className="flex items-center gap-1 btn-ghost text-xs">
+              {syncing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wifi className="w-3 h-3" />}
+              {t('sync')} ({offlineQueue.length})
+            </button>
+          )}
+        </div>
+      </div>
+
+      {showStoryRecorder && (
+        <div className="fixed inset-0 bg-black/60 z-40 flex items-center justify-center">
+          <div className="bg-white p-4 rounded-2xl w-full max-w-md">
+            <button onClick={() => setShowStoryRecorder(false)} className="float-right text-gray-500 hover:text-gray-700">✕</button>
+            <StoryRecorder onDone={() => setShowStoryRecorder(false)} />
+          </div>
+        </div>
+      )}
+
+      <SuggestedBar />
+      <StoryRing />
+      <AdBanner />
+
+      {/* Composer */}
+      <div className="bg-white rounded-2xl shadow p-4 mb-6">
+        <textarea
+          className="w-full border-none outline-none resize-none text-lg placeholder-gray-400"
+          placeholder={t('whats_happening')}
+          value={composing}
+          onChange={e => setComposing(e.target.value)}
+          rows={3}
+        />
+        {filePreview && (
+          <div className="relative mt-2">
+            <img src={filePreview} className="rounded-lg max-h-48" alt="" />
+            <button onClick={() => { setSelectedFile(null); setFilePreview(null); setUploadProgress(0); }} className="absolute top-1 right-1 bg-white rounded-full p-1"><X size={16} /></button>
+          </div>
+        )}
+        {uploadProgress > 0 && uploadProgress < 100 && (
+          <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+            <div className="bg-green-500 h-2 rounded-full transition-all" style={{ width: `${uploadProgress}%` }} />
+          </div>
+        )}
+        {composingWithPoll && (
+          <div className="mt-2 space-y-2">
+            {pollOptions.map((opt, idx) => (
+              <input key={idx} className="input-field" placeholder={`Option ${idx + 1}`} value={opt}
+                onChange={e => { const n = [...pollOptions]; n[idx] = e.target.value; setPollOptions(n); }} />
+            ))}
+          </div>
+        )}
+        {showGifPicker && <GifPicker onSelect={handleGifSelect} onClose={() => setShowGifPicker(false)} />}
+
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex gap-3 text-gray-500">
+            <label className="cursor-pointer hover:text-green-500"><Image size={20} /><input type="file" accept="image/*,video/*" className="hidden" onChange={handleFileChange} /></label>
+            <button onClick={() => setComposingWithPoll(!composingWithPoll)} className="hover:text-purple-500"><BarChart2 size={20} /></button>
+            <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="hover:text-yellow-500 relative"><Smile size={20} /></button>
+          </div>
+          <button onClick={submitPost} disabled={!composing.trim() && !selectedFile} className="btn-primary text-sm py-2 px-6">
+            {t('post')}
+          </button>
+        </div>
+
+        {showEmojiPicker && (
+          <div className="mt-2">
+            <EmojiPicker
+              onEmojiClick={(emojiData) => {
+                setComposing(prev => prev + emojiData.emoji);
+                setShowEmojiPicker(false);
+              }}
+              width="100%"
+              height={350}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Posts */}
+      {posts.map((post, idx) => (
+        <React.Fragment key={post.id}>
+          <PostCard post={post} />
+          {(idx + 1) % 5 === 0 && <NativeAd />}
+        </React.Fragment>
+      ))}
+
+      {/* Loader */}
+      <div ref={loader} className="h-10 flex justify-center items-center">
+        {loading && posts.length === 0 && <Loader2 className="animate-spin text-green-500" />}
+        {loading && posts.length > 0 && <Loader2 className="animate-spin text-green-500 w-4 h-4" />}
+        {!hasMore && !loading && posts.length > 0 && (
+          <p className="text-gray-400 text-sm">{t('all_caught_up')}</p>
+        )}
+        {!hasMore && !loading && posts.length === 0 && !initialLoad && (
+          <p className="text-gray-400">{t('no_posts_yet')}</p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Feed;
