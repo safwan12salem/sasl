@@ -952,7 +952,7 @@ const fetchRooms = useCallback(async () => {
   onClick={() => {
     setActiveRoom(null);
     activeRoomRef.current = null;
-    localStorage.removeItem('sasl_active_mesh_room');
+  
     setMessages([]);
     setShowMobileSidebar(true);
   }} 
