@@ -303,10 +303,48 @@ class OfflineMeshService {
     this.onPeerUpdateCallback = callback;
   }
 
+    
+
+  /**
+   * Handle WebRTC signaling from global mesh server
+   */
+  handleSignal(fromPeerId: string, signalType: string, data: any): void {
+    const peer = this.peers.get(fromPeerId);
+    if (!peer) {
+      this.connectToPeer(fromPeerId, fromPeerId);
+      return;
+    }
+    
+    const pc = peer.connection;
+    try {
+      if (signalType === 'offer') {
+        pc.setRemoteDescription(new RTCSessionDescription(data))
+          .then(() => pc.createAnswer())
+          .then(answer => {
+            pc.setLocalDescription(answer);
+            this.discoveryChannel?.postMessage({
+              type: 'webrtc_answer',
+              from: this.nodeId,
+              to: fromPeerId,
+              answer
+            });
+          });
+      } else if (signalType === 'answer') {
+        pc.setRemoteDescription(new RTCSessionDescription(data));
+      } else if (signalType === 'candidate') {
+        pc.addIceCandidate(new RTCIceCandidate(data));
+      }
+    } catch (err) {
+      console.warn('Error handling signal:', err);
+    }
+  }
+
   /**
    * Stop the mesh
    */
-  stop(): void {
+  
+
+    stop(): void {
     this.discoveryChannel?.close();
     this.peers.forEach(peer => {
       peer.dataChannel?.close();

@@ -11,10 +11,11 @@ from streaming.routing import websocket_urlpatterns as streaming_ws
 from marketplace.routing import websocket_urlpatterns as marketplace_ws
 from gigs.routing import websocket_urlpatterns as gig_ws
 from tutoring.routing import websocket_urlpatterns as tutoring_ws
+from mesh.routing import websocket_urlpatterns as mesh_ws
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": AuthMiddlewareStack(
-        URLRouter(content_ws + streaming_ws + marketplace_ws + gig_ws + tutoring_ws)
+        URLRouter(content_ws + streaming_ws + marketplace_ws + gig_ws + tutoring_ws + mesh_ws)
     ),
 })

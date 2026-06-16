@@ -13,7 +13,7 @@ import toast from 'react-hot-toast';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { offlineMesh } from '../services/offlineMesh';
-
+import { globalMesh } from '../services/globalMesh';
 import { useTranslation } from 'react-i18next';
 
 
@@ -144,6 +144,7 @@ export default function MeshChatHub() {
   const token = localStorage.getItem('sasl_token');
   const [meshPeers, setMeshPeers] = useState<Array<{ id: string; username: string; signalStrength: number; isDirect: boolean }>>([]);
   const [meshActive, setMeshActive] = useState(false);
+    const [globalPeerCount, setGlobalPeerCount] = useState(0);
   const { t } = useTranslation();
   const [editingMessage, setEditingMessage] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
@@ -253,26 +254,45 @@ useEffect(() => {
   
   if (!meshStartedRef.current) {
     offlineMesh.start(myUsername);
+    globalMesh.start(myUsername, 'middle_east');
     setMeshActive(true);
     meshStartedRef.current = true;
   }
   
-  const handleMessage = (msg: any) => {
-    if (msg.type === 'chat_message') {
+   const handleMessage = (msg: any, route?: string) => {
+    // Route label for UI
+    const routeLabel = route === 'direct' ? '⚡P2P' : route === 'echo' ? '🔄Relay' : '';
+    
+    if (msg.type === 'chat_message' || msg.type === 'global_message' || (msg.data && msg.data.type === 'chat_message')) {
+      const messageData = msg.data || msg;
       setMessages(prev => {
-        const exists = prev.some(m => m.id === msg.message?.id);
+        const exists = prev.some(m => m.id === messageData?.message?.id || m.id === messageData?.id);
         if (exists) return prev;
-        return [...prev, msg.message];
+        const newMsg = {
+          ...(messageData.message || messageData),
+          content: routeLabel ? `${routeLabel} ${messageData.message?.content || messageData.content || ''}` : (messageData.message?.content || messageData.content || '')
+        };
+        return [...prev, newMsg];
       });
       scrollToBottom();
     }
   };
-  
+
   offlineMesh.onMessage(handleMessage);
+  globalMesh.onMessage(handleMessage);
+
+
   
-  offlineMesh.onPeerUpdate(() => {
-    setMeshPeers(offlineMesh.getPeers());
+  
+   globalMesh.onPeerUpdate((peers) => {
+    setMeshPeers(peers);
+    setGlobalPeerCount(peers.length);
   });
+
+
+  return () => {
+    globalMesh.stop();
+  };
   
   // No cleanup — mesh persists for full app lifetime
 }, [myUsername]);
@@ -935,9 +955,7 @@ const fetchRooms = useCallback(async () => {
                 <div>
                   <h3 className="font-bold text-sm">{activeRoom.room_type === 'private' && activeRoom.other_user ? `@${activeRoom.other_user.username}` : activeRoom.name}</h3>
                   <p className="text-xs text-gray-500">
-  {connecting ? t('Connecting...') : (
-    <span className="flex items-center gap-1 text-green-600"><Wifi size={12} /> {t('Connected via WaveMesh')}</span>
-  )}
+  <span className="flex items-center gap-1 text-green-600"><Wifi size={12} /> {t('Connected via WaveMesh')} {globalPeerCount > 0 ? `· 🌍 ${globalPeerCount} peers` : ''}</span>
 </p>
                 </div>
               </div>

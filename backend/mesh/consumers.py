@@ -218,3 +218,196 @@ class VideoSignalConsumer(AsyncWebsocketConsumer):
         except:
             pass
         return None
+    
+
+
+
+
+
+
+
+class GlobalMeshConsumer(AsyncWebsocketConsumer):
+    """
+    Sasl Global Mesh Signaling Server
+    - Connects peers from different countries
+    - Routes WebRTC offers/answers/candidates globally
+    - Tracks online peers by region
+    - Zero cost — runs on existing PythonAnywhere
+    """
+    
+    rooms = {}  # Global registry: {peer_id: channel_name}
+    regions = {}  # Regional grouping: {region_code: [peer_ids]}
+    relay_queue = {}  # Store-and-forward queue for offline peers
+    
+    async def connect(self):
+        self.peer_id = self.scope['url_route']['kwargs'].get('peer_id', 'unknown')
+        self.region = self.scope['url_route']['kwargs'].get('region', 'global')
+        self.channel_id = self.channel_name
+        
+        # Accept connection
+        await self.accept()
+        
+        # Register peer globally
+        GlobalMeshConsumer.rooms[self.peer_id] = self.channel_id
+        
+        # Register in region
+        if self.region not in GlobalMeshConsumer.regions:
+            GlobalMeshConsumer.regions[self.region] = []
+        if self.peer_id not in GlobalMeshConsumer.regions[self.region]:
+            GlobalMeshConsumer.regions[self.region].append(self.peer_id)
+        
+        # Send queued messages for this peer
+        if self.peer_id in GlobalMeshConsumer.relay_queue:
+            for msg in GlobalMeshConsumer.relay_queue[self.peer_id]:
+                await self.send(text_data=json.dumps(msg))
+            del GlobalMeshConsumer.relay_queue[self.peer_id]
+        
+        # Notify region peers
+        await self.broadcast_peer_update(self.region, 'joined', self.peer_id)
+        
+        # Send current peers list
+        await self.send(text_data=json.dumps({
+            'type': 'peers_list',
+            'peers': GlobalMeshConsumer.regions.get(self.region, []),
+            'global_count': len(GlobalMeshConsumer.rooms),
+            'regions': list(GlobalMeshConsumer.regions.keys())
+        }))
+    
+    async def disconnect(self, close_code):
+        # Unregister peer
+        if self.peer_id in GlobalMeshConsumer.rooms:
+            del GlobalMeshConsumer.rooms[self.peer_id]
+        
+        # Remove from region
+        if self.region in GlobalMeshConsumer.regions:
+            if self.peer_id in GlobalMeshConsumer.regions[self.region]:
+                GlobalMeshConsumer.regions[self.region].remove(self.peer_id)
+        
+        # Notify region
+        await self.broadcast_peer_update(self.region, 'left', self.peer_id)
+    
+    async def receive(self, text_data):
+        """Route messages between peers globally"""
+        try:
+            data = json.loads(text_data)
+            msg_type = data.get('type', '')
+            
+            if msg_type == 'webrtc_offer':
+                # Route WebRTC offer to target peer
+                target_id = data.get('target_peer_id')
+                if target_id and target_id in GlobalMeshConsumer.rooms:
+                    await self.channel_layer.send(
+                        GlobalMeshConsumer.rooms[target_id],
+                        {
+                            'type': 'send_signal',
+                            'signal_type': 'webrtc_offer',
+                            'from_peer_id': self.peer_id,
+                            'offer': data.get('offer'),
+                            'region': self.region
+                        }
+                    )
+                elif target_id:
+                    # Peer offline — queue for later delivery
+                    if target_id not in GlobalMeshConsumer.relay_queue:
+                        GlobalMeshConsumer.relay_queue[target_id] = []
+                    GlobalMeshConsumer.relay_queue[target_id].append(data)
+                    await self.send(text_data=json.dumps({
+                        'type': 'peer_offline',
+                        'target_peer_id': target_id,
+                        'message': 'Peer is offline. Message queued for delivery.'
+                    }))
+            
+            elif msg_type == 'webrtc_answer':
+                target_id = data.get('target_peer_id')
+                if target_id and target_id in GlobalMeshConsumer.rooms:
+                    await self.channel_layer.send(
+                        GlobalMeshConsumer.rooms[target_id],
+                        {
+                            'type': 'send_signal',
+                            'signal_type': 'webrtc_answer',
+                            'from_peer_id': self.peer_id,
+                            'answer': data.get('answer')
+                        }
+                    )
+            
+            elif msg_type == 'ice_candidate':
+                target_id = data.get('target_peer_id')
+                if target_id and target_id in GlobalMeshConsumer.rooms:
+                    await self.channel_layer.send(
+                        GlobalMeshConsumer.rooms[target_id],
+                        {
+                            'type': 'send_signal',
+                            'signal_type': 'ice_candidate',
+                            'from_peer_id': self.peer_id,
+                            'candidate': data.get('candidate')
+                        }
+                    )
+            
+            elif msg_type == 'discover_region':
+                # Return peers in specified region
+                region = data.get('region', self.region)
+                peers = GlobalMeshConsumer.regions.get(region, [])
+                await self.send(text_data=json.dumps({
+                    'type': 'region_peers',
+                    'region': region,
+                    'peers': peers
+                }))
+            
+            elif msg_type == 'echo_relay':
+                # Store-and-forward: relay message through server
+                target_id = data.get('target_peer_id')
+                if target_id and target_id in GlobalMeshConsumer.rooms:
+                    await self.channel_layer.send(
+                        GlobalMeshConsumer.rooms[target_id],
+                        {
+                            'type': 'send_signal',
+                            'signal_type': 'echo_message',
+                            'from_peer_id': self.peer_id,
+                            'message': data.get('message'),
+                            'hops': data.get('hops', 0) + 1,
+                            'max_hops': data.get('max_hops', 50)
+                        }
+                    )
+                elif target_id:
+                    # Queue for offline delivery
+                    if target_id not in GlobalMeshConsumer.relay_queue:
+                        GlobalMeshConsumer.relay_queue[target_id] = []
+                    GlobalMeshConsumer.relay_queue[target_id].append(data)
+                    await self.send(text_data=json.dumps({
+                        'type': 'message_queued',
+                        'target_peer_id': target_id
+                    }))
+            
+            elif msg_type == 'ping':
+                await self.send(text_data=json.dumps({'type': 'pong', 'peers_online': len(GlobalMeshConsumer.rooms)}))
+        
+        except json.JSONDecodeError:
+            pass
+    
+    async def send_signal(self, event):
+        """Forward signal to this peer"""
+        await self.send(text_data=json.dumps({
+            'type': event.get('signal_type'),
+            'from_peer_id': event.get('from_peer_id'),
+            'offer': event.get('offer'),
+            'answer': event.get('answer'),
+            'candidate': event.get('candidate'),
+            'message': event.get('message'),
+            'hops': event.get('hops'),
+            'region': event.get('region')
+        }))
+    
+    async def broadcast_peer_update(self, region, action, peer_id):
+        """Notify all peers in region about join/leave"""
+        for pid in GlobalMeshConsumer.regions.get(region, []):
+            if pid != peer_id and pid in GlobalMeshConsumer.rooms:
+                await self.channel_layer.send(
+                    GlobalMeshConsumer.rooms[pid],
+                    {
+                        'type': 'send_signal',
+                        'signal_type': 'peer_update',
+                        'action': action,
+                        'peer_id': peer_id,
+                        'region': region
+                    }
+                )
