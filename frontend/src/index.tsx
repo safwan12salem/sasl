@@ -23,7 +23,7 @@ saslBrain.initialize().then(() => {
 });
 
 root.render(
-  <React.StrictMode>
+  <>
     <I18nextProvider i18n={i18n}>
       <AuthProvider>
         <ThemeProvider>
@@ -34,5 +34,5 @@ root.render(
         </ThemeProvider>
       </AuthProvider>
     </I18nextProvider>
-  </React.StrictMode>
+  </>
 );

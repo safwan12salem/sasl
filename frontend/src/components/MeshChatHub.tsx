@@ -139,18 +139,13 @@ export default function MeshChatHub() {
   const activeRoomRef = useRef<ChatRoom | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-const [justSent, setJustSent] = useState(false);
+  const [justSent, setJustSent] = useState(false);
   const token = localStorage.getItem('sasl_token');
-  
-
   const [meshPeers, setMeshPeers] = useState<Array<{ id: string; username: string; signalStrength: number; isDirect: boolean }>>([]);
-const [meshActive, setMeshActive] = useState(false);
-
-const { t } = useTranslation();
-
-
-const [editingMessage, setEditingMessage] = useState<string | null>(null);
-const [editText, setEditText] = useState('');
+  const [meshActive, setMeshActive] = useState(false);
+  const { t } = useTranslation();
+  const [editingMessage, setEditingMessage] = useState<string | null>(null);
+  const [editText, setEditText] = useState('');
 
 
 
@@ -290,9 +285,22 @@ const fetchRooms = useCallback(async () => {
       // Save to localStorage for offline persistence
       localStorage.setItem('sasl_cached_rooms', JSON.stringify(data));
       setRooms(data);
+      
+      // CRITICAL: Always keep the active room in sync with fresh data
       if (activeRoomRef.current) {
         const updated = data.find((r: ChatRoom) => r.id === activeRoomRef.current?.id);
-        if (updated) setActiveRoom(updated);
+        if (updated) {
+          setActiveRoom(updated);
+        } else {
+          // Room still exists in localStorage but not in API response yet
+          // This happens right after reload - API may return empty if DB is slow
+          // Don't clear activeRoom, keep it from localStorage restore
+          const savedRoomId = localStorage.getItem('sasl_active_mesh_room');
+          if (savedRoomId && activeRoomRef.current.id === savedRoomId) {
+            // Keep the current active room, don't nullify it
+            return;
+          }
+        }
       }
     } catch (err) {
       // OFFLINE: Load cached rooms from localStorage
@@ -302,6 +310,15 @@ const fetchRooms = useCallback(async () => {
           const parsed = JSON.parse(cached);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setRooms(parsed);
+            // Also restore active room from cache
+            const savedRoomId = localStorage.getItem('sasl_active_mesh_room');
+            if (savedRoomId && !activeRoomRef.current) {
+              const found = parsed.find((r: ChatRoom) => r.id === savedRoomId);
+              if (found) {
+                setActiveRoom(found);
+                activeRoomRef.current = found;
+              }
+            }
           }
         } catch {}
       }
@@ -310,6 +327,7 @@ const fetchRooms = useCallback(async () => {
       setLoading(false);
     }
   }, []);
+
 
   const fetchRequests = useCallback(async () => {
     try {
@@ -335,9 +353,12 @@ const fetchRooms = useCallback(async () => {
     fetchRooms();
     fetchRequests();
     fetchPeers();
-    const interval = setInterval(() => { fetchRooms(); fetchPeers(); }, 10000);
+    const interval = setInterval(() => { 
+  fetchRooms(); 
+  fetchPeers(); 
+}, activeRoom ? 30000 : 10000);
     return () => clearInterval(interval);
-  }, [fetchRooms, fetchRequests, fetchPeers]);
+  }, [fetchRooms, fetchRequests, fetchPeers,activeRoom]);
 
   // ============================================================
   // WEB SOCKET WITH AUTO-RECONNECT
