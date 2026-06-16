@@ -194,9 +194,7 @@ useEffect(() => {
 // Restore active room when rooms load
 useEffect(() => {
   const savedRoomId = localStorage.getItem('sasl_active_mesh_room');
-   console.log('🟢 RESTORE CHECK: savedRoomId =', savedRoomId);
-  console.log('🟢 RESTORE CHECK: rooms.length =', rooms.length);
-  console.log('🟢 RESTORE CHECK: activeRoom =', activeRoom);
+  
   if (savedRoomId && rooms.length > 0 && !activeRoom) {
     const found = rooms.find(r => r.id === savedRoomId);
     if (found) {
