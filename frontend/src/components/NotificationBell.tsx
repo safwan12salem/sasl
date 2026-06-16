@@ -46,15 +46,29 @@ export default function NotificationBell() {
     return localStorage.getItem('sasl_notification_sound') !== 'off';
   });
 
-  const playNotificationSound = () => {
+     const playNotificationSound = () => {
     if (!soundEnabled) return;
     try {
-      const audio = new Audio('/notification.mp3');
-      audio.volume = 0.5;
-      audio.play().catch(() => {});
-    } catch {}
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(ctx.destination);
+      
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(800, ctx.currentTime);
+      oscillator.frequency.setValueAtTime(1000, ctx.currentTime + 0.1);
+      
+      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.0);
+      
+      oscillator.start(ctx.currentTime);
+      oscillator.stop(ctx.currentTime + 1.0);
+    } catch (err) {
+      // Silent fallback
+    }
   };
-
     useEffect(() => {
     if (!user) return;
     fetchNotifications();
@@ -122,6 +136,9 @@ export default function NotificationBell() {
       const data = res.data.results || res.data || [];
       setNotifications(data);
       setUnreadCount(data.filter((n: Notification) => !n.is_read).length);
+      if (unreadCount > 0 && soundEnabled) {
+        setTimeout(() => playNotificationSound(), 500);
+      }
     } catch {} finally { 
       setLoading(false); 
     }
