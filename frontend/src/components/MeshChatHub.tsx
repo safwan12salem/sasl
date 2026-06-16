@@ -181,21 +181,21 @@ export default function MeshChatHub() {
 
 
 
-// Save active room to localStorage
 useEffect(() => {
   if (activeRoom) {
     localStorage.setItem('sasl_active_mesh_room', activeRoom.id);
-  } else {
-    localStorage.removeItem('sasl_active_mesh_room');
   }
+  // Only delete when user explicitly leaves — handled in leaveRoom
 }, [activeRoom]);
-
  
 
 
 // Restore active room when rooms load
 useEffect(() => {
   const savedRoomId = localStorage.getItem('sasl_active_mesh_room');
+   console.log('🟢 RESTORE CHECK: savedRoomId =', savedRoomId);
+  console.log('🟢 RESTORE CHECK: rooms.length =', rooms.length);
+  console.log('🟢 RESTORE CHECK: activeRoom =', activeRoom);
   if (savedRoomId && rooms.length > 0 && !activeRoom) {
     const found = rooms.find(r => r.id === savedRoomId);
     if (found) {
@@ -212,7 +212,6 @@ useEffect(() => {
 }, [rooms]);
 
 
-// Reconnect WebSocket when activeRoom is restored
 useEffect(() => {
   if (activeRoom && activeRoom.room_id) {
     const isLocal = window.location.hostname === 'localhost';
@@ -246,7 +245,8 @@ useEffect(() => {
     
     return () => { ws.close(); };
   }
-}, [activeRoom?.id]);
+}, [activeRoom?.room_id , token]);
+
 
 
 useEffect(() => {
@@ -350,16 +350,20 @@ const fetchRooms = useCallback(async () => {
   }, []);
 
   useEffect(() => {
-    fetchRooms();
-    fetchRequests();
-    fetchPeers();
-    const interval = setInterval(() => { 
-  fetchRooms(); 
-  fetchPeers(); 
-}, activeRoom ? 30000 : 10000);
-    return () => clearInterval(interval);
-  }, [fetchRooms, fetchRequests, fetchPeers,activeRoom]);
-
+  fetchRooms();
+  fetchRequests();
+  fetchPeers();
+  
+  // Only poll when NO active room — prevents disruption
+  const interval = setInterval(() => { 
+    if (!activeRoomRef.current) {
+      fetchRooms(); 
+      fetchPeers(); 
+    }
+  }, 30000);
+  
+  return () => clearInterval(interval);
+}, []);
   // ============================================================
   // WEB SOCKET WITH AUTO-RECONNECT
   // ============================================================
@@ -433,6 +437,7 @@ const fetchRooms = useCallback(async () => {
   // ============================================================
   const openRoom = async (room: ChatRoom) => {
     setActiveRoom(room);
+    localStorage.setItem('sasl_active_mesh_room', room.id);
     activeRoomRef.current = room;
     setConnecting(true);
     setShowMobileSidebar(false);
@@ -687,7 +692,7 @@ const fetchRooms = useCallback(async () => {
             <div className="p-5 border-b border-gray-100 dark:border-gray-800">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent flex items-center gap-2">
-                  <Zap size={24} className="text-green-500" /> WaveMesh
+                  <Zap size={24} className="text-green-500" />{t('WaveMesh')}
                 </h2>
                 <Sparkles size={20} className="text-amber-400 animate-pulse" />
               </div>
@@ -940,6 +945,18 @@ const fetchRooms = useCallback(async () => {
                   <button onClick={copyInviteCode} className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition text-gray-500" title={t('Copy invite code')}><Copy size={18} /></button>
                 )}
                 <button onClick={() => setShowInviteModal(true)} className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition text-gray-500" title={t('Invite')}><UserPlus size={18} /></button>
+                <button 
+  onClick={() => {
+    setActiveRoom(null);
+    activeRoomRef.current = null;
+    localStorage.removeItem('sasl_active_mesh_room');
+    setMessages([]);
+    setShowMobileSidebar(true);
+  }} 
+  className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition text-gray-500" 
+  title="Close chat (stay in room)">
+  <X size={18} />
+</button>
                 <button onClick={() => leaveRoom(activeRoom.id)} className="p-2.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition text-red-400" title={t('Leave')}><LogOut size={18} /></button>
               </div>
             </div>
