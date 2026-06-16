@@ -259,19 +259,42 @@ useEffect(() => {
     meshStartedRef.current = true;
   }
   
-   const handleMessage = (msg: any, route?: string) => {
+     const handleMessage = (msg: any, route?: string) => {
     // Route label for UI
     const routeLabel = route === 'direct' ? '⚡P2P' : route === 'echo' ? '🔄Relay' : '';
     
-    if (msg.type === 'chat_message' || msg.type === 'global_message' || (msg.data && msg.data.type === 'chat_message')) {
-      const messageData = msg.data || msg;
+    // Handle different message formats from different mesh layers
+    let messageData: any = null;
+    
+    if (msg.type === 'chat_message') {
+      messageData = msg.message || msg;
+    } else if (msg.type === 'global_message') {
+      messageData = msg.data?.message || msg.data || msg;
+    } else if (msg.data?.type === 'chat_message') {
+      messageData = msg.data.message || msg.data;
+    } else if (msg.type === 'echo_message' || msg.data) {
+      // Echo relay message
+      messageData = msg.data?.message || msg.data || msg;
+    }
+    
+    if (messageData) {
       setMessages(prev => {
-        const exists = prev.some(m => m.id === messageData?.message?.id || m.id === messageData?.id);
+        const msgId = messageData?.id || messageData?.message?.id;
+        const exists = msgId ? prev.some(m => m.id === msgId) : false;
         if (exists) return prev;
-        const newMsg = {
-          ...(messageData.message || messageData),
-          content: routeLabel ? `${routeLabel} ${messageData.message?.content || messageData.content || ''}` : (messageData.message?.content || messageData.content || '')
+        
+        const newMsg: ChatMessage = {
+          id: msgId || `msg_${Date.now()}`,
+          content: messageData?.content || messageData?.message?.content || '',
+          message_type: messageData?.message_type || 'text',
+          sender: messageData?.sender || { id: '', username: msg.sender || '', avatar_url: null },
+          created_at: messageData?.created_at || new Date().toISOString(),
+          reactions: messageData?.reactions || {},
+          room: messageData?.room || messageData?.room_id || activeRoom?.room_id || '',
+          file_url: messageData?.file_url,
+          file_name: messageData?.file_name,
         };
+        
         return [...prev, newMsg];
       });
       scrollToBottom();
@@ -501,8 +524,7 @@ const fetchRooms = useCallback(async () => {
 
   // ============================================================
   // MESSAGE ACTIONS
-  // ============================================================
-  const sendMessage = async () => {
+    const sendMessage = async () => {
     if (!input.trim() || !activeRoom) return;
     const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const msg: ChatMessage = {
@@ -519,21 +541,32 @@ const fetchRooms = useCallback(async () => {
     inputRef.current?.focus();
     scrollToBottom();
 
-   
+    // 1. Try direct WebSocket (same device/localhost)
     if (wsRef.current?.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ type: 'chat_message', room_id: activeRoom.room_id, message: msg, sender: myUsername }));
     }
 
-        // Fallback: send via offline mesh if WebSocket fails
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      offlineMesh.broadcast({
+    // 2. Broadcast via BroadcastChannel (same device, different tabs)
+    offlineMesh.broadcast({
+      type: 'chat_message',
+      room_id: activeRoom.room_id,
+      message: msg,
+      sender: myUsername,
+    });
+
+    // 3. Send via global Echo mesh (cross-device, works offline with queue)
+    const otherUser = activeRoom.other_user?.username || activeRoom.name?.replace(` & ${myUsername}`, '').replace(`${myUsername} & `, '');
+    if (otherUser) {
+      globalMesh.sendMessage(otherUser, {
         type: 'chat_message',
         room_id: activeRoom.room_id,
         message: msg,
         sender: myUsername,
-      });
+        room_name: activeRoom.name
+      }).catch(() => {});
     }
 
+    // 4. Try HTTP API (persists to server when online)
     api.post(`/mesh/rooms/${activeRoom.id}/send_message/`, { content: input, message_type: 'text' }).catch(() => { });
   };
 
