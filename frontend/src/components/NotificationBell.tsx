@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { subscribeToNotifications } from '../services/supabase';
+
 import { useTranslation } from 'react-i18next';
 
 interface Notification {
@@ -55,7 +55,7 @@ export default function NotificationBell() {
     } catch {}
   };
 
-  useEffect(() => {
+    useEffect(() => {
     if (!user) return;
     fetchNotifications();
     connectWebSocket();
@@ -65,16 +65,9 @@ export default function NotificationBell() {
         setOpen(false);
       }
     };
-    
-    const subscription = subscribeToNotifications((payload) => {
-      setNotifications(prev => [payload.new, ...prev]);
-      setUnreadCount(prev => prev + 1);
-      playNotificationSound();
-    });
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      subscription.unsubscribe();
       document.removeEventListener('mousedown', handleClickOutside);
       wsRef.current?.close();
     };
@@ -111,7 +104,10 @@ export default function NotificationBell() {
       };
       
       ws.onerror = () => console.log('🔔 WebSocket error — falling back to polling');
-      ws.onclose = () => console.log('🔔 Notification WebSocket closed');
+      ws.onclose = () => {
+  console.log('🔔 Notification WebSocket closed — reconnecting in 5s');
+  setTimeout(connectWebSocket, 5000);
+};
       
       wsRef.current = ws;
     } catch (err) {

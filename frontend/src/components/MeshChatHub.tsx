@@ -137,6 +137,7 @@ export default function MeshChatHub() {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const activeRoomRef = useRef<ChatRoom | null>(null);
+    const meshStartedRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [justSent, setJustSent] = useState(false);
@@ -252,10 +253,13 @@ useEffect(() => {
 useEffect(() => {
   if (!myUsername) return;
   
-  offlineMesh.start(myUsername);
-  setMeshActive(true);
+  if (!meshStartedRef.current) {
+    offlineMesh.start(myUsername);
+    setMeshActive(true);
+    meshStartedRef.current = true;
+  }
   
-  offlineMesh.onMessage((msg: any) => {
+  const handleMessage = (msg: any) => {
     if (msg.type === 'chat_message') {
       setMessages(prev => {
         const exists = prev.some(m => m.id === msg.message?.id);
@@ -264,17 +268,16 @@ useEffect(() => {
       });
       scrollToBottom();
     }
-  });
+  };
+  
+  offlineMesh.onMessage(handleMessage);
   
   offlineMesh.onPeerUpdate(() => {
     setMeshPeers(offlineMesh.getPeers());
   });
   
-  return () => {
-    offlineMesh.stop();
-  };
+  // No cleanup — mesh persists for full app lifetime
 }, [myUsername]);
-
 
 // ============================================================
 // DATA FETCHING

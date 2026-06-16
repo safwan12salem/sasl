@@ -188,8 +188,21 @@ class SaslBrain {
      async initialize() {
     try {
       // Original WebGL initialization code
-      await tf.setBackend('webgl');
-      await tf.ready();
+      // Try WebGL, fall back to CPU silently
+      try {
+        await tf.setBackend('webgl');
+        await tf.ready();
+      } catch (webglError) {
+        // Suppress TensorFlow WebGL warnings
+        const originalWarn = console.warn;
+        console.warn = (...args: any[]) => {
+          if (args[0]?.includes?.('webgl') || args[0]?.includes?.('WebGL')) return;
+          originalWarn.apply(console, args);
+        };
+        await tf.setBackend('cpu');
+        await tf.ready();
+        console.warn = originalWarn;
+      }
       console.log('🧠 Sasl Brain initialized – ready to help!');
     } catch (e) {
       console.log('WebGL not available, using CPU backend');
