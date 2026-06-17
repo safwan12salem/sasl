@@ -1011,6 +1011,17 @@
   "No brand campaigns available yet": "Nenhuma campanha de marca está disponível",
   "No content yet": "Nenhum conteúdo ainda",
   "Apply to brand campaigns above!": "Aplique-se às campanhas de marca acima!",
-  "Leaderboard": "Quadro de Liderança"
+  "Leaderboard": "Quadro de Liderança",
+
+
+  
+  "Creator Studio": "Estúdio do Criador",
+  "waiting_for_speakers": "aguardando oradores",
+  "raise_your_hand_to_speak": "levante a mão para falar",
+  "people_here": "pessoas aqui",
+  "you_are_muted": "você está silenciado",
+  "you_are_speaking": "você está falando",
+  "hand_raised_waiting": "mão levantada, aguardando"
+
 
 }

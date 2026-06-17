@@ -1006,6 +1006,15 @@
   "No brand campaigns available yet": "Halihazırda herhangi bir marka kampanyası bulunmuyor",
   "No content yet": "Halihazırda içerik bulunmuyor",
   "Apply to brand campaigns above!": "Üstte belirtilen marka kampanyalarına başvurun!",
-  "Leaderboard": "Reyting Tablosu"
+  "Leaderboard": "Reyting Tablosu",
+  
+  "Creator Studio": "Yaratıcı Stüdyosu",
+  "waiting_for_speakers": "konuşmacıları bekliyor",
+  "raise_your_hand_to_speak": "konuşmak için elinizi kaldırın",
+  "people_here": "burada kişiler",
+  "you_are_muted": "sessize alındınız",
+  "you_are_speaking": "konuşuyorsunuz",
+  "hand_raised_waiting": "el kaldırıldı, bekleniyor"
+
 
 }

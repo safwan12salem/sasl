@@ -953,6 +953,17 @@
   "AI Assistant": "AI 어시스턴트",
   "All working offline": "모든 기능 오프라인 작동",
   "Get Started": "시작하기",
-  "Social Async Sharing Layer": "비동기 소셜 공유 계층"
+  "Social Async Sharing Layer": "비동기 소셜 공유 계층",
+
+
+  
+  "Creator Studio": "크리에이터 스튜디오",
+  "waiting_for_speakers": "연사 기다리는 중",
+  "raise_your_hand_to_speak": "말하려면 손 들어주세요",
+  "people_here": "여기 사람들",
+  "you_are_muted": "음소거됨",
+  "you_are_speaking": "말하고 있습니다",
+  "hand_raised_waiting": "손 들어 기다림"
+
 
 }

@@ -1079,7 +1079,14 @@
   "AI Assistant": "Asistente IA",
   "All working offline": "Todo funciona sin conexión",
   "Get Started": "Comenzar",
-  "Social Async Sharing Layer": "Capa de Compartición Asíncrona Social"
+  "Social Async Sharing Layer": "Capa de Compartición Asíncrona Social",
+    "Creator Studio": "Estudio de Creador",
+  "waiting_for_speakers": "esperando ponentes",
+  "raise_your_hand_to_speak": "levanta la mano para hablar",
+  "people_here": "personas aquí",
+  "you_are_muted": "estás silenciado",
+  "you_are_speaking": "estás hablando",
+  "hand_raised_waiting": "mano levantada esperando"
 
 
 }

@@ -1035,6 +1035,19 @@
   "AI Assistant": "Assistant IA",
   "All working offline": "Tout fonctionne hors ligne",
   "Get Started": "Commencer",
-  "Social Async Sharing Layer": "Couche de partage social asynchrone"
+  "Social Async Sharing Layer": "Couche de partage social asynchrone",
+
+
+
+
+  
+  "Creator Studio": "Studio du Créateur",
+  "waiting_for_speakers": "attente des intervenants",
+  "raise_your_hand_to_speak": "Levez la main pour parler",
+  "people_here": "personnes ici",
+  "you_are_muted": "vous êtes en sourdine",
+  "you_are_speaking": "vous parlez",
+  "hand_raised_waiting": "main levée, en attente"
+
 
 }

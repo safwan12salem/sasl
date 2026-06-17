@@ -1036,6 +1036,18 @@
   "AI Assistant": "KI-Assistent",
   "All working offline": "Alles funktioniert offline",
   "Get Started": "Loslegen",
-  "Social Async Sharing Layer": "Asynchrones soziales Teilen Layer"
+  "Social Async Sharing Layer": "Asynchrones soziales Teilen Layer",
+
+
+
+  
+  "Creator Studio": "Creator Studio",
+  "waiting_for_speakers": "Warten auf Redner",
+  "raise_your_hand_to_speak": "Heben Sie die Hand, um zu sprechen",
+  "people_here": "Menschen hier",
+  "you_are_muted": "Sie sind stummgeschaltet",
+  "you_are_speaking": "Sie sprechen",
+  "hand_raised_waiting": "Hand gehoben, wartet"
+
 
 }

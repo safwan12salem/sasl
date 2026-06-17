@@ -927,6 +927,18 @@
   "No brand campaigns available yet": "まだブランドキャンペーンはありません",
   "No content yet": "まだコンテンツはありません",
   "Apply to brand campaigns above!": "上にあるブランドキャンペーンに申し込んでください!",
-  "Leaderboard": "リーダーボード"
+  "Leaderboard": "リーダーボード",
+
+
+
+  
+  "Creator Studio": "クリエイタースタジオ",
+  "waiting_for_speakers": "話す人を待っています",
+  "raise_your_hand_to_speak": "話すために手を挙げてください",
+  "people_here": "ここに人がいます",
+  "you_are_muted": "ミュートされています",
+  "you_are_speaking": "話しています",
+  "hand_raised_waiting": "手を挙げて待っています"
+
 
 }

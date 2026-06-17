@@ -1009,6 +1009,18 @@
   "No brand campaigns available yet": "Нет доступных маркетинговых кампаний",
   "No content yet": "Нет контента",
   "Apply to brand campaigns above!": "Примите участие в маркетинговых кампаниях на верхнем экране!",
-  "Leaderboard": "Таблица лидеров"
+  "Leaderboard": "Таблица лидеров",
+
+
+
+  
+  "Creator Studio": "Студия Создателя",
+  "waiting_for_speakers": "ожидание докладчиков",
+  "raise_your_hand_to_speak": "поднимите руку, чтобы говорить",
+  "people_here": "люди здесь",
+  "you_are_muted": "вы отключены",
+  "you_are_speaking": "вы говорите",
+  "hand_raised_waiting": "рука поднята, ожидает"
+
 
 }

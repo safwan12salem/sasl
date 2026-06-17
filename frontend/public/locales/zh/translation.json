@@ -952,6 +952,16 @@
   "AI Assistant": "AI助手",
   "All working offline": "全部离线工作",
   "Get Started": "开始使用",
-  "Social Async Sharing Layer": "异步社交分享层"
+  "Social Async Sharing Layer": "异步社交分享层",
+
+  
+  "Creator Studio": "创作者工作室",
+  "waiting_for_speakers": "等待发言者",
+  "raise_your_hand_to_speak": "举手发言",
+  "people_here": "这里有人",
+  "you_are_muted": "你已静音",
+  "you_are_speaking": "你正在发言",
+  "hand_raised_waiting": "举手等待"
+
 
 }

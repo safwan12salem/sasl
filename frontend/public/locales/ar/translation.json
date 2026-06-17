@@ -1034,7 +1034,19 @@
   "AI Assistant": "مساعد الذكاء الاصطناعي",
   "All working offline": "كلها تعمل بدون اتصال",
   "Get Started": "ابدأ",
-  "Social Async Sharing Layer": "طبقة المشاركة الاجتماعية غير المتزامنة"
+  "Social Async Sharing Layer": "طبقة المشاركة الاجتماعية غير المتزامنة",
+
+
+
+  
+  "Creator Studio": "استوديو المبدع",
+  "waiting_for_speakers": "في انتظار المتحدثين",
+  "raise_your_hand_to_speak": "ارفع يدك لتتحدث",
+  "people_here": "ناس هنا",
+  "you_are_muted": "أنت مكتوم",
+  "you_are_speaking": "أنت تتحدث",
+  "hand_raised_waiting": "يد مرفوعة، في الانتظار"
+
 
 
 }
