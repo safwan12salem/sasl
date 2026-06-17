@@ -187,50 +187,203 @@ export default function LiveAudio() {
         </AnimatePresence>
       </div>
 
-      {/* In-Room UI */}
+           {/* In-Room UI — Full-Screen Immersive Room */}
       <AnimatePresence>
         {inRoom && (
-          <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }}
-            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-            <div className="glass-card rounded-full shadow-2xl px-6 py-3 flex items-center gap-3 border-2 border-purple-200">
-              <div className="flex -space-x-2">
-                {speakers.slice(0, 3).map((s, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
-                    {s.user.username[0]?.toUpperCase()}
-                  </div>
-                ))}
-              </div>
-              <span className="text-sm font-semibold">{listenerCount} {t('listening')}</span>
-              <div className="flex items-center gap-1">
-                <button onClick={toggleMute} className={`p-2.5 rounded-full transition ${isMuted ? 'bg-red-500 text-white' : 'bg-green-500 text-white'}`}>
-                  {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
-                </button>
-                {!isSpeaker && (
-                  <button onClick={raiseHand} className={`p-2.5 rounded-full transition ${handRaised ? 'bg-yellow-500 text-white' : 'bg-gray-200'}`}>
-                    <Hand size={18} />
-                  </button>
-                )}
-                <button onClick={() => setShowReactions(!showReactions)} className="p-2.5 rounded-full bg-gray-200 hover:bg-gray-300">
-                  <Smile size={18} />
-                </button>
-                <button onClick={() => leaveRoom(inRoom)} className="p-2.5 rounded-full bg-red-500 text-white">
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex flex-col"
+          >
+            {/* Room Header */}
+            <div className="px-4 py-3 flex items-center justify-between border-b border-white/10">
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => leaveRoom(inRoom)} 
+                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition text-white"
+                >
                   <Phone size={18} className="rotate-[135deg]" />
                 </button>
+                <div>
+                  <h3 className="text-white font-bold text-lg">
+                    {rooms.find(r => r.id === inRoom)?.title || 'Live Audio'}
+                  </h3>
+                  <p className="text-purple-300 text-xs flex items-center gap-1">
+                    <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                    {listenerCount} {t('listening')}
+                  </p>
+                </div>
               </div>
+              <button 
+                onClick={() => setShowInvite(true)} 
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition text-white"
+              >
+                <UserPlus size={18} />
+              </button>
             </div>
-            <AnimatePresence>
-              {showReactions && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 glass-card rounded-2xl shadow-xl p-2 flex gap-1">
-                  {REACTIONS.map(emoji => (
-                    <button key={emoji} onClick={() => { sendReaction(emoji); setShowReactions(false); }}
-                      className="p-2 hover:bg-gray-100 rounded-xl text-xl transition hover:scale-125">
-                      {emoji}
-                    </button>
-                  ))}
+
+            {/* Speaker Stage */}
+            <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+              {/* Main Speaker (Host) */}
+              {speakers.length > 0 && (
+                <motion.div 
+                  animate={{ scale: [1, 1.02, 1] }} 
+                  transition={{ duration: 3, repeat: Infinity }}
+                  className="relative mb-8"
+                >
+                  <div className="w-28 h-28 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-1 shadow-2xl shadow-purple-500/30">
+                    <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center text-white text-3xl font-bold border-4 border-purple-400/50">
+                      {speakers[0].user.username[0]?.toUpperCase()}
+                      <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-gray-900" />
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+                    <Crown size={10} /> @{speakers[0].user.username}
+                  </div>
+                  {speakers[0].is_muted && (
+                    <div className="absolute top-0 right-0 bg-red-500 rounded-full p-1.5 shadow-lg">
+                      <MicOff size={14} className="text-white" />
+                    </div>
+                  )}
                 </motion.div>
               )}
-            </AnimatePresence>
+
+              {/* Other Speakers Grid */}
+              {speakers.length > 1 && (
+                <div className="flex flex-wrap justify-center gap-4 mb-8">
+                  {speakers.slice(1, 6).map((s, i) => (
+                    <motion.div 
+                      key={i} 
+                      initial={{ opacity: 0, y: 20 }} 
+                      animate={{ opacity: 1, y: 0 }} 
+                      transition={{ delay: i * 0.1 }}
+                      className="relative"
+                    >
+                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 p-0.5 shadow-lg">
+                        <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center text-white text-xl font-bold border-2 border-blue-400/30">
+                          {s.user.username[0]?.toUpperCase()}
+                        </div>
+                      </div>
+                      <p className="text-white/70 text-xs text-center mt-1">@{s.user.username}</p>
+                      {s.is_muted && (
+                        <div className="absolute top-0 right-0 bg-red-500 rounded-full p-1">
+                          <MicOff size={10} className="text-white" />
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+
+              {/* No Speakers Yet */}
+              {speakers.length === 0 && (
+                <motion.div 
+                  animate={{ y: [0, -8, 0] }} 
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-center mb-8"
+                >
+                  <div className="w-24 h-24 mx-auto rounded-full bg-white/5 flex items-center justify-center mb-4">
+                    <Mic size={40} className="text-purple-400" />
+                  </div>
+                  <p className="text-white/60 text-lg">{t('waiting_for_speakers')}</p>
+                  <p className="text-white/40 text-sm mt-1">{t('raise_your_hand_to_speak')}</p>
+                </motion.div>
+              )}
+
+              {/* Listener Count */}
+              <div className="flex items-center gap-2 text-white/40 mb-6">
+                <Users size={16} />
+                <span className="text-sm">{listenerCount} {t('people_here')}</span>
+                {handRaised && (
+                  <span className="bg-yellow-500/20 text-yellow-400 text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Hand size={10} /> {t('hand_raised')}
+                  </span>
+                )}
+              </div>
+
+              {/* Floating Reactions in Room */}
+              <div className="absolute top-1/2 left-0 right-0 pointer-events-none">
+                <AnimatePresence>
+                  {floatingReactions.map(r => (
+                    <motion.div 
+                      key={r.id} 
+                      initial={{ opacity: 1, y: 0, scale: 1 }} 
+                      animate={{ opacity: 0, y: -200, scale: 2 }} 
+                      exit={{ opacity: 0 }} 
+                      transition={{ duration: 2.5 }}
+                      className="absolute text-5xl" 
+                      style={{ left: `${r.x}%` }}
+                    >
+                      {r.emoji}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Bottom Controls */}
+            <div className="px-4 py-4 border-t border-white/10 bg-black/20 backdrop-blur-xl">
+              {/* Reactions Quick Bar */}
+              <div className="flex justify-center gap-3 mb-4">
+                {REACTIONS.map(emoji => (
+                  <motion.button 
+                    key={emoji} 
+                    whileTap={{ scale: 1.4 }} 
+                    onClick={() => sendReaction(emoji)}
+                    className="text-2xl hover:scale-125 transition-transform"
+                  >
+                    {emoji}
+                  </motion.button>
+                ))}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-center gap-4">
+                {/* Mute/Unmute */}
+                <motion.button 
+                  whileTap={{ scale: 0.9 }} 
+                  onClick={toggleMute} 
+                  className={`p-4 rounded-full transition-all shadow-lg ${
+                    isMuted 
+                      ? 'bg-red-500 text-white shadow-red-500/30' 
+                      : 'bg-green-500 text-white shadow-green-500/30'
+                  }`}
+                >
+                  {isMuted ? <MicOff size={24} /> : <Mic size={24} />}
+                </motion.button>
+
+                {/* Raise Hand */}
+                {!isSpeaker && (
+                  <motion.button 
+                    whileTap={{ scale: 0.9 }} 
+                    onClick={raiseHand} 
+                    className={`p-4 rounded-full transition-all shadow-lg ${
+                      handRaised 
+                        ? 'bg-yellow-500 text-white shadow-yellow-500/30' 
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    <Hand size={24} />
+                  </motion.button>
+                )}
+
+                {/* Leave */}
+                <motion.button 
+                  whileTap={{ scale: 0.9 }} 
+                  onClick={() => leaveRoom(inRoom)} 
+                  className="p-4 rounded-full bg-red-500 text-white shadow-lg shadow-red-500/30 hover:bg-red-600 transition"
+                >
+                  <Phone size={24} className="rotate-[135deg]" />
+                </motion.button>
+              </div>
+
+              {/* Mute Status */}
+              <p className="text-center text-white/40 text-xs mt-3">
+                {isMuted ? t('you_are_muted') : t('you_are_speaking')}
+                {handRaised && ` · ${t('hand_raised_waiting')}`}
+              </p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

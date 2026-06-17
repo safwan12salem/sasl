@@ -578,7 +578,7 @@ const Feed: React.FC = () => {
       {/* Composer */}
       <div className="bg-white rounded-2xl shadow p-4 mb-6">
         <textarea
-          className="w-full border-none outline-none resize-none text-lg placeholder-gray-400"
+         className="w-full border-none outline-none resize-none text-lg placeholder-gray-400 dark:bg-transparent dark:text-white dark:placeholder-gray-500"
           placeholder={t('whats_happening')}
           value={composing}
           onChange={e => setComposing(e.target.value)}
