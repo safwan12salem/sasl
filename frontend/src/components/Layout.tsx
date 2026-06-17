@@ -59,21 +59,9 @@ export default function Layout() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl animate-pulse" />
       </div>
 
-      {/* Mobile Hamburger Button */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700"
-      >
-        {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
-      </button>
+      
 
-      {/* Overlay for mobile when sidebar is open */}
-      {sidebarOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 bg-black/50 z-30"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+     
 
             <aside className={`w-72 p-4 flex flex-col shadow-2xl z-40 border-r transition-all duration-300 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
@@ -199,7 +187,19 @@ export default function Layout() {
       {/* Main content area */}
       <div className="flex-1 flex flex-col relative bg-transparent w-full">
         {/* Sticky top header */}
-        <header className="sticky top-0 z-10 flex justify-between items-center px-6 py-3 glass border-b border-white/10">
+        <header className="sticky top-0 z-10 flex justify-between items-center px-3 lg:px-6 py-3 glass border-b border-white/10">
+  <div className="flex items-center gap-2">
+    <button
+      onClick={() => setSidebarOpen(!sidebarOpen)}
+      className="lg:hidden p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+    >
+      {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
+    </button>
+    <div className="w-2 h-2 rounded-full bg-sasl-green animate-pulse" />
+    <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+      {isOnline ? t('online') : t('offline')}
+    </span>
+  </div>
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-sasl-green animate-pulse" />
             <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
@@ -211,6 +211,7 @@ export default function Layout() {
             <NotificationBell />
             <LanguageSwitcher />
           </div>
+
         </header>
 
         {/* Scrollable main */}
