@@ -75,8 +75,7 @@ export default function Layout() {
         />
       )}
 
-      {/* Sidebar */}
-      <aside className={`w-72 p-4 flex flex-col shadow-2xl z-40 relative border-r transition-all duration-300 ${
+            <aside className={`w-72 p-4 flex flex-col shadow-2xl z-40 border-r transition-all duration-300 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } lg:translate-x-0 fixed lg:relative h-full ${
         isDark 
