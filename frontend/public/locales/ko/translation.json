@@ -963,7 +963,42 @@
   "people_here": "여기 사람들",
   "you_are_muted": "음소거됨",
   "you_are_speaking": "말하고 있습니다",
-  "hand_raised_waiting": "손 들어 기다림"
+  "hand_raised_waiting": "손 들어 기다림",
+
+
+
+
+ 
+  "Crear Campaña": "캠페인 만들기",
+  "Creator Profile": "크리에이터 프로필",
+  "General": "일반",
+  "Price per Post ($)": "게시물당 가격 ($)",
+  "25.00": "25.00",
+  "Price per Video ($)": "영상당 가격 ($)",
+  "50.00": "50.00",
+  "0": "0",
+  "Audience": "청중",
+  "0%": "0%",
+  "Interacción": "상호작용",
+  "⏳": "⏳",
+  "Verified": "확인됨",
+  "Save Profile": "프로필 저장",
+  "plus the bar itself still in english": "그리고 바 자체는 여전히 영어로 되어 있음",
+  "Brand Deals": "브랜드 딜",
+  "My Content": "내 콘텐츠",
+  "Profile": "프로필",
+  "Messages": "메시지",
+
+
+
+
+  "Progress Hub": "진행 센터",
+  "Track your journey and earn rewards": "여정을 추적하고 보상을 받으세요",
+  "to next level": "다음 단계로",
+  "Rank": "순위",
+  "You": "당신"
+
+  
 
 
 }

@@ -1047,7 +1047,42 @@
   "people_here": "personnes ici",
   "you_are_muted": "vous êtes en sourdine",
   "you_are_speaking": "vous parlez",
-  "hand_raised_waiting": "main levée, en attente"
+  "hand_raised_waiting": "main levée, en attente",
+
+
+
+
+
+ 
+  "Crear Campaña": "Créer une campagne",
+  "Creator Profile": "Profil du Créateur",
+  "General": "Général",
+  "Price per Post ($)": "Prix par Publication ($)",
+  "25.00": "25,00",
+  "Price per Video ($)": "Prix par Vidéo ($)",
+  "50.00": "50,00",
+  "0": "0",
+  "Audience": "Audience",
+  "0%": "0%",
+  "Interacción": "Interaction",
+  "⏳": "⏳",
+  "Verified": "Vérifié",
+  "Save Profile": "Enregistrer le Profil",
+  "plus the bar itself still in english": "plus la barre elle-même toujours en anglais",
+  "Brand Deals": "Offres de Marque",
+  "My Content": "Mon Contenu",
+  "Profile": "Profil",
+  "Messages": "Messages",
+
+
+  
+  "Progress Hub": "Centre de progrès",
+  "Track your journey and earn rewards": "Suivez votre parcours et gagnez des récompenses",
+  "to next level": "jusqu'au niveau suivant",
+  "Rank": "Rang",
+  "You": "Vous"
+
+
 
 
 }

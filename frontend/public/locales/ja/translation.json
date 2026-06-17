@@ -938,7 +938,44 @@
   "people_here": "ここに人がいます",
   "you_are_muted": "ミュートされています",
   "you_are_speaking": "話しています",
-  "hand_raised_waiting": "手を挙げて待っています"
+  "hand_raised_waiting": "手を挙げて待っています",
+
+
+
+
+
+ 
+  "Crear Campaña": "キャンペーンを作成",
+  "Creator Profile": "クリエイタープロフィール",
+  "General": "一般",
+  "Price per Post ($)": "投稿ごとの価格（$）",
+  "25.00": "25.00",
+  "Price per Video ($)": "動画ごとの価格（$）",
+  "50.00": "50.00",
+  "0": "0",
+  "Audience": "視聴者",
+  "0%": "0%",
+  "Interacción": "インタラクション",
+  "⏳": "⏳",
+  "Verified": "認証済み",
+  "Save Profile": "プロフィールを保存",
+  "plus the bar itself still in english": "そしてバー自体はまだ英語のまま",
+  "Brand Deals": "ブランド取引",
+  "My Content": "私のコンテンツ",
+  "Profile": "プロフィール",
+  "Messages": "メッセージ",
+
+
+
+
+ 
+  "Progress Hub": "進捗ハブ",
+  "Track your journey and earn rewards": "あなたの旅を追跡し、報酬を獲得しましょう",
+  "to next level": "次のレベルへ",
+  "Rank": "ランク",
+  "You": "あなた"
+
+
 
 
 }

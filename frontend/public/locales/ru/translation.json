@@ -1020,7 +1020,16 @@
   "people_here": "люди здесь",
   "you_are_muted": "вы отключены",
   "you_are_speaking": "вы говорите",
-  "hand_raised_waiting": "рука поднята, ожидает"
+  "hand_raised_waiting": "рука поднята, ожидает",
+
+
+  
+  "Progress Hub": "Центр прогресса",
+  "Track your journey and earn rewards": "Отслеживайте ваше путешествие и зарабатывайте награды",
+  "to next level": "на следующий уровень",
+  "Rank": "Ранг",
+  "You": "Вы"
+
 
 
 }

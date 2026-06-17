@@ -961,7 +961,46 @@
   "people_here": "这里有人",
   "you_are_muted": "你已静音",
   "you_are_speaking": "你正在发言",
-  "hand_raised_waiting": "举手等待"
+  "hand_raised_waiting": "举手等待",
 
+
+
+  
+  "Crear Campaña": "创建活动",
+  "Creator Profile": "创作者资料",
+  "General": "常规",
+  "Price per Post ($)": "每帖价格（美元）",
+  "25.00": "25.00",
+  "Price per Video ($)": "每个视频价格（美元）",
+  "50.00": "50.00",
+  "0": "0",
+  "Audience": "受众",
+  "0%": "0%",
+  "Interacción": "互动",
+  "⏳": "⏳",
+  "Verified": "已验证",
+  "Save Profile": "保存资料",
+  "plus the bar itself still in english": "以及条栏本身仍为英语",
+  "Brand Deals": "品牌合作",
+  "My Content": "我的内容",
+  "Profile": "资料",
+  "Messages": "消息",
+
+
+
+
+ 
+  "Progress Hub": "进度中心",
+  "Track your journey and earn rewards": "追踪你的旅程并获得奖励",
+  "to next level": "到下一个等级",
+  "Rank": "排名",
+  "You": "你"
+
+
+
+
+
+
+  
 
 }

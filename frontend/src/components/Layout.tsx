@@ -10,7 +10,7 @@ import {
   LogOut, Wifi, WifiOff, Video, Camera, MessageCircle,
   Star, Briefcase, TrendingUp, Sparkles, Brain, DollarSign,
   Moon, Sun, Mic, Users,
-  Inbox
+  Inbox, Menu, X
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import PageTransition from './PageTransition';
@@ -27,7 +27,7 @@ export default function Layout() {
   const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
   const [showReferral, setShowReferral] = useState(false);
-  
+    const [sidebarOpen, setSidebarOpen] = useState(false);
   const navItems = [
     { to: '/', icon: Home, label: t('feed') },
     { to: '/meshchat', icon: MessageCircle, label: t('meshchat') },
@@ -50,7 +50,7 @@ export default function Layout() {
     { to: '/profile', icon: User, label: t('profile') },
   ];
 
-  return (
+    return (
     <div className="flex h-screen overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 -z-10 opacity-30 dark:opacity-20">
@@ -59,8 +59,26 @@ export default function Layout() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-purple-500/5 rounded-full blur-3xl animate-pulse" />
       </div>
 
+      {/* Mobile Hamburger Button */}
+      <button
+        onClick={() => setSidebarOpen(!sidebarOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700"
+      >
+        {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
+      </button>
+
+      {/* Overlay for mobile when sidebar is open */}
+      {sidebarOpen && (
+        <div 
+          className="lg:hidden fixed inset-0 bg-black/50 z-30"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className={`w-72 p-4 flex flex-col shadow-2xl z-20 relative border-r transition-colors duration-300 ${
+      <aside className={`w-72 p-4 flex flex-col shadow-2xl z-40 relative border-r transition-all duration-300 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } lg:translate-x-0 fixed lg:relative h-full ${
         isDark 
           ? 'bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 text-white border-white/5' 
           : 'bg-gradient-to-b from-white via-gray-50 to-white text-gray-900 border-gray-200'
@@ -79,6 +97,7 @@ export default function Layout() {
               <Link
                 key={to}
                 to={to}
+                onClick={() => setSidebarOpen(false)}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group relative ${
                   isActive
                     ? isDark 
@@ -179,7 +198,7 @@ export default function Layout() {
       </aside>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col relative bg-transparent">
+      <div className="flex-1 flex flex-col relative bg-transparent w-full lg:w-auto">
         {/* Sticky top header */}
         <header className="sticky top-0 z-10 flex justify-between items-center px-6 py-3 glass border-b border-white/10">
           <div className="flex items-center gap-2">

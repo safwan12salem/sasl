@@ -1086,7 +1086,31 @@
   "people_here": "personas aquí",
   "you_are_muted": "estás silenciado",
   "you_are_speaking": "estás hablando",
-  "hand_raised_waiting": "mano levantada esperando"
+  "hand_raised_waiting": "mano levantada esperando",
+
+
+
+  
+  "Crear Campaña": "Crear Campaña",
+  "Creator Profile": "Perfil del Creador",
+  "General": "General",
+  "Price per Post ($)": "Precio por Publicación ($)",
+  "25.00": "25.00",
+  "Price per Video ($)": "Precio por Video ($)",
+  "50.00": "50.00",
+  "0": "0",
+  "Audience": "Audiencia",
+  "0%": "0%",
+  "Interacción": "Interacción",
+  "⏳": "⏳",
+  "Verified": "Verificado",
+  "Save Profile": "Guardar Perfil",
+  "plus the bar itself still in english": "más la barra en sí misma todavía en inglés",
+  "Brand Deals": "Ofertas de Marca",
+  "My Content": "Mi Contenido",
+  "Profile": "Perfil",
+  "Messages": "Mensajes"
+
 
 
 }
