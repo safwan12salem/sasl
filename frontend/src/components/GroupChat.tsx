@@ -249,7 +249,7 @@ useEffect(() => {
   return (
     <div className="flex h-[calc(100vh-120px)] max-w-5xl mx-auto glass rounded-2xl overflow-hidden shadow-xl m-4">
       {/* Sidebar */}
-      <div className="w-72 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+      <div className="hidden lg:flex lg:w-72 border-r border-gray-200 dark:border-gray-700 flex flex-col">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <MessageCircle size={20} /> {t('groups')}
@@ -363,6 +363,24 @@ useEffect(() => {
             </motion.div>
           ))}
         </div>
+      </div>
+
+      {/* Chat Area */}
+            {/* Mobile Group Selector */}
+      <div className="lg:hidden p-3 border-b border-gray-200 dark:border-gray-700">
+        <select 
+          className="w-full p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-sm"
+          value={activeGroup || ''}
+          onChange={(e) => { 
+            setActiveGroup(e.target.value); 
+            fetchMessages(e.target.value); 
+          }}
+        >
+          <option value="">{t('select_group')}</option>
+          {groups.map(g => (
+            <option key={g.id} value={g.id}>{g.name}</option>
+          ))}
+        </select>
       </div>
 
       {/* Chat Area */}

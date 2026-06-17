@@ -194,7 +194,7 @@ export default function Reels() {
             <video ref={el => { videoRefs.current[idx] = el; }} src={reel.video_url} className="absolute inset-0 w-full h-full object-cover" loop muted autoPlay={idx === 0} playsInline onEnded={() => scrollTo(idx + 1)} />
             
             {/* VERTICAL BUTTONS - Right */}
-            <div className="absolute right-4 bottom-32 flex flex-col items-center gap-6 z-10">
+            <div className="absolute left-4 bottom-32 flex flex-col items-center gap-6 z-10">
               <button onClick={() => handleLike(reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-red-400 transition">
                 <Heart size={32} className={reel.liked_by_me ? 'fill-red-500 text-red-500' : 'text-white drop-shadow-lg'} />
                 <span className="text-xs font-semibold">{reel.likes_count}</span>
