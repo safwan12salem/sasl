@@ -16,7 +16,7 @@ from .serializers import (
     TutorProfileSerializer, TutoringSessionSerializer,
     SessionMaterialSerializer, WhiteboardSerializer, CertificateSerializer,TutoringChatMessageSerializer
 )
-from monetization.services import process_subscription_payment
+from monetization.services import process_subscription_payment, process_tutoring_payment
 from notifications.services import create_notification
 from django.contrib.auth import get_user_model
 from monetization.transaction_validator import validate_tutoring_payment
@@ -95,7 +95,7 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
             if not valid:
                 return error_response
             
-            success = process_subscription_payment(session.student, session.tutor, session.price)
+            success = process_tutoring_payment(session.student, session.tutor, session.price, session.subject)
             if not success:
                 return Response({'error': 'Payment failed'}, status=402)
         

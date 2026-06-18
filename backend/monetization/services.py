@@ -100,6 +100,32 @@ def process_subscription_payment(subscriber, creator, amount):
                                    description=f'Subscriber {subscriber.username}')
     return True
 
+
+# ---------------------------------------------------------------------
+# 2.5 TUTORING PAYMENT (10% fee)
+# ---------------------------------------------------------------------
+def process_tutoring_payment(student, tutor, amount, subject=''):
+    """10% platform fee on tutoring sessions."""
+    amount = Decimal(str(amount))
+    with transaction.atomic():
+        sw = Wallet.objects.select_for_update().get(user=student)
+        if sw.frozen or sw.balance < amount:
+            return False
+        sw.balance -= amount
+        sw.save()
+        tw = Wallet.objects.select_for_update().get(user=tutor)
+        fee = amount * Decimal('0.10')
+        net = amount - fee
+        tw.balance += net
+        tw.total_earned += net
+        tw.save()
+        Transaction.objects.create(user=student, amount=-amount, transaction_type='tutoring',
+                                   description=f'Tutoring session: {subject}')
+        Transaction.objects.create(user=tutor, amount=net, transaction_type='tutoring',
+                                   description=f'Tutoring from {student.username}: {subject}')
+    return True
+
+
 # ---------------------------------------------------------------------
 # 3. MARKETPLACE PURCHASE
 # ---------------------------------------------------------------------
