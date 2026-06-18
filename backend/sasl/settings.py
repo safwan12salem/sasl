@@ -377,12 +377,8 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 # File upload limits
 
-# Uploadcare for media storage (photos, videos, reels)
-UPLOADCARE_PUBLIC_KEY = os.environ.get('UPLOADCARE_PUBLIC_KEY', '')
-UPLOADCARE_SECRET_KEY = os.environ.get('UPLOADCARE_SECRET_KEY', '')
-if UPLOADCARE_PUBLIC_KEY:
-    DEFAULT_FILE_STORAGE = 'pyuploadcare.dj.storage.FileStorage'
-
+# Use local media storage (served by Whitenoise in production)
+DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
