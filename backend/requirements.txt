@@ -14,3 +14,4 @@ celery>=5.3
 redis>=5.0
 whitenoise>=6.5
 django-filter>=23.0
+dj-database-url>=0.5
