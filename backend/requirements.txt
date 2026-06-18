@@ -18,3 +18,4 @@ python-dotenv>=1.0
 redis>=5.0
 stripe>=7.0
 whitenoise>=6.5
+djangorestframework-simplejwt>=5.3
