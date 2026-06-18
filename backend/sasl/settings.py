@@ -309,6 +309,10 @@ CELERY_BEAT_SCHEDULE = {
 # ============================================================
 # LOGGING
 # ============================================================
+
+
+# LOGGING
+# ============================================================
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -323,16 +327,9 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'formatter': 'verbose',
         },
-        'file': {
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': BASE_DIR / 'logs/sasl.log',
-            'maxBytes': 1024*1024*5,  # 5 MB
-            'backupCount': 5,
-            'formatter': 'verbose',
-        },
     },
     'root': {
-        'handlers': ['console', 'file'],
+        'handlers': ['console'],
         'level': 'INFO' if IS_PRODUCTION else 'DEBUG',
     },
     'loggers': {
@@ -343,7 +340,6 @@ LOGGING = {
         },
     },
 }
-
 
 
 # ============================================================
