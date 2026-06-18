@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: sasl-api
+    env: python
+    region: frankfurt
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: cd backend && python manage.py migrate && daphne sasl.asgi:application --port $PORT --bind 0.0.0.0
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: sasl.settings
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.10.12
