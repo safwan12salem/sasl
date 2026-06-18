@@ -196,7 +196,8 @@ useEffect(() => {
 useEffect(() => {
   const savedRoomId = localStorage.getItem('sasl_active_mesh_room');
   
-  if (savedRoomId && rooms.length > 0 && !activeRoom) {
+  const wasActive = localStorage.getItem('sasl_mesh_was_active');
+if (savedRoomId && rooms.length > 0 && !activeRoom && wasActive === 'true') {
     const found = rooms.find(r => r.id === savedRoomId);
     if (found) {
       // Just set the room - the existing WebSocket connection logic will handle the rest
@@ -486,7 +487,9 @@ const fetchRooms = useCallback(async () => {
   // ============================================================
   const openRoom = async (room: ChatRoom) => {
     setActiveRoom(room);
+    localStorage.setItem('sasl_mesh_was_active', 'true');
     localStorage.setItem('sasl_active_mesh_room', room.id);
+    
     activeRoomRef.current = room;
     setConnecting(true);
     setShowMobileSidebar(false);
@@ -520,6 +523,7 @@ const fetchRooms = useCallback(async () => {
       setRooms(prev => prev.filter(r => r.id !== roomId));
       if (activeRoom?.id === roomId) {
         setActiveRoom(null);
+        localStorage.setItem('sasl_mesh_was_active', 'false');
         setMessages([]);
         wsRef.current?.close();
         setShowMobileSidebar(true);
@@ -1009,6 +1013,7 @@ const fetchRooms = useCallback(async () => {
   
     setMessages([]);
     setShowMobileSidebar(true);
+    localStorage.setItem('sasl_mesh_was_active', 'false');
   }} 
   className="p-2.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition text-gray-500" 
   title="Close chat (stay in room)">

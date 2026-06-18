@@ -200,12 +200,7 @@ export default function Layout() {
       {isOnline ? t('online') : t('offline')}
     </span>
   </div>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-sasl-green animate-pulse" />
-            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-              {isOnline ? t('online') : t('offline')}
-            </span>
-          </div>
+          
           <div className="flex items-center gap-3">
             <OnlineUsers />
             <NotificationBell />

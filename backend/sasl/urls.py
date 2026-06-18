@@ -41,8 +41,7 @@ urlpatterns = [
     path('api/creatorstudio/', include('creatorstudio.urls')),
     #path('api/payments/create-checkout/', payments_views.create_checkout_session, name='create-checkout'),
     #path('api/payments/withdraw/', payments_views.create_withdrawal, name='withdraw'),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 
 
