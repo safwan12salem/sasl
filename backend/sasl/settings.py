@@ -381,9 +381,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Use local media storage (served by Whitenoise in production)
 # Cloudinary storage for permanent media
-
-CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL', 'cloudinary://669761632114275:0j1i-oN6U2E1Emt_9TOkBrvDPLo@dwem1chqc')
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dwem1chqc',
+    'API_KEY': '669761632114275',
+    'API_SECRET': '0j1i-oN6U2E1Emt_9TOkBrvDPLo',
+}
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+
+
+
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
