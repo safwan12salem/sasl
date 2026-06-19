@@ -55,7 +55,7 @@ class PostSerializer(serializers.ModelSerializer):
 
     def get_media_url(self, obj):
         if obj.media and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.media.url)
+            return obj.media.url if obj.media else None
         return obj.media.url if obj.media else None
 
 class RecursiveCommentSerializer(serializers.ModelSerializer):
@@ -85,7 +85,7 @@ class StorySerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'media', 'media_url', 'media_type', 'expires_at', 'created_at', 'views_count']
     def get_media_url(self, obj):
         if obj.media and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.media.url)
+            return obj.media.url if obj.media else None
         return obj.media.url if obj.media else None
 
 class NotificationSerializer(serializers.ModelSerializer):
@@ -112,7 +112,7 @@ class ReelSerializer(serializers.ModelSerializer):
 
     def get_video_url(self, obj):
         if obj.video and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.video.url)
+            return obj.video.url if obj.video else None
         return obj.video.url if obj.video else None
 
     def get_liked_by_me(self, obj):

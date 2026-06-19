@@ -24,12 +24,12 @@ class SnapSerializer(serializers.ModelSerializer):
 
     def get_video_url(self, obj):
         if obj.video and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.video.url)
+            return obj.video.url if obj.video else None
         return obj.video.url if obj.video else None
 
     def get_image_url(self, obj):
         if obj.image and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.image.url)
+            return obj.image.url if obj.image else None
         return obj.image.url if obj.image else None
 
 
@@ -59,5 +59,5 @@ class SnapStorySerializer(serializers.ModelSerializer):
     
     def get_media_url(self, obj):
         if obj.media and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.media.url)
+            return obj.media.url if obj.media else None
         return obj.media.url if obj.media else None

@@ -51,7 +51,7 @@ class PortfolioSerializer(serializers.ModelSerializer):
     
     def get_image_url(self, obj):
         if obj.image and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.image.url)
+            return obj.image.url if obj.image else None
         return obj.image.url if obj.image else None
     
     def create(self, validated_data):
@@ -83,12 +83,12 @@ class GigSerializer(serializers.ModelSerializer):
 
     def get_creator_avatar(self, obj):
         if obj.creator.avatar and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.creator.avatar.url)
+            return obj.creator.avatar.url if obj.creator.avatar else None
         return None
 
     def get_taker_avatar(self, obj):
         if obj.taker and obj.taker.avatar and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.taker.avatar.url)
+            return obj.taker.avatar.url if obj.taker.avatar else None
         return None
 
     def get_average_rating(self, obj):
@@ -113,11 +113,11 @@ class GigChatMessageSerializer(serializers.ModelSerializer):
 
     def get_sender_avatar(self, obj):
         if obj.sender.avatar and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.sender.avatar.url)
+            return obj.sender.avatar.url if obj.sender.avatar else None
         return None
 
     def get_image_url(self, obj):
         if obj.image and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.image.url)
+            return obj.image.url if obj.image else None
         return None
 

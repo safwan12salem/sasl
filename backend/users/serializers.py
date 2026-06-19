@@ -41,7 +41,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         if obj.avatar:
             request = self.context.get('request')
             if request:
-                return request.build_absolute_uri(obj.avatar.url)
+                return obj.avatar.url if obj.avatar else None
             return obj.avatar.url
         return None
 

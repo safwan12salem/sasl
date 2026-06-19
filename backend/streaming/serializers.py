@@ -53,7 +53,7 @@ class StreamSessionSerializer(serializers.ModelSerializer):
 
     def get_thumbnail_url(self, obj):
         if obj.thumbnail and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.thumbnail.url)
+            return obj.thumbnail.url if obj.thumbnail else None
         return obj.thumbnail.url if obj.thumbnail else None
 
     def get_top_donors(self, obj):

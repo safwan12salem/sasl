@@ -25,7 +25,7 @@ class ProductReviewSerializer(serializers.ModelSerializer):
     
     def get_reviewer_avatar(self, obj):
         if obj.reviewer.avatar and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.reviewer.avatar.url)
+            return obj.reviewer.avatar.url if obj.reviewer.avatar else None
         return None
 
 
@@ -55,12 +55,12 @@ class ProductSerializer(serializers.ModelSerializer):
 
     def get_image_url(self, obj):
         if obj.image and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.image.url)
+            return obj.image.url if obj.image else None
         return obj.image.url if obj.image else None
 
     def get_seller_avatar(self, obj):
         if obj.seller.avatar and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.seller.avatar.url)
+            return obj.seller.avatar.url if obj.seller.avatar else None
         return None
 
     def get_is_wishlisted(self, obj):
@@ -87,7 +87,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     def get_product_image(self, obj):
         if obj.product.image and (request := self.context.get('request')):
-            return request.build_absolute_uri(obj.product.image.url)
+            return obj.product.image.url if obj.product.image else None
         return None
 
 
