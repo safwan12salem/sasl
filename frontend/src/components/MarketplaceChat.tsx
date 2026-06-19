@@ -38,7 +38,7 @@ export default function MarketplaceChat({ roomId, onClose }: Props) {
     const isLocal = window.location.hostname === 'localhost';
     const wsUrl = isLocal
       ? `ws://localhost:8000/ws/marketplace/${roomId}/?token=${token}`
-      : `wss://sasl.pythonanywhere.com/ws/marketplace/${roomId}/?token=${token}`;
+      : `wss://sasl-api-657z.onrender.com/ws/marketplace/${roomId}/?token=${token}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
     ws.onopen = () => setConnected(true);

@@ -38,7 +38,7 @@ export default function GigChat({ roomId, onClose }: Props) {
     const isLocal = window.location.hostname === 'localhost';
     const wsUrl = isLocal
       ? `ws://localhost:8000/ws/gig/${roomId}/?token=${token}`
-      : `wss://sasl.pythonanywhere.com/ws/gig/${roomId}/?token=${token}`;
+      : `wss://sasl-api-657z.onrender.com/ws/gig/${roomId}/?token=${token}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
     ws.onopen = () => setConnected(true);

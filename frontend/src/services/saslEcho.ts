@@ -232,7 +232,7 @@ class SaslEcho {
                       window.location.hostname === '127.0.0.1';
       const wsUrl = isLocal
         ? `ws://localhost:8000/ws/global/${this.peerId}/${this.region}/`
-        : `wss://sasl.pythonanywhere.com/ws/global/${this.peerId}/${this.region}/`;
+        : `wss://sasl-api-657z.onrender.com/ws/global/${this.peerId}/${this.region}/`;
       
       try {
         this.ws = new WebSocket(wsUrl);

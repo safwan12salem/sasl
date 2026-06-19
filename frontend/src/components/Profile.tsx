@@ -22,7 +22,7 @@ const getFullImageUrl = (url: string | null) => {
   if (!url) return null;
   if (url.startsWith('http')) return url;
   const base = process.env.NODE_ENV === 'production' 
-    ? 'https://sasl.pythonanywhere.com'
+    ? 'https://sasl-api-657z.onrender.com'
     : 'http://localhost:8000';
   return `${base}${url}`;
 };

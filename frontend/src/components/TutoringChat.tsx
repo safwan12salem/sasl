@@ -38,7 +38,7 @@ export default function TutoringChat({ roomId, onClose }: Props) {
     const isLocal = window.location.hostname === 'localhost';
     const wsUrl = isLocal
       ? `ws://localhost:8000/ws/tutoring/${roomId}/?token=${token}`
-      : `wss://sasl.pythonanywhere.com/ws/tutoring/${roomId}/?token=${token}`;
+      : `wss://sasl-api-657z.onrender.com/ws/tutoring/${roomId}/?token=${token}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
     ws.onopen = () => setConnected(true);

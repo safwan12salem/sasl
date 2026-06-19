@@ -51,7 +51,7 @@ export default function WebRTCPrivateChat({ roomId, onClose }: Props) {
   : `private_${roomId}`;
 const wsUrl = isLocal
   ? `ws://localhost:8000/ws/video/${wsRoomId}/?token=${token}`
-  : `wss://sasl.pythonanywhere.com/ws/video/${wsRoomId}/?token=${token}`;
+  : `wss://sasl-api-657z.onrender.com/ws/video/${wsRoomId}/?token=${token}`;
     
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;

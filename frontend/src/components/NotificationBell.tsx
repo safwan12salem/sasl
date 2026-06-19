@@ -92,7 +92,7 @@ export default function NotificationBell() {
     const isLocal = window.location.hostname === 'localhost';
     const wsUrl = isLocal 
       ? `ws://localhost:8000/ws/notifications/?token=${token}`
-      : `wss://sasl.pythonanywhere.com/ws/notifications/?token=${token}`;
+      : `wss://sasl-api-657z.onrender.com/ws/notifications/?token=${token}`;
     
     try {
       const ws = new WebSocket(wsUrl);

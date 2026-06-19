@@ -218,7 +218,7 @@ useEffect(() => {
     const isLocal = window.location.hostname === 'localhost';
     const wsUrl = isLocal
       ? `ws://localhost:8000/ws/video/${activeRoom.room_id}/?token=${token}`
-      : `wss://sasl.pythonanywhere.com/ws/video/${activeRoom.room_id}/?token=${token}`;
+      : `wss://sasl-api-657z.onrender.com/ws/video/${activeRoom.room_id}/?token=${token}`;
     
     if (wsRef.current) wsRef.current.close();
     const ws = new WebSocket(wsUrl);

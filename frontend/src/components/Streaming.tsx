@@ -224,7 +224,7 @@ export default function Streaming() {
     const isLocal = window.location.hostname === 'localhost';
     const wsUrl = isLocal
       ? `ws://localhost:8000/ws/stream-chat/${streamId}/?token=${token}`
-      : `wss://sasl.pythonanywhere.com/ws/stream-chat/${streamId}/?token=${token}`;
+      : `wss://sasl-api-657z.onrender.com/ws/stream-chat/${streamId}/?token=${token}`;
     const ws = new WebSocket(wsUrl);
     chatWsRef.current = ws;
 
@@ -451,7 +451,7 @@ export default function Streaming() {
         const isLocal = window.location.hostname === 'localhost';
         const wsUrl = isLocal
           ? `ws://localhost:8000/ws/video/${streamId}/?token=${token}`
-          : `wss://sasl.pythonanywhere.com/ws/video/${streamId}/?token=${token}`;
+          : `wss://sasl-api-657z.onrender.com/ws/video/${streamId}/?token=${token}`;
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
         const rtc = new WebRTCConnection((msg) => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); });
