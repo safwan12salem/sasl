@@ -375,8 +375,8 @@ LANGUAGES = [
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 # STATICFILES_STORAGE disabled for API
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+# MEDIA_URL handled by Cloudinary
+# MEDIA_ROOT handled by Cloudinary
 # File upload limits
 
 # Use local media storage (served by Whitenoise in production)
