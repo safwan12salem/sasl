@@ -74,6 +74,8 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     # Third-party
     'rest_framework',
+    'cloudinary',
+    'cloudinary_storage',
     'corsheaders',
     'channels',
     'allauth',
@@ -378,7 +380,10 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # File upload limits
 
 # Use local media storage (served by Whitenoise in production)
-DEFAULT_FILE_STORAGE = 'django.core.files.storage.FileSystemStorage'
+# Cloudinary storage for permanent media
+
+CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL', 'cloudinary://669761632114275:0j1i-oN6U2E1Emt_9TOkBrvDPLo@dwem1chqc')
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
