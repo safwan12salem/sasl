@@ -155,9 +155,14 @@ export default function Marketplace() {
     } catch (err: any) { toast.error(err.response?.data?.error || 'Review failed'); }
   };
 
-  const createProduct = async () => {
-    if (!newTitle || !newPrice) return toast.error('Title and price required');
-    if (!isOnline) return toast.error('Create products online only');
+const resetSellForm = () => {
+    setShowSellForm(false); setNewTitle(''); setNewDesc(''); setNewPrice(''); setNewStock('1');
+    setNewCategory(''); setNewImage(null); setImagePreview(null);
+  };
+
+    const createProduct = async (): Promise<void> => {
+    if (!newTitle || !newPrice) { toast.error('Title and price required'); return; }
+    if (!isOnline) { toast.error('Create products online only'); return; }
     const formData = new FormData();
     formData.append('title', newTitle); formData.append('description', newDesc);
     formData.append('price', newPrice); formData.append('stock', newStock || '1');
@@ -165,17 +170,11 @@ export default function Marketplace() {
     if (newImage) formData.append('image', newImage);
     try {
       const res = await api.post('/marketplace/products/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-toast.success('Product listed!');
-// Wait for Cloudinary to process
-setTimeout(() => {
-  window.location.reload();
-}, 2000);
+      toast.success('Product listed!');
+      resetSellForm(); 
+      fetchProducts();
+      setTimeout(() => { window.location.reload(); }, 3000);
     } catch (err: any) { toast.error(err.response?.data?.detail || 'Failed to list product'); }
-  };
-
-  const resetSellForm = () => {
-    setShowSellForm(false); setNewTitle(''); setNewDesc(''); setNewPrice(''); setNewStock('1');
-    setNewCategory(''); setNewImage(null); setImagePreview(null);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -400,3 +399,4 @@ setTimeout(() => {
     </div>
   );
 }
+
