@@ -164,9 +164,12 @@ export default function Marketplace() {
     if (newCategory) formData.append('category', newCategory);
     if (newImage) formData.append('image', newImage);
     try {
-      await api.post('/marketplace/products/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      toast.success('Product listed!');
-      resetSellForm(); fetchProducts();
+      const res = await api.post('/marketplace/products/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+toast.success('Product listed!');
+// Wait for Cloudinary to process
+setTimeout(() => {
+  window.location.reload();
+}, 2000);
     } catch (err: any) { toast.error(err.response?.data?.detail || 'Failed to list product'); }
   };
 

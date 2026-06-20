@@ -393,11 +393,22 @@ DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
 FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
+# Cloudinary free plan: 10MB max file size
+CLOUDINARY_MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 # Allowed media types
 ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
 ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm']
 
-
+# Auto-compress uploads to fit free plan
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dwem1chqc',
+    'API_KEY': '669761632114275',
+    'API_SECRET': '0j1i-oN6U2E1Emt_9TOkBrvDPLo',
+    'API_PROXY': None,
+    'EXCLUDE_DELETE_ORPHANED_MEDIA_PATHS': [],
+    'QUALITY': 'auto:low',  # Compress to fit free plan
+    'MAX_VIDEO_SIZE': 10000000,  # 10MB
+}
 
 
 

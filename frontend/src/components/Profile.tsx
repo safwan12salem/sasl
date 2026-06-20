@@ -53,33 +53,38 @@ export default function Profile() {
   const [showFollowList, setShowFollowList] = useState<'followers' | 'following' | null>(null);
 const [followList, setFollowList] = useState<any[]>([]);
 
-  useEffect(() => {
+  
     const fetchProfile = async () => {
-      setLoading(true);
-      try {
-        const url = username ? `/users/user/${username}/` : '/users/profile/';
-        const res = await api.get(url);
-        setProfile(res.data);
-         if (!isOwnProfile && res.data.username) {
-          try {
-            const followRes = await api.get(`/users/follow/following/`);
-            const followingList = followRes.data || [];
-            setIsFollowing(followingList.some((f: any) => f.following === res.data.username || f.following?.username === res.data.username));
-          } catch {}
-        }
-        if (isOwnProfile) {
-          setEditForm({ display_name: res.data.display_name || '', bio: res.data.bio || '' });
-          setAvatarPreview(res.data.avatar_url || null);
-        }
-      } catch (err) {
-        toast.error(t('Profile not found'));
-      } finally {
-        setLoading(false);
+    setLoading(true);
+    try {
+      const url = username ? `/users/user/${username}/` : '/users/profile/';
+      const res = await api.get(url);
+      setProfile(res.data);
+      if (!isOwnProfile && res.data.username) {
+        try {
+          const followRes = await api.get(`/users/follow/following/`);
+          const followingList = followRes.data || [];
+          setIsFollowing(followingList.some((f: any) => f.following === res.data.username || f.following?.username === res.data.username));
+        } catch {}
       }
-    };
+      
+      if (isOwnProfile) {
+        console.log('🟢 fetchProfile - isOwnProfile:', isOwnProfile, 'avatar_url:', res.data.avatar_url);
+        setEditForm({ display_name: res.data.display_name || '', bio: res.data.bio || '' });
+        setAvatarPreview(res.data.avatar_url || null);
+      }
+    } catch (err) {
+      toast.error(t('Profile not found'));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProfile();
     fetchPortfolio();
   }, [username]);
+
 
   const fetchPortfolio = async () => {
     try {
@@ -109,7 +114,7 @@ const [followList, setFollowList] = useState<any[]>([]);
     } catch {}
   };
 
-  const handleSave = async () => {
+      const handleSave = async () => {
     const formData = new FormData();
     formData.append('display_name', editForm.display_name);
     formData.append('bio', editForm.bio);
@@ -117,13 +122,11 @@ const [followList, setFollowList] = useState<any[]>([]);
     try {
       await api.patch('/users/profile/', formData, { headers: {'Content-Type': 'multipart/form-data'} });
       toast.success(t('Profile updated!'));
-      setIsEditing(false);
       window.location.reload();
     } catch (err: any) {
       toast.error(err.response?.data?.detail || t('Update failed'));
     }
   };
-
  const handleFollow = async () => {
     if (!profile) return;
     try {

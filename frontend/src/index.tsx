@@ -13,11 +13,6 @@ import { ThemeProvider } from './contexts/ThemeContext';
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js');
-  });
-}
 
 saslBrain.initialize().then(() => {
   console.log('🧠 Sasl Brain ready');

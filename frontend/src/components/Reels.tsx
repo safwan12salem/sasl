@@ -10,6 +10,9 @@ import { Heart, MessageCircle, Share2, Loader2, Video, Plus } from 'lucide-react
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 
+import { uploadLargeVideo } from '../services/videoUploader';
+
+
 interface Reel {
   id: string;
   user: { username: string; avatar_url?: string };
@@ -150,17 +153,17 @@ export default function Reels() {
     try { const res = await api.get(`/content/reels/${reelId}/comments/`); setReelComments(prev => ({ ...prev, [reelId]: res.data || [] })); } catch {}
   };
 
-  const uploadReel = async () => {
+    const uploadReel = async () => {
     if (!reelFile) return toast.error(t('Select a video'));
     setUploading(true);
-    const formData = new FormData();
-    formData.append('video', reelFile);
-    formData.append('caption', reelCaption);
     try {
-      const res = await api.post('/content/reels/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-      setReels(prev => [res.data, ...prev]);
+      const res = await uploadLargeVideo(reelFile, '/content/reels/', { caption: reelCaption });
+      setReels(prev => [res, ...prev]);
       setShowUpload(false); setReelFile(null); setReelCaption('');
-    } catch (err: any) { toast.error(err.response?.data?.detail || 'Upload failed'); }
+      toast.success(t('Video uploaded!'));
+    } catch (err: any) { 
+      toast.error(err.response?.data?.detail || 'Upload failed'); 
+    }
     finally { setUploading(false); }
   };
 

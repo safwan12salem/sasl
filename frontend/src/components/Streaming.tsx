@@ -372,7 +372,7 @@ export default function Streaming() {
       toast.success(t('You are now live! 🎥'));
       setTitle(''); setDescription(''); setTags('');
       setThumbnailFile(null); setThumbnailPreview(null);
-
+      window.location.reload();
     } catch (err: any) {
       toast.error(err.response?.data?.error || t('Failed to start stream'));
     }
