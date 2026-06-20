@@ -402,8 +402,26 @@ class ReelViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
+     video_file = self.request.FILES.get('video')
+     if video_file and video_file.size > 10 * 1024 * 1024:
+        # Large video — upload to YouTube
+        import tempfile, os
+        from .youtube_upload import upload_to_youtube
+        
+        # Save temporarily
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp:
+            for chunk in video_file.chunks():
+                tmp.write(chunk)
+            tmp_path = tmp.name
+        
+        try:
+            access_token = self.request.headers.get('X-YouTube-Token', '')
+            youtube_url = upload_to_youtube(tmp_path, serializer.validated_data.get('caption', 'Sasl Reel'), access_token=access_token)
+            serializer.save(user=self.request.user, video_url=youtube_url)
+        finally:
+            os.unlink(tmp_path)
+     else:
         serializer.save(user=self.request.user)
-       
 
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):

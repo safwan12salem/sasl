@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
 from django.db.models import Q, Avg, Count, F
-from .models import Product, Order, ProductCategory, ProductReview, Wishlist
+from .models import Product, Order, ProductCategory, ProductReview, Wishlist, ProductImage
 from .serializers import (
     ProductSerializer, OrderSerializer, CategorySerializer,
     ProductReviewSerializer, WishlistSerializer
@@ -66,7 +66,11 @@ class ProductViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        serializer.save(seller=self.request.user)
+       product = serializer.save(seller=self.request.user)
+    # Handle additional images
+       additional_images = self.request.FILES.getlist('additional_images')
+       for idx, img in enumerate(additional_images):
+         ProductImage.objects.create(product=product, image=img, order=idx + 1)
 
     @action(detail=False, methods=['get'])
     def my_products(self, request):
@@ -194,8 +198,11 @@ class WishlistViewSet(viewsets.ModelViewSet):
         return Wishlist.objects.filter(user=self.request.user).select_related('product')
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
-
+       product = serializer.save(seller=self.request.user)
+    # Handle additional images
+       additional_images = self.request.FILES.getlist('additional_images')
+       for idx, img in enumerate(additional_images):
+         ProductImage.objects.create(product=product, image=img, order=idx + 1)
     @action(detail=False, methods=['post'])
     def toggle(self, request):
         product_id = request.data.get('product_id')

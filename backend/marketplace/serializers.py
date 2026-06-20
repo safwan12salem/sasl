@@ -3,8 +3,8 @@ Sasl - Social Asynchronous Sharing Layer
 Marketplace serializers with reviews, wishlist, ratings
 """
 from rest_framework import serializers
-from .models import Product, Order, ProductCategory, ProductReview, Wishlist
-from users.serializers import UserProfileSerializer
+from .models import Product, Order, ProductCategory, ProductReview, Wishlist, ProductImage
+from users.serializers import UserProfileSerializer 
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -29,6 +29,19 @@ class ProductReviewSerializer(serializers.ModelSerializer):
         return None
 
 
+class ProductImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = ProductImage
+        fields = ['id', 'image', 'image_url', 'order']
+    
+    def get_image_url(self, obj):
+        return obj.image.url if obj.image else None
+
+
+
+
 class ProductSerializer(serializers.ModelSerializer):
     seller_name = serializers.ReadOnlyField(source='seller.username')
     seller_avatar = serializers.SerializerMethodField()
@@ -39,6 +52,7 @@ class ProductSerializer(serializers.ModelSerializer):
     reviews = ProductReviewSerializer(many=True, read_only=True)
     average_rating = serializers.DecimalField(max_digits=3, decimal_places=1, read_only=True)
     review_count = serializers.IntegerField(read_only=True)
+    images = ProductImageSerializer(many=True, read_only=True)
     is_wishlisted = serializers.SerializerMethodField()
 
     class Meta:
@@ -46,7 +60,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'seller', 'seller_name', 'seller_avatar', 'seller_rating',
             'title', 'description', 'price', 'currency',
-            'category', 'category_name', 'image', 'image_url',
+            'category', 'category_name', 'image', 'image_url','images',
             'stock', 'sales_count', 'is_active', 'is_wishlisted',
             'average_rating', 'review_count', 'reviews',
             'created_at', 'updated_at'
@@ -68,6 +82,8 @@ class ProductSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return Wishlist.objects.filter(user=request.user, product=obj).exists()
         return False
+
+
 
 
 class OrderSerializer(serializers.ModelSerializer):

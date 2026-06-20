@@ -28,6 +28,7 @@ interface Product {
   seller_avatar?: string;
   seller_rating?: number;
   image_url: string | null;
+    images?: Array<{ id: string; image_url: string; order: number }>;
   stock: number;
   sales_count?: number;
   average_rating?: number;
@@ -82,6 +83,7 @@ export default function Marketplace() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showReviews, setShowReviews] = useState(false);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
@@ -167,7 +169,13 @@ const resetSellForm = () => {
     formData.append('title', newTitle); formData.append('description', newDesc);
     formData.append('price', newPrice); formData.append('stock', newStock || '1');
     if (newCategory) formData.append('category', newCategory);
-    if (newImage) formData.append('image', newImage);
+    if (newImages.length > 0) {
+  formData.append('image', newImages[0]); // Main image
+  // Send additional images
+  for (let i = 1; i < newImages.length; i++) {
+    formData.append('additional_images', newImages[i]);
+  }
+}
     try {
       const res = await api.post('/marketplace/products/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success('Product listed!');
@@ -287,12 +295,14 @@ const resetSellForm = () => {
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {products.map((p, idx) => (
-            <motion.div key={p.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}
+                       <motion.div key={p.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}
               whileHover={{ y: -4 }}
-              className="glass-card rounded-2xl overflow-hidden group cursor-pointer"
-              onClick={() => setSelectedProduct(p)}>
+              onClick={() => { setSelectedProduct(p); setSelectedImageIndex(0); }}
+              className="glass-card rounded-2xl overflow-hidden group cursor-pointer">
               <div className="h-48 bg-gray-100 overflow-hidden relative">
                 {p.image_url ? (
+
+                  
                   <img src={p.image_url} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400"><Package size={48} /></div>
@@ -340,7 +350,30 @@ const resetSellForm = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setSelectedProduct(null)}>
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="glass-card max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="relative h-64 bg-gray-100 rounded-t-2xl overflow-hidden">
-                {selectedProduct.image_url ? <img src={selectedProduct.image_url} alt={selectedProduct.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Package size={64} className="text-gray-300" /></div>}
+                {selectedProduct.images && selectedProduct.images.length > 0 ? (
+  <div className="relative w-full h-full">
+    <img 
+     src={(selectedProduct.images[selectedImageIndex]?.image_url || selectedProduct.image_url) ?? undefined} 
+      alt={selectedProduct.title} 
+      className="w-full h-full object-cover" 
+    />
+    {selectedProduct.images.length > 1 && (
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+        {selectedProduct.images.map((_: any, i: number) => (
+          <button 
+            key={i}
+            onClick={() => setSelectedImageIndex(i)}
+            className={`w-2.5 h-2.5 rounded-full transition-all ${i === selectedImageIndex ? 'bg-white scale-125' : 'bg-white/50'}`}
+          />
+        ))}
+      </div>
+    )}
+  </div>
+) : selectedProduct.image_url ? (
+  <img src={selectedProduct.image_url} alt={selectedProduct.title} className="w-full h-full object-cover" />
+) : (
+  <div className="w-full h-full flex items-center justify-center"><Package size={64} className="text-gray-300" /></div>
+)}
                 <button onClick={() => setSelectedProduct(null)} className="absolute top-3 right-3 bg-white rounded-full p-2 shadow"><X size={18} /></button>
               </div>
               <div className="p-6">
