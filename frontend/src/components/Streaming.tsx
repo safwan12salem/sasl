@@ -147,8 +147,9 @@ export default function Streaming() {
     setError(null);
     try {
       const params = new URLSearchParams();
-      if (activeCategory) params.set('category', activeCategory);
-      const res = await api.get(`/streaming/streams/?${params.toString()}`);
+params.set('is_live', 'true');  // Only show live streams
+if (activeCategory) params.set('category', activeCategory);
+const res = await api.get(`/streaming/streams/?${params.toString()}`);
       setStreams(res.data.results || []);
     } catch (err) {
       setError(t('Failed to load streams.'));
@@ -359,10 +360,11 @@ export default function Streaming() {
       formData.append('tags', JSON.stringify(tags.split(',').map(t => t.trim()).filter(Boolean)));
       if (thumbnailFile) formData.append('thumbnail', thumbnailFile);
 
-      const res = await api.post('/streaming/streams/', formData, {
+            const res = await api.post('/streaming/streams/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
+      // Add to local state immediately
       setStreams(prev => {
         const exists = prev.find(s => s.id === res.data.id);
         if (exists) return prev;
@@ -372,7 +374,11 @@ export default function Streaming() {
       toast.success(t('You are now live! 🎥'));
       setTitle(''); setDescription(''); setTags('');
       setThumbnailFile(null); setThumbnailPreview(null);
-      window.location.reload();
+      
+      // Refresh from server after 3s to get Cloudinary thumbnail
+      setTimeout(() => {
+        fetchStreams();
+      }, 3000);
     } catch (err: any) {
       toast.error(err.response?.data?.error || t('Failed to start stream'));
     }

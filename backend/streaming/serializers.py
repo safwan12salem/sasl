@@ -52,10 +52,15 @@ class StreamSessionSerializer(serializers.ModelSerializer):
         read_only_fields = ['streamer', 'viewers_count']
 
     def get_thumbnail_url(self, obj):
-        if obj.thumbnail and (request := self.context.get('request')):
-            return obj.thumbnail.url if obj.thumbnail else None
-        return obj.thumbnail.url if obj.thumbnail else None
-
+        if not obj.thumbnail:
+            return None
+        try:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.thumbnail.url)
+            return obj.thumbnail.url
+        except Exception:
+            return None
     def get_top_donors(self, obj):
         top = obj.donations.values('donor__username').annotate(
             total=Sum('amount')
