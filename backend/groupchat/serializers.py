@@ -13,17 +13,21 @@ class GroupMessageSerializer(serializers.ModelSerializer):
         fields = ['id', 'group', 'sender', 'text', 'image', 'is_system_message', 'created_at']
         read_only_fields = ['sender', 'group', 'is_system_message']
 
-
 class GroupChatSerializer(serializers.ModelSerializer):
     creator = UserProfileSerializer(read_only=True)
     members_count = serializers.SerializerMethodField()
     last_message = serializers.SerializerMethodField()
+    avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = GroupChat
-        fields = ['id', 'name', 'creator', 'members', 'members_count', 'is_mesh', 'is_private', 'last_message', 'created_at']
+        fields = ['id', 'name', 'creator', 'members', 'members_count', 'is_mesh', 'is_private', 'last_message', 'created_at', 'avatar', 'avatar_url']
         read_only_fields = ['creator', 'members']
 
+    def get_avatar_url(self, obj):
+        if obj.avatar:
+            return obj.avatar.url
+        return None
     def get_members_count(self, obj):
         return obj.members.count()
 

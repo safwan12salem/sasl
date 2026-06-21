@@ -63,8 +63,10 @@ class UserMinimalSerializer(serializers.ModelSerializer):
     
     def get_avatar_url(self, obj):
         try:
-            return obj.profile.avatar_url
-        except:
+            if hasattr(obj, 'avatar') and obj.avatar:
+                return obj.avatar.url
+            return None
+        except Exception:
             return None
 
 

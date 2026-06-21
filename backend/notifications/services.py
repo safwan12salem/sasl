@@ -17,6 +17,7 @@ def create_notification(recipient, actor, notification_type, message, post=None)
     )
     
     # Send real-time notification
+    print(f"🔔 NOTIFICATION CREATED: {notification.id} for {recipient.username}")
     channel_layer = get_channel_layer()
     async_to_sync(channel_layer.group_send)(
         f'user_{recipient.id}_notifications',
@@ -33,8 +34,10 @@ def create_notification(recipient, actor, notification_type, message, post=None)
                     'created_at': notification.created_at.isoformat(),
                     'is_read': False
                 }
+               
             }
         }
     )
-    
+    print(f"📤 SENT to group user_{recipient.id}_notifications")
     return notification
+   

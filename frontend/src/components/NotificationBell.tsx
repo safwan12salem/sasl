@@ -40,16 +40,24 @@ export default function NotificationBell() {
   const panelRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const wsRef = useRef<WebSocket | null>(null);
+    const audioCtxRef = useRef<AudioContext | null>(null);
   const { t } = useTranslation();
   
   const [soundEnabled, setSoundEnabled] = useState(() => {
     return localStorage.getItem('sasl_notification_sound') !== 'off';
   });
 
-     const playNotificationSound = () => {
+       
+
+  const playNotificationSound = () => {
     if (!soundEnabled) return;
     try {
-      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      const ctx = audioCtxRef.current;
+      if (ctx.state === 'suspended') ctx.resume();
+      
       const oscillator = ctx.createOscillator();
       const gainNode = ctx.createGain();
       
@@ -69,6 +77,18 @@ export default function NotificationBell() {
       // Silent fallback
     }
   };
+
+  // Resume audio context on first user interaction (browser autoplay policy)
+  useEffect(() => {
+    const resumeAudio = () => {
+      if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
+        audioCtxRef.current.resume();
+      }
+    };
+    document.addEventListener('click', resumeAudio, { once: true });
+    return () => document.removeEventListener('click', resumeAudio);
+  }, []);
+
     useEffect(() => {
     if (!user) return;
     fetchNotifications();
@@ -107,6 +127,8 @@ export default function NotificationBell() {
             setNotifications(prev => [data.notification, ...prev]);
             setUnreadCount(prev => prev + 1);
             playNotificationSound();
+                        console.log('🔔 SOUND TRIGGERED — check if you hear it');
+            console.log('🔔 AudioContext state:', audioCtxRef.current?.state);
             toast(data.notification.message, { 
               icon: iconMap[data.notification.notification_type] || '🔔',
               duration: 4000,

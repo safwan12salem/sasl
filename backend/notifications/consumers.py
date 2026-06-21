@@ -39,6 +39,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             await self.mark_all_read()
 
     async def notification_message(self, event):
+        print(f"📨 CONSUMER RECEIVED: {event}")
         """Send notification to client"""
         await self.send(text_data=json.dumps(event['data']))
 

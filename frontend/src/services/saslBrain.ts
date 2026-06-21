@@ -12,6 +12,8 @@
  * - Content ranking algorithm
  * - Toxicity detection
  */
+// Suppress TensorFlow WebGL warnings before import
+
 import * as tf from '@tensorflow/tfjs';
 
 // ============================================================

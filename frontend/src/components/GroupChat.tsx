@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import VoiceMessageRecorder from './VoiceMessageRecorder';
-
+import { Image as ImageIcon } from 'lucide-react';
 
 interface Group {
   id: string;
@@ -25,6 +25,8 @@ interface Group {
   is_mesh: boolean;
   is_private: boolean;
   last_message?: any;
+  avatar_url?: string | null;
+  avatar?: string | null;
   created_at: string;
 }
 
@@ -52,6 +54,7 @@ export default function GroupChat() {
   const [input, setInput] = useState('');
   const [showCreate, setShowCreate] = useState(false);
   const [groupName, setGroupName] = useState('');
+  const [groupAvatar, setGroupAvatar] = useState<File | null>(null);
   const [isMeshGroup, setIsMeshGroup] = useState(true);
   const [isPrivate, setIsPrivate] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
@@ -133,21 +136,24 @@ const handleDeleteMessage = async (messageId: string) => {
       return;
     }
     try {
-      const res = await api.post('/groupchat/groups/', {
-        name: groupName,
-        is_mesh: isMeshGroup,
-        is_private: isPrivate,
+      const formData = new FormData();
+      formData.append('name', groupName);
+      formData.append('is_mesh', String(isMeshGroup));
+      formData.append('is_private', String(isPrivate));
+      if (groupAvatar) formData.append('avatar', groupAvatar);
+      
+      const res = await api.post('/groupchat/groups/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast.success(t('group_created_successfully'));
       setShowCreate(false);
       setGroupName('');
+      setGroupAvatar(null);
       setIsMeshGroup(true);
       setIsPrivate(false);
-      await fetchGroups();
-      setActiveGroup(res.data.id);
+      fetchGroups();
     } catch (err: any) {
-      const msg = err.response?.data?.error || t('failed_to_create_group');
-      toast.error(msg);
+      toast.error(err.response?.data?.detail || t('failed_create_group'));
     }
   };
 
@@ -278,6 +284,11 @@ useEffect(() => {
                   onChange={e => setGroupName(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && createGroup()}
                 />
+                                <label className="flex items-center gap-1 text-xs cursor-pointer text-gray-500 hover:text-gray-700">
+                  <ImageIcon size={14} />
+                  {groupAvatar ? groupAvatar.name : t('group_photo')}
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => setGroupAvatar(e.target.files?.[0] || null)} />
+                </label>
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-1 text-xs cursor-pointer">
                     <input type="checkbox" checked={isMeshGroup} onChange={e => setIsMeshGroup(e.target.checked)} className="rounded" />
@@ -319,9 +330,13 @@ useEffect(() => {
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold">
-                    {group.name[0]?.toUpperCase() || 'G'}
-                  </div>
+                                    {group.avatar_url ? (
+                    <img src={group.avatar_url} alt={group.name} className="w-10 h-10 rounded-full object-cover" />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold">
+                      {group.name[0]?.toUpperCase() || 'G'}
+                    </div>
+                  )}
                                 <div>
                 <p className="font-semibold text-sm flex items-center gap-1">
                   {group.name}
@@ -389,9 +404,13 @@ useEffect(() => {
           <>
             <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold">
-                  {activeGroupData.name[0]?.toUpperCase() || 'G'}
-                </div>
+                                {activeGroupData.avatar_url ? (
+                  <img src={activeGroupData.avatar_url} alt={activeGroupData.name} className="w-10 h-10 rounded-full object-cover" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold">
+                    {activeGroupData.name[0]?.toUpperCase() || 'G'}
+                  </div>
+                )}
                 <div>
                   <h3 className="font-bold">{activeGroupData.name}</h3>
                   <p className="text-xs text-gray-500">

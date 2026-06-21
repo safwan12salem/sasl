@@ -367,18 +367,14 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
         seen_usernames = set()
         
         # Helper to get avatar URL safely
+             # Helper to get avatar URL safely
         def get_avatar(user_obj):
             try:
-                # Try common avatar fields
-                if hasattr(user_obj, 'avatar_url') and user_obj.avatar_url:
-                    return user_obj.avatar_url
                 if hasattr(user_obj, 'avatar') and user_obj.avatar:
-                    return user_obj.avatar.url if hasattr(user_obj.avatar, 'url') else str(user_obj.avatar)
-                if hasattr(user_obj, 'profile_picture') and user_obj.profile_picture:
-                    return user_obj.profile_picture.url if hasattr(user_obj.profile_picture, 'url') else str(user_obj.profile_picture)
-            except:
-                pass
-            return None
+                    return user_obj.avatar.url
+                return None
+            except Exception:
+                return None
         
         # Add users from mesh nodes first
         for node in mesh_nodes:
@@ -405,7 +401,9 @@ class ChatRoomViewSet(viewsets.ModelViewSet):
                     'avatar_url': get_avatar(user),
                 })
 
-        return Response(data[:50]) 
+        return Response(data[:50])
+
+
     @action(detail=False, methods=['get'])
     def join_by_code(self, request):
         """Join a room by invite code."""

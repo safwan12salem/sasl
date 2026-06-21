@@ -590,8 +590,7 @@ const fetchRooms = useCallback(async () => {
       const msg: ChatMessage = {
         id: tempId,
         content: isImage ? '📷 Image' : `📎 ${file.name}`,
-        message_type: isImage ? 'image' : isVideo ? 'video' : 'file',
-        
+        message_type: isImage ? 'image' : isVideo ? 'video' : 'file',        
         file_url: fileData, file_name: file.name,
         sender: { id: user?.id || '', username: myUsername, avatar_url: myAvatar },
         created_at: new Date().toISOString(), reactions: {},

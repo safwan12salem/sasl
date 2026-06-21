@@ -47,7 +47,7 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
-        serializer.save(streamer=self.request.user)
+        serializer.save(streamer=self.request.user, is_live=True)
 
     @action(detail=True, methods=['post'])
     def end_stream(self, request, pk=None):
