@@ -31,7 +31,7 @@ export default function Layout() {
   const navItems = [
     { to: '/', icon: Home, label: t('feed') },
     { to: '/meshchat', icon: MessageCircle, label: t('meshchat') },
-    { to: '/chat-dashboard', icon: Inbox, label: t('Messages') },
+    
     { to: '/ai-hub', icon: Sparkles, label: t('Sasl AI Hub') },
     { to: '/gigs', icon: Briefcase, label: t('Gig Central') },
     { to: '/marketplace', icon: ShoppingBag, label: t('marketplace') },
@@ -45,6 +45,7 @@ export default function Layout() {
            
     { to: '/analytics', icon: TrendingUp, label: t('Analytics') },
     { to: '/progress', icon: Star, label: t('Progress') },   
+    { to: '/chat-dashboard', icon: Inbox, label: t('Messages') },
     { to: '/earnings', icon: DollarSign, label: t('Earnings') },
     { to: '/wallet', icon: Wallet, label: t('wallet') },
     { to: '/profile', icon: User, label: t('profile') },
