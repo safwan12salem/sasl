@@ -32,6 +32,7 @@ interface Post {
   author: { username: string; avatar_url?: string };
   text: string;
   media_url: string | null;
+  media_type: string;
   likes_count: number;
   comments_count: number;
   shares_count: number;
@@ -58,6 +59,7 @@ interface SuggestedUser {
 
 interface OfflinePost {
   text: string;
+   media_type?: string;
   timestamp: number;
 }
 
@@ -113,6 +115,7 @@ const Feed: React.FC = () => {
         setPosts(offlinePosts.map(p => ({
           id: p.id, author: { username: p.author }, text: p.text,
           media_url: p.media_url || null, likes_count: p.likes_count,
+          media_type: (p as any).media_type || 'image',
           comments_count: p.comments_count, shares_count: p.shares_count,
           liked_by_me: false, created_at: p.created_at, poll: undefined,
         })));
@@ -309,7 +312,12 @@ const Feed: React.FC = () => {
     }
     const formData = new FormData();
     formData.append('text', composing);
-    if (selectedFile) formData.append('media', selectedFile);
+    if (selectedFile) {
+  formData.append('media', selectedFile);
+  const isVideo = selectedFile.type.startsWith('video/') || 
+                  /\.(mp4|webm|mov|avi|mkv|flv|wmv)$/i.test(selectedFile.name);
+  formData.append('media_type', isVideo ? 'video' : 'image');
+}
     if (composingWithPoll) {
       formData.append('poll', JSON.stringify({
         question: composing,
@@ -340,7 +348,7 @@ const Feed: React.FC = () => {
     if (mesh) mesh.sendPostViaMesh({ text: composing, author: user?.username, timestamp: Date.now() });
     setPosts(prev => [{
       id: `offline-${Date.now()}`, author: { username: user?.username || 'You' },
-      text: composing, media_url: filePreview, likes_count: 0, comments_count: 0,
+      text: composing, media_url: filePreview, media_type: selectedFile?.type?.startsWith('video/') ? 'video' : 'image', likes_count: 0, comments_count: 0,
       shares_count: 0, liked_by_me: false, created_at: new Date().toISOString(),
     }, ...prev]);
     resetComposer();
@@ -459,13 +467,20 @@ const Feed: React.FC = () => {
         
         <p className="mb-3 text-gray-800 dark:text-gray-200 leading-relaxed">{post.text}</p>
         
-        {post.media_url && (
+      {post.media_url && (
   <div className="rounded-xl overflow-hidden mb-3 relative group">
-    {post.media_url.match(/\.(mp4|webm|mov)$/i) ? (
-      <video src={post.media_url} className="w-full max-h-96 object-cover" controls />
+    {post.media_type === 'video' ? (
+      <video 
+  src={post.media_url?.replace('/image/upload/', '/video/upload/')} 
+  className="w-full max-h-96 object-cover" 
+  controls 
+  playsInline
+  preload="metadata"
+/>
     ) : (
       <img src={post.media_url} className="w-full max-h-96 object-cover transition-transform duration-500 group-hover:scale-[1.02]" alt="" loading="lazy" />
     )}
+    
        <a 
   href={post.media_url || '#'} 
   download={post.media_url?.split('/').pop() || 'sasl-image.jpg'}

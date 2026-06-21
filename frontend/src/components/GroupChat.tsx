@@ -455,11 +455,15 @@ useEffect(() => {
                     {!isMe && !showAvatar && <div className="w-8 mr-2 flex-shrink-0" />}
                     <div className={`max-w-[70%] ${isMe ? 'order-1' : ''}`}>
                       {showAvatar && !isMe && <p className="text-xs text-gray-500 mb-0.5 ml-1">{msg.sender?.username}</p>}
-                     {msg.image && (
+                 {msg.image && (
   <img 
     src={msg.image.startsWith('http') ? msg.image : `${api.defaults.baseURL?.replace('/api','')}${msg.image}`}
     alt="Shared"
     className="max-w-full rounded-xl mb-1 max-h-60 object-cover"
+    onError={(e) => {
+      const target = e.target as HTMLImageElement;
+      target.outerHTML = `<video src="${msg.image?.replace('/image/upload/', '/video/upload/')}" controls playsInline class="max-w-full rounded-xl mb-1 max-h-60"></video>`;
+    }}
   />
 )}
                      {msg.text && (

@@ -32,8 +32,6 @@ from .serializers import (
 from monetization.services import reward_engagement
 from notifications.services import create_notification
 
-
-
 logger = logging.getLogger(__name__)
 
 class FeedPagination(PageNumberPagination):
@@ -109,39 +107,35 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response(data)
 
     def perform_create(self, serializer):
-      try:
-         post = serializer.save(author=self.request.user)
-
+        post = serializer.save(author=self.request.user)
+        
         # Handle poll from request data
-         raw_poll = self.request.data.get('poll')
-         if raw_poll:
-            # Frontend sends a JSON string; parse it into a dict
-             if isinstance(raw_poll, str):
-                 poll_data = json.loads(raw_poll)
-             else:
-                 poll_data = raw_poll
-
-             if not isinstance(poll_data, dict):
-                 raise ValidationError("Invalid poll data")
-
-             poll = Poll.objects.create(
-                 post=post,
-                 question=poll_data.get('question', ''),
-                 expires_at=timezone.now() + timedelta(days=1) if poll_data.get('expires_in_days') else None
-             )
-             options = poll_data.get('options', [])[:10]
-             for opt_text in options:
-                 if opt_text.strip():
-                     PollOption.objects.create(poll=poll, text=opt_text.strip())
-
-         if self.request.data.get('is_offline_created'):
-             post.is_offline_created = True
-             post.save()
-
-      except Exception as e:
-         logger.error(f"Post creation error: {str(e)}")
-         raise
-
+        raw_poll = self.request.data.get('poll')
+        if raw_poll:
+            if isinstance(raw_poll, str):
+                try:
+                    poll_data = json.loads(raw_poll)
+                    poll = Poll.objects.create(
+                        post=post,
+                        question=poll_data.get('question', ''),
+                        expires_at=timezone.now() + timedelta(days=1) if poll_data.get('expires_in_days') else None
+                    )
+                    options = poll_data.get('options', [])[:10]
+                    for opt_text in options:
+                        if opt_text.strip():
+                            PollOption.objects.create(poll=poll, text=opt_text.strip())
+                except:
+                    pass
+        
+        if self.request.data.get('is_offline_created'):
+            post.is_offline_created = True
+            post.save()
+    # Handle poll
+        raw_poll = self.request.data.get('poll')
+        if raw_poll:
+         if isinstance(raw_poll, str):
+            poll_data = json.loads(raw_poll)
+            # ... rest of poll handling
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
         post = self.get_object()

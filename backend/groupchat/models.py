@@ -1,5 +1,6 @@
 import uuid
 from django.db import models
+from content.auto_storage import AutoCloudinaryStorage
 from django.conf import settings
 
 class GroupChat(models.Model):
@@ -24,7 +25,7 @@ class GroupMessage(models.Model):
     group = models.ForeignKey(GroupChat, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     text = models.TextField()
-    image = models.ImageField(upload_to='group_messages/', blank=True)
+    image = models.FileField(upload_to='group_messages/', blank=True, storage=AutoCloudinaryStorage())
     is_system_message = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     is_edited = models.BooleanField(default=False)

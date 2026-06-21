@@ -583,13 +583,15 @@ const fetchRooms = useCallback(async () => {
     if (!activeRoom) return;
     const reader = new FileReader();
     reader.onload = async () => {
+      const isVideo = file.type.startsWith('video/');
       const isImage = file.type.startsWith('image/');
       const fileData = reader.result as string;
       const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       const msg: ChatMessage = {
         id: tempId,
         content: isImage ? '📷 Image' : `📎 ${file.name}`,
-        message_type: isImage ? 'image' : 'file',
+        message_type: isImage ? 'image' : isVideo ? 'video' : 'file',
+        
         file_url: fileData, file_name: file.name,
         sender: { id: user?.id || '', username: myUsername, avatar_url: myAvatar },
         created_at: new Date().toISOString(), reactions: {},

@@ -6,12 +6,16 @@ import uuid
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
+from cloudinary_storage.storage import VideoMediaCloudinaryStorage
+
+from content.auto_storage import AutoCloudinaryStorage
+
 
 class Post(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='posts')
     text = models.TextField(max_length=5000)
-    media = models.FileField(upload_to='posts/', blank=True)
+    media = models.FileField(upload_to='posts/', blank=True, storage=AutoCloudinaryStorage())
     media_type = models.CharField(max_length=10, choices=(('image','image'),('video','video')), blank=True)
     location = models.CharField(max_length=255, blank=True)
     is_offline_created = models.BooleanField(default=False)
@@ -60,7 +64,7 @@ class Share(models.Model):
 class Story(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='stories')
-    media = models.FileField(upload_to='stories/')
+    media = models.FileField(upload_to='stories/', storage=AutoCloudinaryStorage())
     media_type = models.CharField(max_length=5, choices=(('image','image'),('video','video')))
     expires_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -105,7 +109,7 @@ class Report(models.Model):
 class Reel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reels')
-    video = models.FileField(upload_to='reels/')
+    video = models.FileField(upload_to='reels/', storage=VideoMediaCloudinaryStorage())
     caption = models.CharField(max_length=500, blank=True)
     likes_count = models.PositiveIntegerField(default=0)
     comments_count = models.PositiveIntegerField(default=0)
