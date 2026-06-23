@@ -1,10 +1,9 @@
 """
 Sasl - Notification Service
 """
-import json
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 from content.models import Notification
+from notifications.connection_registry import send_to_user
+
 
 def create_notification(recipient, actor, notification_type, message, post=None):
     """Create notification and send via WebSocket"""
@@ -16,28 +15,19 @@ def create_notification(recipient, actor, notification_type, message, post=None)
         post=post
     )
     
-    # Send real-time notification
+    # Send real-time notification directly to connected WebSocket clients
     print(f"🔔 NOTIFICATION CREATED: {notification.id} for {recipient.username}")
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        f'user_{recipient.id}_notifications',
-        {
-            'type': 'notification_message',
-            'data': {
-                'type': 'new_notification',
-                'notification': {
-                    'id': str(notification.id),
-                    'type': notification_type,
-                    'message': message,
-                    'actor': actor.username if actor else 'Sasl',
-                    'post_id': str(post.id) if post else None,
-                    'created_at': notification.created_at.isoformat(),
-                    'is_read': False
-                }
-               
-            }
+    send_to_user(str(recipient.id), {
+        'type': 'new_notification',
+        'notification': {
+            'id': str(notification.id),
+            'type': notification_type,
+            'message': message,
+            'actor': actor.username if actor else 'Sasl',
+            'post_id': str(post.id) if post else None,
+            'created_at': notification.created_at.isoformat(),
+            'is_read': False
         }
-    )
-    print(f"📤 SENT to group user_{recipient.id}_notifications")
+    })
+    print(f"📤 DIRECT SENT to user {recipient.username}")
     return notification
-   

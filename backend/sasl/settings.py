@@ -190,28 +190,13 @@ CACHES = {
     }
 }
 
-import os
-CHANNEL_LAYER_BACKEND = os.environ.get('CHANNEL_LAYER_BACKEND', 'redis')
-
-if CHANNEL_LAYER_BACKEND == 'inmemory':
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels.layers.InMemoryChannelLayer",
-        },
-    }
-else:
-    REDIS_HOST = os.environ.get('REDIS_HOST', '127.0.0.1')
-    REDIS_PORT = int(os.environ.get('REDIS_PORT', '6379'))
-    CHANNEL_LAYERS = {
-        "default": {
-            "BACKEND": "channels_redis.core.RedisChannelLayer",
-            "CONFIG": {
-                "hosts": [(REDIS_HOST, REDIS_PORT)],
-            },
-        },
-    }
 
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
 
 AUTH_USER_MODEL = 'users.User'
 AUTHENTICATION_BACKENDS = [

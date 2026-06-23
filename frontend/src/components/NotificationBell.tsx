@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-
 import { useTranslation } from 'react-i18next';
 
 interface Notification {
@@ -40,75 +39,27 @@ export default function NotificationBell() {
   const panelRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const wsRef = useRef<WebSocket | null>(null);
-    const audioCtxRef = useRef<AudioContext | null>(null);
   const { t } = useTranslation();
-  
-  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const audioTriggerRef = useRef<HTMLButtonElement>(null);
+    
+    const [soundEnabled, setSoundEnabled] = useState(() => {
     return localStorage.getItem('sasl_notification_sound') !== 'off';
   });
 
-       
 
-  const playNotificationSound = () => {
-    if (!soundEnabled) return;
-    try {
-      if (!audioCtxRef.current) {
-        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
-      }
-      const ctx = audioCtxRef.current;
-      if (ctx.state === 'suspended') ctx.resume();
-      
-      const oscillator = ctx.createOscillator();
-      const gainNode = ctx.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      
-      oscillator.type = 'sine';
-      oscillator.frequency.setValueAtTime(800, ctx.currentTime);
-      oscillator.frequency.setValueAtTime(1000, ctx.currentTime + 0.1);
-      
-      gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.0);
-      
-      oscillator.start(ctx.currentTime);
-      oscillator.stop(ctx.currentTime + 1.0);
-    } catch (err) {
-      // Silent fallback
-    }
-  };
 
-  // Resume audio context on first user interaction (browser autoplay policy)
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  
   useEffect(() => {
-    const resumeAudio = () => {
-      if (audioCtxRef.current && audioCtxRef.current.state === 'suspended') {
-        audioCtxRef.current.resume();
-      }
-    };
-    document.addEventListener('click', resumeAudio, { once: true });
-    return () => document.removeEventListener('click', resumeAudio);
+    try {
+      audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2qEcP+1j2Oda1e1PmN9u1JbicN0sX9Ddq6K1f9wbJWwub6Y1/+wjrGIbYKBpOvrw5aDcf+zhmyNyctTdr6Kv+Jqfp7FxVhstrbzn5Bmf/+0fHCBmZ5hbLfG8W+NpJaopce6c42Yhmr/5n2dysjCWHe6wuJrlZ2Fq8ewiG6Bb7bx8YqU');
+      audioRef.current.volume = 0.5;
+    } catch (e) {}
   }, []);
-
-    useEffect(() => {
-    if (!user) return;
-    fetchNotifications();
-    connectWebSocket();
-
-    const handleClickOutside = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      wsRef.current?.close();
-    };
-  }, [user, soundEnabled]);
 
   const connectWebSocket = () => {
     const token = localStorage.getItem('sasl_token');
+    if (!token) return;
     const isLocal = window.location.hostname === 'localhost';
     const wsUrl = isLocal 
       ? `ws://localhost:8000/ws/notifications/?token=${token}`
@@ -124,31 +75,35 @@ export default function NotificationBell() {
           if (data.type === 'unread_count') {
             setUnreadCount(data.count);
           } else if (data.type === 'new_notification') {
+                      console.log('📨 WS DATA:', data.type, data);
             setNotifications(prev => [data.notification, ...prev]);
             setUnreadCount(prev => prev + 1);
-            playNotificationSound();
-                        console.log('🔔 SOUND TRIGGERED — check if you hear it');
-            console.log('🔔 AudioContext state:', audioCtxRef.current?.state);
-            toast(data.notification.message, { 
+            // Play sound and show toast
+            if (soundEnabled) {
+              try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2qEcP+1j2Oda1e1PmN9u1JbicN0sX9Ddq6K1f9wbJWwub6Y1/+wjrGIbYKBpOvrw5aDcf+zhmyNyctTdr6Kv+Jqfp7FxVhstrbzn5Bmf/+0fHCBmZ5hbLfG8W+NpJaopce6c42Yhmr/5n2dysjCWHe6wuJrlZ2Fq8ewiG6Bb7bx8YqU');
+                audio.volume = 0.5;
+                            if (soundEnabled && audioTriggerRef.current) {
+              audioTriggerRef.current.click();
+            }
+              } catch (err) {}
+            }
+            toast.success(data.notification.message, {
               icon: iconMap[data.notification.notification_type] || '🔔',
               duration: 4000,
             });
           }
-        } catch (err) {
-          console.warn('WebSocket message parse error:', err);
-        }
+        } catch (err) {}
       };
       
       ws.onerror = () => console.log('🔔 WebSocket error — falling back to polling');
       ws.onclose = () => {
-  console.log('🔔 Notification WebSocket closed — reconnecting in 5s');
-  setTimeout(connectWebSocket, 5000);
-};
+        console.log('🔔 Notification WebSocket closed — reconnecting in 5s');
+        setTimeout(connectWebSocket, 5000);
+      };
       
       wsRef.current = ws;
-    } catch (err) {
-      console.log('🔔 WebSocket connection failed — using polling');
-    }
+    } catch (err) {}
   };
 
   const fetchNotifications = async () => {
@@ -158,13 +113,27 @@ export default function NotificationBell() {
       const data = res.data.results || res.data || [];
       setNotifications(data);
       setUnreadCount(data.filter((n: Notification) => !n.is_read).length);
-      if (unreadCount > 0 && soundEnabled) {
-        setTimeout(() => playNotificationSound(), 500);
-      }
     } catch {} finally { 
       setLoading(false); 
     }
   };
+
+  useEffect(() => {
+    if (!user) return;
+    fetchNotifications();
+    connectWebSocket();
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      wsRef.current?.close();
+    };
+  }, [user]);
 
   const markAsRead = async (id: string) => {
     try {
@@ -182,33 +151,20 @@ export default function NotificationBell() {
     } catch {}
   };
 
-const handleClick = (notification: Notification) => {
+  const handleClick = (notification: Notification) => {
     if (!notification.is_read) markAsRead(notification.id);
     setOpen(false);
-    
     const type = notification.notification_type;
-    
-    if (type === 'like' || type === 'comment') {
-        navigate(notification.post_id ? `/post/${notification.post_id}` : '/');
-    } else if (type === 'follow') {
-        navigate(`/profile/${notification.actor}`);
-    } else if (type === 'donation' || type === 'stream_start') {
-        navigate('/streaming');
-    } else if (type === 'purchase') {
-        navigate('/marketplace');
-    } else if (type === 'gig_completed' || type === 'gig_taken') {
-        navigate('/gigs');
-    } else if (type === 'group_invite' || type === 'group_join_request') {
-        navigate('/group-chat');
-    } else if (type === 'snap') {
-        navigate('/snap');
-    } else if (type === 'audio_room') {
-        navigate('/live-audio');
-    } else {
-        navigate(notification.post_id ? `/post/${notification.post_id}` : '/');
-    }
-};
-
+    if (type === 'like' || type === 'comment') navigate(notification.post_id ? `/post/${notification.post_id}` : '/');
+    else if (type === 'follow') navigate(`/profile/${notification.actor}`);
+    else if (type === 'donation' || type === 'stream_start') navigate('/streaming');
+    else if (type === 'purchase') navigate('/marketplace');
+    else if (type === 'gig_completed' || type === 'gig_taken') navigate('/gigs');
+    else if (type === 'group_invite' || type === 'group_join_request') navigate('/group-chat');
+    else if (type === 'snap') navigate('/snap');
+    else if (type === 'audio_room') navigate('/live-audio');
+    else navigate(notification.post_id ? `/post/${notification.post_id}` : '/');
+  };
 
   const toggleSound = () => {
     const newState = !soundEnabled;
@@ -219,31 +175,30 @@ const handleClick = (notification: Notification) => {
 
   return (
     <div className="relative" ref={panelRef}>
-      <motion.button
-        whileTap={{ scale: 0.9 }}
-        onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-      >
+      <motion.button whileTap={{ scale: 0.9 }} onClick={() => setOpen(!open)} className="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
         <Bell size={20} className="text-gray-600 dark:text-gray-300" />
         {unreadCount > 0 && (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs min-w-[20px] h-5 rounded-full flex items-center justify-center font-bold px-1 shadow-lg"
-          >
+          <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="absolute -top-1 -right-1 bg-gradient-to-r from-red-500 to-pink-500 text-white text-xs min-w-[20px] h-5 rounded-full flex items-center justify-center font-bold px-1 shadow-lg">
             {unreadCount > 99 ? '99+' : unreadCount}
           </motion.span>
         )}
-      </motion.button>
+</motion.button>
+               {/* Hidden button for audio unlock */}
+      <button 
+        ref={audioTriggerRef} 
+        style={{ display: 'none' }}
+        onClick={() => {
+          if (audioRef.current) {
+            audioRef.current.currentTime = 0;
+            audioRef.current.play().catch(() => {});
+          }
+        }}
+      />
+      
 
       <AnimatePresence>
         {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-            className="absolute right-0 mt-2 w-80 glass-card rounded-2xl shadow-2xl z-50 overflow-hidden border border-white/50"
-          >
+          <motion.div initial={{ opacity: 0, y: -10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.95 }} className="absolute right-0 mt-2 w-80 glass-card rounded-2xl shadow-2xl z-50 overflow-hidden border border-white/50">
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700">
               <h3 className="font-bold text-gray-900 dark:text-white">{t('Notifications')}</h3>
               <div className="flex items-center gap-2">
@@ -251,46 +206,25 @@ const handleClick = (notification: Notification) => {
                   {soundEnabled ? <Volume2 size={14} className="text-green-500" /> : <VolumeX size={14} className="text-gray-400" />}
                 </button>
                 {unreadCount > 0 && (
-                  <button onClick={markAllRead} className="text-sm text-green-600 hover:underline font-medium">
-                    {t('Mark all read')}
-                  </button>
+                  <button onClick={markAllRead} className="text-sm text-green-600 hover:underline font-medium">{t('Mark all read')}</button>
                 )}
               </div>
             </div>
-
             <div className="max-h-96 overflow-y-auto">
               {loading ? (
-                <div className="p-8 text-center">
-                  <div className="animate-spin w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full mx-auto" />
-                </div>
+                <div className="p-8 text-center"><div className="animate-spin w-6 h-6 border-2 border-green-500 border-t-transparent rounded-full mx-auto" /></div>
               ) : notifications.length === 0 ? (
-                <div className="p-8 text-center text-gray-400">
-                  <Bell size={32} className="mx-auto mb-2 opacity-50" />
-                  <p>{t('No notifications yet')}</p>
-                </div>
+                <div className="p-8 text-center text-gray-400"><Bell size={32} className="mx-auto mb-2 opacity-50" /><p>{t('No notifications yet')}</p></div>
               ) : (
                 notifications.map(notification => (
-                  <motion.button
-                    key={notification.id}
-                    whileHover={{ backgroundColor: 'rgba(0,168,107,0.05)' }}
-                    onClick={() => handleClick(notification)}
-                    className={`w-full text-left p-4 transition-colors border-b border-gray-50 dark:border-gray-700/50 last:border-b-0 ${
-                      !notification.is_read ? 'bg-green-50/50 dark:bg-green-900/10' : ''
-                    }`}
-                  >
+                  <motion.button key={notification.id} whileHover={{ backgroundColor: 'rgba(0,168,107,0.05)' }} onClick={() => handleClick(notification)} className={`w-full text-left p-4 transition-colors border-b border-gray-50 dark:border-gray-700/50 last:border-b-0 ${!notification.is_read ? 'bg-green-50/50 dark:bg-green-900/10' : ''}`}>
                     <div className="flex items-start gap-3">
-                      <div className="mt-0.5 p-1.5 rounded-full bg-gray-100 dark:bg-gray-700">
-                        {iconMap[notification.notification_type] || <Bell size={16} className="text-gray-500" />}
-                      </div>
+                      <div className="mt-0.5 p-1.5 rounded-full bg-gray-100 dark:bg-gray-700">{iconMap[notification.notification_type] || <Bell size={16} className="text-gray-500" />}</div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-gray-800 dark:text-gray-200 line-clamp-2">{notification.message}</p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {new Date(notification.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        </p>
+                        <p className="text-xs text-gray-400 mt-1">{new Date(notification.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
-                      {!notification.is_read && (
-                        <span className="w-2.5 h-2.5 bg-green-500 rounded-full flex-shrink-0 mt-2 shadow-lg shadow-green-300" />
-                      )}
+                      {!notification.is_read && <span className="w-2.5 h-2.5 bg-green-500 rounded-full flex-shrink-0 mt-2 shadow-lg shadow-green-300" />}
                     </div>
                   </motion.button>
                 ))
