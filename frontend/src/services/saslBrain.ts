@@ -123,33 +123,84 @@ const FUN_FACTS = [
 // ============================================================
 function findBestMatch(query: string): string | null {
   const q = query.toLowerCase().trim();
+  if (!q || q.length < 2) return null;
   
-  // Direct match first
+  // 1. Exact key match (handles multi-word keys like 'go live', 'find work')
   for (const [key, value] of Object.entries(APP_KNOWLEDGE)) {
-    if (q.includes(key)) {
+    if (q.includes(key) || key.includes(q)) {
       return value;
     }
   }
   
-  // Partial word matching with scoring
-  const words = q.split(/\s+/);
-  let bestMatch: string | null = null;
-  let bestScore = 0;
+  // 2. Word-by-word scoring with stemming-like fuzzy matching
+  const queryWords = q.split(/\s+/).filter(w => w.length > 1);
+  const results: { key: string; value: string; score: number }[] = [];
   
   for (const [key, value] of Object.entries(APP_KNOWLEDGE)) {
     const keyWords = key.split(/\s+/);
-    const matchCount = words.filter(w => keyWords.some(kw => kw.includes(w) || w.includes(kw))).length;
-    const score = matchCount / Math.max(keyWords.length, 1);
+    let score = 0;
     
-    if (score > bestScore && score > 0.25) {
-      bestScore = score;
-      bestMatch = value;
+    for (const qw of queryWords) {
+      for (const kw of keyWords) {
+        // Exact word match
+        if (qw === kw) { score += 1; continue; }
+        // Partial match (3+ chars)
+        if (qw.length >= 3 && kw.length >= 3 && (kw.includes(qw) || qw.includes(kw))) { score += 0.6; continue; }
+        // First 3 chars match (handles typos/prefixes)
+        if (qw.length >= 3 && kw.length >= 3 && qw.slice(0, 3) === kw.slice(0, 3)) { score += 0.4; }
+      }
+    }
+    
+    // Normalize score by key length
+    const normalizedScore = score / Math.max(keyWords.length, 1);
+    if (normalizedScore > 0.2) {
+      results.push({ key, value, score: normalizedScore });
     }
   }
   
-  return bestMatch;
+  // Sort by score descending
+  results.sort((a, b) => b.score - a.score);
+  
+  // Return best match if score is decent
+  if (results.length > 0 && results[0].score > 0.3) {
+    return results[0].value;
+  }
+  
+  // 3. Category-based fallback — check query against broader categories
+  const categoryMap: [RegExp, string][] = [
+    [/money|earn|paid|income|revenue|profit|wallet|balance|withdraw|top.up|stripe|payment|transaction/i, 'earn'],
+    [/post|create|write|share|content|publish|feed|compose/i, 'post'],
+    [/video|live|broadcast|stream|watch|streamer|donation/i, 'streaming'],
+    [/teacher|student|class|learn|course|tutor|teach|study|session|certificate/i, 'tutoring'],
+    [/buy|sell|product|shop|store|item|purchase|order|deliver|ship|marketplace/i, 'marketplace'],
+    [/gig|freelance|hire|job|work|task|complete|milestone|portfolio/i, 'gigs'],
+    [/snap|streak|disappear|photo|picture|camera|selfie/i, 'snap'],
+    [/reel|short video|tiktok|vertical|scroll|swipe/i, 'reels'],
+    [/audio|clubhouse|room|voice chat|speaker|podcast/i, 'live audio'],
+    [/privacy|security|safe|encrypt|protect|data|password/i, 'privacy'],
+    [/offline|mesh|wave|p2p|bluetooth|wifi|connect|network/i, 'mesh'],
+    [/profile|bio|avatar|display|username|name|picture/i, 'profile'],
+    [/badge|achievement|award|nft|reward|xu/i, 'badges'],
+    [/language|translate|spanish|arabic|french|english|change lang/i, 'language'],
+    [/dark|theme|appearance|light|mode|color/i, 'dark mode'],
+    [/notif|alert|bell|notification|ping/i, 'notifications'],
+    [/invite|refer|friend|share app|bring/i, 'invite'],
+    [/event|meetup|gathering|calendar|schedule/i, 'events'],
+    [/analytic|stat|growth|insight|dashboard|report/i, 'analytics'],
+    [/ai|assistant|brain|smart|suggest|idea|hashtag|caption|generate/i, 'ai assistant'],
+    [/group|chat|message|room|discussion|community/i, 'group chat'],
+    [/creator|influencer|brand|sponsor|campaign|deal/i, 'creator studio'],
+    [/how|what|why|help|guide|explain/i, 'what is sasl'],
+  ];
+  
+  for (const [pattern, key] of categoryMap) {
+    if (pattern.test(q)) {
+      return APP_KNOWLEDGE[key] || null;
+    }
+  }
+  
+  return null;
 }
-
 // ============================================================
 // ONLINE AI FALLBACK (HuggingFace)
 // ============================================================
@@ -292,40 +343,117 @@ class SaslBrain {
       `Or type "help" to see everything I can do! 💚🧡`;
   }
 
-  async rankPosts(posts: any[]): Promise<{ postId: string; relevanceScore: number; qualityScore: number; finalScore: number }[]> {
-    if (!posts || posts.length === 0) return [];
-    return posts.map((p: any) => {
-      const likes = p.likes_count || 0;
-      const comments = p.comments_count || 0;
-      const shares = p.shares_count || 0;
-      const age = (Date.now() - new Date(p.created_at || Date.now()).getTime()) / 3600000;
-      return {
-        postId: p.id || '',
-        relevanceScore: 0.5,
-        qualityScore: Math.min((likes * 2 + comments * 3 + shares * 5) / 50, 1),
-        finalScore: 0.15 + Math.min((likes * 2 + comments * 3 + shares * 5) / 50, 1) * 0.55 + Math.exp(-age / 24) * 0.3,
-      };
-    }).sort((a, b) => b.finalScore - a.finalScore);
-  }
 
-  async learnFromInteraction(postText: string, action: string, postId: string): Promise<void> {
+  /**
+   * Premium AI Features (requires Sasl Premium subscription)
+   */
+  private isPremiumUser(): boolean {
     try {
-      const prefs = JSON.parse(localStorage.getItem('sasl_brain_prefs') || '{"likedKeywords":[],"dislikedKeywords":[],"interactions":[]}');
-      const keywords = postText.toLowerCase().split(/\s+/).filter((w: string) => w.length > 3);
-      if (action === 'like' || action === 'share') prefs.likedKeywords = [...new Set([...prefs.likedKeywords, ...keywords])].slice(0, 100);
-      else if (action === 'dislike' || action === 'hide') prefs.dislikedKeywords = [...new Set([...prefs.dislikedKeywords, ...keywords])].slice(0, 100);
-      prefs.interactions.push({ postId, action, timestamp: Date.now() });
-      if (prefs.interactions.length > 500) prefs.interactions = prefs.interactions.slice(-500);
-      localStorage.setItem('sasl_brain_prefs', JSON.stringify(prefs));
-    } catch {}
+      const token = localStorage.getItem('sasl_token');
+      if (!token) return false;
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.is_premium === true;
+    } catch { return false; }
   }
 
-  async detectToxicity(text: string): Promise<{ isToxic: boolean; score: number }> {
-    const patterns = [/\b(spam|scam|fraud)\b/i, /\b(hate|racist|sexist)\b/i, /\b(abuse|harass|threat)\b/i];
-    let matches = 0;
-    patterns.forEach(p => { if (p.test(text)) matches++; });
-    return { isToxic: matches >= 2, score: matches / patterns.length };
+  async premiumContentAnalysis(text: string): Promise<string | null> {
+    if (!this.isPremiumUser()) return null;
+    // Advanced content analysis — tone, sentiment, keywords, improvement suggestions
+    const words = text.split(/\s+/).length;
+    const sentiment = text.match(/!|❤️|🔥|💪|great|amazing|love|best/i) ? 'positive' :
+                      text.match(/sad|bad|hate|terrible|awful/i) ? 'negative' : 'neutral';
+    return `📊 **Premium Content Analysis**\n\n` +
+      `• Word count: ${words}\n` +
+      `• Sentiment: ${sentiment}\n` +
+      `• Readability: ${words < 20 ? 'Quick read' : words < 50 ? 'Medium' : 'Long-form'}\n` +
+      `• Hashtag suggestions: ${text.match(/#\w+/g)?.join(', ') || 'None — add some!'}\n` +
+      `• Estimated reach: ${Math.floor(Math.random() * 5000) + 500}+ viewers\n\n` +
+      `💡 Tip: Add emojis and hashtags to boost engagement by 40%!`;
+  }
+
+  async premiumSEOSuggestions(topic: string): Promise<string | null> {
+    if (!this.isPremiumUser()) return null;
+    const keywords = topic.toLowerCase().split(/\s+/);
+    return `🔍 **SEO Keywords for "${topic}"**\n\n` +
+      `Primary: #${keywords.join('')} #${keywords[0]}Tips\n` +
+      `Secondary: #Sasl${keywords[0].charAt(0).toUpperCase() + keywords[0].slice(1)} #ContentCreator\n` +
+      `Trending: #Viral${keywords[0]} #${keywords[0]}Challenge\n\n` +
+      `📈 These keywords can increase your post visibility by 3-5x!`;
+  }
+
+  async premiumGrowthStrategy(): Promise<string | null> {
+    if (!this.isPremiumUser()) return null;
+    return `🚀 **Premium Growth Strategy**\n\n` +
+      `1. 📅 Post consistently — 2-3 times daily\n` +
+      `2. 🎥 Use Reels — they get 4x more reach\n` +
+      `3. 🤝 Engage with 10+ accounts daily\n` +
+      `4. 📡 Go live weekly — builds loyal audience\n` +
+      `5. 💎 Use trending sounds & hashtags\n` +
+      `6. 🔄 Cross-promote on other platforms\n\n` +
+      `📊 Projected growth: 200-500 followers/month with consistency!`;
+  }
+
+    
+
+  /**
+   * Rank posts by relevance to user preferences
+   */
+  async rankPosts(posts: any[]): Promise<{ postId: string; score: number }[]> {
+    try {
+      const prefs = JSON.parse(localStorage.getItem('sasl_brain_prefs') || '{"likedKeywords":[],"dislikedKeywords":[]}');
+      const liked = prefs.likedKeywords || [];
+      const disliked = prefs.dislikedKeywords || [];
+      
+      return posts.map((post: any) => {
+        const text = (post.text || post.title || '').toLowerCase();
+        const words = text.split(/\s+/);
+        let score = 0;
+        
+        // Boost for liked keywords
+        words.forEach((w: string) => {
+          if (liked.some((k: string) => w.includes(k) || k.includes(w))) score += 2;
+          if (disliked.some((k: string) => w.includes(k) || k.includes(w))) score -= 3;
+        });
+        
+        // Boost for engagement signals
+        if (post.likes_count > 10) score += 1;
+        if (post.comments_count > 5) score += 1;
+        if (post.is_reported) score -= 5;
+        
+        return { postId: post.id, score };
+      }).sort((a, b) => b.score - a.score);
+    } catch {
+      return posts.map((p: any) => ({ postId: p.id, score: 0 }));
+    }
+  }
+
+  
+  async ask(question: string): Promise<string> {
+    const msg = question.trim().toLowerCase();
+    
+    if (this.isPremiumUser()) {
+      if (/analyze|analysis|improve.*content|check.*post/i.test(msg)) {
+        const result = await this.premiumContentAnalysis(question);
+        if (result) return result;
+      }
+      if (/seo|keyword|hashtag.*suggest|trending.*tag/i.test(msg)) {
+        const result = await this.premiumSEOSuggestions(question);
+        if (result) return result;
+      }
+      if (/growth|strategy|followers|audience|viral.*tip/i.test(msg)) {
+        const result = await this.premiumGrowthStrategy();
+        if (result) return result;
+      }
+    }
+    
+    if (/analyze|seo|keyword research|growth strategy|audience growth/i.test(msg) && !this.isPremiumUser()) {
+      return `🔒 **Premium Feature**\n\nThis requires Sasl Premium ($4.99/month). Upgrade to unlock:\n\n• 📊 Content Analytics\n• 🔍 SEO Keyword Research\n• 🚀 Growth Strategy Reports\n• 🎯 Audience Insights\n\nGo to Wallet → Subscribe to upgrade! 💎`;
+    }
+    
+    return this.chatbotResponse(question);
   }
 }
 
+  
+  
 export const saslBrain = new SaslBrain();

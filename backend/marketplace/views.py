@@ -2,6 +2,7 @@
 Sasl - Social Asynchronous Sharing Layer
 Marketplace: Advanced filtering, wishlist, seller reviews, nearby mesh discovery
 """
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -17,6 +18,8 @@ from monetization.services import process_marketplace_purchase
 from notifications.services import create_notification
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+
+from datetime import timedelta
 from monetization.transaction_validator import validate_marketplace_purchase
 
 from django.views.decorators.csrf import csrf_exempt
@@ -114,17 +117,39 @@ class ProductViewSet(viewsets.ModelViewSet):
                 product=product,
                 quantity=quantity,
                 total_price=total,
-                status='completed'
+                status='paid',  # Paid but in escrow
+                escrow_held=True,
+                auto_release_at=timezone.now() + timedelta(days=7)
             )
         
         create_notification(
             recipient=product.seller,
             actor=request.user,
             notification_type='purchase',
-            message=f'{request.user.username} purchased {quantity}x {product.title} for ${total}'
+            message=f'{request.user.username} purchased {quantity}x {product.title} for ${total} (held in escrow)'
         )
         
-        return Response({'status': 'purchased', 'order_id': str(order.id)})
+        return Response({'status': 'purchased', 'order_id': str(order.id), 'message': 'Funds held in escrow until delivery confirmation'})
+
+    @action(detail=True, methods=['post'])
+    def confirm_delivery(self, request, pk=None):
+        """Buyer confirms delivery — releases escrow to seller."""
+        order = get_object_or_404(Order, id=pk, buyer=request.user)
+        if order.status != 'paid':
+            return Response({'error': 'Order not in escrow'}, status=400)
+        
+        from monetization.services import release_marketplace_escrow
+        success = release_marketplace_escrow(pk)
+        
+        if success:
+            create_notification(
+                recipient=order.product.seller,
+                actor=request.user,
+                notification_type='escrow_released',
+                message=f'💰 Escrow released for {order.product.title} — ${order.total_price}'
+            )
+            return Response({'status': 'delivered', 'message': 'Escrow released to seller'})
+        return Response({'error': 'Release failed'}, status=500)
 
     @action(detail=True, methods=['post'])
     def review(self, request, pk=None):

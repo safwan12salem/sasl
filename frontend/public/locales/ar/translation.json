@@ -1078,9 +1078,64 @@
   "Track your journey and earn rewards": "تتبع رحلتك واربح مكافآت",
   "to next level": "إلى المستوى التالي",
   "Rank": "الرتبة",
-  "You": "أنت"
+  "You": "أنت",
 
 
+
+
+
+
+
+  "works_offline": "يعمل بدون اتصال",
+  "no_wifi_no_problem": "لا واي فاي؟ لا مشكلة",
+  "chat_post_via_wavemesh": "الدردشة والنشر عبر WaveMesh P2P",
+  "syncs_automatically": "يتم المزامنة تلقائيًا عند الاتصال",
+  "end_to_end_encrypted": "تشفير من النهاية إلى النهاية دائمًا",
+  "connect_up_to_20km": "اتصل حتى 20 كم عبر الشبكة",
+  "works_in_190_countries": "يعمل في أكثر من 190 دولة",
+  "earn_real_money": "اكسب أموالًا حقيقية. يوميًا.",
+  "multiple_income_streams": "مصادر دخل متعددة",
+  "month": "/شهريًا",
+  "the_ultimate_super_app": "أفضل تطبيق سوبر",
+  "one_app_everything": "تطبيق واحد. كل شيء.",
+  "social_feed": "الخلاصة الاجتماعية",
+  "marketplace": "السوق",
+  "streaming": "البث المباشر",
+  "tutoring": "الدروس الخصوصية",
+  "gig_central": "مركز الوظائف",
+  "live_audio": "الصوت المباشر",
+  "snap_stories": "قصص سناب",
+  "ai_assistant": "مساعد الذكاء الاصطناعي",
+  "all_working_offline": "كل شيء يعمل بدون اتصال",
+  "get_started": "ابدأ",
+  "step": "خطوة",
+  "of": "من",
+  "next": "التالي",
+  "skip": "تخطي",
+  "finish": "إنهاء",
+  "welcome_to_sasl": "مرحبًا بك في Sasl!",
+  "the_worlds_first": "أول شبكة تواصل اجتماعي في العالم",
+  "offline_social_network": "تعمل بدون إنترنت تمامًا",
+  "creators_earn": "المبدعون يربحون",
+  "sellers_earn": "البائعون يربحون",
+  "teachers_earn": "المدرسون يربحون",
+  "gig_workers_earn": "العمال المستقلون يربحون",
+  "ad_watchers_earn": "مشاهدوا الإعلانات يربحون",
+  "per_month": "/شهريًا",
+  "platform_fee": "رسوم المنصة",
+  "goes_to_creators": "تذهب للمبدعين",
+  "brand_deals": "عروض العلامة التجارية",
+  "apply_now": "قدم الآن",
+  "my_content": "محتواي",
+  "save_profile": "حفظ الملف الشخصي",
+  "niche": "مجال",
+  "price_per_post": "السعر لكل منشور",
+  "price_per_video": "السعر لكل فيديو",
+  "audience": "الجمهور",
+  "engagement": "التفاعل",
+  "verified": "موثوق",
+  "total_earned": "إجمالي الأرباح",
+  "completed_deals": "عروض مكتملة"
 
 
 

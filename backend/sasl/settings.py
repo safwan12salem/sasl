@@ -102,6 +102,7 @@ INSTALLED_APPS = [
     'analytics',
     'payments',
     'creatorstudio',
+    'moderation',
     
 ]
 

@@ -106,11 +106,11 @@ class GigViewSet(viewsets.ModelViewSet):
                 message=f'Suspicious transaction flagged: {reason}'
             )
 
-        # Process payment through escrow-like flow
-        success = process_marketplace_purchase(gig.creator, request.user, gig.budget, gig.title)
+        # Process payment through escrow
+        from monetization.services import process_gig_escrow
+        success = process_gig_escrow(gig.creator, request.user, gig.budget, gig.title)
         if not success:
             return Response({'error': 'Payment failed'}, status=402)
-        
         # Record the completed transaction
         Transaction.objects.create(
             user=gig.creator,

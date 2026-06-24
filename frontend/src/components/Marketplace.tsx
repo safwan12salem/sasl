@@ -93,7 +93,8 @@ export default function Marketplace() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [showPayment, setShowPayment] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
-
+    const [activeTab, setActiveTab] = useState<'shop' | 'orders'>('shop');
+  const [orders, setOrders] = useState<any[]>([]);
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -121,6 +122,13 @@ export default function Marketplace() {
     } catch { setError('Could not load marketplace.'); }
     finally { setLoading(false); }
   }, [isOnline, searchQuery, selectedCategory, sortBy, minPrice, maxPrice, inStockOnly]);
+
+  const fetchOrders = async () => {
+    try {
+      const res = await api.get('/marketplace/orders/');
+      setOrders(res.data.results || res.data || []);
+    } catch {}
+  };
 
   const fetchCategories = async () => {
     try { const res = await api.get('/marketplace/categories/'); setCategories(res.data.results || res.data || []); } catch {}
@@ -208,7 +216,24 @@ const resetSellForm = () => {
           <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
             <ShoppingBag className="text-green-500" /> {t('marketplace')}
           </h2>
+
           <p className="text-gray-500 text-sm mt-1">{t('buy_sell_tagline')}</p>
+
+        </div>
+                {/* Tab Switcher */}
+        <div className="flex bg-gray-100 dark:bg-gray-800 rounded-xl p-1">
+          <button
+            onClick={() => { setActiveTab('shop'); fetchProducts(); }}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${activeTab === 'shop' ? 'bg-white dark:bg-gray-700 shadow' : 'text-gray-500'}`}
+          >
+            🛍️ {t('shop')}
+          </button>
+          <button
+            onClick={() => { setActiveTab('orders'); }}
+            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${activeTab === 'orders' ? 'bg-white dark:bg-gray-700 shadow' : 'text-gray-500'}`}
+          >
+            📦 {t('my_orders')}
+          </button>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex bg-gray-100 rounded-xl p-1">
@@ -284,6 +309,45 @@ const resetSellForm = () => {
           </motion.div>
         )}
       </AnimatePresence>
+              {/* Orders Tab */}
+      {activeTab === 'orders' && (
+        <div className="space-y-4">
+          <h3 className="font-bold text-lg">{t('my_orders')}</h3>
+          {orders.length === 0 ? (
+            <div className="glass-card p-12 rounded-2xl text-center">
+              <Package size={48} className="mx-auto mb-3 text-gray-300" />
+              <p className="text-xl text-gray-500">{t('no_orders_yet')}</p>
+            </div>
+          ) : (
+            orders.map((order: any) => (
+              <div key={order.id} className="glass-card p-4 rounded-2xl flex items-center justify-between">
+                <div>
+                  <p className="font-semibold">{order.product?.title || order.product_title}</p>
+                  <p className="text-sm text-gray-500">${order.total_price} · {order.status}</p>
+                </div>
+                {order.status === 'paid' && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        await api.post(`/marketplace/products/${order.id}/confirm_delivery/`);
+                        toast.success(t('delivery_confirmed_escrow_released'));
+                        fetchOrders();
+                      } catch { toast.error(t('failed')); }
+                    }}
+                    className="btn-primary text-xs"
+                  >
+                    ✅ {t('confirm_delivery')}
+                  </button>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* Shop Tab */}
+      
+
 
       {/* Products */}
       {loading ? (
@@ -350,13 +414,37 @@ const resetSellForm = () => {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setSelectedProduct(null)}>
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="glass-card max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
               <div className="relative h-64 bg-gray-100 rounded-t-2xl overflow-hidden">
-                {selectedProduct.images && selectedProduct.images.length > 0 ? (
-  <div className="relative w-full h-full">
+              
+                  {selectedProduct.images && selectedProduct.images.length > 0 ? (
+  <div className="relative w-full h-full group">
     <img 
      src={(selectedProduct.images[selectedImageIndex]?.image_url || selectedProduct.image_url) ?? undefined} 
       alt={selectedProduct.title} 
       className="w-full h-full object-cover" 
     />
+    {/* Download current image */}
+    <a 
+      href={(selectedProduct.images[selectedImageIndex]?.image_url || selectedProduct.image_url) ?? '#'}
+      download
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      className="absolute top-3 left-3 bg-white/90 rounded-full p-2 shadow opacity-0 group-hover:opacity-100 transition hover:bg-white"
+      title={t('download_image')}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </a>
+    {/* Left/Right arrows for multiple images */}
+    {selectedImageIndex > 0 && (
+      <button onClick={() => setSelectedImageIndex(prev => prev - 1)} className="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1.5 shadow hover:bg-white">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    )}
+    {selectedImageIndex < (selectedProduct.images?.length || 1) - 1 && (
+      <button onClick={() => setSelectedImageIndex(prev => prev + 1)} className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 rounded-full p-1.5 shadow hover:bg-white">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    )}
     {selectedProduct.images.length > 1 && (
       <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
         {selectedProduct.images.map((_: any, i: number) => (
@@ -370,7 +458,20 @@ const resetSellForm = () => {
     )}
   </div>
 ) : selectedProduct.image_url ? (
-  <img src={selectedProduct.image_url} alt={selectedProduct.title} className="w-full h-full object-cover" />
+  <div className="relative w-full h-full group">
+    <img src={selectedProduct.image_url} alt={selectedProduct.title} className="w-full h-full object-cover" />
+    <a
+      href={selectedProduct.image_url}
+      download
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      className="absolute top-3 left-3 bg-white/90 rounded-full p-2 shadow opacity-0 group-hover:opacity-100 transition hover:bg-white"
+      title={t('download_image')}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    </a>
+  </div>
 ) : (
   <div className="w-full h-full flex items-center justify-center"><Package size={64} className="text-gray-300" /></div>
 )}
@@ -382,7 +483,25 @@ const resetSellForm = () => {
                 <div className="flex items-center gap-3 mt-3">
                   <span className="text-3xl font-bold text-green-600"><DollarSign size={16} />{selectedProduct.price}</span>
                   <span className={`text-sm px-3 py-1 rounded-full ${selectedProduct.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{selectedProduct.stock > 0 ? `${selectedProduct.stock} ${t('in_stock')}` : t('sold_out')}</span>
-                </div>
+                                   </div>
+                {/* Delete button for product owner */}
+                 {user?.username === selectedProduct.seller_name && (
+                  <button
+                    onClick={async () => {
+                      if (window.confirm('Delete this product?')) {
+                        try {
+                          await api.delete(`/marketplace/products/${selectedProduct.id}/`);
+                          toast.success('Product deleted');
+                          setSelectedProduct(null);
+                          fetchProducts();
+                        } catch { toast.error('Delete failed'); }
+                      }
+                    }}
+                    className="mt-3 w-full py-2 border border-red-300 text-red-500 rounded-xl text-sm hover:bg-red-50 transition"
+                  >
+                    🗑️ Delete Product
+                  </button>
+                )}
                 <div className="flex gap-2 mt-4">
                   <button onClick={() => { setPaymentAmount(parseFloat(selectedProduct.price)); setShowPayment(true); }} disabled={selectedProduct.stock === 0} className="btn-primary flex-1 flex items-center justify-center gap-2"><ShoppingCart size={18} /> {t('buy_now')}</button>
                   <button onClick={() => toggleWishlist(selectedProduct.id)} className="btn-ghost"><Heart size={20} className={selectedProduct.is_wishlisted ? 'fill-red-500 text-red-500' : ''} /></button>

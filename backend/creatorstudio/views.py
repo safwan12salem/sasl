@@ -47,25 +47,32 @@ class BrandCampaignViewSet(viewsets.ReadOnlyModelViewSet):
         if SponsoredContent.objects.filter(creator=request.user, campaign=campaign).exists():
             return Response({'error': 'Already applied'}, status=400)
         
-        amount = float(campaign.budget) * 0.90
+        # Fund campaign from brand's wallet into escrow
+        from .monetization import fund_campaign
+        funded = fund_campaign(campaign.brand_user if hasattr(campaign, 'brand_user') else request.user, campaign)
+        if not funded:
+            return Response({'error': 'Campaign funding failed — insufficient balance'}, status=402)
+        
+        creator_share = float(campaign.budget) * 0.90
+        platform_fee = float(campaign.budget) * 0.10
+        
         content = SponsoredContent.objects.create(
             creator=request.user,
             campaign=campaign,
             content_type=campaign.content_type,
             caption=request.data.get('caption', f'Sponsored content for {campaign.brand_name}'),
-            creator_earnings=amount,
+            creator_earnings=creator_share,
             platform_fee_pct=10.0,
             status='pending'
         )
-        profile.total_earned = float(profile.total_earned) + amount
-        profile.save()
         
         return Response({
             'status': 'applied',
-            'earnings': str(amount),
-            'content_id': content.id
+            'earnings': str(creator_share),
+            'platform_fee': str(platform_fee),
+            'content_id': content.id,
+            'message': f'Campaign funded! ${creator_share} held in escrow until content approval.'
         })
-
     @action(detail=False, methods=['get'])
     def my_contents(self, request):
         contents = SponsoredContent.objects.filter(creator=request.user).order_by('-submitted_at')

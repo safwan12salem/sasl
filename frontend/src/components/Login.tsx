@@ -6,6 +6,8 @@ import toast from 'react-hot-toast';
 import Logo from './Logo';
 import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn, ArrowRight, Eye, EyeOff, Zap } from 'lucide-react';
+import LanguageSwitcher from './LanguageSwitcher';
+
 
 export default function Login() {
   const { login, user } = useAuth();
@@ -41,6 +43,10 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#0a0a0f] p-4 relative overflow-hidden">
+            {/* Language Switcher */}
+      <div className="absolute top-4 right-4 z-20">
+        <LanguageSwitcher />
+      </div>
       {/* Animated background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-green-500/10 rounded-full blur-[120px] animate-pulse" />

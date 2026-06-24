@@ -575,14 +575,14 @@ const [suggestionsList, setSuggestionsList] = useState<string[]>([]);
       speakResponse(matchedResponse);
     } else {
       try {
-        const aiResponse = await saslBrain.chatbotResponse(command);
+        const aiResponse = await saslBrain.ask(command);
         setVoiceResponse(aiResponse);
         setVoiceConversation(prev => [...prev, { type: 'ai', text: aiResponse }]);
         speakResponse(aiResponse);
       } catch {
               // Try Sasl Brain for unknown questions
       try {
-        const aiResponse = await saslBrain.chatbotResponse(command);
+        const aiResponse = await saslBrain.ask(command);
         setVoiceResponse(aiResponse);
         setVoiceConversation(prev => [...prev, { type: 'ai', text: aiResponse }]);
         speakResponse(aiResponse);
@@ -647,7 +647,7 @@ const [suggestionsList, setSuggestionsList] = useState<string[]>([]);
       const words = userMessage.split(/\s+/);
       const searchQuery = words.slice(-3).join(' '); // Last 3 words
       
-      const response = await saslBrain.chatbotResponse(userMessage);
+      const response = await saslBrain.ask(userMessage);
       setBrainMessages(prev => [...prev, { role: 'bot', text: response }]);
     } catch {
       setBrainMessages(prev => [...prev, { role: 'bot', text: 'Sorry, I had trouble processing that. Please try again.' }]);
@@ -1070,7 +1070,7 @@ const [suggestionsList, setSuggestionsList] = useState<string[]>([]);
                       key={q}
                       onClick={() => {
                         setBrainMessages(prev => [...prev, { role: 'user', text: q }]);
-                        saslBrain.chatbotResponse(q).then(response => {
+                        saslBrain.ask(q).then(response => {
                           setBrainMessages(prev => [...prev, { role: 'bot', text: response }]);
                         });
                       }}

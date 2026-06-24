@@ -94,18 +94,33 @@ const createCampaign = async () => {
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-purple-500" size={48} /></div>;
 
-  return (
+    return (
     <div className="p-6 max-w-5xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-          <Sparkles className="text-purple-500" />{t('Creator Studio')}
-        </h2>
-        <div className="text-right">
-          <p className="text-sm text-gray-500">{t('Total Earned')}</p>
-          <p className="text-2xl font-bold text-green-600">${Number(profile?.total_earned || 0).toFixed(2)}</p>
+      {/* Header with Earnings Dashboard */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+        <div>
+          <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
+            <Sparkles className="text-purple-500" />{t('Creator Studio')}
+          </h2>
+          <p className="text-sm text-gray-500 mt-1">{t('Monetize your content with brand deals')}</p>
+        </div>
+        <div className="glass-card p-4 rounded-2xl flex gap-4 items-center">
+          <div className="text-center">
+            <p className="text-xs text-gray-500">{t('Total Earned')}</p>
+            <p className="text-xl font-bold text-green-600">${Number(profile?.total_earned || 0).toFixed(2)}</p>
+          </div>
+          <div className="w-px h-8 bg-gray-200" />
+          <div className="text-center">
+            <p className="text-xs text-gray-500">{t('Deals')}</p>
+            <p className="text-xl font-bold text-purple-600">{profile?.completed_deals || 0}</p>
+          </div>
+          <div className="w-px h-8 bg-gray-200" />
+          <div className="text-center">
+            <p className="text-xs text-gray-500">{t('You Earn')}</p>
+            <p className="text-xl font-bold text-orange-600">90%</p>
+          </div>
         </div>
       </div>
-
       {/* Tabs */}
       <div className="flex gap-2 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-6">
         {[

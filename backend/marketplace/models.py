@@ -58,14 +58,21 @@ class Order(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, default='pending', choices=(
-        ('pending', 'Pending'),
-        ('completed', 'Completed'),
+        ('pending', 'Pending Payment'),
+        ('paid', 'Paid - In Escrow'),
         ('shipped', 'Shipped'),
         ('delivered', 'Delivered'),
+        ('completed', 'Completed'),
+        ('disputed', 'Disputed'),
         ('cancelled', 'Cancelled'),
+        ('refunded', 'Refunded'),
     ))
     shipped_at = models.DateTimeField(null=True, blank=True)
     delivered_at = models.DateTimeField(null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    escrow_held = models.BooleanField(default=False)
+    escrow_released = models.BooleanField(default=False)
+    auto_release_at = models.DateTimeField(null=True, blank=True)  # 7 days after delivery
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

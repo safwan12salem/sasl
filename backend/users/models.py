@@ -80,6 +80,10 @@ class Wallet(models.Model):
     is_frozen = models.BooleanField(default=False)
     freeze_reason = models.CharField(max_length=255, blank=True, default='')
     frozen_at = models.DateTimeField(null=True, blank=True)
+    warning_count = models.PositiveIntegerField(default=0)
+    is_banned = models.BooleanField(default=False)
+    ban_reason = models.CharField(max_length=255, blank=True, default='')
+    banned_at = models.DateTimeField(null=True, blank=True)
 
     def get_rank(self):
         """Get user's rank among all earners"""

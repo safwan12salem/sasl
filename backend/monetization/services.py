@@ -129,27 +129,129 @@ def process_tutoring_payment(student, tutor, amount, subject=''):
 # ---------------------------------------------------------------------
 # 3. MARKETPLACE PURCHASE
 # ---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
+# 3. GIG ESCROW
+# ---------------------------------------------------------------------
+def process_gig_escrow(employer, worker, amount, gig_title):
+    """
+    Gig escrow: Employer pays → held in escrow → released when work is completed.
+    5% platform fee.
+    """
+    from monetization.anti_fraud import EscrowManager
+    
+    amount = Decimal(str(amount))
+    with transaction.atomic():
+        ew = Wallet.objects.select_for_update().get(user=employer)
+        if ew.frozen or ew.balance < amount:
+            return False
+        
+        ew.balance -= amount
+        ew.save()
+        
+        EscrowManager.hold_funds(employer, amount, f'gig-{gig_title}', 'gig')
+        
+        Transaction.objects.create(
+            user=employer, amount=-amount, transaction_type='gig_escrow',
+            description=f'Escrow held for gig: {gig_title}'
+        )
+    return True
+
+
+def release_gig_escrow(employer, worker, amount, gig_title):
+    """
+    Release gig escrow to worker. Called when gig is marked complete.
+    """
+    from monetization.anti_fraud import EscrowManager
+    
+    amount = Decimal(str(amount))
+    fee = amount * Decimal('0.05')
+    net = amount - fee
+    
+    with transaction.atomic():
+        ww = Wallet.objects.select_for_update().get(user=worker)
+        ww.balance += net
+        ww.total_earned += net
+        ww.save()
+        
+        EscrowManager.release_funds(worker, amount, f'gig-{gig_title}', 'gig')
+        
+        Transaction.objects.create(
+            user=worker, amount=net, transaction_type='gig_completed',
+            description=f'Escrow released for gig: {gig_title}'
+        )
+    return True
+
+
+# ---------------------------------------------------------------------
+# 4. MARKETPLACE PURCHASE
+# ---------------------------------------------------------------------
+
 def process_marketplace_purchase(buyer, seller, amount, product_title):
-    """5% fee on sales."""
+    """
+    Escrow-protected purchase.
+    Buyer pays → funds held in escrow → released on delivery confirmation.
+    5% fee on release.
+    """
+    from marketplace.models import Order
+    from monetization.anti_fraud import EscrowManager
+    
     amount = Decimal(str(amount))
     with transaction.atomic():
         bw = Wallet.objects.select_for_update().get(user=buyer)
         if bw.frozen or bw.balance < amount:
             return False
+        
+        # Hold funds in escrow
         bw.balance -= amount
         bw.save()
-        sw = Wallet.objects.select_for_update().get(user=seller)
+        
+        # Escrow hold (funds not yet given to seller)
+        EscrowManager.hold_funds(buyer, amount, f'marketplace-{product_title}', 'marketplace')
+        
+        Transaction.objects.create(
+            user=buyer, amount=-amount, transaction_type='purchase',
+            description=f'Escrow held for {product_title}'
+        )
+    return True
+
+
+def release_marketplace_escrow(order_id):
+    """
+    Release escrow to seller after delivery confirmation.
+    Called when buyer confirms delivery or auto-release after 7 days.
+    """
+    from marketplace.models import Order
+    from monetization.anti_fraud import EscrowManager
+    
+    with transaction.atomic():
+        order = Order.objects.select_related('buyer', 'product__seller').get(id=order_id)
+        if order.escrow_released:
+            return False
+        
+        seller = order.product.seller
+        amount = order.total_price
         fee = amount * Decimal('0.05')
         net = amount - fee
+        
+        sw = Wallet.objects.select_for_update().get(user=seller)
         sw.balance += net
         sw.total_earned += net
         sw.save()
-        Transaction.objects.create(user=buyer, amount=-amount, transaction_type='purchase',
-                                   description=f'Bought {product_title}')
-        Transaction.objects.create(user=seller, amount=net, transaction_type='purchase',
-                                   description=f'Sold {product_title}')
+        
+        EscrowManager.release_funds(seller, amount, str(order.id), 'marketplace')
+        
+        order.escrow_released = True
+        order.status = 'completed'
+        order.completed_at = timezone.now()
+        order.save()
+        
+        Transaction.objects.create(
+            user=seller, amount=net, transaction_type='purchase',
+            description=f'Sold: {order.product.title} (escrow released)'
+        )
     return True
-
 # ---------------------------------------------------------------------
 # 4. AD SYSTEM WITH REAL‑TIME AUCTION
 # ---------------------------------------------------------------------
