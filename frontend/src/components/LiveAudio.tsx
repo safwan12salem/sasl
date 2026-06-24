@@ -474,13 +474,13 @@ export default function LiveAudio() {
                     {room.price && <span className="inline-block mt-1 text-xs font-semibold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">💰 {room.price}</span>}
                   </div>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
-                  <div className="flex items-center gap-1 text-purple-600">
-                    <Users size={16} /><span className="font-bold">{room.current_listeners}</span>
+                                <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                  <div className="flex items-center gap-1 text-purple-600 text-xs">
+                    <Users size={14} /><span className="font-bold">{room.current_listeners}</span>
                     <span className="text-xs text-gray-500">{t('listening')}</span>
                   </div>
-                  <span className="text-yellow-500 text-xs font-semibold flex items-center gap-1"><Zap size={14} /> Live</span>
-                  <button onClick={() => setShowInvite(true)} className="btn-primary text-xs flex items-center gap-1"><UserPlus size={14} /> {t('invite')}</button>
+                  <span className="text-yellow-500 text-xs font-semibold flex items-center gap-1"><Zap size={12} /> Live</span>
+                  <button onClick={() => setShowInvite(true)} className="btn-primary text-xs flex items-center gap-1 px-2 py-1"><UserPlus size={12} /> {t('invite')}</button>
                   <motion.button whileTap={{ scale: 0.95 }} onClick={() => {
                     if (room.price) {
                       setPaymentAmount(parseFloat(room.price));
@@ -488,9 +488,9 @@ export default function LiveAudio() {
                     } else {
                       joinRoom(room.id);
                     }
-                  }} className="btn-primary text-sm px-6">{room.price ? `Pay & Join` : t('join')}</motion.button>
+                  }} className="btn-primary text-xs px-3 py-1 whitespace-nowrap">{room.price ? `Pay & Join` : t('join')}</motion.button>
                   {room.host.username === user?.username && (
-                    <button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline">{t('end')}</button>
+                    <button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline whitespace-nowrap">{t('end')}</button>
                   )}
                 </div>
               </div>

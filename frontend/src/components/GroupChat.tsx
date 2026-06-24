@@ -68,6 +68,7 @@ export default function GroupChat() {
   const chatRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [showSidebar, setShowSidebar] = useState(false);
   
 const handleEditMessage = async (messageId: string, oldText: string) => {
   const newText = prompt('Edit message:', oldText);
@@ -255,18 +256,7 @@ useEffect(() => {
   return (
     <div className="flex h-[calc(100vh-120px)] max-w-5xl mx-auto glass rounded-2xl overflow-hidden shadow-xl m-4">
       {/* Sidebar */}
-      <div className="hidden lg:flex lg:w-72 border-r border-gray-200 dark:border-gray-700 flex flex-col">
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <MessageCircle size={20} /> {t('groups')}
-          </h2>
-          <button
-            onClick={() => setShowCreate(!showCreate)}
-            className="btn-primary w-full mt-3 text-sm flex items-center gap-1 justify-center"
-          >
-            <Plus size={14} /> {t('new_group')}
-          </button>
-        </div>
+          <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex lg:w-72 border-r border-gray-200 dark:border-gray-700 flex-col absolute lg:relative z-20 bg-white dark:bg-gray-900 h-full w-72`}>
 
         <AnimatePresence>
           {showCreate && (

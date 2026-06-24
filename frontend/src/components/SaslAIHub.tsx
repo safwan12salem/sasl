@@ -1082,7 +1082,8 @@ const [suggestionsList, setSuggestionsList] = useState<string[]>([]);
                 </div>
 
                 {/* Input */}
-                           <div className="flex gap-2 relative">
+                              {/* Input */}
+                <div className="flex flex-col sm:flex-row gap-2 relative">
                   <div className="flex-1 relative">
                     <input
                       value={brainInput}
@@ -1095,8 +1096,8 @@ const [suggestionsList, setSuggestionsList] = useState<string[]>([]);
                       onKeyDown={e => {
                         if (e.key === 'Enter') handleBrainSend();
                       }}
-                      placeholder="Ask me anything about Sasl..."
-                      className="w-full px-5 py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition outline-none"
+                      placeholder={t('Ask me anything about Sasl...')}
+                      className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 transition outline-none text-sm"
                     />
                     {showSuggestions && (
                       <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-gray-800 rounded-xl shadow-xl border z-50 max-h-48 overflow-y-auto">
@@ -1118,9 +1119,10 @@ const [suggestionsList, setSuggestionsList] = useState<string[]>([]);
                   <button
                     onClick={handleBrainSend}
                     disabled={brainLoading || !brainInput.trim()}
-                    className="px-6 py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white rounded-xl font-semibold hover:shadow-lg transition disabled:opacity-50 flex items-center gap-2"
+                    className="px-5 py-3 bg-gradient-to-r from-orange-500 to-pink-500 text-white rounded-xl font-semibold hover:from-orange-600 hover:to-pink-600 transition shadow-lg whitespace-nowrap text-sm disabled:opacity-50"
                   >
                     {brainLoading ? <Loader2 className="animate-spin" size={20} /> : <Send size={20} />}
+                    <span className="hidden sm:inline ml-1">{t('Generate')}</span>
                   </button>
                 </div>
 

@@ -202,7 +202,7 @@ export default function Analytics() {
         </div>
         
         {/* Chart */}
-        <div className="flex items-end gap-1.5 h-48 px-2">
+      <div className="flex items-end gap-1.5 h-48 px-2 overflow-x-auto">
           {safeRevenue.length === 0 ? (
             <div className="flex-1 flex items-center justify-center text-gray-400">
               {t('no_revenue_data_yet')}

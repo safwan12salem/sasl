@@ -744,7 +744,7 @@ const fetchRooms = useCallback(async () => {
     <div className="flex h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 via-white to-green-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       {/* SIDEBAR */}
       <AnimatePresence>
-        {(showMobileSidebar || (typeof window !== 'undefined' && window.innerWidth >= 1024)) && (
+                {((showMobileSidebar && activeRoom) || (typeof window !== 'undefined' && window.innerWidth >= 1024)) && (
           <motion.div
             initial={{ x: -320, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
