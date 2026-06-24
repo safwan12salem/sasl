@@ -202,7 +202,7 @@ export default function Analytics() {
         </div>
         
         {/* Chart */}
-      <div className="flex items-end gap-1.5 h-48 px-2 overflow-x-auto">
+        <div className="flex items-end gap-1.5 h-48 px-2 overflow-x-auto pb-2" style={{ WebkitOverflowScrolling: 'touch' }}>
           {safeRevenue.length === 0 ? (
             <div className="flex-1 flex items-center justify-center text-gray-400">
               {t('no_revenue_data_yet')}
@@ -214,7 +214,8 @@ export default function Analytics() {
                 initial={{ height: 0 }}
                 animate={{ height: `${(item.amount / maxRevenue) * 100}%` }}
                 transition={{ delay: 0.5 + i * 0.02, duration: 0.8, ease: 'easeOut' }}
-                className="flex-1 flex flex-col items-center gap-1 group cursor-pointer min-w-[8px]"
+                                className="flex-shrink-0 flex flex-col items-center gap-1 group cursor-pointer"
+                style={{ width: `${Math.max(12, 100 / Math.min(safeRevenue.length, 15))}%`, minWidth: '16px', maxWidth: '40px' }}
               >
                 <motion.div
                   whileHover={{ scale: 1.1 }}
