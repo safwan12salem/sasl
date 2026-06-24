@@ -7,7 +7,7 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Send, Users, Plus, Image, Smile, UserPlus, LogOut,
-  Loader2, MessageCircle, WifiOff, X,
+  Loader2, MessageCircle, WifiOff, X,ArrowLeft, Menu,
   Mic
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -69,7 +69,7 @@ export default function GroupChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showSidebar, setShowSidebar] = useState(false);
-  
+
 const handleEditMessage = async (messageId: string, oldText: string) => {
   const newText = prompt('Edit message:', oldText);
   if (!newText || newText === oldText) return;
@@ -257,7 +257,12 @@ useEffect(() => {
     <div className="flex h-[calc(100vh-120px)] max-w-5xl mx-auto glass rounded-2xl overflow-hidden shadow-xl m-4">
       {/* Sidebar */}
           <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex lg:w-72 border-r border-gray-200 dark:border-gray-700 flex-col absolute lg:relative z-20 bg-white dark:bg-gray-900 h-full w-72`}>
-
+                     <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between lg:hidden">
+          <h2 className="font-bold">{t('groups')}</h2>
+          <button onClick={() => setShowSidebar(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+            <X size={18} />
+          </button>
+        </div>
         <AnimatePresence>
           {showCreate && (
             <motion.div
@@ -372,29 +377,28 @@ useEffect(() => {
 
       {/* Chat Area */}
             {/* Mobile Group Selector */}
+            {/* Mobile group selector — opens sidebar */}
       <div className="lg:hidden p-3 border-b border-gray-200 dark:border-gray-700">
-        <select 
-          className="w-full p-2 rounded-xl bg-gray-100 dark:bg-gray-800 text-sm"
-          value={activeGroup || ''}
-          onChange={(e) => { 
-            setActiveGroup(e.target.value); 
-            fetchMessages(e.target.value); 
-          }}
+        <button 
+          onClick={() => setShowSidebar(true)} 
+          className="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-sm text-left flex items-center gap-2"
         >
-          <option value="">{t('select_group')}</option>
-          {groups.map(g => (
-            <option key={g.id} value={g.id}>{g.name}</option>
-          ))}
-        </select>
+          <Users size={16} className="text-gray-500" />
+          {activeGroup && activeGroupData ? activeGroupData.name : t('select_group')}
+          <span className="ml-auto text-xs text-gray-400">→</span>
+        </button>
       </div>
 
       {/* Chat Area */}
       <div className="flex-1 flex flex-col">
         {activeGroup && activeGroupData ? (
           <>
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                                {activeGroupData.avatar_url ? (
+                <button onClick={() => { setActiveGroup(null); setShowSidebar(true); }} className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                  <ArrowLeft size={18} />
+                </button>
+                {activeGroupData.avatar_url ? (
                   <img src={activeGroupData.avatar_url} alt={activeGroupData.name} className="w-10 h-10 rounded-full object-cover" />
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold">

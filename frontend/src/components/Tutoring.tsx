@@ -665,7 +665,7 @@ const STATUS_COLORS: Record<string, string> = {
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input className="input-field pl-10" placeholder={t('Search sessions by subject or tutor...')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1">
+         <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto">
           {[
                        { key: 'upcoming' as const, label: t('Upcoming'), icon: <Calendar size={14} /> },
             { key: 'ongoing' as const, label: t('Live'), icon: <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> },
