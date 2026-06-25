@@ -750,7 +750,7 @@ const fetchRooms = useCallback(async () => {
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -320, opacity: 0 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="w-full md:w-80 lg:w-96 border-r border-gray-200/50 dark:border-gray-800/50 flex flex-col bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl absolute md:relative z-20 h-full"
+                        className="w-[85%] max-w-[320px] md:w-80 lg:w-96 border-r border-gray-200/50 dark:border-gray-800/50 flex flex-col bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl absolute md:relative z-20 h-full shadow-2xl md:shadow-none"
           >
             {/* Header */}
             <div className="p-5 border-b border-gray-100 dark:border-gray-800">
@@ -962,7 +962,7 @@ const fetchRooms = useCallback(async () => {
       </AnimatePresence>
 
       {/* MAIN CHAT AREA */}
-      <div className="flex-1 flex flex-col">
+             <div className="flex-1 flex flex-col z-10">
         {!activeRoom ? (
           <div className="flex-1 flex items-center justify-center p-8">
             <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-md">

@@ -256,7 +256,7 @@ useEffect(() => {
   return (
     <div className="flex h-[calc(100vh-120px)] max-w-5xl mx-auto glass rounded-2xl overflow-hidden shadow-xl m-4">
       {/* Sidebar */}
-          <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex lg:w-72 border-r border-gray-200 dark:border-gray-700 flex-col absolute lg:relative z-20 bg-white dark:bg-gray-900 h-full w-72`}>
+                  <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex lg:w-80 border-r border-gray-200 dark:border-gray-700 flex-col absolute lg:relative z-20 bg-white dark:bg-gray-900 h-full w-[85%] max-w-[300px]`}>
                      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between lg:hidden">
           <h2 className="font-bold">{t('groups')}</h2>
           <button onClick={() => setShowSidebar(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
@@ -390,7 +390,7 @@ useEffect(() => {
       </div>
 
       {/* Chat Area */}
-      <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col w-full">
         {activeGroup && activeGroupData ? (
           <>
                        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
