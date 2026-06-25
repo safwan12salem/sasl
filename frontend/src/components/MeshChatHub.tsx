@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   MessageCircle, Users, UserPlus, Search, X, Check,
   Paperclip, Send, Loader2, Wifi, WifiOff, Copy,
-  LogOut, Zap, Sparkles, Smile, Image, File, ArrowLeft,
+  LogOut, Zap, Sparkles, Smile, Image, File,Menu, ArrowLeft,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -972,11 +972,14 @@ const fetchRooms = useCallback(async () => {
               <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3">{t('Welcome to WaveMesh')}</h2>
               <p className="text-gray-500 mb-2 text-lg">{t('The world\'s first')} <span className="font-semibold text-green-600">{t('offline P2P')}</span> {t('chat network')}</p>
               <p className="text-gray-400 text-sm mb-8">{t('Connect directly with anyone nearby — no internet required. Your messages hop through the mesh, encrypted end-to-end.')}</p>
+                            <button onClick={() => setShowMobileSidebar(true)} className="md:hidden mx-auto mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+                <Menu size={24} className="text-gray-600 dark:text-gray-400" />
+              </button>
               <div className="flex gap-3 justify-center flex-wrap">
-                <motion.button whileTap={{ scale: 0.95 }} onClick={() => setTab('contacts')} className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-semibold shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all">
+                                <motion.button whileTap={{ scale: 0.95 }} onClick={() => { setTab('contacts'); setShowMobileSidebar(true); }} className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-semibold shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all">
                   {t('🔍 Discover Peers')}
                 </motion.button>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={() => setTab('requests')} className="px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-2xl font-semibold border-2 border-gray-200 dark:border-gray-700 hover:border-green-300 transition-all">
+                <motion.button whileTap={{ scale: 0.95 }} onClick={() => { setTab('requests'); setShowMobileSidebar(true); }} className="px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-2xl font-semibold border-2 border-gray-200 dark:border-gray-700 hover:border-green-300 transition-all">
                   {t('📩 View Requests')} {requests.length > 0 && `(${requests.length})`}
                 </motion.button>
               </div>
@@ -991,7 +994,7 @@ const fetchRooms = useCallback(async () => {
           <>
             <div className="px-4 py-3 border-b border-gray-200/50 dark:border-gray-800/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <button onClick={() => setShowMobileSidebar(true)} className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition">
+                                <button onClick={() => { setActiveRoom(null); setShowMobileSidebar(true); }} className="md:hidden p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition">
                   <ArrowLeft size={20} />
                 </button>
                 <Avatar src={activeRoom.other_user?.avatar_url} name={activeRoom.other_user?.username || activeRoom.name} size="md" />

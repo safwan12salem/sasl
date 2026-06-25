@@ -474,8 +474,8 @@ export default function LiveAudio() {
                     {room.price && <span className="inline-block mt-1 text-xs font-semibold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">💰 {room.price}</span>}
                   </div>
                 </div>
-                                                  <div className="flex flex-col gap-1.5 items-end flex-shrink-0">
-                  <div className="flex items-center gap-2 flex-wrap justify-end">
+                                      <div className="flex flex-col gap-1.5 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <div className="flex items-center gap-1 text-purple-600 text-xs">
                       <Users size={14} /><span className="font-bold">{room.current_listeners}</span>
                       <span className="text-xs text-gray-500">{t('listening')}</span>
@@ -488,7 +488,7 @@ export default function LiveAudio() {
                     }} className="btn-primary text-xs px-3 py-1 whitespace-nowrap">{room.price ? `Pay & Join` : t('join')}</motion.button>
                   </div>
                   {room.host.username === user?.username && (
-                    <button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline whitespace-nowrap">{t('end')}</button>
+                    <button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline whitespace-nowrap self-start ml-1">{t('end')}</button>
                   )}
                 </div>
               </div>
