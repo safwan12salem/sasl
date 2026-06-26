@@ -48,13 +48,24 @@ export default function NotificationBell() {
 
 
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioUnlocked = useRef(false);
   
   useEffect(() => {
-    try {
-      audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2qEcP+1j2Oda1e1PmN9u1JbicN0sX9Ddq6K1f9wbJWwub6Y1/+wjrGIbYKBpOvrw5aDcf+zhmyNyctTdr6Kv+Jqfp7FxVhstrbzn5Bmf/+0fHCBmZ5hbLfG8W+NpJaopce6c42Yhmr/5n2dysjCWHe6wuJrlZ2Fq8ewiG6Bb7bx8YqU');
-      audioRef.current.volume = 0.5;
-    } catch (e) {}
+    audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2qEcP+1j2Oda1e1PmN9u1JbicN0sX9Ddq6K1f9wbJWwub6Y1/+wjrGIbYKBpOvrw5aDcf+zhmyNyctTdr6Kv+Jqfp7FxVhstrbzn5Bmf/+0fHCBmZ5hbLfG8W+NpJaopce6c42Yhmr/5n2dysjCWHe6wuJrlZ2Fq8ewiG6Bb7bx8YqU');
+    audioRef.current.volume = 0.5;
+    
+    const unlock = () => {
+      if (audioRef.current && !audioUnlocked.current) {
+        audioRef.current.play().then(() => {
+          audioRef.current!.pause();
+          audioRef.current!.currentTime = 0;
+          audioUnlocked.current = true;
+        }).catch(() => {});
+      }
+    };
+    document.addEventListener('click', unlock, { once: true });
+    return () => document.removeEventListener('click', unlock);
   }, []);
 
   const connectWebSocket = () => {
@@ -79,13 +90,21 @@ export default function NotificationBell() {
             setNotifications(prev => [data.notification, ...prev]);
             setUnreadCount(prev => prev + 1);
             // Play sound and show toast
-            if (soundEnabled) {
+                        if (soundEnabled) {
               try {
-                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2qEcP+1j2Oda1e1PmN9u1JbicN0sX9Ddq6K1f9wbJWwub6Y1/+wjrGIbYKBpOvrw5aDcf+zhmyNyctTdr6Kv+Jqfp7FxVhstrbzn5Bmf/+0fHCBmZ5hbLfG8W+NpJaopce6c42Yhmr/5n2dysjCWHe6wuJrlZ2Fq8ewiG6Bb7bx8YqU');
-                audio.volume = 0.5;
-                            if (soundEnabled && audioTriggerRef.current) {
-              audioTriggerRef.current.click();
-            }
+                // Try Service Worker notification (system sound)
+                if (navigator.serviceWorker?.controller) {
+                  navigator.serviceWorker.controller.postMessage({
+                    type: 'PLAY_NOTIFICATION_SOUND',
+                    title: 'Sasl',
+                    body: data.notification.message
+                  });
+                }
+                // Also try direct audio via unlocked element
+                if (audioRef.current) {
+                  audioRef.current.currentTime = 0;
+                  audioRef.current.play().catch(() => {});
+                }
               } catch (err) {}
             }
             toast.success(data.notification.message, {

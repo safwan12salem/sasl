@@ -18,6 +18,17 @@ saslBrain.initialize().then(() => {
   console.log('🧠 Sasl Brain ready');
 });
 
+// Register Service Worker for notification sounds
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+  setTimeout(() => Notification.requestPermission(), 3000);
+}
+
 root.render(
   <>
     <I18nextProvider i18n={i18n}>
