@@ -488,7 +488,7 @@ export default function LiveAudio() {
                     }} className="btn-primary text-xs px-3 py-1 whitespace-nowrap">{room.price ? `Pay & Join` : t('join')}</motion.button>
                   </div>
                   {room.host.username === user?.username && (
-                    <button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline whitespace-nowrap self-start ml-1">{t('end')}</button>
+                    <div className="w-full flex justify-end mt-1"><button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline">{t('end')}</button></div>
                   )}
                 </div>
               </div>

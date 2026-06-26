@@ -1083,7 +1083,7 @@ const [suggestionsList, setSuggestionsList] = useState<string[]>([]);
 
                 
                                        {/* Input */}
-                <div className="flex flex-col gap-2">
+                <div className="flex !flex-col gap-2">
                   <div className="relative w-full">
                     <input
                       value={brainInput}

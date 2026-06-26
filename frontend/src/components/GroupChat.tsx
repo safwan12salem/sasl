@@ -257,11 +257,16 @@ useEffect(() => {
      <div className="flex h-[calc(100vh-120px)] max-w-5xl mx-auto glass rounded-2xl overflow-hidden shadow-xl m-4 w-full">
       {/* Sidebar */}
                   <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex lg:w-80 border-r border-gray-200 dark:border-gray-700 flex-col absolute lg:relative z-20 bg-white dark:bg-gray-900 h-full w-[85%] max-w-[300px]`}>
-                     <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between lg:hidden">
+                     <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h2 className="font-bold">{t('groups')}</h2>
-          <button onClick={() => setShowSidebar(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setShowCreate(!showCreate)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-green-600" title={t('new_group')}>
+              <Plus size={18} />
+            </button>
+            <button onClick={() => setShowSidebar(false)} className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+              <X size={18} />
+            </button>
+          </div>
         </div>
         <AnimatePresence>
           {showCreate && (
@@ -310,6 +315,7 @@ useEffect(() => {
               <Users size={32} className="mx-auto mb-2 opacity-50" />
               <p className="text-sm">{t('no_groups_yet')}</p>
               <p className="text-xs">{t('create_group_to_chat')}</p>
+              <button onClick={() => setShowCreate(true)} className="btn-primary mt-3 text-sm flex items-center gap-1 mx-auto"><Plus size={14} /> {t('create_your_first_group')}</button>
             </div>
           )}
           {groups.map(group => (
@@ -317,8 +323,8 @@ useEffect(() => {
               key={group.id}
               role="button"
               tabIndex={0}
-              onClick={() => { setActiveGroup(group.id); fetchMessages(group.id); }}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setActiveGroup(group.id); fetchMessages(group.id); } }}
+              onClick={() => { setActiveGroup(group.id); fetchMessages(group.id); setShowSidebar(false); }}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setActiveGroup(group.id); fetchMessages(group.id); setShowSidebar(false); } }}
               className={`w-full text-left p-4 border-b border-gray-100 dark:border-gray-700 transition hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer ${
                 activeGroup === group.id ? 'bg-green-50 dark:bg-green-900/30 border-l-4 border-l-green-500' : ''
               }`}
@@ -390,7 +396,7 @@ useEffect(() => {
       </div>
 
       {/* Chat Area */}
-            <div className="flex-1 flex flex-col w-full">
+            <div className="flex-1 flex flex-col w-full absolute inset-0 lg:relative lg:inset-auto bg-white dark:bg-gray-900 z-10">
         {activeGroup && activeGroupData ? (
           <>
                        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">

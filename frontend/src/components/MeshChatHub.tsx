@@ -130,7 +130,7 @@ export default function MeshChatHub() {
   const [inviteUsername, setInviteUsername] = useState('');
   const [connecting, setConnecting] = useState(false);
   const [myAvatar, setMyAvatar] = useState<string | null>(null);
-  const [showMobileSidebar, setShowMobileSidebar] = useState(true);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [reactionPicker, setReactionPicker] = useState<string | null>(null);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -758,6 +758,7 @@ const fetchRooms = useCallback(async () => {
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent flex items-center gap-2">
                   <Zap size={24} className="text-green-500" />{t('WaveMesh')}
                 </h2>
+                <button onClick={() => setShowMobileSidebar(false)} className="md:hidden p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><X size={18} className="text-gray-500" /></button>
                 <Sparkles size={20} className="text-amber-400 animate-pulse" />
               </div>
 
@@ -972,9 +973,7 @@ const fetchRooms = useCallback(async () => {
               <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-3">{t('Welcome to WaveMesh')}</h2>
               <p className="text-gray-500 mb-2 text-lg">{t('The world\'s first')} <span className="font-semibold text-green-600">{t('offline P2P')}</span> {t('chat network')}</p>
               <p className="text-gray-400 text-sm mb-8">{t('Connect directly with anyone nearby — no internet required. Your messages hop through the mesh, encrypted end-to-end.')}</p>
-                            <button onClick={() => setShowMobileSidebar(true)} className="md:hidden mx-auto mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-2xl hover:bg-gray-200 dark:hover:bg-gray-700 transition">
-                <Menu size={24} className="text-gray-600 dark:text-gray-400" />
-              </button>
+              <button onClick={() => setShowMobileSidebar(true)} className="md:hidden mx-auto mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-2xl"><Menu size={24} /></button>
               <div className="flex gap-3 justify-center flex-wrap">
                                 <motion.button whileTap={{ scale: 0.95 }} onClick={() => { setTab('contacts'); setShowMobileSidebar(true); }} className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-semibold shadow-lg shadow-green-500/25 hover:shadow-green-500/40 transition-all">
                   {t('🔍 Discover Peers')}
