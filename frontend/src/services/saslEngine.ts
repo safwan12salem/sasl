@@ -59,7 +59,7 @@ async function tryOnlineAI(query: string): Promise<string | null> {
       {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer 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',
+          'Authorization': 'Bearer YOUR_HUGGINGFACE_TOKEN',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({

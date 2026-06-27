@@ -596,7 +596,7 @@ def ai_ask(request):
         response = requests.post(
             'https://api-inference.huggingface.co/models/google/flan-t5-large',
             headers={
-                'Authorization': 'Bearer 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',
+                'Authorization': 'Bearer ' + os.environ.get('HUGGINGFACE_TOKEN', ''),
                 'Content-Type': 'application/json',
             },
             json={
