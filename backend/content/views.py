@@ -535,3 +535,83 @@ class ReelViewSet(viewsets.ModelViewSet):
                 return Response({'status': 'updated', 'reaction': reaction, 'likes_count': ReelCommentReplyLike.objects.filter(reply=reply).count()})
         
         return Response({'status': 'liked', 'reaction': reaction, 'likes_count': ReelCommentReplyLike.objects.filter(reply=reply).count()}) 
+
+
+
+
+
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+import requests
+import os
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def ai_ask(request):
+    """
+    Premium AI endpoint — GPT-level responses
+    Uses OpenRouter API (free tier available) or falls back to HuggingFace
+    """
+    question = request.data.get('question', '').strip()
+    if not question:
+        return Response({'error': 'Question required'}, status=400)
+    
+    # Check premium status
+    if not request.user.is_premium:
+        return Response({'error': 'Premium subscription required'}, status=402)
+    
+    # Try OpenRouter (GPT-level, has free tier)
+    try:
+        response = requests.post(
+            'https://openrouter.ai/api/v1/chat/completions',
+            headers={
+                'Authorization': f'Bearer {os.environ.get("OPENROUTER_API_KEY", "")}',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'model': 'mistralai/mistral-7b-instruct:free',
+                'messages': [
+                    {
+                        'role': 'system',
+                        'content': 'You are Sasl Brain, an expert AI assistant for the Sasl social network. Answer questions comprehensively with detailed, educational responses. Use markdown formatting. Be helpful and thorough.'
+                    },
+                    {'role': 'user', 'content': question}
+                ],
+                'max_tokens': 500,
+                'temperature': 0.7,
+            },
+            timeout=15
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            answer = data['choices'][0]['message']['content']
+            return Response({'answer': answer})
+    except:
+        pass
+    
+    # Fallback: HuggingFace
+    try:
+        response = requests.post(
+            'https://api-inference.huggingface.co/models/google/flan-t5-large',
+            headers={
+                'Authorization': 'Bearer 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',
+                'Content-Type': 'application/json',
+            },
+            json={
+                'inputs': f'Answer comprehensively: {question}',
+                'parameters': {'max_new_tokens': 300, 'temperature': 0.7}
+            },
+            timeout=10
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            answer = data[0].get('generated_text', '')
+            if answer:
+                return Response({'answer': answer})
+    except:
+        pass
+    
+    return Response({'answer': 'I apologize, but I could not generate a response at this moment. Please try again.'})
