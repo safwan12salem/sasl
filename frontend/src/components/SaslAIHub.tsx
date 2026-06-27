@@ -7,7 +7,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import { askSaslEngine, FREE_LIMIT, PREMIUM_PRICE, getUsage } from '../services/saslEngine';
+import { askSaslEngine, FREE_LIMIT, PREMIUM_PRICE, getUsage, analyzeContent, generateSEOKeys, growthStrategy } from '../services/saslEngine';
 import { Sparkles, Send, Loader2, Brain, Crown, Zap, Mic, MicOff, Volume2, Copy, ThumbsUp, ThumbsDown, RotateCcw, Clock, Infinity, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -49,7 +49,7 @@ export default function SaslAIHub() {
   const recognitionRef = useRef<any>(null);
 
   // Premium status
-  const isPremium = user?.is_premium || false;
+  const isPremium = (user as any)?.is_premium || false;
   const remaining = Math.max(0, FREE_LIMIT - usage.count);
 
   // Auto-scroll to bottom
@@ -130,6 +130,62 @@ export default function SaslAIHub() {
   const copyMessage = (content: string) => {
     navigator.clipboard.writeText(content);
     toast.success(t('Copied!'));
+  };
+
+
+  // Premium content analysis
+  const analyzeMyContent = async () => {
+    const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+    if (!lastUserMsg) return toast.error(t('No content to analyze'));
+    
+    setLoading(true);
+    const analysis = await analyzeContent(lastUserMsg.content);
+    if (analysis) {
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `📊 **Premium Content Analysis**\n\n${analysis}`,
+        timestamp: new Date(),
+      }]);
+    } else {
+      toast.error(t('Premium feature — upgrade required'));
+    }
+    setLoading(false);
+  };
+
+  // Premium SEO
+  const getSEO = async () => {
+    const topic = prompt(t('Enter a topic for SEO keywords:')) || input;
+    if (!topic) return;
+    
+    setLoading(true);
+    const seo = await generateSEOKeys(topic);
+    if (seo) {
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `🔍 **SEO Keywords for "${topic}"**\n\n${seo}`,
+        timestamp: new Date(),
+      }]);
+    }
+    setLoading(false);
+  };
+
+  // Premium growth strategy
+  const getGrowthPlan = async () => {
+    const niche = prompt(t('What is your content niche?')) || 'general';
+    
+    setLoading(true);
+    const plan = await growthStrategy(niche);
+    if (plan) {
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: `🚀 **30-Day Growth Strategy for ${niche}**\n\n${plan}`,
+        timestamp: new Date(),
+      }]);
+    }
+    setLoading(false);
   };
 
   // Retry last message

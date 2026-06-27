@@ -14,9 +14,6 @@ import { ThemeProvider } from './contexts/ThemeContext';
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 
 
-saslBrain.initialize().then(() => {
-  console.log('🧠 Sasl Brain ready');
-});
 
 // Register Service Worker for notification sounds
 if ('serviceWorker' in navigator) {
