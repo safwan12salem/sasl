@@ -1081,9 +1081,39 @@
   "engagement": "Вовлеченность",
   "verified": "Проверено",
   "total_earned": "Общий заработок",
-  "completed_deals": "Завершённые сделки"
+  "completed_deals": "Завершённые сделки",
 
 
 
 
+  "WaveMesh": "ВейвМеш",
+  "Search users to connect...": "Поиск пользователей для подключения...",
+  "Chats": "Общение",
+  "Discover": "Открыть",
+  "Requests": "Запросы",
+  "Connect": "Подключиться",
+  "Welcome to WaveMesh": "Добро пожаловать в ВейвМеш",
+  "The world's first": "Первое в мире",
+  "offline P2P": "Оффлайн П2П",
+  "chat network": "Сеть обмена сообщениями",
+  "Connect directly with anyone nearby — no internet required. Your messages hop through the mesh, encrypted end-to-end.": "Подключайтесь напрямую с кем-то рядом - нет необходимости в интернете. Ваши сообщения прыгают через сеть, зашифрованные от одной стороны до другой.",
+  "🔍 Discover Peers": "🔍 Открыть союзников",
+  "📩 View Requests": "📩 Просмотр запросов",
+  "No Internet": "Без интернета",
+  "E2E Encrypted": "Зашифрованный с одного конца до другого",
+  "Instant": "Моментальный",
+  "Sasl Brain": "Сасл Браин",
+  "Powered by GPT-4o": "Поддерживается технологией GPT-4o",
+  "👋 Welcome to Sasl Brain": "👋 Добро пожаловать в Сасл Браин",
+  "The world's most advanced": "Самый передовой в мире",
+  "AI-powered chat system": "Система обмена сообщениями с помощью AI",
+  "Sasl Brain's advanced": "Развитая технология Сасл Браин",
+  "AI technology": "Технология AI",
+
+
+
+
+  
+  "no_orders_yet": "Пока заказов нет",
+  "my_orders": " Мои заказы"
 }

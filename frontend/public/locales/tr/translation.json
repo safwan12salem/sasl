@@ -1079,7 +1079,7 @@
   "engagement": "Etkileşim",
   "verified": "Doğrulandı",
   "total_earned": "Toplam kazanılan",
-  "completed_deals": "Tamamlanan anlaşmalar"
+  "completed_deals": "Tamamlanan anlaşmalar",
 
 
 
@@ -1087,4 +1087,37 @@
 
 
 
+  "WaveMesh": "WaveMesh",
+  "Search users to connect...": "Kullanıcıları bulun ve bağlanın...",
+  "Chats": "Çatışmalar",
+  "Discover": "Keşfet",
+  "Requests": "İhtiyaçlar",
+  "Connect": "Bağlan",
+  "Welcome to WaveMesh": "WaveMesh'e Hoşgeldiniz",
+  "The world's first": "Dünyanın ilk",
+  "offline P2P": "Öffline P2P",
+  "chat network": "Soğuk bir ağ",
+  "Connect directly with anyone nearby — no internet required. Your messages hop through the mesh, encrypted end-to-end.": "Yakında bulunanlarla doğrudan bağlanın - internet gerekmeyecek. Mesajlarınız ağ aracılığıyla atlayacak, sonlardan sonlara kadar şifrelenmiş olacaktır.",
+  "🔍 Discover Peers": "🔍 Ortakları Keşfet",
+  "📩 View Requests": "📩 İhtiyaçları Görüntüle",
+  "No Internet": "İnternet Yok",
+  "E2E Encrypted": "End-to-End Şifreleme",
+  "Instant": "Anında",
+  "Sasl Brain": "Sasl Beyin",
+  "Powered by GPT-4o": "GPT-4o tarafından güçlendiriliyor",
+  "👋 Welcome to Sasl Brain": "👋 Sasl Beyin'e Hoşgeldiniz",
+  "The world's most advanced": "Dünyanın en gelişmiş",
+  "AI-powered chat system": "AI-nin güçlendirilmiş sohbet sistemi",
+  "Sasl Brain's advanced": "Sasl Beyin'in gelişmiş",
+  "AI technology": "AI teknolojisi",
+
+
+
+
+
+
+
+  
+  "no_orders_yet": "Henüz sipariş yok",
+  "my_orders": " Siparişlerim"
 }

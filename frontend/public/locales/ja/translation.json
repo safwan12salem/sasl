@@ -1029,8 +1029,44 @@
   "engagement": "エンゲージメント",
   "verified": "認証済み",
   "total_earned": "総獲得額",
-  "completed_deals": "完了した取引"
+  "completed_deals": "完了した取引",
 
 
 
+  
+  "WaveMesh": "ウェーブメッシュ",
+  "Search users to connect...": "接続するユーザーを検索中...",
+  "Chats": "チャット",
+  "Discover": "発見",
+  "Requests": "リクエスト",
+  "Connect": "接続",
+  "Welcome to WaveMesh": "ウェーブメッシュにようこそ",
+  "The world's first": "世界初",
+  "offline P2P": "オフラインP2P",
+  "chat network": "チャットネットワーク",
+  "Connect directly with anyone nearby — no internet required. Your messages hop through the mesh, encrypted end-to-end.": "インターネットが必要なく近くの誰かと直接接続できます。メッセージはネットワークを渡りながら、端到端で暗号化されます。",
+  "🔍 Discover Peers": "🔍 パートナーを発見",
+  "📩 View Requests": "📩 リクエストを表示",
+  "No Internet": "インターネットなし",
+  "E2E Encrypted": "端到端暗号化",
+  "Instant": "即時",
+  "Sasl Brain": "サスルブレイン",
+  "Powered by GPT-4o": "GPT-4oによって動かされています",
+  "👋 Welcome to Sasl Brain": "👋 サスルブレインにようこそ",
+  "The world's most advanced": "世界最高",
+  "AI-powered chat system": "AIによって動かされているチャットシステム",
+  "Sasl Brain's advanced": "サスルブレインの高度な",
+  "AI technology": "AI技術",
+
+
+
+
+
+
+
+  "no_orders_yet": "まだ注文はありません",
+  "my_orders": " 私の注文"
 }
+
+
+

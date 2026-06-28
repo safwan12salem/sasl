@@ -931,7 +931,7 @@
   "engagement": "सगाई",
   "verified": "सत्यापित",
   "total_earned": "कुल कमाई",
-  "completed_deals": "पूर्ण किए गए सौदे"
+  "completed_deals": "पूर्ण किए गए सौदे",
 
 
 
@@ -939,5 +939,38 @@
 
 
 
+
+
+  "WaveMesh": "वेवमेश",
+  "Search users to connect...": "किसी भी उपयोगकर्ता को खोजें जिसे आप जुड़ना चाहते हैं...",
+  "Chats": "चैट्स",
+  "Discover": "खोजें",
+  "Requests": "मांगें",
+  "Connect": "कनेक्ट",
+  "Welcome to WaveMesh": "वेवमेश में स्वागत है",
+  "The world's first": "विश्व का पहला",
+  "offline P2P": "ऑफ़लाइन पी2पी",
+  "chat network": "चैट नेटवर्क",
+  "Connect directly with anyone nearby — no internet required. Your messages hop through the mesh, encrypted end-to-end.": "किसी भी पास के व्यक्ति के साथ सीधे कनेक्ट करें - इंटरनेट की आवश्यकता नहीं है। आपके संदेश मैश के माध्यम से कूदते हैं, अंत से अंत तक एन्क्रिप्ट किए जाते हैं।",
+  "🔍 Discover Peers": "🔍 पार्टनर खोजें",
+  "📩 View Requests": "📩 मांगें देखें",
+  "No Internet": "इंटरनेट नहीं",
+  "E2E Encrypted": "ए2ई एन्क्रिप्ट किया गया",
+  "Instant": "अभी-अभी",
+  "Sasl Brain": "सासल ब्रेन",
+  "Powered by GPT-4o": "जीपीटी 4ओ के द्वारा संचालित",
+  " Welcome to Sasl Brain": " सासल ब्रेन में स्वागत है",
+  "The world's most advanced": "विश्व का सबसे उन्नत",
+  "AI-powered chat system": "एआई प्रौद्योगिकी संचालित चैट प्रणाली",
+  "Sasl Brain's advanced": "सासल ब्रेन की उन्नत",
+  "AI technology": "एआई प्रौद्योगिकी",
+
+
+
+ 
+  "no_orders_yet": "अभी तक कोई आदेश नहीं",
+  "my_orders": " मेरे आदेश"
 
 }
+
+

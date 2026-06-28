@@ -413,11 +413,11 @@ export default function LiveAudio() {
             <div className="flex gap-3 items-center">
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="rounded" />
-                {isPublic ? <Globe size={14} /> : <Lock size={14} />} Public
+                {isPublic ? <Globe size={14} /> : <Lock size={14} />}{t(' Public')}
               </label>
               <input className="input-field w-24 text-sm" type="number" placeholder="Max" value={maxListeners} onChange={e => setMaxListeners(e.target.value)} />
             </div>
-            <button onClick={createRoom} className="btn-primary w-full">🎙️ Start Room</button>
+            <button onClick={createRoom} className="btn-primary w-full">{t('🎙️ Start Room')}</button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -509,11 +509,11 @@ export default function LiveAudio() {
         {showInvite && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowInvite(false)}>
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-              <h3 className="font-bold text-xl mb-4">Invite to Room</h3>
+              <h3 className="font-bold text-xl mb-4">{t('Invite to Room')}</h3>
               <input className="input-field mb-4" placeholder="Enter username..." value={inviteUsername} onChange={e => setInviteUsername(e.target.value)} onKeyDown={e => e.key === 'Enter' && inviteSpeaker()} />
               <div className="flex gap-2">
-                <button onClick={inviteSpeaker} className="btn-primary flex-1">Invite</button>
-                <button onClick={() => setShowInvite(false)} className="btn-ghost">Cancel</button>
+                <button onClick={inviteSpeaker} className="btn-primary flex-1">{t('Invite')}</button>
+                <button onClick={() => setShowInvite(false)} className="btn-ghost">{t('Cancel')}</button>
               </div>
             </motion.div>
           </motion.div>

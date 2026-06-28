@@ -725,5 +725,16 @@
 "create_your_first_group": "Create Your First Group",
 "create_group_to_chat": "Create a group to start chatting",
 "no_groups_yet": "No groups yet",
-"enter_group_name": "Enter a group name"
+"enter_group_name": "Enter a group name",
+
+
+
+
+  "no_orders_yet": "No orders yet",
+  "my_orders": " My Orders",
+  "waiting_for_speakers": "Waiting for speakers...",
+  "raise_your_hand_to_speak": "Raise your hand to speak",
+  "people_here": "people here",
+  "you_are_muted": "You are muted",
+  "listening": "Listening..."
 }
