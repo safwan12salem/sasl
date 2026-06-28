@@ -6,7 +6,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   MessageCircle, Users, UserPlus, Search, X, Check,
   Paperclip, Send, Loader2, Wifi, WifiOff, Copy,
-  LogOut, Zap, Sparkles, Smile, Image, File,Menu, ArrowLeft,
+  LogOut, Zap, Sparkles, Smile, Image, File,Menu, ArrowLeft,QrCode, Share2,Link
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -14,6 +14,7 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { offlineMesh } from '../services/offlineMesh';
 import { globalMesh } from '../services/globalMesh';
+import { saslMeshConnect } from '../services/saslMeshConnect';
 import { useTranslation } from 'react-i18next';
 
 
@@ -125,7 +126,11 @@ export default function MeshChatHub() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<DiscoveredPeer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'rooms' | 'contacts' | 'requests'>('rooms');
+  const [tab, setTab] = useState<'rooms' | 'contacts' | 'requests' | 'connect'>('rooms');
+  const [connectId, setConnectId] = useState('');
+const [connectStatus, setConnectStatus] = useState<'idle' | 'searching' | 'connected' | 'failed'>('idle');
+const [myMeshId, setMyMeshId] = useState<string>('');
+const [connectResult, setConnectResult] = useState<{ success: boolean; route?: string[]; estimatedTime?: string } | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteUsername, setInviteUsername] = useState('');
   const [connecting, setConnecting] = useState(false);
@@ -181,6 +186,17 @@ export default function MeshChatHub() {
   }, []);
 
 
+  // Register Sasl Mesh Identity
+  useEffect(() => {
+    if (!myUsername) return;
+    const existingId = saslMeshConnect.getMeshId();
+    if (existingId) {
+      setMyMeshId(existingId);
+    } else {
+      const newId = saslMeshConnect.registerIdentity(myUsername);
+      setMyMeshId(newId.id);
+    }
+  }, [myUsername]);
 
 
 useEffect(() => {
@@ -803,16 +819,17 @@ const fetchRooms = useCallback(async () => {
             </div>
 
             {/* Tabs */}
-            <div className="flex mx-4 mt-3 bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-1">
+            <div className="flex mx-4 mt-3 bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-1  overflow-x-auto">
               {[
                 { key: 'rooms', label: t('Chats'), icon: MessageCircle },
                 { key: 'contacts', label: t('Discover'), icon: Users },
                 { key: 'requests', label: t('Requests'), icon: UserPlus },
+                { key: 'connect', label: t('Connect'), icon: Link },
               ].map(t => (
                 <button
                   key={t.key}
                   onClick={() => setTab(t.key as any)}
-                  className={`flex-1 py-2.5 text-sm font-medium flex items-center justify-center gap-1.5 rounded-xl transition-all ${tab === t.key
+                  className={`flex-shrink-0 flex-1 py-2.5 text-sm font-medium mx-0.5 flex items-center justify-center gap-1.5 rounded-xl transition-all ${tab === t.key
                     ? 'bg-white dark:bg-gray-700 text-green-600 shadow-sm'
                     : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                     }`}
@@ -949,6 +966,57 @@ const fetchRooms = useCallback(async () => {
                       </motion.div>
                     ))
                   )}
+                </div>
+              )}
+              
+              {/* ===== CONNECT TAB ===== */}
+              {tab === 'connect' && (
+                <div className="space-y-4">
+                  <div className="glass p-4 rounded-2xl border-2 border-purple-200 dark:border-purple-800 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
+                    <p className="text-xs text-purple-600 dark:text-purple-400 font-semibold mb-2 flex items-center gap-1.5">
+                      <QrCode size={14} /> {t('My Mesh ID')}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 bg-white dark:bg-gray-800 px-3 py-2 rounded-xl text-xs font-mono text-purple-700 dark:text-purple-300 break-all">
+                        {myMeshId || 'Registering...'}
+                      </code>
+                      <button onClick={() => { navigator.clipboard.writeText(myMeshId); toast.success(t('Mesh ID copied!')); }} className="p-2 bg-purple-500 hover:bg-purple-600 text-white rounded-xl transition flex-shrink-0">
+                        <Copy size={14} />
+                      </button>
+                    </div>
+                    <button onClick={() => { const code = saslMeshConnect.getShareableCode(); if (navigator.share) { navigator.share({ text: code }); } else { navigator.clipboard.writeText(code); toast.success(t('Share code copied!')); } }} className="w-full mt-2 py-2 bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5">
+                      <Share2 size={12} /> {t('Share My Mesh ID')}
+                    </button>
+                  </div>
+                  <div className="glass p-4 rounded-2xl">
+                    <p className="text-xs text-gray-500 font-semibold mb-2 flex items-center gap-1.5">
+                      <Link size={14} className="text-green-500" /> {t('Connect by Mesh ID')}
+                    </p>
+                    <div className="flex gap-2">
+                      <input value={connectId} onChange={(e) => setConnectId(e.target.value)} placeholder={t('Enter Mesh ID...')} className="flex-1 px-3 py-2 bg-gray-100 dark:bg-gray-800 rounded-xl text-xs border-2 border-transparent focus:border-green-500 outline-none transition" />
+                      <button onClick={async () => { if (!connectId.trim()) return toast.error(t('Enter a Mesh ID')); setConnectStatus('searching'); setConnectResult(null); const result = await saslMeshConnect.connectById(connectId.trim()); setConnectResult(result); setConnectStatus(result.success ? 'connected' : 'failed'); if (result.success) toast.success(t('Connected!')); else toast.error(t('Peer not found')); }} disabled={connectStatus === 'searching' || !connectId.trim()} className="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-xs font-semibold disabled:opacity-50 flex items-center gap-1 flex-shrink-0">
+                        {connectStatus === 'searching' ? <Loader2 size={12} className="animate-spin" /> : <Link size={12} />} {t('Connect')}
+                      </button>
+                    </div>
+                    {connectStatus === 'searching' && <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center gap-2"><Loader2 size={12} className="animate-spin text-blue-500" /><p className="text-[11px] text-blue-600 dark:text-blue-400">{t('Searching WaveMesh...')}</p></div>}
+                    {connectStatus === 'connected' && connectResult && <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-xl"><p className="text-[11px] text-green-600 dark:text-green-400 font-semibold">{t('Connected!')} · {connectResult.route?.join(' → ') || 'Direct'}</p></div>}
+                    {connectStatus === 'failed' && <div className="mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-xl"><p className="text-[11px] text-red-500">{connectResult?.estimatedTime || t('Not found')}</p></div>}
+                  </div>
+                  <div className="glass p-4 rounded-2xl">
+                    <p className="text-xs text-gray-500 font-semibold mb-2 flex items-center gap-1.5">
+                      <Users size={14} className="text-blue-500" /> {t('Nearby Peers')} ({saslMeshConnect.getKnownPeers().length})
+                    </p>
+                    {saslMeshConnect.getKnownPeers().length === 0 ? <p className="text-[11px] text-gray-400 text-center py-3">{t('No peers detected')}</p> : (
+                      <div className="space-y-1.5 max-h-36 overflow-y-auto">
+                        {saslMeshConnect.getKnownPeers().map((peer: any) => (
+                          <div key={peer.id} className="flex items-center justify-between bg-white dark:bg-gray-800 p-2 rounded-lg">
+                            <div><p className="text-[11px] font-semibold">@{peer.username}</p><p className="text-[10px] text-gray-400 truncate max-w-[150px]">{peer.id}</p></div>
+                            <span className="text-[10px] bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-1.5 py-0.5 rounded-full flex-shrink-0">{(peer.range / 1000).toFixed(1)}km</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
