@@ -7,7 +7,8 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 import {
   Camera, Video, X, Loader2, Send, RotateCcw, Zap,
-  Users, Inbox, PenTool, Play, Pause, Plus
+  Users, Inbox, PenTool, Play, Pause, Plus,
+  Trophy, UserPlus, FileText, DollarSign, TrendingUp, Flame, Clock
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -42,8 +43,7 @@ interface SnapStory {
   views_count: number;
 }
 
-type SnapMode = 'camera' | 'inbox' | 'stories' | 'streaks';
-
+type SnapMode = 'camera' | 'inbox' | 'stories' | 'streaks' | 'challenges' | 'groups' | 'drafts';
 export default function SnapSender() {
   const { t } = useTranslation();
 
@@ -77,6 +77,10 @@ export default function SnapSender() {
   const [storyFile, setStoryFile] = useState<File | null>(null);
   const [storyPreview, setStoryPreview] = useState<string | null>(null);
   const [recentContacts, setRecentContacts] = useState<{ id: string; username: string; avatar?: string }[]>([]);
+  const [challenges, setChallenges] = useState<any[]>([]);
+  const [groupStreaks, setGroupStreaks] = useState<any[]>([]);
+  const [drafts, setDrafts] = useState<Snap[]>([]);
+
 
   const FILTERS = [
     { name: 'none', label: t('Normal'), style: '' },
@@ -159,6 +163,16 @@ export default function SnapSender() {
     try { const res = await api.get('/snaps/snaps/recent_contacts/'); setRecentContacts(res.data || []); } catch {}
   };
 
+    const fetchChallenges = async () => {
+    try { const res = await api.get('/snaps/snaps/challenges/'); setChallenges(res.data || []); } catch {}
+  };
+  const fetchGroupStreaks = async () => {
+    try { const res = await api.get('/snaps/snaps/group_streaks/'); setGroupStreaks(res.data || []); } catch {}
+  };
+  const fetchDrafts = async () => {
+    try { const res = await api.get('/snaps/snaps/inbox/'); setDrafts(res.data?.drafts || []); } catch {}
+  };
+
   useEffect(() => { fetchSnaps(); fetchStreaks(); fetchStories(); fetchContacts(); }, []);
 
   const viewSnap = (snap: Snap) => {
@@ -177,11 +191,14 @@ export default function SnapSender() {
     } catch (err: any) { toast.error(t('Failed to post story')); }
   };
 
-  const modeTabs = [
-    { key: 'camera' as SnapMode, icon: <Camera size={18} />, label: t('Camera') },
-    { key: 'inbox' as SnapMode, icon: <Inbox size={18} />, label: `Inbox (${snaps.length})` },
-    { key: 'stories' as SnapMode, icon: <Play size={18} />, label: t('Stories') },
-    { key: 'streaks' as SnapMode, icon: <Zap size={18} />, label: t('Streaks') },
+    const tabs: { key: SnapMode; icon: JSX.Element; label: string }[] = [
+    { key: 'camera', icon: <Camera size={16} />, label: t('Camera') },
+    { key: 'inbox', icon: <Inbox size={16} />, label: `${snaps.length}` },
+    { key: 'stories', icon: <Play size={16} />, label: t('Stories') },
+    { key: 'streaks', icon: <Flame size={16} />, label: t('Streaks') },
+    { key: 'challenges', icon: <Trophy size={16} />, label: t('Challenges') },
+    { key: 'groups', icon: <UserPlus size={16} />, label: t('Groups') },
+    { key: 'drafts', icon: <FileText size={16} />, label: t('Drafts') },
   ];
 
   return (
@@ -189,7 +206,7 @@ export default function SnapSender() {
       <h2 className="text-3xl font-bold gradient-text mb-4 flex items-center gap-2"><Camera className="text-yellow-500" /> {t('Snap')}</h2>
 
       <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-4">
-        {modeTabs.map(tab => (
+        {tabs.map(tab => (
           <button key={tab.key} onClick={() => setMode(tab.key)} className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs font-semibold transition ${mode === tab.key ? 'bg-white shadow text-yellow-600' : 'text-gray-500'}`}>
             {tab.icon} <span className="hidden sm:inline">{tab.label}</span>
           </button>
@@ -309,6 +326,113 @@ export default function SnapSender() {
                 <div key={streak.id} className="glass p-4 rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white font-bold">{streak.other_user[0]?.toUpperCase()}</div><div><p className="font-semibold text-sm">@{streak.other_user}</p><p className="text-xs text-gray-500">{t('Last snap')}: {new Date(streak.last_snap_date).toLocaleDateString()}</p></div></div>
                   <div className="text-center"><p className="text-2xl font-bold text-orange-500 flex items-center gap-1"><Zap size={20} className="fill-yellow-400 text-yellow-400" /> {streak.current_streak}</p><p className="text-xs text-gray-400">{t('Best')}: {streak.longest_streak}</p></div>
+                </div>
+              ))}
+            </div>
+                   )}
+        </div>
+      )}
+
+      {/* ===== CHALLENGES TAB ===== */}
+      {mode === 'challenges' && (
+        <div>
+          <h3 className="font-bold mb-3 flex items-center gap-2">
+            <Trophy size={18} className="text-yellow-500" /> {t('Snap Challenges')}
+          </h3>
+          <p className="text-xs text-gray-500 mb-3">🏆 {t('Enter daily challenges and win prizes!')}</p>
+          {challenges.length === 0 ? (
+            <div className="glass p-8 rounded-2xl text-center">
+              <Trophy size={48} className="mx-auto mb-3 text-gray-300" />
+              <p className="text-gray-500 font-semibold">{t('No active challenges')}</p>
+              <p className="text-sm text-gray-400 mt-1">{t('Check back soon for new challenges!')}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {challenges.map((ch: any) => (
+                <div key={ch.id} className="glass p-4 rounded-xl">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-semibold text-sm">{ch.name}</p>
+                    <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-semibold">
+                      💰 ${ch.prize_pool}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">{ch.description}</p>
+                  <div className="flex items-center justify-between text-xs text-gray-400">
+                    <span>{ch.entries_count || 0} {t('entries')}</span>
+                    <span>{t('Ends')}: {new Date(ch.ends_at).toLocaleDateString()}</span>
+                  </div>
+                  <button className="w-full mt-2 py-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg text-xs font-semibold">
+                    {t('Enter Challenge')}
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ===== GROUPS TAB ===== */}
+      {mode === 'groups' && (
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-bold flex items-center gap-2">
+              <UserPlus size={18} className="text-purple-500" /> {t('Group Streaks')}
+            </h3>
+            <button className="text-xs bg-purple-500 text-white px-3 py-1 rounded-full font-semibold">
+              + {t('Create')}
+            </button>
+          </div>
+          <p className="text-xs text-gray-500 mb-3">👥 {t('Snap with multiple friends and earn together!')}</p>
+          {groupStreaks.length === 0 ? (
+            <div className="glass p-8 rounded-2xl text-center">
+              <Users size={48} className="mx-auto mb-3 text-gray-300" />
+              <p className="text-gray-500 font-semibold">{t('No group streaks')}</p>
+              <p className="text-sm text-gray-400 mt-1">{t('Create a group and start snapping together!')}</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {groupStreaks.map((gs: any) => (
+                <div key={gs.id} className="glass p-4 rounded-xl flex items-center justify-between">
+                  <div>
+                    <p className="font-semibold text-sm">{gs.name}</p>
+                    <p className="text-xs text-gray-500">{gs.member_count} {t('members')}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-xl font-bold text-purple-500">🔥 {gs.current_streak}</p>
+                    <p className="text-xs text-gray-400">${gs.total_reward_earned || 0}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ===== DRAFTS TAB ===== */}
+      {mode === 'drafts' && (
+        <div>
+          <h3 className="font-bold mb-3 flex items-center gap-2">
+            <FileText size={18} className="text-gray-500" /> {t('Snap Drafts')}
+          </h3>
+          <p className="text-xs text-gray-500 mb-3">📝 {t('Finish and send your saved snaps')}</p>
+          {drafts.length === 0 ? (
+            <div className="glass p-8 rounded-2xl text-center">
+              <FileText size={48} className="mx-auto mb-3 text-gray-300" />
+              <p className="text-gray-500 font-semibold">{t('No drafts')}</p>
+              <p className="text-sm text-gray-400 mt-1">{t('Save snaps as drafts to send later!')}</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {drafts.map((draft: any) => (
+                <div key={draft.id} className="glass p-3 rounded-xl flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden flex-shrink-0">
+                    {draft.image_url ? <img src={draft.image_url} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Camera size={20} className="text-gray-400" /></div>}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold">{draft.caption || t('Untitled snap')}</p>
+                    <p className="text-xs text-gray-400">{new Date(draft.created_at).toLocaleDateString()}</p>
+                  </div>
+                  <button className="text-xs bg-sasl-green text-white px-3 py-1 rounded-full">{t('Send')}</button>
                 </div>
               ))}
             </div>
