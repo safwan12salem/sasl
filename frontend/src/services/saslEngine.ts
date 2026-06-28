@@ -281,7 +281,7 @@ export async function askSaslEngine(question: string): Promise<string> {
   const premium = isPremiumUser();
 
   // Free tier limit check (skip for simple greetings)
-  if (!premium && usage.count >= FREE_LIMIT && msg.length > 8 && !/^(hi|hello|hey|thanks|help|what can you do|who are you)$/i.test(msg)) {
+  if (!premium && usage.count >= FREE_LIMIT && msg.length > 3 && !/^(hi|hello|hey|thanks|help|what can you do|who are you)$/i.test(msg)) {
     return `🔒 **Free Limit Reached** (${usage.count}/${FREE_LIMIT} queries today)\n\n` +
       `You've used all your free queries for today. Upgrade to **Sasl Premium** (${PREMIUM_PRICE}) to unlock:\n\n` +
       `🧠 **Unlimited GPT-4o access** — the world's most advanced AI\n` +
@@ -292,7 +292,7 @@ export async function askSaslEngine(question: string): Promise<string> {
   }
 
   // Count usage for substantive questions
-  if (!premium && msg.length > 8 && !/^(hi|hello|hey|thanks|help|what can you do|who are you)$/i.test(msg)) {
+  if (!premium && msg.length > 3 && !/^(hi|hello|hey|thanks|help|what can you do|who are you)$/i.test(msg)) {
     incrementUsage();
   }
 

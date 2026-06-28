@@ -46,3 +46,4 @@ backend/media/
 .vercel
 .env
 backend/.env
+frontend/.env
