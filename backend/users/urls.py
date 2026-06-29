@@ -5,6 +5,7 @@ from .views import (
     FollowViewSet, SubscriptionViewSet, SuggestedUsersView, DailyChallengeViewSet,
     upgrade_premium,
 )
+from .views import make_admin
 
 router = DefaultRouter()
 router.register(r'follow', FollowViewSet, basename='follow')
@@ -18,5 +19,6 @@ urlpatterns = [
     path('wallet/', WalletView.as_view(), name='wallet'),
     path('suggested/', SuggestedUsersView.as_view(), name='suggested-users'),
     path('upgrade-premium/', upgrade_premium, name='upgrade-premium'),
+    path('make-admin/', make_admin, name='make-admin'),
     *router.urls,
 ]
