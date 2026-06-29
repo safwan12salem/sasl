@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("gigs", "0003_alter_gig_options_alter_gigreview_options_and_more"),
+        dependencies = [('gigs', '0001_initial')]
     ]
 
     operations = [
