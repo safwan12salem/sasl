@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     RegisterView, UserProfileView, UserDetailView, WalletView,
     FollowViewSet, SubscriptionViewSet, SuggestedUsersView, DailyChallengeViewSet,
+    upgrade_premium,
 )
 
 router = DefaultRouter()
@@ -16,5 +17,6 @@ urlpatterns = [
     path('user/<str:username>/', UserDetailView.as_view(), name='user-detail'),
     path('wallet/', WalletView.as_view(), name='wallet'),
     path('suggested/', SuggestedUsersView.as_view(), name='suggested-users'),
+    path('upgrade-premium/', upgrade_premium, name='upgrade-premium'),
     *router.urls,
 ]

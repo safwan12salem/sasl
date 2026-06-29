@@ -189,3 +189,38 @@ class DailyChallengeViewSet(viewsets.GenericViewSet):
             Transaction.objects.create(user=request.user, amount=xp_reward/100, transaction_type='ad_reward', description=f'Challenge reward: +{xp_reward} XP')
         challenge.save()
         return Response(DailyChallengeSerializer(challenge).data)
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from django.conf import settings
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upgrade_premium(request):
+    user = request.user
+    if user.is_premium:
+        return Response({'error': 'Already premium'}, status=400)
+    
+    if user.wallet.balance >= Decimal('4.99'):
+        user.wallet.balance -= Decimal('4.99')
+        user.wallet.save()
+        user.is_premium = True
+        user.save()
+        return Response({'status': 'upgraded', 'method': 'wallet', 'message': 'Premium activated!'})
+    
+    import stripe
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{'price_data': {'currency': 'usd', 'product_data': {'name': 'Sasl Premium'}, 'unit_amount': 499, 'recurring': {'interval': 'month'}}, 'quantity': 1}],
+            mode='subscription',
+            success_url=f'{getattr(settings, "FRONTEND_URL", "http://localhost:3000")}/wallet?premium=success',
+            cancel_url=f'{getattr(settings, "FRONTEND_URL", "http://localhost:3000")}/wallet?premium=cancel',
+            client_reference_id=str(user.id),
+        )
+        return Response({'status': 'checkout', 'url': session.url})
+    except Exception as e:
+        return Response({'error': f'Insufficient wallet balance. Top up $4.99 or try later. {str(e)}'}, status=402)
+

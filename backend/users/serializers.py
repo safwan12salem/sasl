@@ -194,3 +194,21 @@ class DailyChallengeSerializer(serializers.ModelSerializer):
         model = DailyChallenge
         fields = ['challenge_id', 'date', 'progress', 'completed']
         read_only_fields = ['date', 'user']
+
+
+
+
+
+
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+
+class SaslTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        token['username'] = user.username
+        token['is_premium'] = user.is_premium
+        token['is_staff'] = user.is_staff
+        token['is_superuser'] = user.is_superuser
+        return token

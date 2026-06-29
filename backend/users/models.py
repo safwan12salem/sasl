@@ -43,6 +43,8 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+    is_premium = models.BooleanField(default=False)
+    is_premium = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
     stripe_customer_id = models.CharField(max_length=100, blank=True, null=True)
     stripe_account_id = models.CharField(max_length=100, blank=True, null=True)  # for payouts

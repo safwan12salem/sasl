@@ -15,6 +15,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { offlineMesh } from '../services/offlineMesh';
 import { globalMesh } from '../services/globalMesh';
 import { saslMeshConnect } from '../services/saslMeshConnect';
+import { QRCodeSVG } from 'qrcode.react';
+import { offlineP2P } from '../services/offlineP2P';
 import { useTranslation } from 'react-i18next';
 
 
@@ -124,6 +126,10 @@ export default function MeshChatHub() {
   const [requests, setRequests] = useState<ChatRequest[]>([]);
   const [peers, setPeers] = useState<DiscoveredPeer[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+    const [showQRModal, setShowQRModal] = useState(false);
+  const [p2pCode, setP2pCode] = useState('');
+  const [p2pInput, setP2pInput] = useState('');
+  const [p2pConnected, setP2pConnected] = useState(false);
   const [searchResults, setSearchResults] = useState<DiscoveredPeer[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'rooms' | 'contacts' | 'requests' | 'connect'>('rooms');
@@ -405,20 +411,33 @@ const fetchRooms = useCallback(async () => {
     }
   }, []);
 
-  const fetchPeers = useCallback(async () => {
+    const fetchPeers = useCallback(async () => {
     try {
       const res = await api.get('/mesh/rooms/discover_peers/');
       const data = Array.isArray(res.data) ? res.data : (res.data.results || []);
       setPeers(data);
     } catch (err) {
-      setPeers([]);
+      // OFFLINE: Get peers from mesh services
+            const meshPeers = offlineMesh.getPeers();
+      const knownPeers = saslMeshConnect.getKnownPeers();
+      
+           const allOffline: DiscoveredPeer[] = [
+        ...meshPeers.map((p: any) => ({ username: p.username || p.id, is_online: true, avatar_url: null, node_id: p.id, last_seen: new Date().toISOString() })),
+        ...knownPeers.map((p: any) => ({ username: p.username, is_online: true, avatar_url: null, node_id: p.id, last_seen: new Date().toISOString() })),
+      ];
+      
+      const unique = allOffline.filter((p, i, arr) => arr.findIndex(x => x.username === p.username) === i);
+      setPeers(unique.length > 0 ? unique : []);
     }
   }, []);
+
 
   useEffect(() => {
   fetchRooms();
   fetchRequests();
   fetchPeers();
+  
+
   
   // Only poll when NO active room — prevents disruption
   const interval = setInterval(() => { 
@@ -550,7 +569,16 @@ const fetchRooms = useCallback(async () => {
   // ============================================================
   // MESSAGE ACTIONS
     const sendMessage = async () => {
-    if (!input.trim() || !activeRoom) return;
+     if (!input.trim()) return;
+    
+    // P2P Offline — send directly via WebRTC data channel
+    if (offlineP2P.isConnected()) {
+      sendP2PMessage();
+      return;
+    }
+    
+    if (!activeRoom) return;
+    
     const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const msg: ChatMessage = {
       id: tempId, content: input, message_type: 'text',
@@ -724,6 +752,56 @@ const fetchRooms = useCallback(async () => {
       setInviteUsername('');
       setShowInviteModal(false);
     } catch (err: any) { toast.error(err.response?.data?.error || 'Failed to invite'); }
+  };
+
+
+  const generateP2PCode = () => {
+    setShowQRModal(true);
+    setP2pCode('Generating...');
+    offlineP2P.generateOfferCode().then(code => {
+      setP2pCode(code);
+    }).catch(() => {
+      setP2pCode('Failed. Try again.');
+    });
+    offlineP2P.onMessage((msg: any) => {
+      setMessages(prev => [...prev, {
+        id: `p2p_${Date.now()}`,
+        room: 'p2p', sender: { id: '', username: msg.sender || 'Peer', avatar_url: null },
+        message_type: 'text', content: msg.text || msg.content || '', reactions: {}, created_at: new Date().toISOString(),
+      }]);
+    });
+    offlineP2P.onConnected(() => { setP2pConnected(true); toast.success('🌊 P2P Connected!'); });
+  };
+  
+
+
+
+  const acceptP2PCode = async () => {
+    if (!p2pInput.trim()) return toast.error('Enter a code');
+    try {
+      await offlineP2P.acceptOfferCode(p2pInput.trim());
+      setP2pConnected(true); setP2pInput(''); setShowQRModal(true);
+      toast.success('🌊 Connected via P2P!');
+      offlineP2P.onMessage((msg: any) => {
+        setMessages(prev => [...prev, {
+          id: `p2p_${Date.now()}`,
+          room: 'p2p', sender: { id: '', username: msg.sender || 'Peer', avatar_url: null },
+          message_type: 'text', content: msg.text || msg.content || '', reactions: {}, created_at: new Date().toISOString(),
+        }]);
+      });
+    } catch { toast.error('Invalid code'); }
+  };
+
+  const sendP2PMessage = () => {
+    if (!input.trim()) return;
+    if (offlineP2P.sendMessage({ text: input, sender: myUsername, timestamp: Date.now() })) {
+      setMessages(prev => [...prev, {
+        id: `p2p_${Date.now()}`, room: 'p2p',
+        sender: { id: user?.id || '', username: myUsername, avatar_url: myAvatar },
+        message_type: 'text', content: input, reactions: {}, created_at: new Date().toISOString(),
+      }]);
+      setInput('');
+    } else { toast.error('Not connected'); }
   };
 
   const formatTime = (dateStr: string) => {
@@ -1049,6 +1127,9 @@ const fetchRooms = useCallback(async () => {
                 <motion.button whileTap={{ scale: 0.95 }} onClick={() => { setTab('requests'); setShowMobileSidebar(true); }} className="px-6 py-3 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-2xl font-semibold border-2 border-gray-200 dark:border-gray-700 hover:border-green-300 transition-all">
                   {t('📩 View Requests')} {requests.length > 0 && `(${requests.length})`}
                 </motion.button>
+                                <motion.button whileTap={{ scale: 0.95 }} onClick={generateP2PCode} className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-semibold shadow-lg shadow-purple-500/25 hover:shadow-purple-500/40 transition-all flex items-center gap-2">
+                  <QrCode size={18} /> {t('🌊 Offline P2P')}
+                </motion.button>
               </div>
               <div className="mt-8 flex items-center justify-center gap-6 text-xs text-gray-400">
                 <span className="flex items-center gap-1"><WifiOff size={12} /> {t('No Internet')}</span>
@@ -1225,6 +1306,46 @@ const fetchRooms = useCallback(async () => {
                 <button onClick={inviteToRoom} className="flex-1 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-semibold hover:from-purple-600 hover:to-pink-600 transition shadow-lg shadow-purple-500/25">✨ {t('Invite')}</button>
                 <button onClick={() => setShowInviteModal(false)} className="flex-1 py-3 bg-gray-100 dark:bg-gray-700 rounded-2xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition">{t('Cancel')}</button>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* QR Code P2P Modal */}
+      <AnimatePresence>
+        {showQRModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowQRModal(false)}>
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+              <h3 className="font-bold text-xl text-center mb-2">{t('🌊 Offline P2P Connect')}</h3>
+              <p className="text-sm text-gray-500 text-center mb-4">{t('No WiFi needed — scan this QR code or share the code below')}</p>
+              
+              {p2pCode && (
+                <div className="flex justify-center mb-4">
+                  <div className="bg-white p-4 rounded-2xl shadow-inner">
+                    <QRCodeSVG value={p2pCode} size={200} level="M" />
+                  </div>
+                </div>
+              )}
+              
+              {p2pCode && (
+                <div className="flex items-center gap-2 mb-4">
+                  <code className="flex-1 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-xl text-xs break-all">{p2pCode.substring(0, 40)}...</code>
+                  <button onClick={() => { navigator.clipboard.writeText(p2pCode); toast.success('Code copied!'); }} className="p-2 bg-purple-500 text-white rounded-xl"><Copy size={14} /></button>
+                </div>
+              )}
+
+              <div className="flex gap-2 mb-4">
+                <input value={p2pInput} onChange={e => setP2pInput(e.target.value)} placeholder={t('Or paste peer code here...')} className="flex-1 px-4 py-2.5 rounded-xl border text-sm" />
+                <button onClick={acceptP2PCode} className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold">{t('Connect')}</button>
+              </div>
+
+              {p2pConnected && (
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl text-center">
+                  <p className="text-sm text-green-600 dark:text-green-400 font-semibold">✅ {t('P2P Connected! Start chatting below.')}</p>
+                </div>
+              )}
+
+              <button onClick={() => setShowQRModal(false)} className="w-full mt-2 py-2.5 bg-gray-200 dark:bg-gray-700 rounded-xl font-semibold text-sm">{t('Close')}</button>
             </motion.div>
           </motion.div>
         )}
