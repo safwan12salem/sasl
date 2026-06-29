@@ -29,7 +29,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.fly.dev',
     'https://*.pythonanywhere.com',
 ]
-CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_ALL_ORIGINS = True
 
 
 
