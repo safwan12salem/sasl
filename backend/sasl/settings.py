@@ -37,8 +37,7 @@ import urllib.parse
 
 
 if os.environ.get('RENDER') or os.environ.get('SASL_DB') == 'postgres':
-    import sys
-    sys.stderr.write(f'DB CHECK: RENDER={os.environ.get("RENDER")} SASL_DB={os.environ.get("SASL_DB")} DATABASE_URL={os.environ.get("DATABASE_URL")[:50]}...\n')
+    
     DEBUG = False
     ALLOWED_HOSTS = ['*']
     db_url = os.environ.get('DATABASE_URL', '')
@@ -158,34 +157,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'sasl.wsgi.application'
 ASGI_APPLICATION = 'sasl.asgi.application'
 
-# ============================================================
-# DATABASE CONFIGURATION (SQLite -> Postgres auto-switch)
-# ============================================================
-if os.environ.get('SASL_DB') == 'postgres' or IS_PRODUCTION:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.environ.get('POSTGRES_DB', 'sasldb'),
-            'USER': os.environ.get('POSTGRES_USER', 'sasluser'),
-            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'saslpass'),
-            'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
-            'PORT': os.environ.get('POSTGRES_PORT', '5432'),
-            'CONN_MAX_AGE': 600,
-            'OPTIONS': {
-                'sslmode': 'require' if IS_PRODUCTION else 'prefer',
-            },
-        }
-    }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-            'OPTIONS': {
-                'timeout': 20,
-            }
-        }
-    }
 # ============================================================
 # REDIS & CACHING
 # ============================================================
