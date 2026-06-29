@@ -36,6 +36,11 @@ CORS_ALLOW_ALL_ORIGINS = False
 import urllib.parse
 
 
+# Force UUID primary keys for Postgres
+import os
+if os.environ.get('DATABASE_URL') and 'postgres' in os.environ.get('DATABASE_URL', ''):
+    DEFAULT_AUTO_FIELD = 'django.db.models.UUIDField'
+
 if os.environ.get('RENDER') or os.environ.get('SASL_DB') == 'postgres':
     
     DEBUG = False
