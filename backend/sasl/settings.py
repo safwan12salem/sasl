@@ -35,7 +35,7 @@ CORS_ALLOW_ALL_ORIGINS = False
 
 
 
-if os.environ.get('RENDER'):
+if os.environ.get('RENDER') or os.environ.get('SASL_DB') == 'postgres':
     DEBUG = False
     ALLOWED_HOSTS = ['*']
     DATABASES = {
@@ -155,7 +155,7 @@ if os.environ.get('SASL_DB') == 'postgres' or IS_PRODUCTION:
             'NAME': os.environ.get('POSTGRES_DB', 'sasldb'),
             'USER': os.environ.get('POSTGRES_USER', 'sasluser'),
             'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'saslpass'),
-            'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+            'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
             'PORT': os.environ.get('POSTGRES_PORT', '5432'),
             'CONN_MAX_AGE': 600,
             'OPTIONS': {
