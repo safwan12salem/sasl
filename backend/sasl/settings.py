@@ -37,6 +37,8 @@ import urllib.parse
 
 
 if os.environ.get('RENDER') or os.environ.get('SASL_DB') == 'postgres':
+    import sys
+    sys.stderr.write(f'DB CHECK: RENDER={os.environ.get("RENDER")} SASL_DB={os.environ.get("SASL_DB")} DATABASE_URL={os.environ.get("DATABASE_URL")[:50]}...\n')
     DEBUG = False
     ALLOWED_HOSTS = ['*']
     db_url = os.environ.get('DATABASE_URL', '')
