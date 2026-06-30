@@ -69,9 +69,17 @@ const [followList, setFollowList] = useState<any[]>([]);
       }
       
       if (isOwnProfile) {
-        console.log('🟢 fetchProfile - isOwnProfile:', isOwnProfile, 'avatar_url:', res.data.avatar_url);
+                console.log('🟢 fetchProfile - isOwnProfile:', isOwnProfile, 'avatar_url:', res.data.avatar_url);
+        const avatarUrl = res.data.avatar_url;
+        if (avatarUrl) {
+          setAvatarPreview(avatarUrl);
+          localStorage.setItem('sasl_avatar_' + username, avatarUrl);
+        } else {
+          const cached = localStorage.getItem('sasl_avatar_' + username);
+          if (cached) setAvatarPreview(cached);
+        }
         setEditForm({ display_name: res.data.display_name || '', bio: res.data.bio || '' });
-        setAvatarPreview(res.data.avatar_url || null);
+        
       }
     } catch (err) {
       toast.error(t('Profile not found'));
@@ -82,9 +90,12 @@ const [followList, setFollowList] = useState<any[]>([]);
 
   useEffect(() => {
     fetchProfile();
+     const cached = localStorage.getItem('sasl_avatar_' + username);
+    if (cached) setAvatarPreview(cached);
     fetchPortfolio();
   }, [username]);
-
+    
+   
 
   const fetchPortfolio = async () => {
     try {
