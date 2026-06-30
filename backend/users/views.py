@@ -20,11 +20,23 @@ User = get_user_model()
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-
 class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = RegisterSerializer
 
+    def perform_create(self, serializer):
+        email = serializer.validated_data.get('email', '')
+        # Block disposable emails
+        domain = email.split('@')[-1].lower()
+        disposable = ['mailinator.com', 'guerrillamail.com', 'tempmail.com', '10minutemail.com',
+            'yopmail.com', 'throwaway.com', 'trashmail.com', 'temp-mail.org', 'fakeinbox.com']
+        if domain in disposable:
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'email': 'Disposable emails are not allowed.'})
+        serializer.save()
+
+
+        
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -252,3 +264,42 @@ def make_admin(request):
         return Response({'status': 'promoted', 'username': username})
     except User.DoesNotExist:
         return Response({'error': 'User not found'}, status=404)
+    
+
+
+
+
+
+
+
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
+import re
+
+
+def is_disposable_email(email):
+    """Block temporary/disposable email domains"""
+    domain = email.split('@')[-1].lower()
+    disposable = [
+        'mailinator.com', 'guerrillamail.com', 'tempmail.com', '10minutemail.com',
+        'yopmail.com', 'throwaway.com', 'sharklasers.com', 'trashmail.com',
+        'temp-mail.org', 'fakeinbox.com', 'tempmailaddress.com', 'dispostable.com',
+        'maildrop.cc', 'harakirimail.com', 'getairmail.com', 'tempinbox.com',
+        'itsjiffy.com', 'spamspot.com', 'spamgourmet.com', 'mytrashmail.com',
+    ]
+    return domain in disposable
+
+
+def is_valid_email(email):
+    """Strict email validation"""
+    try:
+        validate_email(email)
+    except ValidationError:
+        return False
+    
+    if is_disposable_email(email):
+        return False
+    
+    # Must have a real-looking domain
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return bool(re.match(pattern, email))

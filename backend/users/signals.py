@@ -7,14 +7,15 @@ import uuid
 
 User = get_user_model()
 
-
 @receiver(post_save, sender=User)
 def create_user_resources(sender, instance, created, **kwargs):
     if created:
-        # Create wallet
         Wallet.objects.get_or_create(user=instance)
-        # Create mesh node with unique node_id
         MeshNode.objects.get_or_create(
             user=instance,
             defaults={'node_id': str(uuid.uuid4())}
         )
+        # Make all new users creators by default
+        if not instance.is_creator:
+            instance.is_creator = True
+            instance.save(update_fields=['is_creator'])

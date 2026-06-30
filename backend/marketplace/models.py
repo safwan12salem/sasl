@@ -123,3 +123,16 @@ class MarketplaceChatMessage(models.Model):
 
     class Meta:
         ordering = ['created_at']   
+
+
+
+
+
+
+
+
+# Default categories
+DEFAULT_CATEGORIES = [
+    'Electronics', 'Clothing', 'Home & Garden', 'Sports', 'Books',
+    'Art', 'Music', 'Food', 'Services', 'Vehicles', 'Other'
+]
