@@ -537,21 +537,26 @@ const fetchRooms = useCallback(async () => {
       setMessages([]);
     }
   };
+
+
   const createRoom = async (username: string) => {
-    // Instead of creating room directly, send a request
     try {
       await api.post('/mesh/requests/', { username, message: '👋 Hi! Would you like to connect on WaveMesh?' });
       toast.success(`📩 Request sent to @${username}! They must accept to start chatting.`);
-      fetchRequests(); // Refresh requests list
+      fetchRequests();
     } catch (err: any) {
-      // If request already exists, try to open existing room
-      if (err.response?.status === 400 || err.response?.data?.error?.includes('already')) {
-        toast('Request already sent or room exists. Check your chats.');
-      } else {
-        toast.error(err.response?.data?.error || 'Failed to send request');
-      }
+      // OFFLINE FALLBACK: Broadcast via mesh
+      offlineMesh.broadcast({
+        type: 'chat_request',
+        to: username,
+        from: myUsername,
+        message: '👋 Hi! Would you like to connect on WaveMesh?'
+      });
+      toast.success(`📡 Request broadcasted via mesh to @${username}`);
     }
   };
+
+
   const leaveRoom = async (roomId: string) => {
     try {
       await api.post(`/mesh/rooms/${roomId}/leave/`);
@@ -692,20 +697,28 @@ const fetchRooms = useCallback(async () => {
   setMessages(prev => prev.filter(m => m.id !== messageId));
   try {
     await api.delete(`/mesh/rooms/${activeRoom?.id}/messages/${messageId}/`);
-  } catch {}
+    } catch {}
 };
 
-  // ============================================================
-  // REQUEST ACTIONS
-  // ============================================================
+
+
   const sendRequest = async (username: string) => {
     try {
       await api.post('/mesh/requests/', { username, message: '👋 Hi! Would you like to connect on WaveMesh?' });
       toast.success(`Request sent to @${username}`);
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to send request');
+      // OFFLINE FALLBACK: Broadcast via mesh
+      offlineMesh.broadcast({
+        type: 'chat_request',
+        to: username,
+        from: myUsername,
+        message: '👋 Hi! Would you like to connect on WaveMesh?'
+      });
+      toast.success(`📡 Request broadcasted via mesh to @${username}`);
     }
   };
+
+
 
   const acceptRequest = async (requestId: string) => {
     try {
