@@ -110,6 +110,11 @@ class Reel(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reels')
     video = models.FileField(upload_to='reels/', storage=VideoMediaCloudinaryStorage())
+    sound_track = models.CharField(max_length=300, blank=True, default='')  # Sound name
+    sound_url = models.URLField(blank=True, default='')  # Sound file URL
+    duration = models.FloatField(default=0)  # Video duration in seconds
+    playback_speed = models.FloatField(default=1.0)  # Playback speed (0.5, 1.0, 1.5, 2.0)
+    is_reported = models.BooleanField(default=False)
     caption = models.CharField(max_length=500, blank=True)
     likes_count = models.PositiveIntegerField(default=0)
     comments_count = models.PositiveIntegerField(default=0)

@@ -107,7 +107,7 @@ class ReelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reel
-        fields = ['id', 'user', 'video', 'video_url', 'caption', 'likes_count', 'comments_count', 'created_at', 'liked_by_me']
+        fields = ['id', 'user', 'video', 'video_url', 'caption', 'sound_track', 'sound_url', 'duration', 'playback_speed', 'likes_count', 'comments_count', 'created_at', 'liked_by_me', 'is_reported']
         read_only_fields = ['user', 'likes_count', 'comments_count']
 
     def get_video_url(self, obj):

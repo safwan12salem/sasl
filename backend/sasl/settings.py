@@ -46,7 +46,7 @@ if os.environ.get('RENDER') or os.environ.get('SASL_DB') == 'postgres':
     DEBUG = False
     ALLOWED_HOSTS = ['*']
     db_url = os.environ.get('DATABASE_URL', '')
-    if db_url:
+    if db_url and 'postgres' in db_url:
         url = urllib.parse.urlparse(db_url)
         DATABASES = {
             'default': {
@@ -60,10 +60,11 @@ if os.environ.get('RENDER') or os.environ.get('SASL_DB') == 'postgres':
         }
     else:
         DATABASES = {
-            'default': dj_database_url.config(
-                default=os.environ.get('DATABASE_URL'),
-                conn_max_age=600
-            )
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+                'OPTIONS': {'timeout': 20}
+            }
         }
     # Security
     SECURE_SSL_REDIRECT = True

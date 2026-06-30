@@ -53,6 +53,8 @@ class SnapStory(models.Model):
     """Public stories that last 24 hours"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='snap_stories')
+    sound_track = models.CharField(max_length=300, blank=True, default='')
+    sound_url = models.URLField(blank=True, default='')
     media = models.FileField(upload_to='snaps/stories/')
     caption = models.CharField(max_length=200, blank=True, default='')
     views_count = models.PositiveIntegerField(default=0)

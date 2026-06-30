@@ -56,7 +56,7 @@ class SnapStorySerializer(serializers.ModelSerializer):
     
     class Meta:
         model = SnapStory
-        fields = ['id', 'user', 'media', 'media_url', 'caption', 'views_count', 'tip_total', 'expires_at', 'created_at']
+        fields = ['id', 'user', 'media', 'media_url', 'caption', 'sound_track', 'sound_url', 'views_count', 'tip_total', 'expires_at', 'created_at']
         read_only_fields = ['user', 'views_count', 'tip_total']
     
     def get_media_url(self, obj):
