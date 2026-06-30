@@ -300,6 +300,23 @@ useEffect(() => {
       messageData = msg.data?.message || msg.data || msg;
     }
     
+    // Handle offline chat requests
+    if (msg.type === 'chat_request' && msg.to === myUsername) {
+      toast.success(`📩 Mesh request from @${msg.from}! Check Requests tab.`);
+      setRequests(prev => {
+        if (prev.some(r => r.from_user?.username === msg.from)) return prev;
+        return [...prev, {
+          id: `mesh_${Date.now()}`,
+          from_user: { id: '', username: msg.from, avatar_url: null },
+          to_user: { id: '', username: myUsername, avatar_url: null },
+          status: 'pending',
+          message: msg.message || 'Wants to connect via WaveMesh',
+          created_at: new Date().toISOString(),
+        }];
+      });
+      return;
+    }
+
     if (messageData) {
       setMessages(prev => {
         const msgId = messageData?.id || messageData?.message?.id;

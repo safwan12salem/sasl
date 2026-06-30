@@ -10,6 +10,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { askSaslEngine, FREE_LIMIT, PREMIUM_PRICE, getUsage, analyzeContent, generateSEOKeys, growthStrategy } from '../services/saslEngine';
 import { Brain, Send, Loader2, Sparkles, Crown, Zap, Mic, MicOff, Copy, ThumbsUp, ThumbsDown, RotateCcw, Clock, Infinity, Wand2, MessageSquare, Lightbulb, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../services/api';
+
+
 
 interface Message {
   id: string;
@@ -265,9 +268,20 @@ export default function SaslAIHub() {
               <p className="text-[11px] text-gray-500">Unlimited GPT-4o access + advanced tools</p>
             </div>
           </div>
-          <button className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-full text-xs font-semibold shadow-lg shadow-purple-500/25 hover:shadow-xl transition">
-            {PREMIUM_PRICE}
-          </button>
+                        <button 
+                onClick={async () => {
+                  try {
+                    const res = await api.post('/users/upgrade-premium/');
+                    if (res.data.url) { window.location.href = res.data.url; }
+                    else { toast.success(res.data.message || 'Premium activated! 🎉'); }
+                  } catch (err: any) { 
+                    toast.error(err.response?.data?.error || 'Insufficient balance. Top up wallet first.'); 
+                  }
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-full text-xs font-semibold shadow-lg shadow-purple-500/25 hover:shadow-xl transition"
+              >
+                {PREMIUM_PRICE}
+              </button>
         </motion.div>
       )}
 
