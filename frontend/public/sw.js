@@ -1,36 +1,20 @@
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (e) => e.waitUntil(clients.claim()));
+self.addEventListener('activate', (event) => event.waitUntil(clients.claim()));
 
 self.addEventListener('message', (event) => {
-  if (event.data?.type === 'PLAY_NOTIFICATION_SOUND') {
-    const title = event.data.title || 'Sasl';
-    const body = event.data.body || 'New notification';
-    
-    // Show native notification (plays system sound)
-    self.registration.showNotification(title, {
-      body: body,
+  if (event.data && event.data.type === 'NOTIFICATION') {
+    const { title, body } = event.data;
+    self.registration.showNotification(title || 'Sasl', {
+      body: body || '',
       icon: '/logo192.png',
       badge: '/logo192.png',
-      tag: 'sasl-notification',
+      vibrate: [200, 100, 200],
       requireInteraction: false,
-      silent: false
     });
   }
 });
 
-// Handle notification click
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  event.waitUntil(
-    clients.matchAll({ type: 'window' }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url.includes('/') && 'focus' in client) {
-          return client.focus();
-        }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow('/');
-      }
-    })
-  );
+  event.waitUntil(clients.openWindow('https://sasl.vercel.app'));
 });

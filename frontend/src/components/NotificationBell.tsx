@@ -95,7 +95,7 @@ export default function NotificationBell() {
                 // Try Service Worker notification (system sound)
                 if (navigator.serviceWorker?.controller) {
                   navigator.serviceWorker.controller.postMessage({
-                    type: 'PLAY_NOTIFICATION_SOUND',
+                    type: 'NOTIFICATION',
                     title: 'Sasl',
                     body: data.notification.message
                   });
