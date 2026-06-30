@@ -88,6 +88,8 @@ export default function SnapSender() {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [groupMembers, setGroupMembers] = useState('');
+  const [storySound, setStorySound] = useState('');
+
 
   const FILTERS = [
     { name: 'none', label: t('Normal'), style: '' },
@@ -189,13 +191,14 @@ export default function SnapSender() {
   };
 
   // Post story
-  const postStory = async () => {
+    const postStory = async () => {
     if (!storyFile) return toast.error(t('Select an image or video'));
     const formData = new FormData(); formData.append('media', storyFile);
+    if (storySound) formData.append('sound_track', storySound);
     try {
       await api.post('/snaps/snaps/post_story/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success(t('Story posted! 📖'));
-      setShowStoryForm(false); setStoryFile(null); setStoryPreview(null); fetchStories();
+      setShowStoryForm(false); setStoryFile(null); setStoryPreview(null); setStorySound(''); fetchStories();
     } catch { toast.error(t('Failed to post story')); }
   };
 
@@ -387,6 +390,7 @@ export default function SnapSender() {
           {showStoryForm && (
             <div className="glass p-4 rounded-2xl mb-4 space-y-2">
               <input type="file" accept="image/*,video/*" onChange={e => { const file = e.target.files?.[0]; if (file) { setStoryFile(file); setStoryPreview(URL.createObjectURL(file)); } }} className="text-sm" />
+              <input type="text" placeholder="Sound track name (optional)" value={storySound} onChange={e => setStorySound(e.target.value)} className="input-field text-sm" />
               {storyPreview && (
                 storyFile?.type.startsWith('video/') ? <video src={storyPreview || ''} controls className="w-full h-32 object-cover rounded-lg" /> : <img src={storyPreview || ''} alt="Preview" className="w-full h-32 object-cover rounded-lg" />
               )}

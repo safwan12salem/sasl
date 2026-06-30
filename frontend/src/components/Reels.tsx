@@ -6,11 +6,12 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { Heart, MessageCircle, Share2, Loader2, Video, Plus } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Loader2, Video, Flag,Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 
 import { uploadLargeVideo } from '../services/videoUploader';
+
 
 
 interface Reel {
@@ -18,11 +19,16 @@ interface Reel {
   user: { username: string; avatar_url?: string };
   video_url: string;
   caption: string;
+  sound_track?: string;
+  sound_url?: string;
+  duration?: number;
+  playback_speed?: number;
   likes_count: number;
   comments_count: number;
   liked_by_me: boolean;
   views_count?: number;
 }
+
 
 export default function Reels() {
   const { user } = useAuth();
@@ -33,6 +39,9 @@ export default function Reels() {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [showUpload, setShowUpload] = useState(false);
   const [reelFile, setReelFile] = useState<File | null>(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
   const [reelCaption, setReelCaption] = useState('');
   const [uploading, setUploading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -75,10 +84,18 @@ export default function Reels() {
       if (videoReels.length === 0) {
         videoReels.push({ id: 'demo-reel', user: { username: 'Sasl' }, video_url: 'https://www.w3schools.com/html/mov_bbb.mp4', caption: 'Welcome to Sasl Reels! 🌍✨', likes_count: 120, comments_count: 15, liked_by_me: false, views_count: 1500 });
       }
+
       setReels(videoReels);
     } catch (err) { setError(t('Could not load reels.')); }
     finally { setLoading(false); }
   }, [t]);
+
+
+  useEffect(() => {
+    videoRefs.current.forEach((video) => {
+      if (video) video.playbackRate = playbackSpeed;
+    });
+  }, [playbackSpeed]);
 
   useEffect(() => { fetchReels(); }, [fetchReels]);
 
@@ -173,6 +190,19 @@ export default function Reels() {
     videoRefs.current.forEach((v, i) => { if (v) i === nextIndex ? v.play() : v.pause(); });
   };
 
+
+  const formatTime = (seconds: number) => {
+    if (!seconds || !isFinite(seconds)) return '0:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+
+ 
+
+
+
   if (loading) return <div className="flex justify-center items-center h-screen bg-black"><Loader2 className="animate-spin text-white" size={48} /></div>;
   if (error) return <div className="flex justify-center items-center h-screen bg-black text-white"><div className="text-center"><p className="mb-4">{error}</p><button onClick={fetchReels} className="btn-primary">Retry</button></div></div>;
 
@@ -193,29 +223,60 @@ export default function Reels() {
         <div className="flex justify-center items-center h-full text-white"><p>No reels yet.</p></div>
       ) : (
         reels.map((reel, idx) => (
-          <div key={reel.id} className="relative h-screen snap-start">
-            <video ref={el => { videoRefs.current[idx] = el; }} src={reel.video_url} className="absolute inset-0 w-full h-full object-cover" loop muted autoPlay={idx === 0} playsInline onEnded={() => scrollTo(idx + 1)} />
+                   <div key={reel.id} className="relative h-screen snap-start">
+            <video 
+              ref={el => { videoRefs.current[idx] = el; }} 
+              src={reel.video_url} 
+              className="absolute inset-0 w-full h-full object-cover" 
+              loop muted 
+              autoPlay={idx === 0} 
+              playsInline 
             
-            {/* VERTICAL BUTTONS - Right */}
+              onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+              onLoadedMetadata={(e) => setVideoDuration(e.currentTarget.duration)}
+              onEnded={() => scrollTo(idx + 1)} 
+            />
+            
+            {/* Sound Label */}
+            {reel.sound_track && (
+              <div className="absolute top-4 right-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-medium z-10 flex items-center gap-2">
+                🎵 {reel.sound_track}
+              </div>
+            )}
+
+            {/* Time Display */}
+            <div className="absolute top-4 left-4 bg-black/50 backdrop-blur-sm text-white px-3 py-1.5 rounded-full text-xs font-medium z-10">
+              {formatTime(currentTime)} / {formatTime(videoDuration)}
+            </div>
+
+            {/* Speed Control */}
+            <div className="absolute top-16 right-4 z-10 flex flex-col gap-1">
+              {[0.5, 1, 1.5, 2].map(speed => (
+                <button 
+                  key={speed}
+                  onClick={() => setPlaybackSpeed(speed)}
+                  className={`bg-black/50 backdrop-blur-sm text-white px-2 py-1 rounded-full text-xs font-medium transition ${playbackSpeed === speed ? 'bg-green-500 text-white' : 'hover:bg-black/70'}`}
+                >
+                  {speed}x
+                </button>
+              ))}
+            </div>
+            
+            {/* VERTICAL BUTTONS - Left */}
             <div className="absolute left-4 bottom-32 flex flex-col items-center gap-6 z-10">
               <button onClick={() => handleLike(reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-red-400 transition">
                 <Heart size={32} className={reel.liked_by_me ? 'fill-red-500 text-red-500' : 'text-white drop-shadow-lg'} />
                 <span className="text-xs font-semibold">{reel.likes_count}</span>
               </button>
               <button onClick={() => {
-  const newDisliked = new Set(dislikedReels);
-  if (newDisliked.has(reel.id)) {
-    newDisliked.delete(reel.id);
-  } else {
-    newDisliked.add(reel.id);
-    // Remove from liked if present
-    if (reel.liked_by_me) handleLike(reel.id);
-  }
-  setDislikedReels(newDisliked);
-  handleDislike(reel.id);
-}} className={`flex flex-col items-center gap-1 transition ${dislikedReels.has(reel.id) ? 'text-red-400' : 'text-white hover:text-gray-400'}`}>
-  <svg width="32" height="32" viewBox="0 0 24 24" fill={dislikedReels.has(reel.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" className="drop-shadow-lg"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3zm7-13h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>
-</button>
+                const newDisliked = new Set(dislikedReels);
+                if (newDisliked.has(reel.id)) { newDisliked.delete(reel.id); }
+                else { newDisliked.add(reel.id); if (reel.liked_by_me) handleLike(reel.id); }
+                setDislikedReels(newDisliked);
+                handleDislike(reel.id);
+              }} className={`flex flex-col items-center gap-1 transition ${dislikedReels.has(reel.id) ? 'text-red-400' : 'text-white hover:text-gray-400'}`}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill={dislikedReels.has(reel.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" className="drop-shadow-lg"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3zm7-13h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>
+              </button>
               <button onClick={() => { setShowComments(showComments === reel.id ? null : reel.id); fetchReelComments(reel.id); }} className="flex flex-col items-center gap-1 text-white hover:text-blue-400 transition">
                 <MessageCircle size={32} className="drop-shadow-lg" />
                 <span className="text-xs font-semibold">{reel.comments_count}</span>
@@ -223,6 +284,14 @@ export default function Reels() {
               <button onClick={() => handleShare(reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-green-400 transition">
                 <Share2 size={32} className="drop-shadow-lg" />
                 <span className="text-xs font-semibold">Share</span>
+              </button>
+              {/* Report Button */}
+              <button onClick={async () => {
+                try { await api.post(`/content/reels/${reel.id}/report/`, { reason: 'inappropriate' }); toast.success('Reported'); }
+                catch { toast.error('Failed to report'); }
+              }} className="flex flex-col items-center gap-1 text-white hover:text-red-500 transition">
+                <Flag size={24} className="drop-shadow-lg" />
+                <span className="text-[10px]">Report</span>
               </button>
               {isMonetized(reel) && (
                 <button onClick={() => handleTip(reel.id)} className="flex flex-col items-center gap-1 text-white hover:text-yellow-400 transition">
