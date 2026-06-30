@@ -1,5 +1,6 @@
 from datetime import date
 from decimal import Decimal
+import json
 from random import random
 
 from rest_framework import generics, permissions, viewsets, status, mixins
@@ -311,3 +312,23 @@ def is_valid_email(email):
     # Must have a real-looking domain
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return bool(re.match(pattern, email))
+
+
+
+
+
+
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_push_subscription(request):
+    """Save browser push subscription"""
+    subscription = request.data.get('subscription')
+    if not subscription:
+        return Response({'error': 'subscription required'}, status=400)
+    # Store in user's profile
+    request.user.push_subscription = json.dumps(subscription)
+    request.user.save(update_fields=['push_subscription'])
+    return Response({'status': 'saved'})

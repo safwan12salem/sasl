@@ -47,27 +47,26 @@ export default function NotificationBell() {
   });
 
 
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
-   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const audioUnlocked = useRef(false);
-  
-  useEffect(() => {
-    audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2qEcP+1j2Oda1e1PmN9u1JbicN0sX9Ddq6K1f9wbJWwub6Y1/+wjrGIbYKBpOvrw5aDcf+zhmyNyctTdr6Kv+Jqfp7FxVhstrbzn5Bmf/+0fHCBmZ5hbLfG8W+NpJaopce6c42Yhmr/5n2dysjCWHe6wuJrlZ2Fq8ewiG6Bb7bx8YqU');
-    audioRef.current.volume = 0.5;
-    
-    const unlock = () => {
-      if (audioRef.current && !audioUnlocked.current) {
-        audioRef.current.play().then(() => {
-          audioRef.current!.pause();
-          audioRef.current!.currentTime = 0;
-          audioUnlocked.current = true;
-        }).catch(() => {});
-      }
-    };
-    document.addEventListener('click', unlock, { once: true });
-    return () => document.removeEventListener('click', unlock);
-  }, []);
-
+  const playNotificationSound = () => {
+    if (!soundEnabled) return;
+    try {
+      const ctx = audioCtxRef.current || new (window.AudioContext || (window as any).webkitAudioContext)();
+      audioCtxRef.current = ctx;
+      if (ctx.state === 'suspended') ctx.resume();
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc1.connect(gain); osc2.connect(gain); gain.connect(ctx.destination);
+      osc1.type = 'sine'; osc1.frequency.setValueAtTime(523, ctx.currentTime);
+      osc2.type = 'sine'; osc2.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
+      osc1.start(ctx.currentTime); osc1.stop(ctx.currentTime + 0.15);
+      osc2.start(ctx.currentTime + 0.1); osc2.stop(ctx.currentTime + 0.35);
+    } catch {}
+  };
   const connectWebSocket = () => {
     const token = localStorage.getItem('sasl_token');
     if (!token) return;
@@ -101,10 +100,7 @@ export default function NotificationBell() {
                   });
                 }
                 // Also try direct audio via unlocked element
-                if (audioRef.current) {
-                  audioRef.current.currentTime = 0;
-                  audioRef.current.play().catch(() => {});
-                }
+             
               } catch (err) {}
             }
             toast.success(data.notification.message, {
@@ -203,16 +199,7 @@ export default function NotificationBell() {
         )}
 </motion.button>
                {/* Hidden button for audio unlock */}
-      <button 
-        ref={audioTriggerRef} 
-        style={{ display: 'none' }}
-        onClick={() => {
-          if (audioRef.current) {
-            audioRef.current.currentTime = 0;
-            audioRef.current.play().catch(() => {});
-          }
-        }}
-      />
+     
       
 
       <AnimatePresence>
