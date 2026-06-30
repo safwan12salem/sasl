@@ -225,22 +225,30 @@ def upgrade_premium(request):
         user.save()
         return Response({'status': 'upgraded', 'method': 'wallet', 'message': 'Premium activated!'})
     
-    import stripe
-    stripe.api_key = settings.STRIPE_SECRET_KEY
-    try:
-        session = stripe.checkout.Session.create(
-            payment_method_types=['card'],
-            line_items=[{'price_data': {'currency': 'usd', 'product_data': {'name': 'Sasl Premium'}, 'unit_amount': 499, 'recurring': {'interval': 'month'}}, 'quantity': 1}],
-            mode='subscription',
-            success_url=f'{getattr(settings, "FRONTEND_URL", "http://localhost:3000")}/wallet?premium=success',
-            cancel_url=f'{getattr(settings, "FRONTEND_URL", "http://localhost:3000")}/wallet?premium=cancel',
-            client_reference_id=str(user.id),
-        )
-        return Response({'status': 'checkout', 'url': session.url})
-    except Exception as e:
-        return Response({'error': f'Insufficient wallet balance. Top up $4.99 or try later. {str(e)}'}, status=402)
-
-
+           # Method 2: Stripe Checkout (only if key is configured)
+    stripe_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
+    if stripe_key and stripe_key not in ['sk_test_placeholder', '']:
+        import stripe
+        stripe.api_key = stripe_key
+        try:
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[{'price_data': {'currency': 'usd', 'product_data': {'name': 'Sasl Premium'}, 'unit_amount': 499, 'recurring': {'interval': 'month'}}, 'quantity': 1}],
+                mode='subscription',
+                success_url=f'{getattr(settings, "FRONTEND_URL", "http://localhost:3000")}/wallet?premium=success',
+                cancel_url=f'{getattr(settings, "FRONTEND_URL", "http://localhost:3000")}/wallet?premium=cancel',
+                client_reference_id=str(user.id),
+            )
+            return Response({'status': 'checkout', 'url': session.url})
+        except Exception as e:
+            return Response({'error': 'Payment service unavailable. Please try later.'}, status=402)
+    
+    # No Stripe configured — show clear wallet message
+    return Response({
+        'error': f'Insufficient wallet balance. You need $4.99 to upgrade.',
+        'needed': 4.99,
+        'current': float(user.wallet.balance)
+    }, status=402)
 
 
 @api_view(['POST'])
