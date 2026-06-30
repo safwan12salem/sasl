@@ -36,19 +36,21 @@ class RegisterView(generics.CreateAPIView):
             raise ValidationError({'email': 'Disposable emails are not allowed.'})
         serializer.save()
 
-
-        
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'patch', 'put', 'head', 'options']
 
     def get_object(self):
         return self.request.user
 
-    def update(self, request, *args, **kwargs):
-        # ensure avatar handles via multipart
-        return super().update(request, *args, **kwargs)
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
 
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+    
+    
 class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all().select_related('wallet')
     serializer_class = UserProfileSerializer
