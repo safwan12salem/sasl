@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { askSaslEngine, FREE_LIMIT, PREMIUM_PRICE, getUsage, analyzeContent, generateSEOKeys, growthStrategy } from '../services/saslEngine';
-import { Brain, Send, Loader2, Sparkles, Crown, Zap, Mic, MicOff, Copy, ThumbsUp, ThumbsDown, RotateCcw, Clock, Infinity, Wand2, MessageSquare, Lightbulb, ChevronRight } from 'lucide-react';
+import { Brain, Send, Loader2, Sparkles, Crown, Zap, Mic, MicOff, Copy, ThumbsUp, ThumbsDown, RotateCcw, Clock, Infinity, Wand2, MessageSquare, Lightbulb, ChevronRight,Edit3  } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 
@@ -37,7 +37,7 @@ export default function SaslAIHub() {
     {
       id: 'welcome',
       role: 'assistant',
-      content: `# 👋 Welcome to Sasl Brain\n\nI'm your legendary AI assistant, powered by **GPT-4o** — the world's most advanced AI. I can answer *any question* with expert-level detail.\n\n**Ask me about:**\n• Science & Technology\n• History & Culture\n• Business & Finance\n• Health & Medicine\n• Programming & AI\n• Arts & Entertainment\n• Or anything else you're curious about!\n\n✨ **20 free queries/day** | 💎 **Premium: Unlimited**`,
+      content: `# 👋 Welcome to Sasl Brain\n\nI'm your legendary AI assistant — the world's most advanced AI. I can answer *any question* with expert-level detail.\n\n✨ **20 free queries/day** | 💎 **Premium: Unlimited**`,
       timestamp: new Date(),
     },
   ]);
@@ -56,6 +56,13 @@ export default function SaslAIHub() {
       chatRef.current.scrollTop = chatRef.current.scrollHeight;
     }
   }, [messages]);
+
+
+  const [feedback, setFeedback] = useState<Record<string, 'liked' | 'disliked' | null>>({});
+  const handleFeedback = (msgId: string, type: 'liked' | 'disliked') => {
+    setFeedback(prev => ({ ...prev, [msgId]: prev[msgId] === type ? null : type }));
+    toast.success(type === 'liked' ? 'Thanks! 👍' : 'Noted! 👎');
+  };
 
   // Speech recognition
   const startListening = () => {
@@ -193,11 +200,11 @@ export default function SaslAIHub() {
                       <button onClick={() => copyMessage(msg.content)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition group" title="Copy">
                         <Copy size={13} className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
                       </button>
-                      <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition group" title="Helpful">
-                        <ThumbsUp size={13} className="text-gray-400 group-hover:text-green-500" />
+                                      <button onClick={() => handleFeedback(msg.id, 'liked')} className={`p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition group ${feedback[msg.id] === 'liked' ? 'bg-green-100 dark:bg-green-900/30' : ''}`} title="Helpful">
+                        <ThumbsUp size={13} className={`${feedback[msg.id] === 'liked' ? 'text-green-500' : 'text-gray-400 group-hover:text-green-500'}`} />
                       </button>
-                      <button className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition group" title="Not helpful">
-                        <ThumbsDown size={13} className="text-gray-400 group-hover:text-red-500" />
+                      <button onClick={() => handleFeedback(msg.id, 'disliked')} className={`p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition group ${feedback[msg.id] === 'disliked' ? 'bg-red-100 dark:bg-red-900/30' : ''}`} title="Not helpful">
+                        <ThumbsDown size={13} className={`${feedback[msg.id] === 'disliked' ? 'text-red-500' : 'text-gray-400 group-hover:text-red-500'}`} />
                       </button>
                     </div>
                   </div>

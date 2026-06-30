@@ -227,7 +227,7 @@ def upgrade_premium(request):
     
            # Method 2: Stripe Checkout (only if key is configured)
     stripe_key = getattr(settings, 'STRIPE_SECRET_KEY', '')
-    if stripe_key and stripe_key not in ['sk_test_placeholder', '']:
+    if stripe_key and len(stripe_key) > 10:
         import stripe
         stripe.api_key = stripe_key
         try:
