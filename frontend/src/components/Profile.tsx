@@ -130,12 +130,13 @@ const [followList, setFollowList] = useState<any[]>([]);
     formData.append('display_name', editForm.display_name);
     formData.append('bio', editForm.bio);
     if (avatarFile) formData.append('avatar', avatarFile);
-    try {
-            await api.patch('/users/profile/', formData);
+       try {
+      await api.patch('/users/profile/', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
       toast.success(t('Profile updated!'));
       // Wait for Cloudinary to process then reload
       setTimeout(() => { window.location.reload(); }, 3000);
-      window.location.reload();
     } catch (err: any) {
       toast.error(err.response?.data?.detail || t('Update failed'));
     }
