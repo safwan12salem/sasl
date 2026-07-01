@@ -126,6 +126,7 @@ const [followList, setFollowList] = useState<any[]>([]);
   };
 
       const handleSave = async () => {
+        console.log('🟢 handleSave called, avatarFile:', avatarFile);
     const formData = new FormData();
     formData.append('display_name', editForm.display_name);
     formData.append('bio', editForm.bio);
