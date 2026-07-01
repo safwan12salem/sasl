@@ -80,7 +80,7 @@ const [followList, setFollowList] = useState<any[]>([]);
     }
   };
 
-  
+
   useEffect(() => {
     fetchProfile();
    
@@ -118,19 +118,28 @@ const [followList, setFollowList] = useState<any[]>([]);
   };
 
         
-    const handleSave = async () => {
+    
+
+  const handleSave = async () => {
     const formData = new FormData();
     formData.append('display_name', editForm.display_name);
     formData.append('bio', editForm.bio);
     if (avatarFile) formData.append('avatar', avatarFile);
     try {
-      await api.patch('/users/profile/', formData);
-      toast.success(t('Profile updated!'));
-      setTimeout(() => { window.location.reload(); }, 3000);
+      const res = await api.patch('/users/profile/', formData);
+      if (res.data.avatar_url) {
+        setAvatarPreview(res.data.avatar_url);
+        toast.success(t('Profile updated!'));
+      } else {
+        toast.success(t('Profile updated!'));
+        window.location.reload();
+      }
     } catch (err: any) {
       toast.error(err.response?.data?.detail || t('Update failed'));
     }
   };
+
+
  const handleFollow = async () => {
     if (!profile) return;
     try {
