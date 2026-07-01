@@ -44,12 +44,11 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
-
-    def put(self, request, *args, **kwargs):
-        return self.update(request, *args, **kwargs)
-    
+    def perform_update(self, serializer):
+        if 'avatar' in self.request.FILES:
+            serializer.instance.avatar = self.request.FILES['avatar']
+            serializer.instance.save()
+        serializer.save()
     
 class UserDetailView(generics.RetrieveAPIView):
     queryset = User.objects.all().select_related('wallet')
