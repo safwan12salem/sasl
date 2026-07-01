@@ -14,6 +14,7 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { offlineMesh } from '../services/offlineMesh';
 import { globalMesh } from '../services/globalMesh';
+import { bluetoothService } from '../services/bluetoothService';
 import { saslMeshConnect } from '../services/saslMeshConnect';
 import { QRCodeSVG } from 'qrcode.react';
 import { offlineP2P } from '../services/offlineP2P';
@@ -1006,12 +1007,39 @@ const fetchRooms = useCallback(async () => {
               {tab === 'contacts' && (
                 <div className="space-y-1">
                   {peers.length === 0 ? (
-                    <div className="text-center py-16 px-4">
+                                        <div className="text-center py-16 px-4">
                       <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center">
                         <Users size={36} className="text-blue-500 opacity-50" />
                       </div>
                       <p className="font-semibold text-gray-500 mb-1">{t('No users discovered')}</p>
-                      <p className="text-sm text-gray-400">{t('Open another tab and log in to see peers!')}</p>
+                      <p className="text-sm text-gray-400 mb-4">{t('Open another tab and log in to see peers!')}</p>
+                      <motion.button 
+                        whileTap={{ scale: 0.95 }}
+                        onClick={async () => {
+                          const available = await bluetoothService.initialize();
+                          if (available) {
+                            toast.success('🔵 Bluetooth scanning...');
+                            bluetoothService.startScan((device) => {
+                              setPeers(prev => {
+                                if (prev.find(p => p.node_id === device.id)) return prev;
+                                return [...prev, {
+                                  username: device.name,
+                                  node_id: device.id,
+                                  is_online: true,
+                                  last_seen: new Date().toISOString(),
+                                  avatar_url: null
+                                }];
+                              });
+                            });
+                            setTimeout(() => bluetoothService.stopScan(), 10000);
+                          } else {
+                            toast.error(t('Bluetooth not available'));
+                          }
+                        }}
+                        className="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm font-semibold"
+                      >
+                        🔵 {t('Scan Bluetooth')}
+                      </motion.button>
                     </div>
                   ) : (
                     peers.map(peer => (
