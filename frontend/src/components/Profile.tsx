@@ -120,7 +120,8 @@ const [followList, setFollowList] = useState<any[]>([]);
         
     
 
-  const handleSave = async () => {
+    const handleSave = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     const formData = new FormData();
     formData.append('display_name', editForm.display_name);
     formData.append('bio', editForm.bio);
@@ -258,11 +259,11 @@ const fetchFollowList = async (type: 'followers' | 'following') => {
                 {isOwnProfile ? (
                   isEditing ? (
                     <>
-                      <button onClick={handleSave} className="btn-primary text-sm py-1.5 px-4"><Check size={14} className="mr-1" /> Save</button>
-                      <button onClick={() => setIsEditing(false)} className="btn-ghost text-sm py-1.5 px-4"><X size={14} className="mr-1" /> Cancel</button>
+                      <button onClick={(e) => { e.preventDefault(); handleSave(); }} className="btn-primary text-sm py-1.5 px-4"><Check size={14} className="mr-1"/> {t('Save')}</button>
+                      <button onClick={() => setIsEditing(false)} className="btn-ghost text-sm py-1.5 px-4"><X size={14} className="mr-1" /> {t('Cancel')}</button>
                     </>
                   ) : (
-                    <button onClick={() => setIsEditing(true)} className="btn-ghost text-sm py-1.5 px-4"><Edit3 size={14} className="mr-1" /> Edit Profile</button>
+                    <button onClick={() => setIsEditing(true)} className="btn-ghost text-sm py-1.5 px-4"><Edit3 size={14} className="mr-1" /> {t('Edit Profile')}</button>
                   )
                 ) : (
                   <>
