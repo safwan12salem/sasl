@@ -125,7 +125,7 @@ class ReelSerializer(serializers.ModelSerializer):
 
 
 class ReelCommentSerializer(serializers.ModelSerializer):
-    user = UserProfileSerializer(read_only=True)
+    user = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
     liked_by_me = serializers.SerializerMethodField()
     my_reaction = serializers.SerializerMethodField() 
@@ -165,12 +165,15 @@ class ReelCommentSerializer(serializers.ModelSerializer):
     def get_replies(self, obj):
         replies = ReelCommentReply.objects.filter(comment=obj)[:10]
         return ReelCommentReplySerializer(replies, many=True, context=self.context).data
+    
 
+    def get_user(self, obj):
+       return UserProfileSerializer(obj.user, context=self.context).data
 
 
 
 class ReelCommentReplySerializer(serializers.ModelSerializer):
-    user = UserProfileSerializer(read_only=True)
+    user = serializers.SerializerMethodField()
     likes_count = serializers.SerializerMethodField()
     liked_by_me = serializers.SerializerMethodField()
     my_reaction = serializers.SerializerMethodField() 
@@ -207,3 +210,7 @@ class ReelCommentReplySerializer(serializers.ModelSerializer):
             count=Count('id')
         )
         return {item['reaction']: item['count'] for item in counts}
+    
+
+    def get_user(self, obj):
+      return UserProfileSerializer(obj.user, context=self.context).data
