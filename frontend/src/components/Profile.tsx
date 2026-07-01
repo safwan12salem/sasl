@@ -119,27 +119,28 @@ const [followList, setFollowList] = useState<any[]>([]);
 
         
     
-
-    const handleSave = async (e?: React.FormEvent) => {
+  const handleSave = async (e?: React.MouseEvent) => {
     e?.preventDefault();
+    if (!avatarFile && !editForm.display_name && !editForm.bio) return;
+    
     const formData = new FormData();
-    formData.append('display_name', editForm.display_name);
-    formData.append('bio', editForm.bio);
+    formData.append('display_name', editForm.display_name || profile?.display_name || '');
+    formData.append('bio', editForm.bio || profile?.bio || '');
     if (avatarFile) formData.append('avatar', avatarFile);
+    
     try {
       const res = await api.patch('/users/profile/', formData);
-      if (res.data.avatar_url) {
+      if (res.data?.avatar_url) {
         setAvatarPreview(res.data.avatar_url);
-        toast.success(t('Profile updated!'));
-      } else {
-        toast.success(t('Profile updated!'));
-        window.location.reload();
+        setAvatarFile(null);
       }
+      setProfile((prev: any) => ({ ...prev, ...res.data }));
+      setIsEditing(false);
+      toast.success(t('Profile updated!'));
     } catch (err: any) {
       toast.error(err.response?.data?.detail || t('Update failed'));
     }
   };
-
 
  const handleFollow = async () => {
     if (!profile) return;
@@ -259,7 +260,7 @@ const fetchFollowList = async (type: 'followers' | 'following') => {
                 {isOwnProfile ? (
                   isEditing ? (
                     <>
-                      <button onClick={(e) => { e.preventDefault(); handleSave(); }} className="btn-primary text-sm py-1.5 px-4"><Check size={14} className="mr-1"/> {t('Save')}</button>
+                      <button type="button" onClick={handleSave} className="btn-primary text-sm py-1.5 px-4"><Check size={14} className="mr-1"/> {t('Save')}</button>
                       <button onClick={() => setIsEditing(false)} className="btn-ghost text-sm py-1.5 px-4"><X size={14} className="mr-1" /> {t('Cancel')}</button>
                     </>
                   ) : (
