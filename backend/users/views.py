@@ -37,15 +37,16 @@ class RegisterView(generics.CreateAPIView):
             raise ValidationError({'email': 'Disposable emails are not allowed.'})
         serializer.save()
 
+
+
+
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser, JSONParser]
-    http_method_names = ['get', 'patch', 'put', 'head', 'options']
 
     def get_object(self):
         return self.request.user
-
 
     def perform_update(self, serializer):
         if 'avatar' in self.request.FILES:
