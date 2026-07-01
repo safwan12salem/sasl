@@ -199,23 +199,30 @@ export default function GigCentral() {
   // ============================================================
   // ACTIONS
   // ============================================================
-  const createGig = async () => {
+   const createGig = async () => {
     if (!newTitle || !newBudget) return toast.error(t('Title & budget required'));
+    const token = localStorage.getItem('sasl_token');
+    const baseURL = process.env.REACT_APP_API_URL || 'https://sasl-api-i34r.onrender.com';
     try {
-      await api.post('/gigs/gigs/', {
-        title: newTitle,
-        description: newDesc,
-        budget: parseFloat(newBudget),
-        category: newCategory,
-        deadline: newDeadline || null,
-        milestones: milestones.filter(m => m.title && m.amount),
+      const res = await fetch(`${baseURL}/api/gigs/gigs/`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: newTitle,
+          description: newDesc,
+          budget: parseFloat(newBudget),
+          category: newCategory,
+          deadline: newDeadline || null,
+          milestones: milestones.filter(m => m.title && m.amount),
+        }),
       });
+      if (!res.ok) throw new Error('Failed');
       toast.success(t('🎉 Gig posted successfully!'));
       setShowForm(false);
       resetForm();
       fetchGigs();
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || t('Failed to post gig'));
+      toast.error(t('Failed to post gig'));
     }
   };
 

@@ -164,7 +164,7 @@ class ReelCommentSerializer(serializers.ModelSerializer):
     
     def get_replies(self, obj):
         replies = ReelCommentReply.objects.filter(comment=obj)[:10]
-        return ReelCommentReplySerializer(replies, many=True).data
+        return ReelCommentReplySerializer(replies, many=True, context=self.context).data
 
 
 
