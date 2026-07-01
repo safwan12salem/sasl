@@ -241,7 +241,33 @@ const fetchFollowList = async (type: 'followers' | 'following') => {
               </button>
             )}
             <input id="avatarInput" type="file" accept="image/*" className="hidden"
-            onChange={async (e) => { const file = e.target.files?.[0]; if (file) { setAvatarFile(file); setAvatarPreview(URL.createObjectURL(file)); const fd = new FormData(); fd.append('avatar', file); try { const res = await api.patch('/users/profile/', fd); if (res.data?.avatar_url) { setAvatarPreview(res.data.avatar_url); toast.success(t('Photo updated!')); } } catch { toast.error(t('Upload failed')); } } }}/>
+            onChange={async (e) => { 
+  const file = e.target.files?.[0]; 
+  if (!file) return;
+  setAvatarFile(file); 
+  setAvatarPreview(URL.createObjectURL(file));
+  
+  const fd = new FormData();
+  fd.append('avatar', file);
+  const token = localStorage.getItem('sasl_token');
+  
+  try {
+    const res = await fetch('https://sasl-api-i34r.onrender.com/api/users/profile/', {
+      method: 'PATCH',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: fd,
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setAvatarPreview(data.avatar_url);
+      toast.success(t('Photo updated!'));
+    } else {
+      toast.error(t('Upload failed'));
+    }
+  } catch {
+    toast.error(t('Upload failed'));
+  }
+}}/>
           </div>
 
           <div className="flex-1 pt-4">
