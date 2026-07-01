@@ -131,9 +131,7 @@ const [followList, setFollowList] = useState<any[]>([]);
     formData.append('bio', editForm.bio);
     if (avatarFile) formData.append('avatar', avatarFile);
        try {
-      await api.patch('/users/profile/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+            await api.patch('/users/profile/', formData);
       toast.success(t('Profile updated!'));
       // Wait for Cloudinary to process then reload
       setTimeout(() => { window.location.reload(); }, 3000);
