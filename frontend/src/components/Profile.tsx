@@ -239,7 +239,7 @@ const fetchFollowList = async (type: 'followers' | 'following') => {
               </button>
             )}
             <input id="avatarInput" type="file" accept="image/*" className="hidden"
-            onChange={(e) => { const file = e.target.files?.[0]; if (file) { setAvatarFile(file); setAvatarPreview(URL.createObjectURL(file)); } }}/>
+            onChange={async (e) => { const file = e.target.files?.[0]; if (file) { setAvatarFile(file); setAvatarPreview(URL.createObjectURL(file)); const fd = new FormData(); fd.append('avatar', file); try { const res = await api.patch('/users/profile/', fd); if (res.data?.avatar_url) { setAvatarPreview(res.data.avatar_url); toast.success(t('Photo updated!')); } } catch { toast.error(t('Upload failed')); } } }}/>
           </div>
 
           <div className="flex-1 pt-4">
