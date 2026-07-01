@@ -509,7 +509,7 @@ class ReelViewSet(viewsets.ModelViewSet):
         reply = ReelCommentReply.objects.create(
             comment=comment, user=request.user, text=text
         )
-        return Response(ReelCommentReplySerializer(reply).data, status=201)
+        return Response(ReelCommentReplySerializer(reply, context={'request': request}).data, status=201)
 
 
      
