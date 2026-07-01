@@ -44,10 +44,13 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
+
     def perform_update(self, serializer):
         if 'avatar' in self.request.FILES:
             serializer.instance.avatar = self.request.FILES['avatar']
             serializer.instance.save()
+            # Don't call serializer.save() — we already saved the avatar
+            return
         serializer.save()
     
 class UserDetailView(generics.RetrieveAPIView):
