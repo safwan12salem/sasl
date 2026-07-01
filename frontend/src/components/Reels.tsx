@@ -343,7 +343,11 @@ export default function Reels() {
                            {(reelComments[reel.id] || []).map((c: any) => (
   <div key={c.id} className="mb-2">
     <div className="flex items-start gap-2">
-      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{c.user?.username?.[0]?.toUpperCase() || 'U'}</div>
+     {c.user?.avatar_url ? (
+  <img src={c.user.avatar_url} className="w-6 h-6 rounded-full object-cover flex-shrink-0" alt="" />
+) : (
+  <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{c.user?.username?.[0]?.toUpperCase() || 'U'}</div>
+)}
       <div className="flex-1">
         <span className="text-white text-xs font-semibold">{c.user?.username || 'user'}</span>
         <span className="text-white/70 text-xs ml-2">{c.text}</span>
@@ -364,9 +368,11 @@ export default function Reels() {
 
 {(c.replies || []).map((r: any) => (
   <div key={r.id} className="flex items-start gap-2 ml-6 mt-1">
-    <div className="w-4 h-4 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-[8px] font-bold flex-shrink-0">
-      {r.user?.username?.[0]?.toUpperCase() || 'U'}
-    </div>
+   {r.user?.avatar_url ? (
+  <img src={r.user.avatar_url} className="w-4 h-4 rounded-full object-cover flex-shrink-0" alt="" />
+) : (
+  <div className="w-4 h-4 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white text-[8px] font-bold flex-shrink-0">{r.user?.username?.[0]?.toUpperCase() || 'U'}</div>
+)}
     <div>
       <span className="text-white text-[10px] font-semibold">{r.user?.username || 'user'}</span>
       <span className="text-white/60 text-[10px] ml-1">{r.text}</span>
