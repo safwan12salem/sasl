@@ -125,19 +125,31 @@ const [followList, setFollowList] = useState<any[]>([]);
     } catch {}
   };
 
-      const handleSave = async () => {
-        console.log('🟢 handleSave called, avatarFile:', avatarFile);
+        const handleSave = async () => {
     const formData = new FormData();
     formData.append('display_name', editForm.display_name);
     formData.append('bio', editForm.bio);
     if (avatarFile) formData.append('avatar', avatarFile);
-       try {
-                  await api.put('/users/profile/', formData);
+
+    const token = localStorage.getItem('sasl_token');
+    const baseURL = process.env.REACT_APP_API_URL || 'https://sasl-api-i34r.onrender.com';
+    
+    try {
+      await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('PUT', `${baseURL}/api/users/profile/`);
+        xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) resolve(xhr.response);
+          else reject(new Error(xhr.response));
+        };
+        xhr.onerror = () => reject(new Error('Network error'));
+        xhr.send(formData);
+      });
       toast.success(t('Profile updated!'));
-      // Wait for Cloudinary to process then reload
       setTimeout(() => { window.location.reload(); }, 3000);
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || t('Update failed'));
+      toast.error(t('Update failed'));
     }
   };
  const handleFollow = async () => {
