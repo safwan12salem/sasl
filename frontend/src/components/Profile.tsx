@@ -236,7 +236,7 @@ const fetchFollowList = async (type: 'followers' | 'following') => {
               </button>
             )}
             <input id="avatarInput" type="file" accept="image/*" className="hidden"
-              onChange={(e) => { const file = e.target.files?.[0]; if (file) { setAvatarFile(file); setAvatarPreview(URL.createObjectURL(file)); } }} />
+             onChange={(e) => { const file = e.target.files?.[0]; if (file) { setAvatarFile(file); setAvatarPreview(URL.createObjectURL(file)); handleSave(); } }}/>
           </div>
 
           <div className="flex-1 pt-4">
