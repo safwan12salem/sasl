@@ -117,28 +117,30 @@ const [followList, setFollowList] = useState<any[]>([]);
     } catch {}
   };
 
-        
-    
-  const handleSave = async (e?: React.MouseEvent) => {
-    e?.preventDefault();
-    if (!avatarFile && !editForm.display_name && !editForm.bio) return;
-    
+        const handleSave = async () => {
     const formData = new FormData();
-    formData.append('display_name', editForm.display_name || profile?.display_name || '');
-    formData.append('bio', editForm.bio || profile?.bio || '');
+    formData.append('display_name', editForm.display_name || '');
+    formData.append('bio', editForm.bio || '');
     if (avatarFile) formData.append('avatar', avatarFile);
     
+    const token = localStorage.getItem('sasl_token');
+    const baseURL = process.env.REACT_APP_API_URL || 'https://sasl-api-i34r.onrender.com';
+    
     try {
-      const res = await api.patch('/users/profile/', formData);
-      if (res.data?.avatar_url) {
-        setAvatarPreview(res.data.avatar_url);
-        setAvatarFile(null);
+      const response = await fetch(`${baseURL}/api/users/profile/`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.avatar_url) setAvatarPreview(data.avatar_url);
+        toast.success(t('Profile updated!'));
+      } else {
+        throw new Error('Upload failed');
       }
-      setProfile((prev: any) => ({ ...prev, ...res.data }));
-      setIsEditing(false);
-      toast.success(t('Profile updated!'));
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || t('Update failed'));
+      toast.error(t('Update failed'));
     }
   };
 
