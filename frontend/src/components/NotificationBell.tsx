@@ -40,33 +40,42 @@ export default function NotificationBell() {
   const navigate = useNavigate();
   const wsRef = useRef<WebSocket | null>(null);
   const { t } = useTranslation();
-    const audioTriggerRef = useRef<HTMLButtonElement>(null);
-    
-    const [soundEnabled, setSoundEnabled] = useState(() => {
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  const [soundEnabled, setSoundEnabled] = useState(() => {
     return localStorage.getItem('sasl_notification_sound') !== 'off';
   });
 
-
-  const audioCtxRef = useRef<AudioContext | null>(null);
+  // Create audio element on mount
+  useEffect(() => {
+    audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2qEcP+1j2Oda1e1PmN9u1JbicN0sX9Ddq6K1f9wbJWwub6Y1/+wjrGIbYKBpOvrw5aDcf+zhmyNyctTdr6Kv+Jqfp7FxVhstrbzn5Bmf/+0fHCBmZ5hbLfG8W+NpJaopce6c42Yhmr/5n2dysjCWHe6wuJrlZ2Fq8ewiG6Bb7bx8YqU');
+    audioRef.current.volume = 0.5;
+  }, []);
 
   const playNotificationSound = () => {
     if (!soundEnabled) return;
+    // Try HTML5 Audio first
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(() => {});
+    }
+    // Also try Web Audio API
     try {
       const ctx = audioCtxRef.current || new (window.AudioContext || (window as any).webkitAudioContext)();
       audioCtxRef.current = ctx;
       if (ctx.state === 'suspended') ctx.resume();
-      const osc1 = ctx.createOscillator();
-      const osc2 = ctx.createOscillator();
+      const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc1.connect(gain); osc2.connect(gain); gain.connect(ctx.destination);
-      osc1.type = 'sine'; osc1.frequency.setValueAtTime(523, ctx.currentTime);
-      osc2.type = 'sine'; osc2.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine'; osc.frequency.setValueAtTime(523, ctx.currentTime);
+      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
       gain.gain.setValueAtTime(0.3, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.8);
-      osc1.start(ctx.currentTime); osc1.stop(ctx.currentTime + 0.15);
-      osc2.start(ctx.currentTime + 0.1); osc2.stop(ctx.currentTime + 0.35);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+      osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
     } catch {}
   };
+
   const connectWebSocket = () => {
     const token = localStorage.getItem('sasl_token');
     if (!token) return;
@@ -85,23 +94,17 @@ export default function NotificationBell() {
           if (data.type === 'unread_count') {
             setUnreadCount(data.count);
           } else if (data.type === 'new_notification') {
-                      console.log('📨 WS DATA:', data.type, data);
             setNotifications(prev => [data.notification, ...prev]);
             setUnreadCount(prev => prev + 1);
-            // Play sound and show toast
-                        if (soundEnabled) {
-              try {
-                // Try Service Worker notification (system sound)
-                if (navigator.serviceWorker?.controller) {
-                  navigator.serviceWorker.controller.postMessage({
-                    type: 'NOTIFICATION',
-                    title: 'Sasl',
-                    body: data.notification.message
-                  });
-                }
-                // Also try direct audio via unlocked element
-             
-              } catch (err) {}
+            // Play chime sound
+            playNotificationSound();
+            // Send to service worker for phone push
+            if (soundEnabled && navigator.serviceWorker?.controller) {
+              navigator.serviceWorker.controller.postMessage({
+                type: 'NOTIFICATION',
+                title: 'Sasl',
+                body: data.notification.message
+              });
             }
             toast.success(data.notification.message, {
               icon: iconMap[data.notification.notification_type] || '🔔',
@@ -197,10 +200,7 @@ export default function NotificationBell() {
             {unreadCount > 99 ? '99+' : unreadCount}
           </motion.span>
         )}
-</motion.button>
-               {/* Hidden button for audio unlock */}
-     
-      
+      </motion.button>
 
       <AnimatePresence>
         {open && (
