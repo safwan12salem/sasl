@@ -5,6 +5,7 @@ from random import random
 
 from rest_framework import generics, permissions, viewsets, status, mixins
 from rest_framework.decorators import action
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -39,6 +40,7 @@ class RegisterView(generics.CreateAPIView):
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     http_method_names = ['get', 'patch', 'put', 'head', 'options']
 
     def get_object(self):
