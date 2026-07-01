@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const API_BASE = process.env.REACT_APP_API_URL || 
   (process.env.NODE_ENV === 'production' 
-    ? 'https://sasl-api-657z.onrender.com'
+    ? 'https://sasl-api-i34r.onrender.com'
     : 'http://localhost:8000');
 
     
