@@ -16,7 +16,7 @@ export default function SupportPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">Help & Support</h1>
-      
+              <button onClick={() => window.history.back()} className="text-sm text-green-600 hover:underline mt-2 inline-block">← Back to Sasl</button>
       <div className="space-y-3">
         {links.map((link, i) => (
           <button key={i} onClick={link.action} className="w-full flex items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md transition text-left">

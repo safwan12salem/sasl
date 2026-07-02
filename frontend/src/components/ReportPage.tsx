@@ -43,6 +43,7 @@ export default function ReportPage() {
         <div className="p-3 rounded-2xl bg-red-100 dark:bg-red-900/30">
           <Shield size={28} className="text-red-500" />
         </div>
+         <button onClick={() => window.history.back()} className="text-sm text-green-600 hover:underline mt-2 inline-block">← Back</button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Report a Problem</h1>
           <p className="text-sm text-gray-500">We take all reports seriously and review within 24 hours</p>

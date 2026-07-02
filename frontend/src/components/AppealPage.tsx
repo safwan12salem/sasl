@@ -27,6 +27,7 @@ export default function AppealPage() {
         <div className="p-3 rounded-2xl bg-orange-100 dark:bg-orange-900/30">
           <AlertTriangle size={28} className="text-orange-500" />
         </div>
+                <button onClick={() => window.history.back()} className="text-sm text-orange-600 hover:underline mt-2 inline-block">← Back</button>
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Appeal a Decision</h1>
           <p className="text-sm text-gray-500">If your account was warned or banned, you can appeal here</p>
