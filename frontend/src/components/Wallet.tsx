@@ -58,11 +58,17 @@ export default function Wallet() {
       toast.error('Minimum $1 required');
       return;
     }
-    try {
+        try {
       const res = await api.post('/payments/create-checkout/', { amount: topUpAmount });
-      window.location.href = res.data.url;
-    } catch {
-      toast.error('Payment failed');
+      console.log('Stripe response:', res.data);
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      } else {
+        toast.error('No checkout URL returned');
+      }
+    } catch (err: any) {
+      console.error('Stripe error:', err.response?.data || err);
+      toast.error('Payment failed: ' + (err.response?.data?.error || 'Unknown error'));
     }
     setShowTopUpModal(false);
   };
