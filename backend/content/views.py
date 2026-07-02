@@ -416,7 +416,7 @@ class ReelViewSet(viewsets.ModelViewSet):
             os.unlink(tmp_path)
      else:
         serializer.save(user=self.request.user)
-      
+
 
     @action(detail=True, methods=['post'])
     def report(self, request, pk=None):
@@ -425,6 +425,7 @@ class ReelViewSet(viewsets.ModelViewSet):
         reel.save(update_fields=['is_reported'])
         Report.objects.create(reporter=request.user, reason=request.data.get('reason', ''))
         return Response({'status': 'reported'})
+
 
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
