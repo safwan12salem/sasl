@@ -76,9 +76,22 @@ export default function Wallet() {
     gig_completed: { label: t('Gigs'), icon: <BookOpen size={14} />, color: 'text-green-500' },
   };
 
-  const categoryTotals: CategoryTotal[] = Object.entries(
-    transactions.reduce((acc, tx) => { const type = tx.transaction_type; if (!acc[type]) acc[type] = { total: 0, count: 0 }; acc[type].total += tx.amount > 0 ? tx.amount : 0; acc[type].count += 1; return acc; }, {} as Record<string, { total: number; count: number }>)
-  ).map(([key, val]) => ({ category: categoryMap[key]?.label || key, total: val.total, count: val.count, icon: categoryMap[key]?.icon || <DollarSign size={14} />, color: categoryMap[key]?.color || 'text-gray-500' }));
+    const categoryTotals: CategoryTotal[] = Object.entries(
+    transactions.reduce((acc, tx) => { 
+      const type = tx.transaction_type || 'other'; 
+      if (!acc[type]) acc[type] = { total: 0, count: 0 }; 
+      const amt = Number(tx.amount) || 0;
+      acc[type].total += amt > 0 ? amt : 0; 
+      acc[type].count += 1; 
+      return acc; 
+    }, {} as Record<string, { total: number; count: number }>)
+  ).map(([key, val]) => ({ 
+    category: categoryMap[key]?.label || key, 
+    total: Number(val.total) || 0, 
+    count: val.count, 
+    icon: categoryMap[key]?.icon || <DollarSign size={14} />, 
+    color: categoryMap[key]?.color || 'text-gray-500' 
+  }));
 
   const filteredTransactions = transactions.filter(tx => {
     if (activeTab === 'earnings') return tx.amount > 0;

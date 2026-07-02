@@ -78,8 +78,8 @@ class PaymentViewSet(viewsets.GenericViewSet):
                 'quantity': 1,
             }],
             mode='payment',
-            success_url='https://saslapp.netlify.app/wallet?success=true',
-            cancel_url='https://saslapp.netlify.app/wallet?canceled=true',
+            success_url='https://sasl.vercel.app/wallet?success=true',
+            cancel_url='https://sasl.vercel.app/wallet?canceled=true',
             metadata={'user_id': str(request.user.id)}
         )
         return Response({'url': session.url})
