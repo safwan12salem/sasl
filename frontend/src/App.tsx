@@ -40,7 +40,9 @@ import MeshChatHub from './components/MeshChatHub';
 import ChatDashboard from './components/ChatDashboard';
 import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
-
+import ReportPage from './components/ReportPage';
+import AppealPage from './components/AppealPage';
+import SupportPage from './components/SupportPage';
 
 // ✅ FIXED: Added loading check
 function PrivateRoute({ children }: { children: JSX.Element }) {

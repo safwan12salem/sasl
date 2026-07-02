@@ -10,7 +10,8 @@ import {
   LogOut, Wifi, WifiOff, Video, Camera, MessageCircle,
   Star, Briefcase, TrendingUp, Sparkles, Brain, DollarSign,
   Moon, Sun, Mic, Users,
-  Inbox, Menu, X
+  Inbox, Menu, X,
+  Shield
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import PageTransition from './PageTransition';
@@ -49,6 +50,7 @@ export default function Layout() {
     { to: '/earnings', icon: DollarSign, label: t('Earnings') },
     { to: '/wallet', icon: Wallet, label: t('wallet') },
     { to: '/profile', icon: User, label: t('profile') },
+    { to: '/support', icon: Shield, label: t('Help & Support') },
   ];
 
     return (
