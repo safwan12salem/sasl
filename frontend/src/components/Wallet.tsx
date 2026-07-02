@@ -59,7 +59,7 @@ export default function Wallet() {
       return;
     }
         try {
-      const res = await api.post('/payments/create-checkout/', { amount: topUpAmount });
+     const res = await api.post('/payments/create_checkout/', { amount: topUpAmount });
       console.log('Stripe response:', res.data);
       if (res.data.url) {
         window.location.href = res.data.url;
