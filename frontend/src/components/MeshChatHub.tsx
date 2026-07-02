@@ -19,7 +19,7 @@ import { saslMeshConnect } from '../services/saslMeshConnect';
 import { QRCodeSVG } from 'qrcode.react';
 import { offlineP2P } from '../services/offlineP2P';
 import { useTranslation } from 'react-i18next';
-
+import { meshRelay } from '../services/meshRelay';
 
 // ============================================================
 // TYPES
@@ -273,16 +273,42 @@ useEffect(() => {
 
 
 
+// Auto-start Bluetooth on Capacitor (Android APK)
+  useEffect(() => {
+    const isCapacitor = !!(window as any).Capacitor || !!(window as any).Capacitor?.isNativePlatform?.();
+    if (isCapacitor || /android/i.test(navigator.userAgent)) {
+      bluetoothService.initialize().then(available => {
+        if (available) {
+          bluetoothService.startScan((device) => {
+            setPeers(prev => {
+              if (prev.find(p => p.node_id === device.id)) return prev;
+              return [...prev, {
+                username: device.name || 'Nearby User',
+                node_id: device.id, is_online: true,
+                last_seen: new Date().toISOString(), avatar_url: null
+              }];
+            });
+          });
+        }
+      });
+      return () => { try { bluetoothService.stopScan(); } catch {} };
+    }
+  }, []);
+
 useEffect(() => {
   if (!myUsername) return;
   
   if (!meshStartedRef.current) {
     offlineMesh.start(myUsername);
     globalMesh.start(myUsername, 'middle_east');
+    meshRelay.start(myUsername); // This device becomes a relay node
     setMeshActive(true);
     meshStartedRef.current = true;
   }
   
+
+  
+
      const handleMessage = (msg: any, route?: string) => {
     // Route label for UI
     const routeLabel = route === 'direct' ? '⚡P2P' : route === 'echo' ? '🔄Relay' : '';
@@ -418,7 +444,6 @@ const fetchRooms = useCallback(async () => {
     }
   }, []);
 
-
   const fetchRequests = useCallback(async () => {
     try {
       const res = await api.get('/mesh/requests/received/');
@@ -429,23 +454,40 @@ const fetchRooms = useCallback(async () => {
     }
   }, []);
 
-    const fetchPeers = useCallback(async () => {
+  const fetchPeers = useCallback(async () => {
     try {
       const res = await api.get('/mesh/rooms/discover_peers/');
       const data = Array.isArray(res.data) ? res.data : (res.data.results || []);
       setPeers(data);
     } catch (err) {
       // OFFLINE: Get peers from mesh services
-            const meshPeers = offlineMesh.getPeers();
+      const meshPeers = offlineMesh.getPeers();
       const knownPeers = saslMeshConnect.getKnownPeers();
       
-           const allOffline: DiscoveredPeer[] = [
+      const allOffline: DiscoveredPeer[] = [
         ...meshPeers.map((p: any) => ({ username: p.username || p.id, is_online: true, avatar_url: null, node_id: p.id, last_seen: new Date().toISOString() })),
         ...knownPeers.map((p: any) => ({ username: p.username, is_online: true, avatar_url: null, node_id: p.id, last_seen: new Date().toISOString() })),
       ];
       
       const unique = allOffline.filter((p, i, arr) => arr.findIndex(x => x.username === p.username) === i);
       setPeers(unique.length > 0 ? unique : []);
+      
+      // Auto-scan Bluetooth (works on Capacitor/Android APK)
+      try {
+        const btAvailable = await bluetoothService.initialize();
+        if (btAvailable) {
+          bluetoothService.startScan((device) => {
+            setPeers(prev => {
+              if (prev.find(p => p.node_id === device.id)) return prev;
+              return [...prev, {
+                username: device.name || 'Nearby User',
+                node_id: device.id, is_online: true,
+                last_seen: new Date().toISOString(), avatar_url: null
+              }];
+            });
+          });
+        }
+      } catch {}
     }
   }, []);
 
@@ -1004,42 +1046,20 @@ const fetchRooms = useCallback(async () => {
                 </div>
               )}
 
-              {tab === 'contacts' && (
+                           {tab === 'contacts' && (
                 <div className="space-y-1">
                   {peers.length === 0 ? (
-                                        <div className="text-center py-16 px-4">
+                    <div className="text-center py-16 px-4">
                       <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 flex items-center justify-center">
                         <Users size={36} className="text-blue-500 opacity-50" />
                       </div>
-                      <p className="font-semibold text-gray-500 mb-1">{t('No users discovered')}</p>
-                      <p className="text-sm text-gray-400 mb-4">{t('Open another tab and log in to see peers!')}</p>
-                      <motion.button 
-                        whileTap={{ scale: 0.95 }}
-                        onClick={async () => {
-                          const available = await bluetoothService.initialize();
-                          if (available) {
-                            toast.success('🔵 Bluetooth scanning...');
-                            bluetoothService.startScan((device) => {
-                              setPeers(prev => {
-                                if (prev.find(p => p.node_id === device.id)) return prev;
-                                return [...prev, {
-                                  username: device.name,
-                                  node_id: device.id,
-                                  is_online: true,
-                                  last_seen: new Date().toISOString(),
-                                  avatar_url: null
-                                }];
-                              });
-                            });
-                            setTimeout(() => bluetoothService.stopScan(), 10000);
-                          } else {
-                            toast.error(t('Bluetooth not available'));
-                          }
-                        }}
-                        className="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm font-semibold"
-                      >
-                        🔵 {t('Scan Bluetooth')}
-                      </motion.button>
+                      <p className="font-semibold text-gray-500 mb-1">{t('Searching for nearby users...')}</p>
+                      <p className="text-sm text-gray-400">{t('WaveMesh scans automatically via Bluetooth + P2P')}</p>
+                      <div className="flex items-center justify-center gap-1 mt-3">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" />
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                        <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }} />
+                      </div>
                     </div>
                   ) : (
                     peers.map(peer => (
