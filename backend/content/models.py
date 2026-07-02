@@ -17,6 +17,7 @@ class Post(models.Model):
     text = models.TextField(max_length=5000)
     media = models.FileField(upload_to='posts/', blank=True, storage=AutoCloudinaryStorage())
     media_type = models.CharField(max_length=10, choices=(('image','image'),('video','video')), blank=True)
+    visibility = models.CharField(max_length=15, choices=(('public','Public'),('followers','Followers Only')), default='public')
     location = models.CharField(max_length=255, blank=True)
     is_offline_created = models.BooleanField(default=False)
     mesh_reach = models.IntegerField(default=0)

@@ -84,6 +84,7 @@ const Feed: React.FC = () => {
   const [initialLoad, setInitialLoad] = useState(true);
   const loader = useRef<HTMLDivElement | null>(null);
   const [composing, setComposing] = useState('');
+    const [visibility, setVisibility] = useState<'public' | 'followers'>('public');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -98,6 +99,7 @@ const Feed: React.FC = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const isFetching = useRef(false);
   const { t } = useTranslation();
+ 
 
   useEffect(() => { cachePosts(posts); }, [posts]);
 
@@ -312,6 +314,7 @@ const Feed: React.FC = () => {
     }
     const formData = new FormData();
     formData.append('text', composing);
+    formData.append('visibility', visibility);
     if (selectedFile) {
   formData.append('media', selectedFile);
   const isVideo = selectedFile.type.startsWith('video/') || 
@@ -624,11 +627,25 @@ const Feed: React.FC = () => {
           <div className="flex gap-3 text-gray-500">
             <label className="cursor-pointer hover:text-green-500"><Image size={20} /><input type="file" accept="image/*,video/*" className="hidden" onChange={handleFileChange} /></label>
             <button onClick={() => setComposingWithPoll(!composingWithPoll)} className="hover:text-purple-500"><BarChart2 size={20} /></button>
-            <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="hover:text-yellow-500 relative"><Smile size={20} /></button>
+                       <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="hover:text-yellow-500 relative"><Smile size={20}/></button>
           </div>
-          <button onClick={submitPost} disabled={!composing.trim() && !selectedFile} className="btn-primary text-sm py-2 px-6">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setVisibility(visibility === 'public' ? 'followers' : 'public')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition ${
+                visibility === 'public' 
+                  ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
+                  : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+              }`}
+            >
+              {visibility === 'public' ? '🌍' : '🔒'}
+              {visibility === 'public' ? 'Public' : 'Followers'}
+            </button>
+            <button onClick={submitPost} disabled={!composing.trim() && !selectedFile} className="btn-primary text-sm py-2 px-6">
             {t('post')}
           </button>
+          </div>
         </div>
 
         {showEmojiPicker && (

@@ -36,7 +36,7 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = [
             'id', 'author', 'text', 'media', 'media_url', 'media_type',
-            'location', 'is_offline_created', 'mesh_reach',
+            'location', 'is_offline_created', 'mesh_reach','visibility',
             'likes_count', 'comments_count', 'shares_count',
             'created_at', 'updated_at', 'liked_by_me', 'comments_preview',
             'poll', 'is_hidden', 'is_reported'
