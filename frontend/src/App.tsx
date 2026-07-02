@@ -122,6 +122,11 @@ function AppContent() {
         <Route path="/onboarding" element={<Onboarding />} />
         <Route element={<Layout />}>
           <Route path="/" element={<PrivateRoute><Feed /></PrivateRoute>} />
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/report" element={<ReportPage />} />
+          <Route path="/appeal" element={<AppealPage />} />
+          <Route path="/support" element={<SupportPage />} />
           <Route path="/profile/:username?" element={<PrivateRoute><Profile /></PrivateRoute>} />
           <Route path="/marketplace" element={<PrivateRoute><Marketplace /></PrivateRoute>} />
           <Route path="/streaming" element={<PrivateRoute><Streaming /></PrivateRoute>} />
@@ -143,8 +148,7 @@ function AppContent() {
           <Route path="/referral" element={<PrivateRoute><ReferralModal referralCode={user?.username || ''} onClose={() => window.history.back()} /></PrivateRoute>} />
           <Route path="/qr-profile" element={<PrivateRoute><QRProfile username={user?.username || ''} /></PrivateRoute>} />
           <Route path="/advertise" element={<AdvertisePage />} />
-          <Route path="/terms" element={<TermsOfService />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
+          
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
