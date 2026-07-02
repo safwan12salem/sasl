@@ -1,8 +1,14 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 export default function PrivacyPolicy() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 max-w-4xl mx-auto">
+      <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 mb-4 transition">
+        <ArrowLeft size={18} /> Back
+      </button>
       <h1 className="text-3xl font-bold mb-6">Privacy Policy</h1>
       <p className="text-sm text-gray-500 mb-8">Last updated: July 2, 2026</p>
       

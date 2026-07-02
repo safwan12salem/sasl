@@ -38,11 +38,7 @@ import urllib.parse
 
 # Force UUID primary keys for Postgres
 import os
-if os.environ.get('DATABASE_URL') and 'postgres' in os.environ.get('DATABASE_URL', ''):
-    DEFAULT_AUTO_FIELD = 'django.db.models.UUIDField'
-
 if os.environ.get('RENDER') or os.environ.get('SASL_DB') == 'postgres':
-    
     DEBUG = False
     ALLOWED_HOSTS = ['*']
     db_url = os.environ.get('DATABASE_URL', '')
@@ -76,10 +72,15 @@ if os.environ.get('RENDER') or os.environ.get('SASL_DB') == 'postgres':
     SECURE_HSTS_SECONDS = 31536000
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
-
-
-
-
+else:
+    # Local development — SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+            'OPTIONS': {'timeout': 20}
+        }
+    }
 
 INSTALLED_APPS = [
     'daphne',
@@ -433,5 +434,6 @@ CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379') + '/2'
 
 
 
-
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_placeholder')
+STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'pk_test_placeholder')
+STRIPE_TEST_MODE = os.environ.get('STRIPE_TEST_MODE', 'true').lower() == 'true'

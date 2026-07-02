@@ -41,7 +41,7 @@ export default function Wallet() {
   const handleWithdraw = async () => {
     setWithdrawing(true);
     try {
-      await api.post('/monetization/stripe/withdraw/', { amount: wallet?.balance });
+      await api.post('/payments/withdraw/', { amount: wallet?.balance });
       toast.success(t('Withdrawal request sent! Funds arrive in 3-5 days.'));
       const walletRes = await api.get('/users/wallet/');
       setWallet(walletRes.data);
@@ -59,7 +59,7 @@ export default function Wallet() {
       return;
     }
     try {
-      const res = await api.post('/monetization/create-checkout/', { amount: topUpAmount });
+      const res = await api.post('/payments/create-checkout/', { amount: topUpAmount });
       window.location.href = res.data.url;
     } catch {
       toast.error('Payment failed');
