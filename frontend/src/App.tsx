@@ -38,7 +38,8 @@ import { globalMesh } from './services/globalMesh';
 import ReferralModal from './components/ReferralModal';
 import MeshChatHub from './components/MeshChatHub';
 import ChatDashboard from './components/ChatDashboard';
-
+import TermsOfService from './components/TermsOfService';
+import PrivacyPolicy from './components/PrivacyPolicy';
 
 
 // ✅ FIXED: Added loading check
@@ -140,7 +141,8 @@ function AppContent() {
           <Route path="/referral" element={<PrivateRoute><ReferralModal referralCode={user?.username || ''} onClose={() => window.history.back()} /></PrivateRoute>} />
           <Route path="/qr-profile" element={<PrivateRoute><QRProfile username={user?.username || ''} /></PrivateRoute>} />
           <Route path="/advertise" element={<AdvertisePage />} />
-         
+          <Route path="/terms" element={<TermsOfService />} />
+          <Route path="/privacy" element={<PrivacyPolicy />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
