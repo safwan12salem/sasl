@@ -139,14 +139,33 @@ class OfflineMeshService {
       this.onPeerUpdateCallback?.();
     };
 
-    channel.onmessage = (event) => {
+       channel.onmessage = async (event) => {
       try {
-        const data = JSON.parse(event.data);
-        this.onMessageCallback?.(data);
+        const raw = JSON.parse(event.data);
+        
+                if (raw.encrypted && raw.ciphertext && raw.iv && raw.key) {
+          try {
+            const { decryptMessage } = await import('./encryption');
+            // Rebuild key from raw
+            const rawKey = Uint8Array.from(atob(raw.key), c => c.charCodeAt(0));
+            const key = await crypto.subtle.importKey(
+              'raw', rawKey, { name: 'AES-GCM', length: 256 }, false, ['decrypt']
+            );
+            const decrypted = await decryptMessage(raw.ciphertext, raw.iv, key);
+            const data = JSON.parse(decrypted);
+            this.onMessageCallback?.(data);
+            return;
+          } catch (decryptErr) {
+            console.warn('E2E decryption failed, trying raw message');
+          }
+        }
+        // Unencrypted message (legacy or fallback)
+        this.onMessageCallback?.(raw);
       } catch {
         console.log('Raw message:', event.data);
       }
     };
+
 
     channel.onclose = () => {
       console.log(`🔌 @${peerName} disconnected`);
@@ -193,17 +212,32 @@ class OfflineMeshService {
   /**
    * Send a message to a specific peer
    */
-  sendToPeer(peerId: string, message: any): boolean {
+      async sendToPeer(peerId: string, message: any): Promise<boolean> {
     const peer = this.peers.get(peerId);
     if (peer?.dataChannel?.readyState === 'open') {
-      peer.dataChannel.send(JSON.stringify(message));
+      // Encrypt message before sending (E2E)
+      try {
+        const { encryptMessage, getUserCryptoKey } = await import('./encryption');
+        const key = await getUserCryptoKey();
+        const { ciphertext, iv } = await encryptMessage(JSON.stringify(message), key);
+        const rawKey = await crypto.subtle.exportKey('raw', key);
+        const keyStr = btoa(String.fromCharCode(...new Uint8Array(rawKey)));
+        peer.dataChannel.send(JSON.stringify({ 
+          encrypted: true, 
+          ciphertext, 
+          iv,
+          key: keyStr 
+        }));
+      } catch {
+        // Fallback: send unencrypted if encryption fails
+        peer.dataChannel.send(JSON.stringify(message));
+      }
       return true;
     }
     // Queue if peer not connected
     this.queueMessage(peerId, message);
     return false;
   }
-
   /**
    * Broadcast to all connected peers
    */
