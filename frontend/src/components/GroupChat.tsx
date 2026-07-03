@@ -381,14 +381,21 @@ useEffect(() => {
       {/* Chat Area */}
             {/* Mobile Group Selector */}
             {/* Mobile group selector — opens sidebar */}
-      <div className="lg:hidden p-3 border-b border-gray-200 dark:border-gray-700">
+            <div className="lg:hidden p-3 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
         <button 
           onClick={() => setShowSidebar(true)} 
-          className="w-full p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-sm text-left flex items-center gap-2"
+          className="flex-1 p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-sm text-left flex items-center gap-2"
         >
           <Users size={16} className="text-gray-500" />
           {activeGroup && activeGroupData ? activeGroupData.name : t('select_group')}
           <span className="ml-auto text-xs text-gray-400">→</span>
+        </button>
+        <button 
+          onClick={() => { setShowSidebar(true); setTimeout(() => setShowCreate(true), 300); }}
+          onTouchEnd={(e) => { e.preventDefault(); setShowSidebar(true); setTimeout(() => setShowCreate(true), 300); }}
+          className="p-2.5 rounded-xl bg-green-500 text-white"
+        >
+          <Plus size={18} />
         </button>
       </div>
 
@@ -620,9 +627,9 @@ useEffect(() => {
               <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900 dark:to-blue-900 flex items-center justify-center mx-auto mb-4">
                 <Users size={48} className="opacity-50" />
               </div>
-              <h3 className="text-xl font-bold text-gray-500 mb-2">{t('sasl_groups')}</h3>
+               <h3 className="text-xl font-bold text-gray-500 mb-2">{t('sasl_groups')}</h3>
               <p className="text-sm">{t('select_group_from_sidebar_or_create_new')}</p>
-              <button onClick={() => setShowCreate(true)} className="btn-primary mt-4 flex items-center gap-1 mx-auto"><Plus size={14} /> {t('create_your_first_group')}</button>
+              <button onClick={() => { setShowSidebar(true); setTimeout(() => setShowCreate(true), 300); }} className="btn-primary mt-4 flex items-center gap-1 mx-auto"><Plus size={14} /> {t('create_your_first_group')}</button>
             </div>
           </div>
         )}
