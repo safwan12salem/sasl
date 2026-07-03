@@ -257,16 +257,14 @@ useEffect(() => {
      <div className="flex h-[calc(100vh-120px)] max-w-5xl mx-auto glass rounded-2xl overflow-hidden shadow-xl m-4 w-full">
       {/* Sidebar */}
                   <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex lg:w-80 border-r border-gray-200 dark:border-gray-700 flex-col absolute lg:relative z-20 bg-white dark:bg-gray-900 h-full w-[85%] max-w-[300px]`}>
-                     <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                     <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between lg:hidden">
           <h2 className="font-bold">{t('groups')}</h2>
-          <div className="flex items-center gap-1">
-            <button onClick={() => { console.log("Create button clicked, showCreate:", !showCreate); setShowCreate(!showCreate); }} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-green-600" title={t('new_group')}>
-              <Plus size={18} />
-            </button>
-            <button onClick={() => setShowSidebar(false)} className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-              <X size={18} />
-            </button>
-          </div>
+<button onClick={() => setShowCreate(prev => !prev)} onTouchEnd={(e) => { e.preventDefault(); setShowCreate(prev => !prev); }} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-green-600" title={t('new_group')}>
+  <Plus size={18} />
+</button>
+        <button onClick={() => setShowSidebar(false)} onTouchEnd={(e) => { e.preventDefault(); setShowSidebar(false); }} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+            <X size={18} />
+          </button>
         </div>
         <AnimatePresence>
           {showCreate && (
@@ -315,7 +313,6 @@ useEffect(() => {
               <Users size={32} className="mx-auto mb-2 opacity-50" />
               <p className="text-sm">{t('no_groups_yet')}</p>
               <p className="text-xs">{t('create_group_to_chat')}</p>
-              <button onClick={() => setShowCreate(true)} className="btn-primary mt-3 text-sm flex items-center gap-1 mx-auto"><Plus size={14} /> {t('create_your_first_group')}</button>
             </div>
           )}
           {groups.map(group => (
@@ -340,7 +337,7 @@ useEffect(() => {
                   )}
                                 <div>
                 <p className="font-semibold text-sm flex items-center gap-1">
-                  {group.name}
+                  {group.name} 
                   {group.is_mesh && <WifiOff size={10} className="text-purple-500" />}
                   {group.is_private && <span className="text-xs bg-gray-200 px-1.5 py-0.5 rounded-full">Private</span>}
                 </p>
@@ -396,7 +393,7 @@ useEffect(() => {
       </div>
 
       {/* Chat Area */}
-            <div className="flex-1 flex flex-col w-full absolute inset-0 lg:relative lg:inset-auto bg-white dark:bg-gray-900 z-10">
+            <div className="flex-1 flex flex-col w-full absolute inset-0 lg:relative lg:inset-auto pb-14 lg:pb-0">
         {activeGroup && activeGroupData ? (
           <>
                        <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
