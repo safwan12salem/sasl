@@ -204,7 +204,7 @@ export default function NotificationBell() {
 
       <AnimatePresence>
         {open && (
-          <motion.div initial={{ opacity: 0, y: -10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.95 }} className="absolute right-0 mt-2 w-80 glass-card rounded-2xl shadow-2xl z-50 overflow-hidden border border-white/50">
+          <motion.div initial={{ opacity: 0, y: -10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -10, scale: 0.95 }}  className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl z-50 overflow-hidden border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700">
               <h3 className="font-bold text-gray-900 dark:text-white">{t('Notifications')}</h3>
               <div className="flex items-center gap-2">

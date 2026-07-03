@@ -16,7 +16,7 @@ import api from './api';
 // CONFIGURATION
 // ============================================================
 const ENGINE_STORAGE_KEY = 'sasl_brain_usage';
-export const FREE_LIMIT = 20;
+export const FREE_LIMIT = 999;
 export const PREMIUM_PRICE = '$4.99/month';
 
 // OpenRouter configuration

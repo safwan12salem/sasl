@@ -218,18 +218,7 @@ export default function Layout() {
             <Outlet />
           </PageTransition>
         </main>
-                {/* Footer */}
-        <footer className="border-t border-gray-200 dark:border-gray-800 px-4 py-3 bg-white/50 dark:bg-gray-900/50">
-          <div className="flex items-center justify-center gap-4 text-xs text-gray-400">
-            <a href="/terms" className="hover:text-green-500 transition">{t('terms_of_service')}</a>
-            <span>·</span>
-            <a href="/privacy" className="hover:text-green-500 transition">{t('privacy_policy')}</a>
-            <span>·</span>
-            <a href="mailto:sasl.app.contact@gmail.com" className="hover:text-green-500 transition">{t('contact')}</a>
-            <span>·</span>
-            <span>© 2026 Sasl</span>
-          </div>
-        </footer>
+         
       </div>
       
       {showReferral && (

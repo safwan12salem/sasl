@@ -260,7 +260,7 @@ useEffect(() => {
                      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h2 className="font-bold">{t('groups')}</h2>
           <div className="flex items-center gap-1">
-            <button onClick={() => setShowCreate(!showCreate)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-green-600" title={t('new_group')}>
+            <button onClick={() => { console.log("Create button clicked, showCreate:", !showCreate); setShowCreate(!showCreate); }} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-green-600" title={t('new_group')}>
               <Plus size={18} />
             </button>
             <button onClick={() => setShowSidebar(false)} className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
