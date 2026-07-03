@@ -26,6 +26,41 @@ const OPENROUTER_KEY = process.env.REACT_APP_GROQ_API_KEY || '';
 const OPENROUTER_MODEL = 'llama-3.3-70b-versatile';
 const SITE_URL = 'https://sasl.vercel.app';
 const SITE_NAME = 'Sasl';
+
+
+
+// ============================================================
+// CONVERSATION MEMORY
+// ============================================================
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+function getConversationHistory(): ChatMessage[] {
+  try {
+    const stored = localStorage.getItem('sasl_ai_conversation');
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveConversationHistory(messages: ChatMessage[]): void {
+  // Keep only last 10 exchanges (20 messages) to not overflow localStorage
+  const trimmed = messages.slice(-20);
+  localStorage.setItem('sasl_ai_conversation', JSON.stringify(trimmed));
+}
+
+export function addToConversation(role: 'user' | 'assistant', content: string): void {
+  const history = getConversationHistory();
+  history.push({ role, content });
+  saveConversationHistory(history);
+}
+
+export function clearConversation(): void {
+  localStorage.removeItem('sasl_ai_conversation');
+}
 // ============================================================
 // USAGE TRACKING
 // ============================================================
@@ -79,20 +114,30 @@ async function askGPT4o(question: string): Promise<string | null> {
       },
       body: JSON.stringify({
         model: OPENROUTER_MODEL,
-        messages: [
+               messages: [
           {
             role: 'system',
             content: `You are Sasl Brain, the brilliant AI assistant for Sasl — the world's first offline social super app.
 
-**Your rules:**
+## LANGUAGE RULE (CRITICAL):
+- Detect the language of the user's question
+- ALWAYS respond in the SAME language the user used
+- If user asks in Arabic, respond in Arabic. Spanish → Spanish. French → French, etc.
+- NEVER switch to English unless the user writes in English
+
+## RESPONSE RULES:
 - ALWAYS give detailed, encyclopedia-grade answers on ANY topic
 - Minimum 3 paragraphs with clear structure
 - Use **bold** for key terms, ## for sections, bullet points for lists
 - Sound like a brilliant, warm professor — expert but friendly
 - NEVER give short one-line answers
 - NEVER say "I don't know" — give your best answer with confidence
+- Remember previous questions in this conversation
+- If user asks follow-up ("what about...", "explain more..."), reference earlier answers
 - End with a helpful follow-up suggestion`
           },
+          // Include conversation history (last 4 exchanges = 8 messages)
+          ...getConversationHistory().slice(-8),
           { role: 'user', content: question }
         ],
         max_tokens: 800,

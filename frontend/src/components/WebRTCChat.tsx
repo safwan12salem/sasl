@@ -9,7 +9,7 @@ import toast from 'react-hot-toast';
 import { MessageCircle, Send, Loader2, Wifi, WifiOff, Users, Paperclip, UserPlus, Clock, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { e2e } from '../services/encryption';
+import { encryptMessage, decryptMessage, getUserCryptoKey } from '../services/encryption';
 import { db } from '../services/offlineDB';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
@@ -243,8 +243,12 @@ export default function WebRTCChat() {
     }
 
     // Handle e2e key
-    if (data.type === 'e2e_key' && data.key) {
-      e2e.importKey(data.key).then(key => setEncryptionKey(key)).catch(() => {});
+        if (data.type === 'e2e_key' && data.key) {
+      // Import key from peer — use Web Crypto API directly
+      const rawKey = Uint8Array.from(atob(data.key), c => c.charCodeAt(0));
+      crypto.subtle.importKey('raw', rawKey, { name: 'AES-GCM', length: 256 }, false, ['decrypt'])
+        .then(key => setEncryptionKey(key))
+        .catch(() => {});
       return;
     }
   }, [myUsername, addMessage, addReaction]);
@@ -295,10 +299,11 @@ export default function WebRTCChat() {
           setPeerCount(prev => prev + 1);
           localStorage.setItem('sasl_mesh_connected', 'true');
 
-          try {
-            const key = await e2e.generateKey();
+                   try {
+            const key = await getUserCryptoKey();
             setEncryptionKey(key);
-            const exportedKey = await e2e.exportKey(key);
+            const rawKey = await crypto.subtle.exportKey('raw', key);
+            const exportedKey = btoa(String.fromCharCode(...new Uint8Array(rawKey)));
             channel.send(JSON.stringify({ type: 'e2e_key', key: exportedKey }));
           } catch {}
 
@@ -425,10 +430,12 @@ export default function WebRTCChat() {
     if (!input.trim()) return;
     let messageText = input;
 
-    if (encryptionKey) {
-      try { messageText = await e2e.encryptMessage(encryptionKey, input); } catch {}
+        if (encryptionKey) {
+      try { 
+        const { ciphertext } = await encryptMessage(input, encryptionKey);
+        messageText = ciphertext;
+      } catch {}
     }
-
     addMessage({ text: input, sender: myUsername, isMe: true });
 
     db.messages.add({

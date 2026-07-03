@@ -7,7 +7,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
-import { askSaslEngine, FREE_LIMIT, PREMIUM_PRICE, getUsage, analyzeContent, generateSEOKeys, growthStrategy } from '../services/saslEngine';
+import { askSaslEngine, FREE_LIMIT, PREMIUM_PRICE, getUsage, analyzeContent, generateSEOKeys, growthStrategy, clearConversation } from '../services/saslEngine';
 import { Brain, Send, Loader2, Sparkles, Crown, Zap, Mic, MicOff, Copy, ThumbsUp, ThumbsDown, RotateCcw, Clock, Infinity, Wand2, MessageSquare, Lightbulb, ChevronRight,Edit3  } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
@@ -116,6 +116,7 @@ export default function SaslAIHub() {
   };
 
   const clearChat = () => {
+     clearConversation();
     setMessages([{
       id: 'welcome',
       role: 'assistant',
