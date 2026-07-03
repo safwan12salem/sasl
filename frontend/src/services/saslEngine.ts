@@ -20,12 +20,12 @@ export const FREE_LIMIT = 20;
 export const PREMIUM_PRICE = '$4.99/month';
 
 // OpenRouter configuration
-const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
-const OPENROUTER_KEY = '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';
-const OPENROUTER_MODEL = 'openai/gpt-4o';
+// Groq configuration (FREE — no credit card needed)
+const OPENROUTER_URL = 'https://api.groq.com/openai/v1/chat/completions';
+const OPENROUTER_KEY = process.env.REACT_APP_GROQ_API_KEY || '';
+const OPENROUTER_MODEL = 'llama-3.3-70b-versatile';
 const SITE_URL = 'https://sasl.vercel.app';
 const SITE_NAME = 'Sasl';
-
 // ============================================================
 // USAGE TRACKING
 // ============================================================
