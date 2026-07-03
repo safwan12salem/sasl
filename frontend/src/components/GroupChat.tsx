@@ -201,17 +201,20 @@ const handleDeleteMessage = async (messageId: string) => {
     }
   };
 
-  const leaveGroup = async (groupId: string) => {
+    const leaveGroup = async (groupId: string) => {
     try {
       await api.post(`/groupchat/groups/${groupId}/leave/`);
       toast.success(t('left_group'));
-      if (activeGroup === groupId) setActiveGroup(null);
+      if (activeGroup === groupId) {
+        setActiveGroup(null);
+        localStorage.removeItem('sasl_active_group');
+        setShowSidebar(true); // Show sidebar on mobile after leaving
+      }
       fetchGroups();
     } catch (err: any) {
       toast.error(err.response?.data?.error || t('failed_to_leave_group'));
     }
   };
-
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -380,24 +383,7 @@ useEffect(() => {
 
       {/* Chat Area */}
             {/* Mobile Group Selector */}
-            {/* Mobile group selector — opens sidebar */}
-            <div className="lg:hidden p-3 border-b border-gray-200 dark:border-gray-700 flex items-center gap-2">
-        <button 
-          onClick={() => setShowSidebar(true)} 
-          className="flex-1 p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-sm text-left flex items-center gap-2"
-        >
-          <Users size={16} className="text-gray-500" />
-          {activeGroup && activeGroupData ? activeGroupData.name : t('select_group')}
-          <span className="ml-auto text-xs text-gray-400">→</span>
-        </button>
-        <button 
-          onClick={() => { setShowSidebar(true); setTimeout(() => setShowCreate(true), 300); }}
-          onTouchEnd={(e) => { e.preventDefault(); setShowSidebar(true); setTimeout(() => setShowCreate(true), 300); }}
-          className="p-2.5 rounded-xl bg-green-500 text-white"
-        >
-          <Plus size={18} />
-        </button>
-      </div>
+          
 
       {/* Chat Area */}
             <div className="flex-1 flex flex-col w-full absolute inset-0 lg:relative lg:inset-auto pb-14 lg:pb-0">
