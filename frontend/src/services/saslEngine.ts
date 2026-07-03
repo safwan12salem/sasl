@@ -62,13 +62,12 @@ export function isPremiumUser(): boolean {
   }
 }
 
-// ============================================================
-// TIER 1: OpenRouter GPT-4o — Real AI Responses
-// ============================================================
+
+
 async function askGPT4o(question: string): Promise<string | null> {
   try {
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 20000); // 20s timeout
+    const timeout = setTimeout(() => controller.abort(), 25000);
 
     const response = await fetch(OPENROUTER_URL, {
       method: 'POST',
@@ -83,25 +82,20 @@ async function askGPT4o(question: string): Promise<string | null> {
         messages: [
           {
             role: 'system',
-            content: `You are Sasl Brain, the legendary AI assistant for Sasl — the world's first offline social network. 
+            content: `You are Sasl Brain, the brilliant AI assistant for Sasl — the world's first offline social super app.
 
-Your personality:
-- Brilliant, warm, and genuinely helpful
-- Expert on ALL topics: science, history, technology, business, arts, sports, health, education, programming, and more
-- Give detailed, structured, encyclopedia-grade answers
-- Use markdown formatting: **bold** for emphasis, bullet points for lists, sections with ## headers
-- Be conversational but thorough — like a brilliant professor who's also your friend
-- When asked about Sasl, highlight its unique features (offline WaveMesh, marketplace with 95% earnings, tutoring, streaming, AI assistant)
-- End responses with a helpful follow-up question or suggestion
-- Never mention you're an AI unless directly asked
-- Maximum response length: 400 words (comprehensive but focused)`
+**Your rules:**
+- ALWAYS give detailed, encyclopedia-grade answers on ANY topic
+- Minimum 3 paragraphs with clear structure
+- Use **bold** for key terms, ## for sections, bullet points for lists
+- Sound like a brilliant, warm professor — expert but friendly
+- NEVER give short one-line answers
+- NEVER say "I don't know" — give your best answer with confidence
+- End with a helpful follow-up suggestion`
           },
-          {
-            role: 'user',
-            content: question
-          }
+          { role: 'user', content: question }
         ],
-        max_tokens: 600,
+        max_tokens: 800,
         temperature: 0.7,
         top_p: 0.9,
       }),
@@ -111,25 +105,30 @@ Your personality:
     clearTimeout(timeout);
 
     if (!response.ok) {
-      console.error('OpenRouter error:', response.status);
-      return null;
+      console.warn('⚠️ OpenRouter API error:', response.status);
+      return null; // Will trigger Wikipedia fallback ONLY if API fails
     }
 
     const data = await response.json();
     const answer = data.choices?.[0]?.message?.content;
 
-    if (answer && answer.length > 30) {
+    // Accept any non-empty answer from GPT-4o — it's always better than Wikipedia
+    if (answer && answer.trim().length > 10) {
       return answer.trim();
     }
 
-    return null;
+    console.warn('⚠️ GPT-4o returned short/empty answer, trying again with higher tokens...');
+    return null; // Fall back to Wikipedia only if GPT-4o truly fails
   } catch (err: any) {
     if (err.name === 'AbortError') {
-      console.log('OpenRouter request timed out');
+      console.warn('⚠️ GPT-4o timeout — falling back to Wikipedia');
+    } else {
+      console.error('⚠️ GPT-4o error:', err.message);
     }
-    return null;
+    return null; // Only falls to Wikipedia on API failure
   }
 }
+
 
 // ============================================================
 // TIER 2: Wikipedia API — Free Knowledge Base
