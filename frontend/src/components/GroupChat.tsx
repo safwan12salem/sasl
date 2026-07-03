@@ -208,7 +208,7 @@ const handleDeleteMessage = async (messageId: string) => {
       if (activeGroup === groupId) {
         setActiveGroup(null);
         localStorage.removeItem('sasl_active_group');
-        setShowSidebar(true); // Show sidebar on mobile after leaving
+        setShowSidebar(false);
       }
       fetchGroups();
     } catch (err: any) {
