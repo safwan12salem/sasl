@@ -1065,8 +1065,76 @@
 
 
   "no_orders_yet": "まだ注文はありません",
-  "my_orders": " 私の注文"
-}
+  "my_orders": " 私の注文",
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+  "help_support": "ヘルプ＆サポート",
+  "back_to_sasl": "← Sasl に戻る",
+  "report_content_or_user": "コンテンツまたはユーザーを報告",
+  "report_inappropriate": "不適切なコンテンツ、スパム、またはハラスメントを報告",
+  "appeal_decision": "決定への異議申し立て",
+  "appeal_description": "アカウントが警告または禁止された場合",
+  "terms_of_service": "利用規約",
+  "read_terms": "利用規約と条件を読む",
+  "privacy_policy": "プライバシーポリシー",
+  "how_we_handle_data": "データの取り扱いについて",
+  "contact_us": "お問い合わせ",
+  "email_us_at": "sasl.app.contact@gmail.com までメールをお送りください",
+  "report_problem": "問題を報告",
+  "report_review_24h": "すべての報告を真剣に受け止め、24時間以内に確認します",
+  "report_content": "コンテンツを報告",
+  "report_user": "ユーザーを報告",
+  "post_content_id": "投稿ID",
+  "enter_post_id": "投稿IDを入力してください...",
+  "reason": "理由",
+  "harassment": "ハラスメントまたはいじめ",
+  "spam": "スパムまたは詐欺",
+  "hate_speech": "ヘイトスピーチ",
+  "inappropriate_content": "不適切なコンテンツ",
+  "fake_account": "偽アカウント",
+  "intellectual_property": "知的財産権の侵害",
+  "other_violation": "その他の違反",
+  "submit_report": "報告を送信",
+  "explain_appeal": "警告/禁止を解除すべき理由を説明してください...",
+  "submit_appeal": "異議申し立てを送信",
+  "acceptance_of_terms": "1. 規約の承諾",
+  "acceptance_text": "Sasl にアクセスまたは使用することで、本利用規約に同意したものとみなされます。同意しない場合は、サービスを使用しないでください。",
+  "user_accounts": "2. ユーザーアカウント",
+  "accounts_text": "アカウント情報の機密保持はユーザーの責任です。登録時に正確な情報を提供する必要があります。",
+  "content_conduct": "3. コンテンツと行動",
+  "conduct_text": "ユーザーは投稿したコンテンツに責任を持ちます。禁止コンテンツ：ハラスメント、ヘイトスピーチ、違法コンテンツ、スパム。",
+  "monetization_payments": "4. 収益化と支払い",
+  "payments_text": "Sasl はマーケットプレイス取引（5%）、サブスクリプション（30%）、その他のサービスに手数料を設定しています。支払いは Stripe で処理されます。",
+  "limitation_liability": "5. 責任の制限",
+  "liability_text": "Sasl はいかなる保証もなく「現状のまま」提供されます。サービスの使用に起因する損害について責任を負いません。",
+  "contact": "6. 連絡先",
+  "terms_contact_text": "ご質問がありますか？お問い合わせください：sasl.app.contact@gmail.com",
+  "information_collect": "1. 収集する情報",
+  "collect_text": "収集する情報：ユーザー名、メールアドレス、プロフィール情報、投稿コンテンツ、取引データ。",
+  "how_use_info": "2. 情報の利用方法",
+  "use_info_text": "お客様の情報は以下の目的で使用されます：Sasl サービスの提供、支払いの処理、プラットフォームの改善。",
+  "waveMesh_privacy": "3. WaveMesh とプライバシー",
+  "mesh_privacy_text": "WaveMesh メッセージはエンドツーエンド暗号化されています。中継ノードはメッセージを読むことができません。",
+  "data_storage": "4. データの保存とセキュリティ",
+  "storage_text": "データは安全なサーバー（Render/Postgres）に保存されます。メディアファイルは Cloudinary に保存されます。",
+  "your_rights": "5. あなたの権利",
+  "rights_text": "あなたの権利：データへのアクセス、不正確なデータの修正、アカウントの削除、データのエクスポート。",
+  "cookies": "6. Cookie",
+  "cookies_text": "Sasl は認証とセキュリティのために必要な Cookie を使用します。広告目的の追跡 Cookie は使用していません。",
+  "privacy_contact": "7. 連絡先",
+  "privacy_contact_text": "プライバシーに関するご質問？お問い合わせください：sasl.app.contact@gmail.com"
+}
 
 

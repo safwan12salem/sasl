@@ -1081,7 +1081,76 @@
 
   "you_are_speaking": "당신이 말하고 있습니다",
   "no_orders_yet": "아직 주문이 없습니다",
-  "my_orders": " 나의 주문"
+  "my_orders": " 나의 주문",
+
+
+
+
+
+
+
+
+
+
+
+
+  "help_support": "도움말 및 지원",
+  "back_to_sasl": "← Sasl로 돌아가기",
+  "report_content_or_user": "콘텐츠 또는 사용자 신고",
+  "report_inappropriate": "부적절한 콘텐츠, 스팸 또는 괴롭힘 신고",
+  "appeal_decision": "결정에 대해 이의 제기",
+  "appeal_description": "계정이 경고 또는 차단된 경우",
+  "terms_of_service": "서비스 약관",
+  "read_terms": "이용약관 및 조건 읽기",
+  "privacy_policy": "개인정보 처리방침",
+  "how_we_handle_data": "데이터를 어떻게 처리하는지",
+  "contact_us": "문의하기",
+  "email_us_at": "sasl.app.contact@gmail.com으로 이메일 보내기",
+  "report_problem": "문제 신고",
+  "report_review_24h": "모든 신고를 심각하게 받아들이며 24시간 이내에 검토합니다",
+  "report_content": "콘텐츠 신고",
+  "report_user": "사용자 신고",
+  "post_content_id": "게시물 ID",
+  "enter_post_id": "게시물 ID를 입력하세요...",
+  "reason": "사유",
+  "harassment": "괴롭힘 또는 협박",
+  "spam": "스팸 또는 사기",
+  "hate_speech": "혐오 표현",
+  "inappropriate_content": "부적절한 콘텐츠",
+  "fake_account": "가짜 계정",
+  "intellectual_property": "지식재산권 침해",
+  "other_violation": "기타 위반",
+  "submit_report": "신고 제출",
+  "explain_appeal": "경고/차단이 해제되어야 하는 이유를 설명하세요...",
+  "submit_appeal": "이의 제기 제출",
+  "acceptance_of_terms": "1. 약관 동의",
+  "acceptance_text": "Sasl에 접속하거나 사용함으로써 본 서비스 약관에 동의하게 됩니다. 동의하지 않으시면 서비스를 이용하지 마세요.",
+  "user_accounts": "2. 사용자 계정",
+  "accounts_text": "본인의 계정 정보 기밀 유지는 사용자의 책임입니다. 가입 시 정확한 정보를 제공해야 합니다.",
+  "content_conduct": "3. 콘텐츠 및 행동",
+  "conduct_text": "사용자는 게시한 콘텐츠에 대한 책임이 있습니다. 금지된 콘텐츠: 괴롭힘, 혐오 표현, 불법 콘텐츠, 스팸.",
+  "monetization_payments": "4. 수익 창출 및 결제",
+  "payments_text": "Sasl은 마켓플레이스 거래(5%), 구독(30%) 및 기타 서비스에 수수료를 부과합니다. 결제는 Stripe를 통해 처리됩니다.",
+  "limitation_liability": "5. 책임의 제한",
+  "liability_text": "Sasl은 어떠한 보증도 없이 '있는 그대로' 제공됩니다. 서비스 사용으로 인한 손해에 대해 책임지지 않습니다.",
+  "contact": "6. 문의",
+  "terms_contact_text": "질문이 있으신가요? 문의해 주세요: sasl.app.contact@gmail.com",
+  "information_collect": "1. 수집하는 정보",
+  "collect_text": "수집 항목: 사용자 이름, 이메일, 프로필 정보, 게시된 콘텐츠, 거래 데이터.",
+  "how_use_info": "2. 정보의 이용 방법",
+  "use_info_text": "귀하의 정보는 다음 목적으로 사용됩니다: Sasl 서비스 제공, 결제 처리, 플랫폼 개선.",
+  "waveMesh_privacy": "3. WaveMesh 및 개인정보",
+  "mesh_privacy_text": "WaveMesh 메시지는 종단 간 암호화되어 있습니다. 중계 노드는 귀하의 메시지를 읽을 수 없습니다.",
+  "data_storage": "4. 데이터 저장 및 보안",
+  "storage_text": "데이터는 안전한 서버(Render/Postgres)에 저장됩니다. 미디어 파일은 Cloudinary에 저장됩니다.",
+  "your_rights": "5. 귀하의 권리",
+  "rights_text": "귀하의 권리: 데이터 접근, 부정확한 데이터 수정, 계정 삭제, 데이터 내보내기.",
+  "cookies": "6. 쿠키",
+  "cookies_text": "Sasl은 인증 및 보안을 위해 필수 쿠키를 사용합니다. 광고를 위한 추적 쿠키는 사용하지 않습니다.",
+  "privacy_contact": "7. 문의",
+  "privacy_contact_text": "개인정보 관련 문의가 있으신가요? 문의해 주세요: sasl.app.contact@gmail.com"
+
+
 }
 
   
