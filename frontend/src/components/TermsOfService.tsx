@@ -20,7 +20,7 @@ export default function TermsOfService() {
         </section>
         
         <section>
-          <h2 className="text-xl font-semibold mb-2">2. User Accounts</h2>
+                   <h2 className="text-xl font-semibold mb-2">2. {t('user_accounts')}</h2>
           <p>{t('user_accounts_desc')}</p>
         </section>
         
@@ -45,8 +45,8 @@ export default function TermsOfService() {
         </section>
         
         <section>
-          <h2 className="text-xl font-semibold mb-2">7. {t('contact')}</h2>
-          <p>{t('contact_desc')}</p>
+                   <h2 className="text-xl font-semibold mb-2">6. {t('contact')}</h2>
+          <p>{t('terms_contact')}: sasl.app.contact@gmail.com</p>
         </section>
       </div>
     </div>
