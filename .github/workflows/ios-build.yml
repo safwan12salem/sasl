@@ -1,0 +1,38 @@
+name: Build iOS App
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm install
+        npm run build
+    
+    - name: Sync Capacitor
+      run: |
+        cd frontend
+        npx cap sync ios
+    
+    - name: Build iOS
+      run: |
+        cd frontend/ios
+        xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Debug archive -archivePath $PWD/build/App.xcarchive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+    
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Sasl-iOS
+        path: frontend/ios/build/App.xcarchive
