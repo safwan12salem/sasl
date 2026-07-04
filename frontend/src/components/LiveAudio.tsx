@@ -474,7 +474,7 @@ export default function LiveAudio() {
                     {room.price && <span className="inline-block mt-1 text-xs font-semibold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">💰 {room.price}</span>}
                   </div>
                 </div>
-                                      <div className="flex flex-col gap-1.5 flex-shrink-0">
+                                                           <div className="flex flex-col gap-1.5 flex-shrink-0 w-full sm:w-auto">
                   <div className="flex items-center gap-2 flex-wrap">
                     <div className="flex items-center gap-1 text-purple-600 text-xs">
                       <Users size={14} /><span className="font-bold">{room.current_listeners}</span>
@@ -485,10 +485,12 @@ export default function LiveAudio() {
                     <motion.button whileTap={{ scale: 0.95 }} onClick={() => {
                       if (room.price) { setPaymentAmount(parseFloat(room.price)); setShowPayment(true); }
                       else { joinRoom(room.id); }
-                    }} className="btn-primary text-xs px-3 py-1 whitespace-nowrap">{room.price ? `Pay & Join` : t('join')}</motion.button>
+                    }} className="btn-primary text-xs px-3 py-1 min-w-[50px] text-center">{room.price ? `$${room.price}` : t('join')}</motion.button>
                   </div>
                   {room.host.username === user?.username && (
-                    <div className="w-full flex justify-end mt-1"><button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline">{t('end')}</button></div>
+                    <div className="w-full flex justify-end mt-1">
+                      <button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition whitespace-nowrap">{t('end')}</button>
+                    </div>
                   )}
                 </div>
               </div>
