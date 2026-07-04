@@ -474,13 +474,15 @@ export default function LiveAudio() {
                     {room.price && <span className="inline-block mt-1 text-xs font-semibold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">💰 {room.price}</span>}
                   </div>
                 </div>
-                                                           <div className="flex flex-col gap-1.5 flex-shrink-0 w-full sm:w-auto">
+                                                              <div className="flex flex-col gap-2 flex-shrink-0 w-full sm:w-auto">
                   <div className="flex items-center gap-2 flex-wrap">
                     <div className="flex items-center gap-1 text-purple-600 text-xs">
                       <Users size={14} /><span className="font-bold">{room.current_listeners}</span>
                       <span className="text-xs text-gray-500">{t('listening')}</span>
                     </div>
                     <span className="text-yellow-500 text-xs font-semibold flex items-center gap-1"><Zap size={12} /> Live</span>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap">
                     <button onClick={() => setShowInvite(true)} className="btn-primary text-xs flex items-center gap-1 px-2 py-1"><UserPlus size={12} /> {t('invite')}</button>
                     <motion.button whileTap={{ scale: 0.95 }} onClick={() => {
                       if (room.price) { setPaymentAmount(parseFloat(room.price)); setShowPayment(true); }
@@ -488,11 +490,9 @@ export default function LiveAudio() {
                     }} className="btn-primary text-xs px-3 py-1 min-w-[50px] text-center">{room.price ? `$${room.price}` : t('join')}</motion.button>
                   </div>
                   {room.host.username === user?.username && (
-                    <div className="w-full flex justify-end mt-1">
-                      <button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition whitespace-nowrap">{t('end')}</button>
-                    </div>
+                    <button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition self-end">{t('end')}</button>
                   )}
-                </div>
+                </div>                             
               </div>
               {room.topics && (
                 <div className="flex gap-1 mt-2 flex-wrap">

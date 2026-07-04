@@ -50,7 +50,7 @@ export default function Layout() {
     { to: '/earnings', icon: DollarSign, label: t('Earnings') },
     { to: '/wallet', icon: Wallet, label: t('wallet') },
     { to: '/profile', icon: User, label: t('profile') },
-    { to: '/support', icon: Shield, label: t('Help & Support') },
+        { to: '/support', icon: Shield, label: t('help_support') },
   ];
 
     return (

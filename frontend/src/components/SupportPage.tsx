@@ -1,22 +1,24 @@
 import React from 'react';
-import { Shield, AlertTriangle, Flag, MessageSquare, Mail, ExternalLink } from 'lucide-react';
+import { Shield, AlertTriangle, Flag, Mail, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 export default function SupportPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const links = [
-    { icon: <Flag size={20} />, title: 'Report Content or User', desc: 'Report inappropriate content, spam, or harassment', action: () => navigate('/report') },
-    { icon: <AlertTriangle size={20} />, title: 'Appeal a Decision', desc: 'If your account was warned or banned', action: () => navigate('/appeal') },
-    { icon: <Shield size={20} />, title: 'Terms of Service', desc: 'Read our terms and conditions', action: () => navigate('/terms') },
-    { icon: <Shield size={20} />, title: 'Privacy Policy', desc: 'How we handle your data', action: () => navigate('/privacy') },
-    { icon: <Mail size={20} />, title: 'Contact Us', desc: 'Email us at sasl.app.contact@gmail.com', action: () => window.location.href = 'mailto:sasl.app.contact@gmail.com' },
+    { icon: <Flag size={20} />, title: t('report_content_or_user'), desc: t('report_inappropriate'), action: () => navigate('/report') },
+    { icon: <AlertTriangle size={20} />, title: t('appeal_decision'), desc: t('appeal_description'), action: () => navigate('/appeal') },
+    { icon: <Shield size={20} />, title: t('terms_of_service'), desc: t('read_terms'), action: () => navigate('/terms') },
+    { icon: <Shield size={20} />, title: t('privacy_policy'), desc: t('how_we_handle_data'), action: () => navigate('/privacy') },
+    { icon: <Mail size={20} />, title: t('contact_us'), desc: t('email_us_at'), action: () => window.location.href = 'mailto:sasl.app.contact@gmail.com' },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6 max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">Help & Support</h1>
-              <button onClick={() => window.history.back()} className="text-sm text-green-600 hover:underline mt-2 inline-block">← Back to Sasl</button>
+      <button onClick={() => window.history.back()} className="text-sm text-green-600 hover:underline mb-4 inline-block">← {t('back_to_sasl')}</button>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-8">{t('help_support')}</h1>
       <div className="space-y-3">
         {links.map((link, i) => (
           <button key={i} onClick={link.action} className="w-full flex items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm hover:shadow-md transition text-left">
