@@ -19,20 +19,35 @@ jobs:
       run: |
         cd frontend
         npm install
-        npm run build
     
-    - name: Sync Capacitor
+    - name: Build frontend
       run: |
         cd frontend
+        npm run build
+    
+    - name: Initialize iOS project
+      run: |
+        cd frontend
+        npx cap init Sasl com.sasl.app --web-dir=build 2>/dev/null || echo "Already initialized"
+        npx cap add ios 2>/dev/null || echo "iOS already added"
         npx cap sync ios
+    
+    - name: List iOS structure
+      run: |
+        echo "=== iOS directory ==="
+        ls -la frontend/ios/
+        echo "=== Finding workspace ==="
+        find frontend/ios -name "*.xcworkspace" 2>/dev/null
+        find frontend/ios -name "*.xcodeproj" 2>/dev/null
     
     - name: Build iOS
       run: |
-        cd frontend/ios
-        xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Debug archive -archivePath $PWD/build/App.xcarchive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO
+        cd frontend/ios/App
+        xcodebuild -workspace App.xcworkspace -scheme App -sdk iphoneos -configuration Debug archive -archivePath $PWD/build/App.xcarchive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO 2>&1 || xcodebuild -project App.xcodeproj -scheme App -sdk iphoneos -configuration Debug archive -archivePath $PWD/build/App.xcarchive CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGNING_ALLOWED=NO 2>&1
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
         name: Sasl-iOS
-        path: frontend/ios/build/App.xcarchive
+        path: frontend/ios/App/build/App.xcarchive
+      continue-on-error: true
