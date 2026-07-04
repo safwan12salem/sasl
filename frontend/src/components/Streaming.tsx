@@ -587,8 +587,8 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
             <div className="flex-1 flex flex-col md:flex-row">
               <div className="flex-1 relative bg-black flex items-center justify-center"
                 onClick={() => setIsFullscreen(!isFullscreen)}>
-                <video ref={remoteVideoRef} autoPlay className={`${isFullscreen ? 'w-full h-full object-contain' : 'max-w-full max-h-full'}`} />
-                <video ref={localVideoRef} autoPlay muted className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl" />
+                <video ref={remoteVideoRef} autoPlay playsInline className={`${isFullscreen ? 'w-full h-full object-contain' : 'max-w-full max-h-full'}`} />
+                <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl" />
 
                 {/* Viewer Count with Avatars */}
                 <div className="absolute top-4 left-4 flex items-center gap-1">
