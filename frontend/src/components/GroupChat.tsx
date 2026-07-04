@@ -68,7 +68,7 @@ export default function GroupChat() {
   const chatRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [showSidebar, setShowSidebar] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(true);
 
 const handleEditMessage = async (messageId: string, oldText: string) => {
   const newText = prompt('Edit message:', oldText);
@@ -110,14 +110,19 @@ const handleDeleteMessage = async (messageId: string) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const fetchGroups = useCallback(async () => {
+    const fetchGroups = useCallback(async () => {
     try {
       const res = await api.get('/groupchat/groups/');
-      setGroups(res.data.results || res.data || []);
+      const data = res.data.results || res.data || [];
+      setGroups(data);
+      // Auto-show sidebar on mobile if there are groups and no active group
+      if (data.length > 0 && !activeGroup) {
+        setShowSidebar(true);
+      }
     } catch (err) {
       console.log('Groups fetch failed - may be offline');
     }
-  }, []);
+  }, [activeGroup]);
 
   const fetchMessages = async (groupId: string, silent = false) => {
     if (!silent) setLoading(true);
