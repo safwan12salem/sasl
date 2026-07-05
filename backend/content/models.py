@@ -122,7 +122,25 @@ class Reel(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     # For offline caching, we store the media URL
 
-
+class Sound(models.Model):
+    """User-uploaded sounds for Snaps & Reels — shareable library"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uploader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='uploaded_sounds')
+    title = models.CharField(max_length=200)
+    artist = models.CharField(max_length=200, default='Original')
+    audio_file = models.FileField(upload_to='sounds/', storage=AutoCloudinaryStorage())
+    duration = models.FloatField(default=0)  # In seconds
+    start_time = models.FloatField(default=0)  # Trim start
+    end_time = models.FloatField(default=0)  # Trim end
+    is_public = models.BooleanField(default=True)  # Shareable by others
+    usage_count = models.PositiveIntegerField(default=0)  # Times used
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-usage_count', '-created_at']
+    
+    def __str__(self):
+        return f"{self.title} by {self.artist}"
 
 
 class ReelLike(models.Model):
