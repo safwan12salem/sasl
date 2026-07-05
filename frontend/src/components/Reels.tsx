@@ -9,8 +9,7 @@ import toast from 'react-hot-toast';
 import { Heart, MessageCircle, Share2, Loader2, Video, Flag, Plus, Music } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
-import SoundPicker from './SoundPicker';
-import { Sound } from '../services/soundLibrary';
+import SoundUploader from './SoundUploader';
 import { uploadLargeVideo } from '../services/videoUploader';
 
 
@@ -441,11 +440,11 @@ export default function Reels() {
   
       
       {/* Sound Picker Modal */}
-      {showSoundPicker && (
-        <SoundPicker
+           {showSoundPicker && (
+        <SoundUploader
           onSelect={(sound) => {
             setReelSound(sound.title);
-            setReelSoundUrl(sound.url);
+            setReelSoundUrl(sound.audio_url);
             setShowSoundPicker(false);
           }}
           onClose={() => setShowSoundPicker(false)}

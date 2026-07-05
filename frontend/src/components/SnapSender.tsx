@@ -13,8 +13,7 @@ import {
   Users, Inbox, PenTool, Play, Pause, Plus, Music,
   Trophy, UserPlus, FileText, DollarSign, TrendingUp, Flame, Clock
 } from 'lucide-react';
-import SoundPicker from './SoundPicker';
-import { Sound } from '../services/soundLibrary';
+import SoundUploader from './SoundUploader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
@@ -626,17 +625,14 @@ export default function SnapSender() {
         )}
             
       </AnimatePresence>
-
-      {/* Sound Picker Modal */}
       {showSoundPicker && (
-        <SoundPicker
+        <SoundUploader
           onSelect={(sound) => {
             setSelectedSound(sound);
             setStorySound(sound.title);
             setShowSoundPicker(false);
           }}
           onClose={() => setShowSoundPicker(false)}
-          currentSound={selectedSound}
         />
       )}
     </div>
