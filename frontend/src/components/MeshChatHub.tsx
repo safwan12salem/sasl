@@ -454,42 +454,56 @@ const fetchRooms = useCallback(async () => {
     }
   }, []);
 
-  const fetchPeers = useCallback(async () => {
+    const fetchPeers = useCallback(async () => {
+    // Start Bluetooth IMMEDIATELY — don't wait for API
     try {
-      const res = await api.get('/mesh/rooms/discover_peers/');
-      const data = Array.isArray(res.data) ? res.data : (res.data.results || []);
-      setPeers(data);
-    } catch (err) {
-      // OFFLINE: Get peers from mesh services
-            // OFFLINE: Get peers from all discovery methods
-      const meshPeers = offlineMesh.getPeers();
-      const knownPeers = saslMeshConnect.getKnownPeers();
-      const discoveredPeers = waveMeshDiscovery.getPeers();
-
-      const allOffline: DiscoveredPeer[] = [
-        ...meshPeers.map((p: any) => ({ username: p.username || p.id, is_online: true, avatar_url: null, node_id: p.id, last_seen: new Date().toISOString() })),
-        ...knownPeers.map((p: any) => ({ username: p.username, is_online: true, avatar_url: null, node_id: p.id, last_seen: new Date().toISOString() })),
-        ...discoveredPeers.map((p: any) => ({ username: p.name || 'Nearby', is_online: true, avatar_url: null, node_id: p.id, last_seen: new Date().toISOString() })),
-      ];
-      // Auto-scan Bluetooth (works on Capacitor/Android APK)
-      try {
-        const btAvailable = await bluetoothService.initialize();
-        if (btAvailable) {
-          bluetoothService.startScan((device) => {
-            setPeers(prev => {
-              if (prev.find(p => p.node_id === device.id)) return prev;
-              return [...prev, {
-                username: device.name || 'Nearby User',
-                node_id: device.id, is_online: true,
-                last_seen: new Date().toISOString(), avatar_url: null
-              }];
-            });
+      const btAvailable = await bluetoothService.initialize();
+      if (btAvailable) {
+        bluetoothService.startScan((device) => {
+          setPeers(prev => {
+            if (prev.find(p => p.node_id === device.id)) return prev;
+            return [...prev, {
+              username: device.name || 'Nearby User',
+              node_id: device.id, is_online: true,
+              last_seen: new Date().toISOString(), avatar_url: null
+            }];
           });
-        }
-      } catch {}
-    }
+        });
+      }
+    } catch {}
+
+    // API is optional — adds to Bluetooth peers, never replaces
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 5000);
+      const res = await api.get('/mesh/rooms/discover_peers/', { signal: controller.signal });
+      clearTimeout(timeout);
+      const data = Array.isArray(res.data) ? res.data : (res.data.results || []);
+      if (data.length > 0) {
+        setPeers(prev => {
+          const existing = new Set(prev.map(p => p.username));
+          const newPeers = data.filter((p: any) => !existing.has(p.username));
+          return [...prev, ...newPeers];
+        });
+      }
+    } catch {}
   }, []);
 
+
+  useEffect(() => {
+  fetchRooms();
+  fetchRequests();
+  fetchPeers();
+  
+  const interval = setInterval(() => { 
+    if (!activeRoomRef.current) {
+      fetchRooms(); 
+      fetchPeers(); 
+    }
+  }, 30000);
+  
+  return () => clearInterval(interval);
+}, []);
 
   useEffect(() => {
   fetchRooms();
