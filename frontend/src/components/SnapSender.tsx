@@ -90,7 +90,7 @@ export default function SnapSender() {
 
   // Group creation modal
     const [showSoundPicker, setShowSoundPicker] = useState(false);
-  const [selectedSound, setSelectedSound] = useState<Sound | null>(null);
+  const [selectedSound, setSelectedSound] = useState<any | null>(null);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [groupMembers, setGroupMembers] = useState('');

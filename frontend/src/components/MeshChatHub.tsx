@@ -15,6 +15,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { offlineMesh } from '../services/offlineMesh';
 import { globalMesh } from '../services/globalMesh';
 import { bluetoothService } from '../services/bluetoothService';
+import { waveMeshDiscovery } from '../services/waveMeshDiscovery';
 import { saslMeshConnect } from '../services/saslMeshConnect';
 import { QRCodeSVG } from 'qrcode.react';
 import { offlineP2P } from '../services/offlineP2P';
@@ -273,27 +274,26 @@ useEffect(() => {
 
 
 
-// Auto-start Bluetooth on Capacitor (Android APK)
+     
+     
+  // Auto-start hybrid discovery (Wi-Fi Aware → BLE)
   useEffect(() => {
-    const isCapacitor = !!(window as any).Capacitor || !!(window as any).Capacitor?.isNativePlatform?.();
-    if (isCapacitor || /android/i.test(navigator.userAgent)) {
-      bluetoothService.initialize().then(available => {
-        if (available) {
-          bluetoothService.startScan((device) => {
-            setPeers(prev => {
-              if (prev.find(p => p.node_id === device.id)) return prev;
-              return [...prev, {
-                username: device.name || 'Nearby User',
-                node_id: device.id, is_online: true,
-                last_seen: new Date().toISOString(), avatar_url: null
-              }];
-            });
-          });
-        }
+    if (!myUsername) return;
+    waveMeshDiscovery.startDiscovery((device) => {
+      setPeers(prev => {
+        if (prev.find(p => p.node_id === device.id)) return prev;
+        return [...prev, {
+          username: device.name || 'Nearby User',
+          node_id: device.id,
+          is_online: true,
+          last_seen: new Date().toISOString(),
+          avatar_url: null
+        }];
       });
-      return () => { try { bluetoothService.stopScan(); } catch {} };
-    }
-  }, []);
+    });
+    return () => { try { waveMeshDiscovery.stopDiscovery(); } catch {} };
+  }, [myUsername]);
+
 
 useEffect(() => {
   if (!myUsername) return;
@@ -461,17 +461,16 @@ const fetchRooms = useCallback(async () => {
       setPeers(data);
     } catch (err) {
       // OFFLINE: Get peers from mesh services
+            // OFFLINE: Get peers from all discovery methods
       const meshPeers = offlineMesh.getPeers();
       const knownPeers = saslMeshConnect.getKnownPeers();
-      
+      const discoveredPeers = waveMeshDiscovery.getPeers();
+
       const allOffline: DiscoveredPeer[] = [
         ...meshPeers.map((p: any) => ({ username: p.username || p.id, is_online: true, avatar_url: null, node_id: p.id, last_seen: new Date().toISOString() })),
         ...knownPeers.map((p: any) => ({ username: p.username, is_online: true, avatar_url: null, node_id: p.id, last_seen: new Date().toISOString() })),
+        ...discoveredPeers.map((p: any) => ({ username: p.name || 'Nearby', is_online: true, avatar_url: null, node_id: p.id, last_seen: new Date().toISOString() })),
       ];
-      
-      const unique = allOffline.filter((p, i, arr) => arr.findIndex(x => x.username === p.username) === i);
-      setPeers(unique.length > 0 ? unique : []);
-      
       // Auto-scan Bluetooth (works on Capacitor/Android APK)
       try {
         const btAvailable = await bluetoothService.initialize();
