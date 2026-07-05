@@ -1,15 +1,20 @@
 /**
  * Sasl Snap — Legendary Edition
  * Better than Snapchat: Streak rewards, tips, challenges, group streaks, drafts
+ *//**
+ * Sasl Snap — Legendary Edition
+ * Better than Snapchat: Streak rewards, tips, challenges, group streaks, drafts
  */
 import React, { useRef, useState, useEffect } from 'react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import {
   Camera, Video, X, Loader2, Send, RotateCcw, Zap,
-  Users, Inbox, PenTool, Play, Pause, Plus,
+  Users, Inbox, PenTool, Play, Pause, Plus, Music,
   Trophy, UserPlus, FileText, DollarSign, TrendingUp, Flame, Clock
 } from 'lucide-react';
+import SoundPicker from './SoundPicker';
+import { Sound } from '../services/soundLibrary';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
@@ -85,6 +90,8 @@ export default function SnapSender() {
   const [drafts, setDrafts] = useState<Snap[]>([]);
 
   // Group creation modal
+    const [showSoundPicker, setShowSoundPicker] = useState(false);
+  const [selectedSound, setSelectedSound] = useState<Sound | null>(null);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [groupMembers, setGroupMembers] = useState('');
@@ -195,10 +202,11 @@ export default function SnapSender() {
     if (!storyFile) return toast.error(t('Select an image or video'));
     const formData = new FormData(); formData.append('media', storyFile);
     if (storySound) formData.append('sound_track', storySound);
+    if (selectedSound?.url) formData.append('sound_url', selectedSound.url);
     try {
       await api.post('/snaps/snaps/post_story/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success(t('Story posted! 📖'));
-      setShowStoryForm(false); setStoryFile(null); setStoryPreview(null); setStorySound(''); fetchStories();
+      setShowStoryForm(false); setStoryFile(null); setStoryPreview(null); setStorySound(''); setSelectedSound(null); fetchStories();
     } catch { toast.error(t('Failed to post story')); }
   };
 
@@ -390,7 +398,9 @@ export default function SnapSender() {
           {showStoryForm && (
             <div className="glass p-4 rounded-2xl mb-4 space-y-2">
               <input type="file" accept="image/*,video/*" onChange={e => { const file = e.target.files?.[0]; if (file) { setStoryFile(file); setStoryPreview(URL.createObjectURL(file)); } }} className="text-sm" />
-              <input type="text" placeholder="Sound track name (optional)" value={storySound} onChange={e => setStorySound(e.target.value)} className="input-field text-sm" />
+                            <button onClick={() => setShowSoundPicker(true)} className="flex items-center gap-2 text-sm text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 px-3 py-2 rounded-xl transition">
+                <Music size={16} /> {storySound ? storySound : t('Add Sound')}
+              </button>
               {storyPreview && (
                 storyFile?.type.startsWith('video/') ? <video src={storyPreview || ''} controls className="w-full h-32 object-cover rounded-lg" /> : <img src={storyPreview || ''} alt="Preview" className="w-full h-32 object-cover rounded-lg" />
               )}
@@ -614,7 +624,21 @@ export default function SnapSender() {
             </div>
           </motion.div>
         )}
+            
       </AnimatePresence>
+
+      {/* Sound Picker Modal */}
+      {showSoundPicker && (
+        <SoundPicker
+          onSelect={(sound) => {
+            setSelectedSound(sound);
+            setStorySound(sound.title);
+            setShowSoundPicker(false);
+          }}
+          onClose={() => setShowSoundPicker(false)}
+          currentSound={selectedSound}
+        />
+      )}
     </div>
   );
 }

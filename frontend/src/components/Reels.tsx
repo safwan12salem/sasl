@@ -6,10 +6,11 @@ import React, { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { Heart, MessageCircle, Share2, Loader2, Video, Flag,Plus } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Loader2, Video, Flag, Plus, Music } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
-
+import SoundPicker from './SoundPicker';
+import { Sound } from '../services/soundLibrary';
 import { uploadLargeVideo } from '../services/videoUploader';
 
 
@@ -39,6 +40,9 @@ export default function Reels() {
   const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const [showUpload, setShowUpload] = useState(false);
   const [reelFile, setReelFile] = useState<File | null>(null);
+    const [reelSound, setReelSound] = useState('');
+  const [reelSoundUrl, setReelSoundUrl] = useState('');
+  const [showSoundPicker, setShowSoundPicker] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
@@ -174,7 +178,10 @@ export default function Reels() {
     if (!reelFile) return toast.error(t('Select a video'));
     setUploading(true);
     try {
-      const res = await uploadLargeVideo(reelFile, '/content/reels/', { caption: reelCaption });
+            const extraFields: Record<string, string> = { caption: reelCaption };
+      if (reelSound) extraFields.sound_track = reelSound;
+      if (reelSoundUrl) extraFields.sound_url = reelSoundUrl;
+      const res = await uploadLargeVideo(reelFile, '/content/reels/', extraFields);
       setReels(prev => [res, ...prev]);
       setShowUpload(false); setReelFile(null); setReelCaption('');
       toast.success(t('Video uploaded!'));
@@ -209,13 +216,20 @@ export default function Reels() {
   return (
     <div ref={containerRef} className="h-screen overflow-y-scroll snap-y snap-mandatory bg-black relative">
       <button onClick={() => setShowUpload(true)} className="fixed bottom-24 right-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white p-4 rounded-full shadow-xl z-40 hover:scale-110 transition"><Plus size={24} /></button>
-      {showUpload && (
+      
+            {showUpload && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full">
             <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Video size={20} /> Upload Reel</h3>
             <input type="file" accept="video/*" onChange={e => setReelFile(e.target.files?.[0] || null)} className="mb-3 w-full text-sm" />
             <input className="input-field mb-3" placeholder="Write a caption..." value={reelCaption} onChange={e => setReelCaption(e.target.value)} />
-            <div className="flex gap-2"><button onClick={uploadReel} disabled={uploading || !reelFile} className="btn-primary flex-1">{uploading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Upload'}</button><button onClick={() => setShowUpload(false)} className="btn-ghost">Cancel</button></div>
+            <button onClick={() => setShowSoundPicker(true)} className="w-full flex items-center gap-2 text-sm text-purple-600 hover:bg-purple-50 px-3 py-2 rounded-xl transition mb-3">
+              <Music size={16} /> {reelSound ? reelSound : t('Add Sound')}
+            </button>
+            <div className="flex gap-2">
+              <button onClick={uploadReel} disabled={uploading || !reelFile} className="btn-primary flex-1">{uploading ? <Loader2 className="animate-spin mx-auto" size={18} /> : 'Upload'}</button>
+              <button onClick={() => setShowUpload(false)} className="btn-ghost">Cancel</button>
+            </div>
           </div>
         </div>
       )}
@@ -424,6 +438,19 @@ export default function Reels() {
       )}
 
       
+  
+      
+      {/* Sound Picker Modal */}
+      {showSoundPicker && (
+        <SoundPicker
+          onSelect={(sound) => {
+            setReelSound(sound.title);
+            setReelSoundUrl(sound.url);
+            setShowSoundPicker(false);
+          }}
+          onClose={() => setShowSoundPicker(false)}
+        />
+      )}
     </div>
   );
 }
