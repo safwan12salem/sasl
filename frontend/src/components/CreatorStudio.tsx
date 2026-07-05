@@ -1,54 +1,55 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
-import { Sparkles, DollarSign, TrendingUp, Video, Image, Send, Loader2, Users, Star, PlusCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
-import PaymentModal from './PaymentModal';
+import { 
+  Sparkles, DollarSign, TrendingUp, Video, Image, Send, Loader2, Users, Star, PlusCircle,
+  Zap, Crown, BarChart3, Clock, CheckCircle, XCircle, Target, Award, Gift,
+  ChevronUp, ChevronDown, Filter, Calendar, Eye, Heart, MessageCircle, Share2
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function CreatorStudio() {
+  const { user } = useAuth();
   const { t } = useTranslation();
   const [profile, setProfile] = useState<any>(null);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [myContents, setMyContents] = useState<any[]>([]);
+  const [earnings, setEarnings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [showPayment, setShowPayment] = useState(false);
-  const [paymentAmount, setPaymentAmount] = useState(0);
-  const [tab, setTab] = useState<'campaigns' | 'my-content' | 'profile'>('campaigns');
+  const [tab, setTab] = useState<'dashboard' | 'campaigns' | 'my-content' | 'profile'>('dashboard');
   const [niche, setNiche] = useState('');
   const [pricePost, setPricePost] = useState('25');
   const [priceVideo, setPriceVideo] = useState('50');
- 
   const [showCreateCampaign, setShowCreateCampaign] = useState(false);
-const [campaignBrand, setCampaignBrand] = useState('');
-const [campaignTitle, setCampaignTitle] = useState('');
-const [campaignDesc, setCampaignDesc] = useState('');
-const [campaignBudget, setCampaignBudget] = useState('');
-const [campaignType, setCampaignType] = useState('post');
-const [campaignDeadline, setCampaignDeadline] = useState('');
+  const [campaignBrand, setCampaignBrand] = useState('');
+  const [campaignTitle, setCampaignTitle] = useState('');
+  const [campaignDesc, setCampaignDesc] = useState('');
+  const [campaignBudget, setCampaignBudget] = useState('');
+  const [campaignType, setCampaignType] = useState('post');
+  const [campaignDeadline, setCampaignDeadline] = useState('');
+  const [sortBy, setSortBy] = useState<'budget' | 'deadline'>('budget');
 
-
-
-
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   const loadData = async () => {
     try {
-      const [p, c, m] = await Promise.all([
+      const [p, c, m, e] = await Promise.all([
         api.get('/creatorstudio/profiles/my_profile/'),
         api.get('/creatorstudio/campaigns/'),
-        api.get('/creatorstudio/campaigns/my_contents/')
+        api.get('/creatorstudio/campaigns/my_contents/'),
+        api.get('/creatorstudio/profiles/my_earnings/').catch(() => ({ data: null }))
       ]);
       setProfile(p.data);
       setCampaigns(c.data.results || c.data || []);
       setMyContents(m.data || []);
+      setEarnings(e.data);
       setNiche(p.data.niche || '');
       setPricePost(p.data.price_per_post || '25');
       setPriceVideo(p.data.price_per_video || '50');
     } catch (err) {
-      toast.error('Failed to load Creator Studio');
+      toast.error(t('Failed to load Creator Studio'));
     } finally {
       setLoading(false);
     }
@@ -56,205 +57,354 @@ const [campaignDeadline, setCampaignDeadline] = useState('');
 
   const updateProfile = async () => {
     try {
-      await api.patch('/creatorstudio/profiles/my_profile/', {
-        niche, price_per_post: pricePost, price_per_video: priceVideo
-      });
-      toast.success('Profile updated!');
+      await api.patch('/creatorstudio/profiles/my_profile/', { niche, price_per_post: pricePost, price_per_video: priceVideo });
+      toast.success(t('Profile updated!'));
       loadData();
-    } catch { toast.error('Update failed'); }
+    } catch { toast.error(t('Update failed')); }
   };
 
-  const applyCampaign = async (campaignId: string, budget: string) => {
+  const applyCampaign = async (campaignId: string) => {
     try {
       await api.post(`/creatorstudio/campaigns/${campaignId}/apply/`, {});
-      toast.success('Applied successfully! 🎉');
+      toast.success(t('Applied successfully! 🎉'));
       loadData();
     } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to apply');
+      toast.error(err.response?.data?.error || t('Failed to apply'));
     }
   };
 
+  const createCampaign = async () => {
+    if (!campaignBrand || !campaignTitle || !campaignBudget) return toast.error(t('Fill all fields'));
+    try {
+      await api.post('/creatorstudio/campaigns/create/', {
+        brand_name: campaignBrand, title: campaignTitle, description: campaignDesc,
+        budget: parseFloat(campaignBudget), content_type: campaignType, deadline: campaignDeadline,
+      });
+      toast.success(t('Campaign created!'));
+      setShowCreateCampaign(false);
+      setCampaignBrand(''); setCampaignTitle(''); setCampaignDesc('');
+      setCampaignBudget(''); setCampaignDeadline('');
+      loadData();
+    } catch { toast.error(t('Failed to create campaign')); }
+  };
 
+  if (loading) return (
+    <div className="flex justify-center py-20">
+      <Loader2 className="animate-spin text-purple-500" size={48} />
+    </div>
+  );
 
-const createCampaign = async () => {
-  try {
-    await api.post('/creatorstudio/campaigns/create/', {
-      brand_name: campaignBrand,
-      title: campaignTitle,
-      description: campaignDesc,
-      budget: parseFloat(campaignBudget),
-      content_type: campaignType,
-      deadline: campaignDeadline,
-    });
-    toast.success('Campaign created!');
-    setShowCreateCampaign(false);
-    loadData();
-  } catch { toast.error('Failed to create campaign'); }
-};
+  const sortedCampaigns = [...campaigns].sort((a, b) => {
+    if (sortBy === 'budget') return parseFloat(b.budget) - parseFloat(a.budget);
+    return new Date(a.deadline).getTime() - new Date(b.deadline).getTime();
+  });
 
-  if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-purple-500" size={48} /></div>;
+  const totalEarned = parseFloat(profile?.total_earned || 0);
+  const completedDeals = profile?.completed_deals || 0;
+  const pendingDeals = myContents.filter((c: any) => c.status === 'pending').length;
+  const engagementRate = profile?.engagement_rate || 0;
 
-    return (
-    <div className="p-6 max-w-5xl mx-auto">
-      {/* Header with Earnings Dashboard */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
-        <div>
-          <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-            <Sparkles className="text-purple-500" />{t('Creator Studio')}
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">{t('Monetize your content with brand deals')}</p>
+  return (
+    <div className="p-4 md:p-6 max-w-6xl mx-auto">
+      {/* ========== HEADER ========== */}
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent flex items-center gap-2">
+              <Crown className="text-yellow-500" size={32} />
+              {t('Creator Studio')}
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">{t('Your creative empire, monetized')}</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="glass-card px-4 py-2 rounded-xl text-center">
+              <p className="text-xs text-gray-500">{t('Your Cut')}</p>
+              <p className="text-xl font-bold text-green-600">90%</p>
+            </div>
+            <div className="glass-card px-4 py-2 rounded-xl text-center">
+              <p className="text-xs text-gray-500">{t('Platform')}</p>
+              <p className="text-xl font-bold text-gray-400">10%</p>
+            </div>
+          </div>
         </div>
-        <div className="glass-card p-4 rounded-2xl flex gap-4 items-center">
-          <div className="text-center">
-            <p className="text-xs text-gray-500">{t('Total Earned')}</p>
-            <p className="text-xl font-bold text-green-600">${Number(profile?.total_earned || 0).toFixed(2)}</p>
-          </div>
-          <div className="w-px h-8 bg-gray-200" />
-          <div className="text-center">
-            <p className="text-xs text-gray-500">{t('Deals')}</p>
-            <p className="text-xl font-bold text-purple-600">{profile?.completed_deals || 0}</p>
-          </div>
-          <div className="w-px h-8 bg-gray-200" />
-          <div className="text-center">
-            <p className="text-xs text-gray-500">{t('You Earn')}</p>
-            <p className="text-xl font-bold text-orange-600">90%</p>
-          </div>
-        </div>
-      </div>
-      {/* Tabs */}
-      <div className="flex gap-2 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-6">
+      </motion.div>
+
+      {/* ========== EARNINGS DASHBOARD CARDS ========== */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
-          { key: 'campaigns' as const, label: 'Brand Deals', icon: <DollarSign size={16} /> },
-          { key: 'my-content' as const, label: 'My Content', icon: <Image size={16} /> },
-          { key: 'profile' as const, label: 'Profile', icon: <Star size={16} /> },
-        ].map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-semibold transition ${tab === t.key ? 'bg-white dark:bg-gray-700 shadow text-purple-600' : 'text-gray-500'}`}>
-            {t.icon} {t.label}
+          { icon: <DollarSign size={24} />, label: t('Total Earned'), value: `$${totalEarned.toFixed(2)}`, color: 'from-green-500 to-emerald-500', bg: 'bg-green-50 dark:bg-green-900/20' },
+          { icon: <CheckCircle size={24} />, label: t('Completed'), value: completedDeals, color: 'from-blue-500 to-cyan-500', bg: 'bg-blue-50 dark:bg-blue-900/20' },
+          { icon: <Clock size={24} />, label: t('Pending'), value: pendingDeals, color: 'from-orange-500 to-amber-500', bg: 'bg-orange-50 dark:bg-orange-900/20' },
+          { icon: <TrendingUp size={24} />, label: t('Engagement'), value: `${engagementRate}%`, color: 'from-purple-500 to-pink-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+        ].map((card, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+            className={`${card.bg} rounded-2xl p-4 hover:shadow-lg transition-shadow border border-white/50`}>
+            <div className="flex items-center gap-3">
+              <div className={`p-2.5 rounded-xl bg-gradient-to-br ${card.color} text-white shadow-lg`}>{card.icon}</div>
+              <div>
+                <p className="text-xs text-gray-500">{card.label}</p>
+                <p className="text-xl font-bold">{card.value}</p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* ========== TABS ========== */}
+      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-6 overflow-x-auto">
+        {[
+          { key: 'dashboard' as const, label: '📊 Dashboard', icon: <BarChart3 size={16} /> },
+          { key: 'campaigns' as const, label: '💼 Brand Deals', icon: <DollarSign size={16} /> },
+          { key: 'my-content' as const, label: '📝 My Content', icon: <Image size={16} /> },
+          { key: 'profile' as const, label: '⭐ Profile', icon: <Star size={16} /> },
+        ].map(tb => (
+          <button key={tb.key} onClick={() => setTab(tb.key)}
+            className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs md:text-sm font-semibold transition whitespace-nowrap ${
+              tab === tb.key ? 'bg-white dark:bg-gray-700 shadow text-purple-600' : 'text-gray-500 hover:text-gray-700'
+            }`}>
+            {tb.icon} <span className="hidden sm:inline">{tb.label}</span>
           </button>
         ))}
       </div>
 
-      {/* CAMPAIGNS TAB */}
+      {/* ========== DASHBOARD TAB ========== */}
+      {tab === 'dashboard' && (
+        <div className="space-y-6">
+          {/* Quick Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="glass-card p-5 rounded-2xl">
+              <h3 className="font-bold mb-3 flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> {t('Recent Earnings')}</h3>
+              {earnings?.recent_earnings?.length > 0 ? (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {earnings.recent_earnings.slice(0, 5).map((e: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between text-sm">
+                      <span className="truncate max-w-[200px]">{e.caption || e.campaign_title || 'Content'}</span>
+                      <span className="font-bold text-green-600">+${e.creator_earnings}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400 py-4 text-center">{t('No earnings yet — apply to campaigns!')}</p>
+              )}
+            </div>
+            <div className="glass-card p-5 rounded-2xl">
+              <h3 className="font-bold mb-3 flex items-center gap-2"><Target size={18} className="text-blue-500" /> {t('Top Niches')}</h3>
+              <div className="space-y-2">
+                {['Gaming', 'Fashion', 'Tech', 'Fitness', 'Food'].map(n => (
+                  <div key={n} className="flex items-center justify-between text-sm">
+                    <span>{n}</span>
+                    <div className="w-24 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full" style={{ width: `${Math.random() * 60 + 20}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="glass-card p-5 rounded-2xl">
+              <h3 className="font-bold mb-3 flex items-center gap-2"><Award size={18} className="text-purple-500" /> {t('Creator Level')}</h3>
+              <div className="text-center py-4">
+                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mx-auto flex items-center justify-center text-white text-3xl font-bold mb-2">
+                  {completedDeals >= 10 ? '🏆' : completedDeals >= 5 ? '⭐' : '🌱'}
+                </div>
+                <p className="font-bold text-lg">
+                  {completedDeals >= 10 ? t('Pro Creator') : completedDeals >= 5 ? t('Rising Star') : t('New Creator')}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">{completedDeals}/10 {t('deals to next level')}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-      {/* Create Campaign Button */}
-<button onClick={() => setShowCreateCampaign(!showCreateCampaign)}
-  className="btn-primary text-sm flex items-center gap-1 mb-4">
-  <PlusCircle size={16} /> {t('Create Campaign')}
-</button>
-
-{/* Create Campaign Form */}
-{showCreateCampaign && (
-  <div className="glass-card p-4 rounded-xl mb-4 space-y-3">
-    <input className="input-field text-sm" placeholder={t('Brand Name')} value={campaignBrand} onChange={e => setCampaignBrand(e.target.value)} />
-    <input className="input-field text-sm" placeholder={t('Campaign Title')} value={campaignTitle} onChange={e => setCampaignTitle(e.target.value)} />
-    <textarea className="input-field text-sm" placeholder={t('Description')} value={campaignDesc} onChange={e => setCampaignDesc(e.target.value)} rows={2} />
-    <div className="grid grid-cols-3 gap-2">
-      <input className="input-field text-sm" type="number" placeholder="Budget ($)" value={campaignBudget} onChange={e => setCampaignBudget(e.target.value)} />
-      <select className="input-field text-sm" value={campaignType} onChange={e => setCampaignType(e.target.value)}>
-        <option value="post">{t('Post')}</option>
-        <option value="video">{t('Video')}</option>
-        <option value="story">{t('Story')}</option>
-      </select>
-      <input className="input-field text-sm" type="date" value={campaignDeadline} onChange={e => setCampaignDeadline(e.target.value)} />
-    </div>
-    <button onClick={createCampaign} className="btn-primary w-full text-sm">{t('🚀 Publish Campaign')}</button>
-  </div>
-)}
+      {/* ========== CAMPAIGNS TAB ========== */}
       {tab === 'campaigns' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {campaigns.length === 0 ? (
-            <div className="col-span-full text-center py-12 text-gray-400">
-              <DollarSign size={48} className="mx-auto mb-3 opacity-30" />
-              <p>{t('No brand campaigns available yet')}</p>
+        <>
+          <div className="flex items-center justify-between mb-4 gap-2 flex-wrap">
+            <button onClick={() => setShowCreateCampaign(!showCreateCampaign)} className="btn-primary text-sm flex items-center gap-1">
+              <PlusCircle size={16} /> {t('Create Campaign')}
+            </button>
+            <div className="flex items-center gap-2">
+              <Filter size={14} className="text-gray-400" />
+              <button onClick={() => setSortBy('budget')} className={`text-xs px-3 py-1 rounded-full ${sortBy === 'budget' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100'}`}>
+                {t('Highest Paid')}
+              </button>
+              <button onClick={() => setSortBy('deadline')} className={`text-xs px-3 py-1 rounded-full ${sortBy === 'deadline' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100'}`}>
+                {t('Closing Soon')}
+              </button>
+            </div>
+          </div>
+
+          <AnimatePresence>
+            {showCreateCampaign && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-4">
+                <div className="glass-card p-5 rounded-2xl space-y-3 border-2 border-purple-200 dark:border-purple-800">
+                  <h3 className="font-bold flex items-center gap-2"><Sparkles size={18} className="text-purple-500" /> {t('New Campaign')}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input className="input-field text-sm" placeholder={t('Brand Name')} value={campaignBrand} onChange={e => setCampaignBrand(e.target.value)} />
+                    <input className="input-field text-sm" placeholder={t('Campaign Title')} value={campaignTitle} onChange={e => setCampaignTitle(e.target.value)} />
+                  </div>
+                  <textarea className="input-field text-sm" placeholder={t('Description')} value={campaignDesc} onChange={e => setCampaignDesc(e.target.value)} rows={2} />
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <input className="input-field text-sm" type="number" placeholder={t('Budget ($)')} value={campaignBudget} onChange={e => setCampaignBudget(e.target.value)} />
+                    <select className="input-field text-sm" value={campaignType} onChange={e => setCampaignType(e.target.value)}>
+                      <option value="post">{t('Post')}</option>
+                      <option value="video">{t('Video')}</option>
+                      <option value="story">{t('Story')}</option>
+                    </select>
+                    <input className="input-field text-sm" type="date" value={campaignDeadline} onChange={e => setCampaignDeadline(e.target.value)} />
+                    <button onClick={createCampaign} className="btn-primary text-sm">{t('Publish')}</button>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sortedCampaigns.length === 0 ? (
+              <div className="col-span-full text-center py-16 text-gray-400">
+                <DollarSign size={64} className="mx-auto mb-4 opacity-20" />
+                <p className="text-lg font-semibold">{t('No brand campaigns yet')}</p>
+                <p className="text-sm">{t('Be the first to create one!')}</p>
+              </div>
+            ) : (
+              sortedCampaigns.map((c, i) => (
+                <motion.div key={c.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
+                  whileHover={{ y: -4 }} className="glass-card rounded-2xl overflow-hidden border border-purple-100 dark:border-purple-900/30 hover:shadow-xl transition-shadow">
+                  <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2" />
+                  <div className="p-5">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                        {c.brand_name?.[0]?.toUpperCase() || 'B'}
+                      </div>
+                      <div>
+                        <p className="font-bold text-sm">{c.brand_name}</p>
+                        <span className="text-xs bg-purple-100 dark:bg-purple-900/40 text-purple-600 px-2 py-0.5 rounded-full">{c.content_type}</span>
+                      </div>
+                    </div>
+                    <h4 className="font-semibold mb-1">{c.title}</h4>
+                    <p className="text-xs text-gray-500 line-clamp-2 mb-4">{c.description}</p>
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-2xl font-bold text-green-600">${c.budget}</p>
+                        <p className="text-[10px] text-gray-400 flex items-center gap-1">
+                          <Calendar size={10} /> {new Date(c.deadline).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <motion.button whileTap={{ scale: 0.9 }} onClick={() => applyCampaign(c.id)}
+                        className="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg transition flex items-center gap-1">
+                        <Send size={14} /> {t('Apply')}
+                      </motion.button>
+                    </div>
+                    {/* Progress bar if campaign has applicant count */}
+                    {c.applicant_count !== undefined && (
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
+                        <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full" 
+                          style={{ width: `${Math.min((c.applicant_count / (c.max_creators || 10)) * 100, 100)}%` }} />
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ))
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ========== MY CONTENT TAB ========== */}
+      {tab === 'my-content' && (
+        <div className="space-y-3">
+          {myContents.length === 0 ? (
+            <div className="text-center py-16 text-gray-400">
+              <Image size={64} className="mx-auto mb-4 opacity-20" />
+              <p className="text-lg font-semibold">{t('No content yet')}</p>
+              <p className="text-sm">{t('Apply to brand campaigns to start earning!')}</p>
             </div>
           ) : (
-            campaigns.map(c => (
-              <motion.div key={c.id} whileHover={{ y: -3 }} className="glass-card p-5 rounded-2xl border border-purple-100">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
-                    {c.brand_name[0]?.toUpperCase()}
+            myContents.map((c: any, i: number) => (
+              <motion.div key={c.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                className="glass-card p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <div className={`p-2.5 rounded-xl ${
+                    c.status === 'approved' ? 'bg-green-100 text-green-600' :
+                    c.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
+                  }`}>
+                    {c.status === 'approved' ? <CheckCircle size={20} /> : c.status === 'pending' ? <Clock size={20} /> : <XCircle size={20} />}
                   </div>
                   <div>
-                    <p className="font-bold text-sm">{c.brand_name}</p>
-                    <p className="text-xs text-gray-500">{c.content_type}</p>
+                    <p className="font-semibold text-sm">{c.caption || c.campaign_title || t('Content')}</p>
+                    <p className="text-xs text-gray-500">{c.content_type} · <span className="capitalize">{c.status}</span></p>
                   </div>
                 </div>
-                <h4 className="font-semibold mb-1">{c.title}</h4>
-                <p className="text-xs text-gray-500 line-clamp-2 mb-3">{c.description}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-bold text-green-600">${c.budget}</span>
-                  <motion.button whileTap={{ scale: 0.95 }} onClick={() => applyCampaign(c.id, c.budget)}
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:shadow-lg transition">
-                    Apply Now
-                  </motion.button>
+                <div className="flex items-center gap-4">
+                  <div className="text-center">
+                    <p className="text-xs text-gray-500">{t('Earned')}</p>
+                    <p className="font-bold text-green-600">${c.creator_earnings || '0.00'}</p>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-gray-400">
+                    <span className="flex items-center gap-1"><Eye size={12} /> {c.views || 0}</span>
+                    <span className="flex items-center gap-1"><Heart size={12} /> {c.likes || 0}</span>
+                    <span className="flex items-center gap-1"><MessageCircle size={12} /> {c.comments || 0}</span>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-400 mt-2">{t('Deadline')}: {new Date(c.deadline).toLocaleDateString()}</p>
               </motion.div>
             ))
           )}
         </div>
       )}
 
-      {/* MY CONTENT TAB */}
-      {tab === 'my-content' && (
-        <div className="space-y-3">
-          {myContents.length === 0 ? (
-            <div className="text-center py-12 text-gray-400">
-              <Image size={48} className="mx-auto mb-3 opacity-30" />
-              <p>{t('No content yet')}</p>
-              <p className="text-sm">{t('Apply to brand campaigns above!')}</p>
-            </div>
-          ) : (
-            myContents.map((c: any) => (
-              <div key={c.id} className="glass-card p-4 rounded-xl flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-sm">{c.caption || c.campaign_title}</p>
-                  <p className="text-xs text-gray-500">{c.content_type} · {c.status}</p>
-                </div>
-                <span className="text-green-600 font-bold">${c.creator_earnings}</span>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {/* PROFILE TAB */}
+      {/* ========== PROFILE TAB ========== */}
       {tab === 'profile' && (
-        <div className="glass-card p-6 rounded-2xl max-w-lg">
-          <h3 className="font-bold text-lg mb-4">{t('Creator Profile')}</h3>
-          <div className="space-y-3">
-            <input className="input-field" placeholder="Your niche (e.g., Tech, Fashion, Gaming)" value={niche} onChange={e => setNiche(e.target.value)} />
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-gray-500">{t('Price per Post')}  ($)</label>
-                <input className="input-field" type="number" value={pricePost} onChange={e => setPricePost(e.target.value)} />
+        <div className="max-w-lg mx-auto">
+          <div className="glass-card p-6 rounded-2xl space-y-4">
+            <div className="text-center mb-4">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 mx-auto flex items-center justify-center text-white text-4xl font-bold shadow-xl mb-3">
+                {user?.username?.[0]?.toUpperCase() || 'C'}
               </div>
-              <div>
-                <label className="text-xs text-gray-500">{t('Price per Video')} ($)</label>
-                <input className="input-field" type="number" value={priceVideo} onChange={e => setPriceVideo(e.target.value)} />
-              </div>
+              <h3 className="font-bold text-xl">@{user?.username}</h3>
+              <p className="text-sm text-gray-500">{niche || t('Set your niche')}</p>
             </div>
+            
             <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="bg-gray-50 p-3 rounded-xl">
-                <p className="text-lg font-bold">{profile?.audience_size || 0}</p>
-                <p className="text-xs text-gray-500">{t('Audience')}</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-xl">
-                <p className="text-lg font-bold">{profile?.engagement_rate || 0}%</p>
-                <p className="text-xs text-gray-500">{t('Engagement')}</p>
-              </div>
-              <div className="bg-gray-50 p-3 rounded-xl">
-                <p className="text-lg font-bold">{profile?.is_verified ? '✅' : '⏳'}</p>
-                <p className="text-xs text-gray-500">{t('Verified')}</p>
-              </div>
+              {[
+                { value: profile?.audience_size || 0, label: t('Audience') },
+                { value: `${engagementRate}%`, label: t('Engagement') },
+                { value: profile?.is_verified ? '✅' : '⏳', label: t('Verified') },
+              ].map((stat, i) => (
+                <div key={i} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3">
+                  <p className="text-xl font-bold">{stat.value}</p>
+                  <p className="text-[10px] text-gray-500">{stat.label}</p>
+                </div>
+              ))}
             </div>
-            <button onClick={updateProfile} className="btn-primary w-full py-3">{t('Save Profile')}</button>
+
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-semibold text-gray-500">{t('Niche')}</label>
+                <input className="input-field text-sm mt-1" placeholder={t('e.g. Tech, Fashion, Gaming')} value={niche} onChange={e => setNiche(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">{t('Price per Post')}</label>
+                  <div className="relative mt-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                    <input className="input-field text-sm pl-7" type="number" value={pricePost} onChange={e => setPricePost(e.target.value)} />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-gray-500">{t('Price per Video')}</label>
+                  <div className="relative mt-1">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">$</span>
+                    <input className="input-field text-sm pl-7" type="number" value={priceVideo} onChange={e => setPriceVideo(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+              <button onClick={updateProfile} className="btn-primary w-full py-3 text-sm font-bold">
+                {t('Save Profile')}
+              </button>
+            </div>
           </div>
         </div>
       )}
-
-      {showPayment && <PaymentModal amount={paymentAmount} type="creator_studio" onSuccess={() => { setShowPayment(false); loadData(); }} onClose={() => setShowPayment(false)} />}
     </div>
   );
 }
