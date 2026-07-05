@@ -262,7 +262,7 @@ useEffect(() => {
             reactions: {},
             created_at: new Date().toISOString(),
           }]);
-          setTimeout(scrollToBottom, 100);
+          requestAnimationFrame(scrollToBottom);
         }
       } catch {}
     };
@@ -364,7 +364,18 @@ useEffect(() => {
         
         return [...prev, newMsg];
       });
-      scrollToBottom();
+
+            
+      // Update sidebar last message for the room
+      if (messageData?.room_id || messageData?.room) {
+        setRooms(prev => prev.map(r => {
+          if (r.room_id === (messageData?.room_id || messageData?.room) || r.id === (messageData?.room_id || messageData?.room)) {
+            return { ...r, last_message: messageData?.content?.slice(0, 40) || 'New message', last_message_at: new Date().toISOString() };
+          }
+          return r;
+        }));
+      }
+           requestAnimationFrame(scrollToBottom);
     }
   };
 
@@ -549,7 +560,7 @@ const fetchRooms = useCallback(async () => {
             if (exists) return prev;
             return [...prev, data.message];
           });
-          setTimeout(scrollToBottom, 100);
+          requestAnimationFrame(scrollToBottom);
         } else if (data.type === 'reaction') {
           const { message_id, emoji, sender: reactionSender } = data;
           if (!message_id || !emoji || !reactionSender) return;
@@ -605,7 +616,7 @@ const fetchRooms = useCallback(async () => {
     try {
       const res = await api.get(`/mesh/rooms/${room.id}/`);
       setMessages(res.data.messages || []);
-      setTimeout(scrollToBottom, 200);
+      requestAnimationFrame(scrollToBottom);
     } catch (err) {
       setMessages([]);
     }
@@ -727,7 +738,7 @@ const fetchRooms = useCallback(async () => {
       }).catch(() => { });
 
       setMessages(prev => [...prev, msg]);
-      setTimeout(scrollToBottom, 100);
+      requestAnimationFrame(scrollToBottom);
     };
     reader.readAsDataURL(file);
   };
