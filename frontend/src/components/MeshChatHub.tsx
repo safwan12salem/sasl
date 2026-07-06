@@ -497,7 +497,22 @@ const fetchRooms = useCallback(async () => {
           return [...prev, ...newPeers];
         });
       }
-    } catch {}
+       } catch {
+      // API failed — use offline mesh peers (BroadcastChannel on web, Bluetooth on APK)
+      const meshPeers = offlineMesh.getPeers();
+      const knownPeers = saslMeshConnect.getKnownPeers();
+      
+      if (meshPeers.length > 0 || knownPeers.length > 0) {
+        setPeers(prev => {
+          const existing = new Set(prev.map(p => p.username));
+          const newPeers = [
+            ...meshPeers.map((p: any) => ({ username: p.username || p.id, is_online: true, avatar_url: null, node_id: p.id, last_seen: new Date().toISOString() })),
+            ...knownPeers.map((p: any) => ({ username: p.username, is_online: true, avatar_url: null, node_id: p.id, last_seen: new Date().toISOString() })),
+          ].filter((p: any) => !existing.has(p.username));
+          return [...prev, ...newPeers];
+        });
+      }
+    }
   }, []);
 
 
