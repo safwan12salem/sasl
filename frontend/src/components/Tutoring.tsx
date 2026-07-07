@@ -755,7 +755,17 @@ const STATUS_COLORS: Record<string, string> = {
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    <button onClick={(e) => { e.stopPropagation(); setPaymentAmount(parseFloat(session.price)); setPendingJoinSession(session.id); setShowPayment(true); }}
+                                        <button onClick={(e) => { 
+                      e.stopPropagation(); 
+                      // Tutor joins free, students pay
+                      if (session.tutor?.username === user?.username) {
+                        startVideoCall(session.id);
+                      } else {
+                        setPaymentAmount(parseFloat(session.price)); 
+                        setPendingJoinSession(session.id); 
+                        setShowPayment(true);
+                      }
+                    }}
                       className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 flex items-center gap-1">
                       <Play size={14} /> {t('Join Class')}
                     </button>
