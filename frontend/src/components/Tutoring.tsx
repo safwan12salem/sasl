@@ -12,7 +12,8 @@ import {
   Video, VideoOff, Users, MessageCircle, Star, Clock, Play, Pause,
   ClipboardList, Award, FileText, Download, Upload, PenTool,
   GraduationCap, ChevronDown, ChevronUp, X, CheckCircle, Globe,
-  DollarSign, BarChart3, Bookmark, Share2, Zap
+  DollarSign, BarChart3, Bookmark, Share2, Zap,
+  Trophy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TutoringChat from './TutoringChat';
@@ -97,7 +98,7 @@ const STATUS_COLORS: Record<string, string> = {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'upcoming' | 'ongoing' | 'completed' | 'mine'>('upcoming');
+    const [activeTab, setActiveTab] = useState<'upcoming' | 'ongoing' | 'completed' | 'mine' | 'leaderboard' | 'calendar'>('upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
@@ -210,6 +211,16 @@ const STATUS_COLORS: Record<string, string> = {
   };
 
   useEffect(() => { fetchSessions(); fetchTutors(); fetchCertificates(); }, [fetchSessions]);
+
+
+
+  // Restore whiteboard from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('sasl_whiteboard');
+    if (saved) {
+      try { setWhiteboardData(JSON.parse(saved)); } catch {}
+    }
+  }, []);
 
   // ============================================================
   // ACTIONS
@@ -326,6 +337,7 @@ const STATUS_COLORS: Record<string, string> = {
     try {
       const res = await api.get(`/tutoring/sessions/${sessionId}/whiteboard/`);
       setWhiteboardData(res.data);
+            localStorage.setItem('sasl_whiteboard', JSON.stringify(res.data));
     } catch (err) {
       setError(t('Failed to load whiteboard data.'));
     }
@@ -457,11 +469,11 @@ const STATUS_COLORS: Record<string, string> = {
                 <div className={`${showChat || showWhiteboard || showMaterials ? 'w-2/3' : 'w-full'} p-4`}>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
-                      <video ref={localVideoRef} autoPlay muted className="w-full h-full object-cover" />
+                                           <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
                       <span className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">You</span>
                     </div>
                     <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
-                      <video ref={remoteVideoRef} autoPlay className="w-full h-full object-cover" />
+                                           <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
                       <span className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
                         {expandedSession ? sessions.find(s => s.id === inCall)?.tutor?.username || 'Remote' : 'Remote'}
                       </span>
@@ -666,11 +678,13 @@ const STATUS_COLORS: Record<string, string> = {
           <input className="input-field pl-10" placeholder={t('Search sessions by subject or tutor...')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto">
-          {[
-                       { key: 'upcoming' as const, label: t('Upcoming'), icon: <Calendar size={14} /> },
+                    {[
+            { key: 'upcoming' as const, label: t('Upcoming'), icon: <Calendar size={14} /> },
             { key: 'ongoing' as const, label: t('Live'), icon: <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> },
             { key: 'completed' as const, label: t('Completed'), icon: <CheckCircle size={14} /> },
             { key: 'mine' as const, label: t('My Sessions'), icon: <BookOpen size={14} /> },
+            { key: 'leaderboard' as const, label: '🏆', icon: <Trophy size={14} /> },
+            { key: 'calendar' as const, label: '📅', icon: <Calendar size={14} /> },
           ].map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
               className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition flex-shrink-0 ${
@@ -826,6 +840,69 @@ const STATUS_COLORS: Record<string, string> = {
           ))}
         </div>
       )}
+
+
+
+      {/* Leaderboard Tab */}
+      {activeTab === 'leaderboard' && (
+        <div className="glass-card p-6 rounded-2xl">
+          <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Trophy size={20} className="text-yellow-500" /> {t('Top Tutors')}</h3>
+          <div className="space-y-3">
+            {tutors.slice(0, 10).map((t, i) => (
+              <div key={t.id || i} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:shadow transition">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-lg ${
+                  i === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500' :
+                  i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400' :
+                  i === 2 ? 'bg-gradient-to-br from-amber-600 to-orange-700' :
+                  'bg-blue-100 text-blue-600'
+                }`}>
+                  {i < 3 ? ['🥇','🥈','🥉'][i] : i + 1}
+                </div>
+                <div className="flex-1">
+                                    <p className="font-semibold text-sm">{t.user?.username || 'Tutor'}</p>
+                  <p className="text-xs text-gray-500">{t.subjects || 'Various'}</p>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center gap-1">{renderStars(t.rating || 4.5)}</div>
+                  <p className="text-xs text-gray-400">{t.total_sessions || 0} sessions</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Calendar Tab */}
+      {activeTab === 'calendar' && (
+        <div className="glass-card p-6 rounded-2xl">
+          <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Calendar size={20} className="text-blue-500" /> {t('Session Calendar')}</h3>
+          <div className="space-y-2">
+            {sessions.filter(s => s.scheduled_at || s.scheduled_at).sort((a, b) => 
+              new Date(a.scheduled_at || a.scheduled_at).getTime() - new Date(b.scheduled_at || b.scheduled_at).getTime()
+            ).map(s => (
+              <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:shadow transition">
+                <div className="w-12 h-12 rounded-xl bg-blue-100 dark:bg-blue-900/30 flex flex-col items-center justify-center text-blue-600 dark:text-blue-400 font-bold">
+                  <span className="text-xs">{new Date(s.scheduled_at || s.scheduled_at).toLocaleString('en', { month: 'short' })}</span>
+                  <span className="text-lg leading-none">{new Date(s.scheduled_at || s.scheduled_at).getDate()}</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-sm">{s.subject}</p>
+                  <p className="text-xs text-gray-500">{t('with')} @{s.tutor?.username || 'Tutor'} · {new Date(s.scheduled_at || s.scheduled_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+                <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                  s.status === 'ongoing' ? 'bg-green-100 text-green-700' :
+                  s.status === 'completed' ? 'bg-blue-100 text-blue-700' :
+                  'bg-yellow-100 text-yellow-700'
+                }`}>{s.status}</span>
+              </div>
+            ))}
+            {sessions.filter(s => s.scheduled_at).length === 0 && (
+              <p className="text-center text-gray-400 py-8">{t('No scheduled sessions')}</p>
+            )}
+          </div>
+        </div>
+      )}
+
 
       {/* Payment Modal */}
       {showPayment && (
