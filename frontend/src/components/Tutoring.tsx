@@ -303,7 +303,10 @@ const STATUS_COLORS: Record<string, string> = {
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(stream => {
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-        const wsUrl = `wss://sasl-api-657z.onrender.com/ws/video/${sessionId}/?token=${token}`;
+                const isLocal = window.location.hostname === 'localhost';
+        const wsUrl = isLocal
+          ? `ws://localhost:8000/ws/video/${sessionId}/?token=${token}`
+          : `wss://sasl-api-i34r.onrender.com/ws/video/${sessionId}/?token=${token}`;
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
         const rtc = new WebRTCConnection((msg) => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); });
