@@ -279,7 +279,7 @@ useEffect(() => {
   // Auto-start hybrid discovery (Wi-Fi Aware → BLE)
   useEffect(() => {
     if (!myUsername) return;
-        bluetoothService.startAdvertising(myUsername);
+     bluetoothService.initialize().then(() => {
     waveMeshDiscovery.startDiscovery((device) => {
       setPeers(prev => {
         if (prev.find(p => p.node_id === device.id)) return prev;
@@ -291,6 +291,7 @@ useEffect(() => {
           avatar_url: null
         }];
       });
+          });
     });
     return () => { try { waveMeshDiscovery.stopDiscovery(); } catch {} };
   }, [myUsername]);
@@ -617,12 +618,9 @@ const fetchRooms = useCallback(async () => {
     };
   }, []);
 
-  
   // ============================================================
   // ROOM ACTIONS
   // ============================================================
-
-  
   const openRoom = async (room: ChatRoom) => {
     setActiveRoom(room);
     localStorage.setItem('sasl_mesh_was_active', 'true');
