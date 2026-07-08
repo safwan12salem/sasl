@@ -885,7 +885,7 @@ const fetchRooms = useCallback(async () => {
   };
 
 
-   const generateP2PCode = () => {
+    const generateP2PCode = () => {
     setShowQRModal(true);
     setP2pCode('Generating...');
     offlineP2P.generateOfferCode(myUsername, myAvatar).then(code => {
@@ -896,35 +896,62 @@ const fetchRooms = useCallback(async () => {
     offlineP2P.setOnMessage((msg: any) => {
       setMessages(prev => [...prev, {
         id: `p2p_${Date.now()}`,
-        room: 'p2p', sender: { id: '', username: msg.sender || msg.from || 'Peer', avatar_url: null },
+        room: 'p2p-room', sender: { id: '', username: msg.sender || msg.from || 'Peer', avatar_url: null },
         message_type: 'text', content: msg.text || msg.content || '', reactions: {}, created_at: new Date().toISOString(),
       }]);
     });
-    offlineP2P.setOnConnected(() => { setP2pConnected(true); toast.success('🌊 P2P Connected!'); });
+    offlineP2P.setOnConnected(() => { 
+      setP2pConnected(true);
+      // Create room for P2P chat
+      const p2pRoom: ChatRoom = {
+        id: 'p2p-room', room_id: 'p2p-room', name: p2pPeerName || 'P2P Peer',
+        room_type: 'private', avatar_url: null, members: [], unread_count: 0,
+        last_message: '', last_message_at: new Date().toISOString(),
+        invite_code: null, other_user: { id: '', username: p2pPeerName || 'Peer', avatar_url: null }
+      };
+      setRooms(prev => [p2pRoom, ...prev]);
+      setActiveRoom(p2pRoom);
+      setMessages([]);
+      toast.success('🌊 P2P Connected!');
+    });
     offlineP2P.setOnPeerInfo((info) => {
-      // Update peer name when identity received
       setP2pPeerName(info.username);
     });
   };
-
-
   const acceptP2PCode = async () => {
     if (!p2pInput.trim()) return toast.error('Enter a code');
     try {
       await offlineP2P.connectFromScan(p2pInput.trim(), myUsername, myAvatar);
-      setP2pConnected(true); setP2pInput(''); setShowQRModal(true);
+      setP2pConnected(true); setP2pInput(''); setShowQRModal(false);
+      
+      // Create a P2P room for chat
+      const p2pRoom: ChatRoom = {
+        id: 'p2p-room',
+        room_id: 'p2p-room',
+        name: p2pPeerName || 'P2P Peer',
+        room_type: 'private',
+        avatar_url: null,
+        members: [],
+        unread_count: 0,
+        last_message: '',
+        last_message_at: new Date().toISOString(),
+        invite_code: null,
+        other_user: { id: '', username: p2pPeerName || 'Peer', avatar_url: null }
+      };
+      setRooms(prev => [p2pRoom, ...prev]);
+      setActiveRoom(p2pRoom);
+      setMessages([]);
+      
       toast.success('🌊 Connected via P2P!');
       offlineP2P.setOnMessage((msg: any) => {
         setMessages(prev => [...prev, {
           id: `p2p_${Date.now()}`,
-          room: 'p2p', sender: { id: '', username: msg.sender || msg.from || 'Peer', avatar_url: null },
+          room: 'p2p-room', sender: { id: '', username: msg.sender || msg.from || p2pPeerName || 'Peer', avatar_url: null },
           message_type: 'text', content: msg.text || msg.content || '', reactions: {}, created_at: new Date().toISOString(),
         }]);
       });
     } catch { toast.error('Invalid code'); }
   };
-
-
 
    const startQRScanner = async () => {
     // Use file input to open native camera (works on all Android versions)
@@ -961,17 +988,16 @@ const fetchRooms = useCallback(async () => {
     input.click();
   };
 
-
-  
   const sendP2PMessage = () => {
     if (!input.trim()) return;
-    if (offlineP2P.sendMessage({ text: input, sender: myUsername, timestamp: Date.now() })) {
+    if (offlineP2P.sendMessage({ text: input, sender: myUsername, from: myUsername, timestamp: Date.now() })) {
       setMessages(prev => [...prev, {
-        id: `p2p_${Date.now()}`, room: 'p2p',
+        id: `p2p_${Date.now()}`, room: 'p2p-room',
         sender: { id: user?.id || '', username: myUsername, avatar_url: myAvatar },
         message_type: 'text', content: input, reactions: {}, created_at: new Date().toISOString(),
       }]);
       setInput('');
+      scrollToBottom();
     } else { toast.error('Not connected'); }
   };
 
