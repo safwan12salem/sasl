@@ -132,6 +132,9 @@ export default function MeshChatHub() {
   const [p2pCode, setP2pCode] = useState('');
   const [p2pInput, setP2pInput] = useState('');
   const [p2pConnected, setP2pConnected] = useState(false);
+    const [p2pPeerName, setP2pPeerName] = useState('');
+      const [scanMode, setScanMode] = useState(false);
+  const scannerRef = useRef<any>(null);
   const [searchResults, setSearchResults] = useState<DiscoveredPeer[]>([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'rooms' | 'contacts' | 'requests' | 'connect'>('rooms');
@@ -882,41 +885,68 @@ const fetchRooms = useCallback(async () => {
   };
 
 
-  const generateP2PCode = () => {
+   const generateP2PCode = () => {
     setShowQRModal(true);
     setP2pCode('Generating...');
-    offlineP2P.generateOfferCode().then(code => {
+    offlineP2P.generateOfferCode(myUsername, myAvatar).then(code => {
       setP2pCode(code);
     }).catch(() => {
       setP2pCode('Failed. Try again.');
     });
-    offlineP2P.onMessage((msg: any) => {
+    offlineP2P.setOnMessage((msg: any) => {
       setMessages(prev => [...prev, {
         id: `p2p_${Date.now()}`,
-        room: 'p2p', sender: { id: '', username: msg.sender || 'Peer', avatar_url: null },
+        room: 'p2p', sender: { id: '', username: msg.sender || msg.from || 'Peer', avatar_url: null },
         message_type: 'text', content: msg.text || msg.content || '', reactions: {}, created_at: new Date().toISOString(),
       }]);
     });
-    offlineP2P.onConnected(() => { setP2pConnected(true); toast.success('🌊 P2P Connected!'); });
+    offlineP2P.setOnConnected(() => { setP2pConnected(true); toast.success('🌊 P2P Connected!'); });
+    offlineP2P.setOnPeerInfo((info) => {
+      // Update peer name when identity received
+      setP2pPeerName(info.username);
+    });
   };
-  
-
 
 
   const acceptP2PCode = async () => {
     if (!p2pInput.trim()) return toast.error('Enter a code');
     try {
-      await offlineP2P.acceptOfferCode(p2pInput.trim());
+      await offlineP2P.connectFromScan(p2pInput.trim(), myUsername, myAvatar);
       setP2pConnected(true); setP2pInput(''); setShowQRModal(true);
       toast.success('🌊 Connected via P2P!');
-      offlineP2P.onMessage((msg: any) => {
+      offlineP2P.setOnMessage((msg: any) => {
         setMessages(prev => [...prev, {
           id: `p2p_${Date.now()}`,
-          room: 'p2p', sender: { id: '', username: msg.sender || 'Peer', avatar_url: null },
+          room: 'p2p', sender: { id: '', username: msg.sender || msg.from || 'Peer', avatar_url: null },
           message_type: 'text', content: msg.text || msg.content || '', reactions: {}, created_at: new Date().toISOString(),
         }]);
       });
     } catch { toast.error('Invalid code'); }
+  };
+
+
+
+  const startQRScanner = async () => {
+    try {
+      const { Html5Qrcode } = await import('html5-qrcode');
+      const scanner = new Html5Qrcode('qr-reader');
+      scannerRef.current = scanner;
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 200, height: 200 } },
+        (decodedText: string) => {
+          setP2pInput(decodedText);
+          scanner.stop();
+          scannerRef.current = null;
+          setScanMode(false);
+          toast.success('QR scanned! Tap Connect.');
+        },
+        () => {}
+      );
+    } catch (err) {
+      console.log('Scanner error:', err);
+      toast.error('Camera access denied');
+    }
   };
 
   const sendP2PMessage = () => {
@@ -1445,39 +1475,73 @@ const fetchRooms = useCallback(async () => {
       
       {/* QR Code P2P Modal */}
       <AnimatePresence>
-        {showQRModal && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowQRModal(false)}>
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-              <h3 className="font-bold text-xl text-center mb-2">{t('🌊 Offline P2P Connect')}</h3>
-              <p className="text-sm text-gray-500 text-center mb-4">{t('No WiFi needed — scan this QR code or share the code below')}</p>
+               {showQRModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" 
+            onClick={() => { setShowQRModal(false); if (scannerRef.current) { scannerRef.current.stop(); scannerRef.current = null; } }}>
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} 
+              className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl max-h-[90vh] overflow-y-auto" 
+              onClick={e => e.stopPropagation()}>
+              <h3 className="font-bold text-xl text-center mb-2">🌊 {t('Offline P2P Connect')}</h3>
               
-              {p2pCode && (
-                <div className="flex justify-center mb-4">
-                  <div className="bg-white p-4 rounded-2xl shadow-inner">
-                    <QRCodeSVG value={p2pCode} size={200} level="M" />
-                  </div>
-                </div>
-              )}
-              
-              {p2pCode && (
-                <div className="flex items-center gap-2 mb-4">
-                  <code className="flex-1 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-xl text-xs break-all">{p2pCode.substring(0, 40)}...</code>
-                  <button onClick={() => { navigator.clipboard.writeText(p2pCode); toast.success('Code copied!'); }} className="p-2 bg-purple-500 text-white rounded-xl"><Copy size={14} /></button>
+              {/* Tabs */}
+              <div className="flex gap-2 mb-4">
+                <button onClick={() => setScanMode(false)} 
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold ${!scanMode ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                  {t('My Code')}
+                </button>
+                <button onClick={() => { setScanMode(true); startQRScanner(); }} 
+                  className={`flex-1 py-2 rounded-xl text-sm font-semibold ${scanMode ? 'bg-purple-500 text-white' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                  {t('Scan Code')}
+                </button>
+              </div>
+
+              {!scanMode ? (
+                <>
+                  {p2pCode && (
+                    <div className="flex justify-center mb-4">
+                      <div className="bg-white p-4 rounded-2xl shadow-inner">
+                        <QRCodeSVG value={p2pCode} size={200} level="M" />
+                      </div>
+                    </div>
+                  )}
+                  {p2pCode && (
+                    <div className="flex items-center gap-2 mb-4">
+                      <code className="flex-1 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-xl text-xs break-all select-all">{p2pCode.substring(0, 50)}...</code>
+                      <button onClick={() => { navigator.clipboard.writeText(p2pCode); toast.success('Copied!'); }} 
+                        className="p-2 bg-purple-500 text-white rounded-xl"><Copy size={14} /></button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="mb-4">
+                  <div id="qr-reader" className="w-full rounded-2xl overflow-hidden" style={{ minHeight: '250px' }} />
+                  <p className="text-xs text-gray-500 text-center mt-2">{t('Point camera at QR code')}</p>
                 </div>
               )}
 
               <div className="flex gap-2 mb-4">
-                <input value={p2pInput} onChange={e => setP2pInput(e.target.value)} placeholder={t('Or paste peer code here...')} className="flex-1 px-4 py-2.5 rounded-xl border text-sm" />
-                <button onClick={acceptP2PCode} className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold">{t('Connect')}</button>
+                <input value={p2pInput} onChange={e => setP2pInput(e.target.value)} 
+                  placeholder={t('Or paste code here...')} 
+                  className="flex-1 px-4 py-2.5 rounded-xl border text-sm dark:bg-gray-700 dark:border-gray-600" />
+                <button onClick={acceptP2PCode} 
+                  className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold">
+                  {t('Connect')}
+                </button>
               </div>
 
               {p2pConnected && (
-                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl text-center">
-                  <p className="text-sm text-green-600 dark:text-green-400 font-semibold">✅ {t('P2P Connected! Start chatting below.')}</p>
+                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl text-center mb-2">
+                  <p className="text-sm text-green-600 dark:text-green-400 font-semibold">
+                    ✅ {p2pPeerName ? t('Connected with') + ' @' + p2pPeerName : t('P2P Connected!')}
+                  </p>
                 </div>
               )}
 
-              <button onClick={() => setShowQRModal(false)} className="w-full mt-2 py-2.5 bg-gray-200 dark:bg-gray-700 rounded-xl font-semibold text-sm">{t('Close')}</button>
+              <button onClick={() => { setShowQRModal(false); if (scannerRef.current) { scannerRef.current.stop(); scannerRef.current = null; } }} 
+                className="w-full py-2.5 bg-gray-200 dark:bg-gray-700 rounded-xl font-semibold text-sm">
+                {t('Close')}
+              </button>
             </motion.div>
           </motion.div>
         )}

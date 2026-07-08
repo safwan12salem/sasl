@@ -27,6 +27,7 @@
     "ethers": "^5.8.0",
     "firebase": "^12.13.0",
     "framer-motion": "^10.18.0",
+    "html5-qrcode": "^2.3.8",
     "i18next": "^23.5.1",
     "i18next-browser-languagedetector": "^7.1.0",
     "i18next-http-backend": "^2.2.1",
