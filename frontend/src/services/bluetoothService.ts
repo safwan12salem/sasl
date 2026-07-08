@@ -30,8 +30,8 @@ class BluetoothService {
         { allowDuplicates: true },
         (result) => {
           if (result.device) {
-            const name = result.device?.name || result.localName || `Sasl_${result.device.deviceId.slice(-4)}`;
-            console.log('📱 Found:', name);
+            const name = result.device?.name || result.localName || `User_${result.device.deviceId.slice(-4)}`;
+            console.log('📱 BLE found:', name);
             callback({ id: result.device.deviceId, name: name });
           }
         }

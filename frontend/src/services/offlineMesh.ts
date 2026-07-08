@@ -87,7 +87,7 @@ class OfflineMeshService {
   /**
    * Connect to a discovered peer via WebRTC
    */
-  private async connectToPeer(peerId: string, peerName: string): Promise<void> {
+  public async connectToPeer(peerId: string, peerName: string): Promise<void> {
     if (this.peers.has(peerId)) return;
 
     const pc = new RTCPeerConnection({

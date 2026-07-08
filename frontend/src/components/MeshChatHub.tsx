@@ -472,10 +472,11 @@ const fetchRooms = useCallback(async () => {
     try {
       const btAvailable = await bluetoothService.initialize();
       if (btAvailable) {
-                   bluetoothService.startScan((device) => {
-          // Clean up the device name — remove "Sasl:" prefix
-          const rawName = device.name || '';
-          const displayName = rawName.replace('Sasl:', '').replace('Sasl_', 'User_') || `User_${device.id.slice(-4)}`;
+                         bluetoothService.startScan((device) => {
+          const displayName = `User_${device.id.slice(-4)}`;
+          
+          // Register BLE peer with offlineMesh for WebRTC connection
+          offlineMesh.connectToPeer(device.id, displayName);
           
           setPeers(prev => {
             if (prev.find(p => p.node_id === device.id)) return prev;
