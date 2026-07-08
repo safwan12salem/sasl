@@ -472,11 +472,15 @@ const fetchRooms = useCallback(async () => {
     try {
       const btAvailable = await bluetoothService.initialize();
       if (btAvailable) {
-        bluetoothService.startScan((device) => {
+                   bluetoothService.startScan((device) => {
+          // Clean up the device name — remove "Sasl:" prefix
+          const rawName = device.name || '';
+          const displayName = rawName.replace('Sasl:', '').replace('Sasl_', 'User_') || `User_${device.id.slice(-4)}`;
+          
           setPeers(prev => {
             if (prev.find(p => p.node_id === device.id)) return prev;
             return [...prev, {
-              username: device.name || 'Nearby User',
+              username: displayName,
               node_id: device.id, is_online: true,
               last_seen: new Date().toISOString(), avatar_url: null
             }];
@@ -802,24 +806,32 @@ const fetchRooms = useCallback(async () => {
 };
 
 
-
   const sendRequest = async (username: string) => {
     try {
       await api.post('/mesh/requests/', { username, message: '👋 Hi! Would you like to connect on WaveMesh?' });
       toast.success(`Request sent to @${username}`);
     } catch (err: any) {
-      // OFFLINE FALLBACK: Broadcast via mesh
-      offlineMesh.broadcast({
-        type: 'chat_request',
-        to: username,
-        from: myUsername,
-        message: '👋 Hi! Would you like to connect on WaveMesh?'
-      });
-      toast.success(`📡 Request broadcasted via mesh to @${username}`);
+      // OFFLINE: Send via global Echo mesh (works across devices)
+      try {
+        await globalMesh.sendMessage(username, {
+          type: 'chat_request',
+          to: username,
+          from: myUsername,
+          message: '👋 Hi! Would you like to connect on WaveMesh?'
+        });
+        toast.success(`📡 Request sent via WaveMesh to @${username}`);
+      } catch {
+        // Fallback to BroadcastChannel for same-device
+        offlineMesh.broadcast({
+          type: 'chat_request',
+          to: username,
+          from: myUsername,
+          message: '👋 Hi! Would you like to connect on WaveMesh?'
+        });
+        toast.success(`📡 Request broadcasted via mesh to @${username}`);
+      }
     }
   };
-
-
 
   const acceptRequest = async (requestId: string) => {
     try {
