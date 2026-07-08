@@ -926,29 +926,43 @@ const fetchRooms = useCallback(async () => {
 
 
 
-  const startQRScanner = async () => {
-    try {
-      const { Html5Qrcode } = await import('html5-qrcode');
-      const scanner = new Html5Qrcode('qr-reader');
-      scannerRef.current = scanner;
-      await scanner.start(
-        { facingMode: 'environment' },
-        { fps: 10, qrbox: { width: 200, height: 200 } },
-        (decodedText: string) => {
-          setP2pInput(decodedText);
-          scanner.stop();
-          scannerRef.current = null;
+   const startQRScanner = async () => {
+    // Use file input to open native camera (works on all Android versions)
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.capture = 'environment';
+    
+    input.onchange = async (e: any) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      
+      try {
+        const { Html5Qrcode } = await import('html5-qrcode');
+        const scanner = new Html5Qrcode('qr-reader-temp');
+        const imageUrl = URL.createObjectURL(file);
+        
+        try {
+          const result = await scanner.scanFile(imageUrl, true);
+          setP2pInput(result);
           setScanMode(false);
           toast.success('QR scanned! Tap Connect.');
-        },
-        () => {}
-      );
-    } catch (err) {
-      console.log('Scanner error:', err);
-      toast.error('Camera access denied');
-    }
+        } catch {
+          toast.error('No QR code found in image. Try again.');
+        } finally {
+          URL.revokeObjectURL(imageUrl);
+        }
+      } catch (err) {
+        console.log('Scanner error:', err);
+        toast.error('Failed to scan. Try pasting the code manually.');
+      }
+    };
+    
+    input.click();
   };
 
+
+  
   const sendP2PMessage = () => {
     if (!input.trim()) return;
     if (offlineP2P.sendMessage({ text: input, sender: myUsername, timestamp: Date.now() })) {
