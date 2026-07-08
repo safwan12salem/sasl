@@ -1,69 +1,81 @@
-/**
- * Sasl Bluetooth Service — Uses Capacitor Bluetooth LE plugin
- * for true offline device-to-device discovery and communication
- */
-import { BleClient, BleDevice } from '@capacitor-community/bluetooth-le';
+import { BleClient } from '@capacitor-community/bluetooth-le';
 
-const SASL_SERVICE_UUID = '0000sasl-0000-1000-8000-00805f9b34fb';
-const SASL_CHAR_UUID = '0000mesh-0000-1000-8000-00805f9b34fb';
+const SASL_SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
+const SASL_CHAR_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
 
 class BluetoothService {
   private initialized = false;
-  private devices: Map<string, BleDevice> = new Map();
-  private onDeviceFound: ((device: { id: string; name: string; rssi: number }) => void) | null = null;
+  private scanning = false;
+  private advertising = false;
+  private deviceId = '';
 
   async initialize(): Promise<boolean> {
     try {
       await BleClient.initialize();
       this.initialized = true;
-      console.log('🔵 Bluetooth LE initialized');
+      this.deviceId = `sasl_${Math.random().toString(36).substr(2, 9)}`;
+      console.log('🔵 Bluetooth LE ready');
       return true;
     } catch (err) {
-      console.log('Bluetooth not available:', err);
+      console.log('⚠️ Bluetooth not available:', err);
       return false;
     }
   }
 
-  async startScan(callback: (device: { id: string; name: string; rssi: number }) => void): Promise<void> {
+  async startAdvertising(username: string): Promise<void> {
     if (!this.initialized) await this.initialize();
-    this.onDeviceFound = callback;
+    if (this.advertising) return;
+    
+    try {
+      await BleClient.startAdvertising({
+        services: [SASL_SERVICE_UUID],
+        name: `Sasl:${username}`,
+        includeDeviceName: true,
+      });
+      this.advertising = true;
+      console.log('📡 Broadcasting as:', username);
+    } catch (err) {
+      console.log('⚠️ Advertising failed:', err);
+    }
+  }
+
+  async startScan(callback: (device: { id: string; name: string }) => void): Promise<void> {
+    if (!this.initialized) { const ok = await this.initialize(); if (!ok) return; }
+    if (this.scanning) return;
+    this.scanning = true;
 
     try {
       await BleClient.requestLEScan(
-        { services: [SASL_SERVICE_UUID], allowDuplicates: false },
+        { allowDuplicates: true },
         (result) => {
-          if (result.device?.name) {
-            callback({
-              id: result.device.deviceId,
-              name: result.device.name,
-              rssi: result.rssi || -100
-            });
+          if (result.device) {
+            const name = result.device?.name || result.localName || `Sasl_${result.device.deviceId.slice(-4)}`;
+            if (name.includes('Sasl:')) {
+              console.log('📱 Found:', name);
+              callback({ id: result.device.deviceId, name: name.replace('Sasl:', '') });
+            }
           }
         }
       );
-      console.log('🔍 Bluetooth scan started');
+      console.log('🔍 BLE scan active');
     } catch (err) {
-      console.log('Bluetooth scan failed:', err);
+      console.log('⚠️ BLE scan failed:', err);
+      this.scanning = false;
     }
   }
 
   async stopScan(): Promise<void> {
-    try {
-      await BleClient.stopLEScan();
-    } catch {}
+    try { await BleClient.stopLEScan(); } catch {}
+    this.scanning = false;
   }
 
-  async broadcastPresence(username: string): Promise<void> {
-    // Advertise Sasl presence via GATT server
-    try {
-      await BleClient.initialize();
-      // Advertising is limited in browsers but works in native Capacitor
-    } catch {}
+  async stopAdvertising(): Promise<void> {
+    try { await BleClient.stopAdvertising(); } catch {}
+    this.advertising = false;
   }
 
-  isAvailable(): boolean {
-    return this.initialized;
-  }
+  isAvailable(): boolean { return this.initialized; }
+  getDeviceId(): string { return this.deviceId; }
 }
 
 export const bluetoothService = new BluetoothService();

@@ -48,11 +48,27 @@ export default function NotificationBell() {
   });
 
   // Create audio element on mount
+   // Create audio + unlock on first user click
   useEffect(() => {
     audioRef.current = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2qEcP+1j2Oda1e1PmN9u1JbicN0sX9Ddq6K1f9wbJWwub6Y1/+wjrGIbYKBpOvrw5aDcf+zhmyNyctTdr6Kv+Jqfp7FxVhstrbzn5Bmf/+0fHCBmZ5hbLfG8W+NpJaopce6c42Yhmr/5n2dysjCWHe6wuJrlZ2Fq8ewiG6Bb7bx8YqU');
     audioRef.current.volume = 0.5;
+    
+    // Unlock audio on first user interaction
+    const unlockAudio = () => {
+      if (audioRef.current) {
+        audioRef.current.play().then(() => {
+          audioRef.current!.pause();
+          audioRef.current!.currentTime = 0;
+        }).catch(() => {});
+      }
+      document.removeEventListener('click', unlockAudio);
+      document.removeEventListener('touchstart', unlockAudio);
+    };
+    document.addEventListener('click', unlockAudio);
+    document.addEventListener('touchstart', unlockAudio);
   }, []);
 
+  
   const playNotificationSound = () => {
     if (!soundEnabled) return;
     // Try HTML5 Audio first
