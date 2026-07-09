@@ -227,29 +227,10 @@ export default function WaveMesh() {
   // ACTIONS
   // ============================================================
   
-   const generateQRCode = async () => {
-    setShowQRModal(true); setQrCode('Generating...');
-    
-    // Set listener for when peer connects to OUR QR code
-    waveMeshCore.setOnPeerConnected((data: any) => {
-      const newRoom: ChatRoom = {
-        id: data.peerId || `room_${Date.now()}`,
-        name: data.username || 'Peer',
-        avatar: data.avatar || null,
-        lastMessage: 'Connected!',
-        lastMessageTime: new Date().toISOString(),
-        unread: 0,
-        peerId: data.peerId || `peer_${Date.now()}`,
-      };
-      setRooms(prev => prev.find(r => r.id === newRoom.id) ? prev : [newRoom, ...prev]);
-      setActiveRoom(newRoom);
-      setShowSidebar(false);
-      setTab('rooms');
-      setMessages([]);
-      setShowQRModal(false);
-      toast.success(`🌊 Connected with ${data.username || 'Peer'}!`);
-    });
-    
+  const generateQRCode = async () => {
+    setShowQRModal(true); setQrCode("Generating...");
+    try { setQrCode(await waveMeshCore.generateConnectionCode()); } catch { setQrCode("Failed"); }
+  };
     try { setQrCode(await waveMeshCore.generateConnectionCode()); } catch { setQrCode('Failed'); }
   };
 
