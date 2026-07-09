@@ -885,73 +885,92 @@ const fetchRooms = useCallback(async () => {
   };
 
 
-    const generateP2PCode = () => {
+
+
+  const generateP2PCode = () => {
     setShowQRModal(true);
     setP2pCode('Generating...');
-    offlineP2P.generateOfferCode(myUsername, myAvatar).then(code => {
-      setP2pCode(code);
-    }).catch(() => {
-      setP2pCode('Failed. Try again.');
-    });
+    
+    // SET CALLBACKS FIRST — before connection
     offlineP2P.setOnMessage((msg: any) => {
       setMessages(prev => [...prev, {
         id: `p2p_${Date.now()}`,
-        room: 'p2p-room', sender: { id: '', username: msg.sender || msg.from || 'Peer', avatar_url: null },
+        room: 'p2p-room', sender: { id: '', username: msg.sender || msg.from || p2pPeerName || 'Peer', avatar_url: null },
         message_type: 'text', content: msg.text || msg.content || '', reactions: {}, created_at: new Date().toISOString(),
       }]);
+      scrollToBottom();
     });
+    
     offlineP2P.setOnConnected(() => { 
       setP2pConnected(true);
-      // Create room for P2P chat
       const p2pRoom: ChatRoom = {
         id: 'p2p-room', room_id: 'p2p-room', name: p2pPeerName || 'P2P Peer',
         room_type: 'private', avatar_url: null, members: [], unread_count: 0,
         last_message: '', last_message_at: new Date().toISOString(),
         invite_code: null, other_user: { id: '', username: p2pPeerName || 'Peer', avatar_url: null }
       };
-      setRooms(prev => [p2pRoom, ...prev]);
+      setRooms(prev => { if (prev.find(r => r.id === 'p2p-room')) return prev; return [p2pRoom, ...prev]; });
       setActiveRoom(p2pRoom);
       setMessages([]);
       toast.success('🌊 P2P Connected!');
     });
+    
     offlineP2P.setOnPeerInfo((info) => {
       setP2pPeerName(info.username);
+      // Update room name when peer identity received
+      setRooms(prev => prev.map(r => r.id === 'p2p-room' ? { ...r, name: info.username, other_user: { id: '', username: info.username, avatar_url: info.avatar } } : r));
+    });
+    
+    // THEN generate the offer code
+    offlineP2P.generateOfferCode(myUsername, myAvatar).then(code => {
+      setP2pCode(code);
+    }).catch(() => {
+      setP2pCode('Failed. Try again.');
     });
   };
+
+
+
+
   const acceptP2PCode = async () => {
     if (!p2pInput.trim()) return toast.error('Enter a code');
+    
+    // SET CALLBACKS FIRST
+    offlineP2P.setOnMessage((msg: any) => {
+      setMessages(prev => [...prev, {
+        id: `p2p_${Date.now()}`,
+        room: 'p2p-room', sender: { id: '', username: msg.sender || msg.from || p2pPeerName || 'Peer', avatar_url: null },
+        message_type: 'text', content: msg.text || msg.content || '', reactions: {}, created_at: new Date().toISOString(),
+      }]);
+      scrollToBottom();
+    });
+    
+    offlineP2P.setOnConnected(() => {
+      setP2pConnected(true);
+      const p2pRoom: ChatRoom = {
+        id: 'p2p-room', room_id: 'p2p-room', name: p2pPeerName || 'P2P Peer',
+        room_type: 'private', avatar_url: null, members: [], unread_count: 0,
+        last_message: '', last_message_at: new Date().toISOString(),
+        invite_code: null, other_user: { id: '', username: p2pPeerName || 'Peer', avatar_url: null }
+      };
+      setRooms(prev => { if (prev.find(r => r.id === 'p2p-room')) return prev; return [p2pRoom, ...prev]; });
+      setActiveRoom(p2pRoom);
+      setMessages([]);
+      toast.success('🌊 Connected via P2P!');
+    });
+    
+    offlineP2P.setOnPeerInfo((info) => {
+      setP2pPeerName(info.username);
+      setRooms(prev => prev.map(r => r.id === 'p2p-room' ? { ...r, name: info.username, other_user: { id: '', username: info.username, avatar_url: info.avatar } } : r));
+    });
+    
+    // THEN connect
     try {
       await offlineP2P.connectFromScan(p2pInput.trim(), myUsername, myAvatar);
       setP2pConnected(true); setP2pInput(''); setShowQRModal(false);
-      
-      // Create a P2P room for chat
-      const p2pRoom: ChatRoom = {
-        id: 'p2p-room',
-        room_id: 'p2p-room',
-        name: p2pPeerName || 'P2P Peer',
-        room_type: 'private',
-        avatar_url: null,
-        members: [],
-        unread_count: 0,
-        last_message: '',
-        last_message_at: new Date().toISOString(),
-        invite_code: null,
-        other_user: { id: '', username: p2pPeerName || 'Peer', avatar_url: null }
-      };
-      setRooms(prev => [p2pRoom, ...prev]);
-      setActiveRoom(p2pRoom);
-      setMessages([]);
-      
-      toast.success('🌊 Connected via P2P!');
-      offlineP2P.setOnMessage((msg: any) => {
-        setMessages(prev => [...prev, {
-          id: `p2p_${Date.now()}`,
-          room: 'p2p-room', sender: { id: '', username: msg.sender || msg.from || p2pPeerName || 'Peer', avatar_url: null },
-          message_type: 'text', content: msg.text || msg.content || '', reactions: {}, created_at: new Date().toISOString(),
-        }]);
-      });
     } catch { toast.error('Invalid code'); }
   };
+
 
    const startQRScanner = async () => {
     // Use file input to open native camera (works on all Android versions)
