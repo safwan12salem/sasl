@@ -36,7 +36,7 @@ import SaslAIHub from './components/SaslAIHub';
 import AdvertisePage from './components/AdvertisePage';
 import { globalMesh } from './services/globalMesh';
 import ReferralModal from './components/ReferralModal';
-import MeshChatHub from './components/MeshChatHub';
+import WaveMesh from './components/WaveMesh';
 import ChatDashboard from './components/ChatDashboard';
 import TermsOfService from './components/TermsOfService';
 import PrivacyPolicy from './components/PrivacyPolicy';
@@ -136,7 +136,7 @@ function AppContent() {
           <Route path="/snap" element={<PrivateRoute><SnapSender /></PrivateRoute>} />
           <Route path="/progress" element={<PrivateRoute><ProgressHub /></PrivateRoute>} />
           <Route path="/gigs" element={<PrivateRoute><GigCentral /></PrivateRoute>} />
-           <Route path="/meshchat" element={<PrivateRoute><MeshChatHub /></PrivateRoute>} />
+           <Route path="/meshchat" element={<PrivateRoute><WaveMesh /></PrivateRoute>} />
           <Route path="/earnings" element={<PrivateRoute><EarningsDashboard /></PrivateRoute>} />
           <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
           <Route path="/chat-dashboard" element={<PrivateRoute><ChatDashboard /></PrivateRoute>} />
