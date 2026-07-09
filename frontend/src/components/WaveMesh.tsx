@@ -227,13 +227,13 @@ export default function WaveMesh() {
   // ACTIONS
   // ============================================================
   
-  const generateQRCode = async () => {
-    setShowQRModal(true); setQrCode("Generating...");
-    try { setQrCode(await waveMeshCore.generateConnectionCode()); } catch { setQrCode("Failed"); }
-  };
+   
+
+
+    const generateQRCode = async () => {
+    setShowQRModal(true); setQrCode('Generating...');
     try { setQrCode(await waveMeshCore.generateConnectionCode()); } catch { setQrCode('Failed'); }
   };
-
 
 
 
