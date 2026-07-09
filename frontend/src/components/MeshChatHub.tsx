@@ -886,12 +886,10 @@ const fetchRooms = useCallback(async () => {
 
 
 
-
   const generateP2PCode = () => {
     setShowQRModal(true);
     setP2pCode('Generating...');
     
-    // SET CALLBACKS FIRST — before connection
     offlineP2P.setOnMessage((msg: any) => {
       setMessages(prev => [...prev, {
         id: `p2p_${Date.now()}`,
@@ -912,16 +910,16 @@ const fetchRooms = useCallback(async () => {
       setRooms(prev => { if (prev.find(r => r.id === 'p2p-room')) return prev; return [p2pRoom, ...prev]; });
       setActiveRoom(p2pRoom);
       setMessages([]);
+      setShowMobileSidebar(false);
+      setTab('rooms');
       toast.success('🌊 P2P Connected!');
     });
     
     offlineP2P.setOnPeerInfo((info) => {
       setP2pPeerName(info.username);
-      // Update room name when peer identity received
       setRooms(prev => prev.map(r => r.id === 'p2p-room' ? { ...r, name: info.username, other_user: { id: '', username: info.username, avatar_url: info.avatar } } : r));
     });
     
-    // THEN generate the offer code
     offlineP2P.generateOfferCode(myUsername, myAvatar).then(code => {
       setP2pCode(code);
     }).catch(() => {
@@ -930,12 +928,9 @@ const fetchRooms = useCallback(async () => {
   };
 
 
-
-
-  const acceptP2PCode = async () => {
+      const acceptP2PCode = async () => {
     if (!p2pInput.trim()) return toast.error('Enter a code');
     
-    // SET CALLBACKS FIRST
     offlineP2P.setOnMessage((msg: any) => {
       setMessages(prev => [...prev, {
         id: `p2p_${Date.now()}`,
@@ -956,6 +951,8 @@ const fetchRooms = useCallback(async () => {
       setRooms(prev => { if (prev.find(r => r.id === 'p2p-room')) return prev; return [p2pRoom, ...prev]; });
       setActiveRoom(p2pRoom);
       setMessages([]);
+      setShowMobileSidebar(false);
+      setTab('rooms');
       toast.success('🌊 Connected via P2P!');
     });
     
@@ -964,7 +961,6 @@ const fetchRooms = useCallback(async () => {
       setRooms(prev => prev.map(r => r.id === 'p2p-room' ? { ...r, name: info.username, other_user: { id: '', username: info.username, avatar_url: info.avatar } } : r));
     });
     
-    // THEN connect
     try {
       await offlineP2P.connectFromScan(p2pInput.trim(), myUsername, myAvatar);
       setP2pConnected(true); setP2pInput(''); setShowQRModal(false);
