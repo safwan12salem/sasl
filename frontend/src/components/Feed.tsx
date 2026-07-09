@@ -23,7 +23,6 @@ import NativeAd from './NativeAd';
 import { saslBrain } from '../services/saslBrain';
 import EmojiPicker from 'emoji-picker-react';
 import { contentModerator } from '../services/contentModeration';
-import { getMeshNode } from './OfflineMeshStatus';
 import { useTranslation } from 'react-i18next';
 
 // ---------- TYPES ----------
@@ -347,8 +346,6 @@ const Feed: React.FC = () => {
     const updatedQueue = [...offlineQueue, { text: composing, timestamp: Date.now() }].slice(0, MAX_OFFLINE_POSTS);
     setOfflineQueue(updatedQueue);
     localStorage.setItem('sasl_offline_posts', JSON.stringify(updatedQueue));
-    const mesh = getMeshNode();
-    if (mesh) mesh.sendPostViaMesh({ text: composing, author: user?.username, timestamp: Date.now() });
     setPosts(prev => [{
       id: `offline-${Date.now()}`, author: { username: user?.username || 'You' },
       text: composing, media_url: filePreview, media_type: selectedFile?.type?.startsWith('video/') ? 'video' : 'image', likes_count: 0, comments_count: 0,

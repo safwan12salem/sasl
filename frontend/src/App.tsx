@@ -28,7 +28,7 @@ import LiveAudio from './components/LiveAudio';
 import GroupChat from './components/GroupChat';
 import Events from './components/Events';
 import QRProfile from './components/QRProfile';
-import OfflineMeshStatus from './components/OfflineMeshStatus';
+
 import OfflineIndicator from './components/OfflineIndicator';
 import SyncProgress from './components/SyncProgress';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -115,7 +115,6 @@ function AppContent() {
       <OfflineIndicator />
       <SyncProgress />
       <InstallPrompt />
-      <OfflineMeshStatus />
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
         <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />

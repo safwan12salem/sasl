@@ -17,7 +17,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TutoringChat from './TutoringChat';
-import WebRTCPrivateChat from './WebRTCPrivateChat';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 

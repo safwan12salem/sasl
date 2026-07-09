@@ -14,7 +14,6 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import WebRTCPrivateChat from './WebRTCPrivateChat';
 import MarketplaceChat from './MarketplaceChat';
 import GigChat from './GigChat';
 import TutoringChat from './TutoringChat';
@@ -232,13 +231,8 @@ export default function ChatDashboard() {
     if (activeChat.roomId.startsWith('tutoring-')) {
       return <TutoringChat roomId={activeChat.roomId.replace('tutoring-', '')} onClose={() => setActiveChat(null)} />;
     }
-    return (
-      <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50">
-        <WebRTCPrivateChat roomId={activeChat.roomId} onClose={() => setActiveChat(null)} />
-      </div>
-    );
-  }
-
+        return null;
+  } 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
