@@ -339,7 +339,7 @@ class WaveMeshCore {
         // Regular message
         this.onMessageReceived?.({
           id: msg.id || `msg_${Date.now()}`,
-          from: msg.from || peer?.username || 'Peer',
+          from: msg.from || this.peers.get(peerId)?.username || "Peer",
           text: msg.text || msg.content || '',
           type: msg.type || 'text',
           timestamp: msg.timestamp || Date.now(),

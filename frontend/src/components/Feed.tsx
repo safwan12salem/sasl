@@ -352,7 +352,7 @@ const Feed: React.FC = () => {
       shares_count: 0, liked_by_me: false, created_at: new Date().toISOString(),
     }, ...prev]);
     resetComposer();
-    toast.success(mesh ? t('posted_via_wavemesh') : t('queued_sync_online'));
+    toast.success(t("queued_sync_online"));
   };
 
   const syncOfflineQueue = async () => {
