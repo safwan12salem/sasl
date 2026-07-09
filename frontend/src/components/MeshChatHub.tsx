@@ -979,31 +979,27 @@ const fetchRooms = useCallback(async () => {
     input.accept = 'image/*';
     input.capture = 'environment';
     
-    input.onchange = async (e: any) => {
+        input.onchange = async (e: any) => {
       const file = e.target.files?.[0];
       if (!file) return;
       
       try {
         const { Html5Qrcode } = await import('html5-qrcode');
         const scanner = new Html5Qrcode('qr-reader-temp');
-        const imageUrl = URL.createObjectURL(file);
         
         try {
-          const result = await scanner.scanFile(imageUrl, true);
+          const result = await scanner.scanFile(file, true);
           setP2pInput(result);
           setScanMode(false);
           toast.success('QR scanned! Tap Connect.');
         } catch {
-          toast.error('No QR code found in image. Try again.');
-        } finally {
-          URL.revokeObjectURL(imageUrl);
+          toast.error('No QR code found. Try again or paste the code.');
         }
       } catch (err) {
         console.log('Scanner error:', err);
-        toast.error('Failed to scan. Try pasting the code manually.');
+        toast.error('Failed to scan. Paste the code manually.');
       }
     };
-    
     input.click();
   };
 
