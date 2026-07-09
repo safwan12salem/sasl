@@ -33,7 +33,7 @@ export interface MeshPeer {
   lastSeen: number;
   signalStrength: number;
   connectionType: 'ble' | 'wifi-aware' | 'webrtc' | 'lora' | 'echo';
-  distance: number; // estimated meters
+  distance: number;
 }
 
 export interface MeshMessage {
@@ -95,11 +95,7 @@ class WaveMeshCore {
   // INITIALIZATION
   // ============================================================
   
-  /**
-   * Start the WaveMesh engine with user identity
-   */
   async start(username: string, avatar: string | null): Promise<void> {
-    // Generate identity
     this.identity = {
       id: `mesh_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       username,
@@ -107,20 +103,13 @@ class WaveMeshCore {
       publicKey: await this.generatePublicKey(),
     };
     
-    // Store in localStorage for persistence
     localStorage.setItem('sasl_mesh_identity', JSON.stringify(this.identity));
     
-    // Open IndexedDB for offline queue
     await this.openDatabase();
-    
-    // Start BroadcastChannel for same-device browser tabs
     this.startBroadcastChannel();
-    
-    // Load queued messages
     await this.loadMessageQueue();
     this.processQueue();
     
-    // Initialize hardware (BLE, Wi-Fi Aware, LoRa)
     this.initBLE();
     this.initWifiAware();
     this.initLoRa();
@@ -128,9 +117,6 @@ class WaveMeshCore {
     console.log(`🌊 WaveMesh Core started: @${username} (${this.identity.id})`);
   }
   
-  /**
-   * Stop the engine
-   */
   stop(): void {
     this.channels.forEach(ch => ch.close());
     this.connections.forEach(pc => pc.close());
@@ -172,49 +158,48 @@ class WaveMeshCore {
   // QR CODE WEBRTC (PHONE-TO-PHONE, NO INTERNET)
   // ============================================================
   
-  /**
-   * Phone A: Generate a connection code for QR display
-   * Contains WebRTC offer + identity
-   */
   async generateConnectionCode(): Promise<string> {
-    if (!this.identity) throw new Error('Not started');
+    if (!this.identity) throw new Error("Not started");
     
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
     
-    const channel = pc.createDataChannel('sasl-chat', { ordered: true });
     const tempId = `qr_${Date.now()}`;
     this.connections.set(tempId, pc);
+    
+    const channel = pc.createDataChannel("sasl-chat", { ordered: true });
     this.channels.set(tempId, channel);
     this.setupDataChannel(channel, tempId);
+    
+    pc.oniceconnectionstatechange = () => {
+      if (pc.iceConnectionState === "connected" || pc.iceConnectionState === "completed") {
+        if (channel.readyState !== "open") {
+          const newChannel = pc.createDataChannel("sasl-chat", { ordered: true });
+          this.channels.set(tempId, newChannel);
+          this.setupDataChannel(newChannel, tempId);
+        }
+      }
+    };
     
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     
-    // Wait for ICE candidates to gather
     await new Promise<void>(resolve => {
-      if (pc.iceGatheringState === 'complete') resolve();
+      if (pc.iceGatheringState === "complete") resolve();
       pc.onicegatheringstatechange = () => {
-        if (pc.iceGatheringState === 'complete') resolve();
+        if (pc.iceGatheringState === "complete") resolve();
       };
     });
     
     const payload = JSON.stringify({
-      v: 2,
-      type: 'sasl_connect',
-      id: this.identity.id,
-      username: this.identity.username,
-      avatar: this.identity.avatar,
+      v: 2, type: "sasl_connect",
+      id: this.identity.id, username: this.identity.username, avatar: this.identity.avatar,
       offer: pc.localDescription,
     });
-    
     return payload;
   }
   
-  /**
-   * Phone B: Connect using the code from Phone A's QR
-   */
   async connectFromCode(code: string): Promise<{ success: boolean; username?: string; avatar?: string | null; peerId?: string }> {
     if (!this.identity) throw new Error('Not started');
     
@@ -226,14 +211,12 @@ class WaveMeshCore {
       
       const peerId = data.id || `peer_${Date.now()}`;
       
-      // Create WebRTC connection
       const pc = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
       });
       
       this.connections.set(peerId, pc);
       
-      // Phone A creates the data channel, Phone B receives it
       pc.ondatachannel = (event) => {
         const channel = event.channel;
         this.channels.set(peerId, channel);
@@ -244,7 +227,6 @@ class WaveMeshCore {
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
       
-      // Add peer
       const peer: MeshPeer = {
         id: peerId,
         username: data.username || 'Peer',
@@ -270,6 +252,34 @@ class WaveMeshCore {
   }
   
   // ============================================================
+  // BIDIRECTIONAL NOTIFICATION
+  // ============================================================
+  
+  notifyPeerConnected(peerId: string, data: { username: string; avatar: string | null; peerId: string }): void {
+    // Send via BroadcastChannel for same-device tabs
+    this.broadcastChannel?.postMessage({
+      type: 'peer_connected',
+      peerId: data.peerId,
+      username: data.username,
+      avatar: data.avatar,
+    });
+    
+    // Also send via WebRTC data channel if connected
+    const channel = this.channels.get(peerId);
+    if (channel && channel.readyState === 'open') {
+      channel.send(JSON.stringify({
+        type: 'peer_connected',
+        peerId: data.peerId,
+        username: data.username,
+        avatar: data.avatar,
+      }));
+    }
+    
+    // Trigger local callback
+    this.onPeerConnected?.({ peerId: data.peerId, username: data.username, avatar: data.avatar });
+  }
+  
+  // ============================================================
   // DATA CHANNEL SETUP
   // ============================================================
   
@@ -277,7 +287,6 @@ class WaveMeshCore {
     channel.onopen = () => {
       console.log(`📡 Data channel open: ${peerId}`);
       
-      // Send identity
       if (this.identity) {
         channel.send(JSON.stringify({
           type: 'identity',
@@ -287,7 +296,6 @@ class WaveMeshCore {
         }));
       }
       
-      // Update peer
       const peer = this.peers.get(peerId);
       if (peer) {
         peer.connected = true;
@@ -302,7 +310,6 @@ class WaveMeshCore {
       try {
         const msg = JSON.parse(event.data);
         
-        // Handle identity exchange
         if (msg.type === 'identity') {
           const peer = this.peers.get(peerId);
           if (peer) {
@@ -325,18 +332,21 @@ class WaveMeshCore {
           return;
         }
         
-        // Handle request/accept/decline
+        if (msg.type === 'peer_connected') {
+          this.onPeerConnected?.({ peerId: msg.peerId, username: msg.username, avatar: msg.avatar });
+          this.onRoomCreated?.({ peerId: msg.peerId, username: msg.username, avatar: msg.avatar });
+          return;
+        }
+        
         if (msg.type === 'request') {
           this.onRequestReceived?.({ from: msg.from, peerId, message: msg.message });
           return;
         }
         
-        // Relay messages
         if (msg.ttl && msg.ttl > 0 && msg.to !== this.identity?.id) {
           this.relayMessage({ ...msg, ttl: msg.ttl - 1, hopCount: (msg.hopCount || 0) + 1 }, peerId);
         }
         
-        // Regular message
         this.onMessageReceived?.({
           id: msg.id || `msg_${Date.now()}`,
           from: msg.from || this.peers.get(peerId)?.username || "Peer",
@@ -347,7 +357,6 @@ class WaveMeshCore {
           fileName: msg.fileName,
         });
       } catch {
-        // Plain text
         this.onMessageReceived?.({
           id: `msg_${Date.now()}`,
           from: 'Peer',
@@ -370,9 +379,6 @@ class WaveMeshCore {
   // MESSAGING
   // ============================================================
   
-  /**
-   * Send a message to all connected peers
-   */
   sendMessage(text: string): void {
     this.channels.forEach((channel, peerId) => {
       if (channel.readyState === 'open') {
@@ -389,9 +395,6 @@ class WaveMeshCore {
     });
   }
   
-  /**
-   * Send a connection request to a BLE-discovered device
-   */
   sendRequest(peerId: string): void {
     this.broadcastChannel?.postMessage({
       type: 'request',
@@ -401,11 +404,7 @@ class WaveMeshCore {
     });
   }
   
-  /**
-   * Accept a connection request
-   */
   async acceptRequest(fromPeerId: string): Promise<void> {
-    // Create WebRTC connection
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
     });
@@ -425,7 +424,6 @@ class WaveMeshCore {
       };
     });
     
-    // Send acceptance via BroadcastChannel
     this.broadcastChannel?.postMessage({
       type: 'accept',
       from: this.identity?.username || 'Me',
@@ -471,7 +469,7 @@ class WaveMeshCore {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
       await BleClient.requestLEScan(
         { allowDuplicates: true },
-        (result) => {
+        (result: any) => {
           if (result.device) {
             const name = result.device?.name || result.localName || `User_${result.device.deviceId.slice(-4)}`;
             this.onPeerDiscovered?.({
@@ -511,8 +509,7 @@ class WaveMeshCore {
   
   private async initWifiAware(): Promise<void> {
     try {
-      // @ts-ignore
-      if (window.Capacitor?.getPlatform() === 'android') {
+      if ((window as any).Capacitor?.getPlatform() === 'android') {
         this.wifiAwareReady = true;
         console.log('📡 Wi-Fi Aware ready (1000m range)');
       }
@@ -527,8 +524,7 @@ class WaveMeshCore {
   
   private async initLoRa(): Promise<void> {
     try {
-      // @ts-ignore
-      const port = await navigator.serial?.requestPort();
+      const port = await (navigator as any).serial?.requestPort();
       if (port) {
         this.loraReady = true;
         console.log('📻 LoRa radio ready (50km range)');
@@ -568,11 +564,15 @@ class WaveMeshCore {
       if (data.type === 'accept' && data.offer) {
         this.handleAcceptance(data.peerId, data.offer);
       }
+      
+      if (data.type === 'peer_connected') {
+        this.onPeerConnected?.({ peerId: data.peerId, username: data.username, avatar: data.avatar });
+        this.onRoomCreated?.({ peerId: data.peerId, username: data.username, avatar: data.avatar });
+      }
     };
     
-    // Announce presence
     if (this.identity) {
-      setInterval(() => {
+      window.setInterval(() => {
         this.broadcastChannel?.postMessage({
           type: 'announce',
           id: this.identity!.id,
@@ -634,14 +634,14 @@ class WaveMeshCore {
   }
   
   private processQueue(): void {
-    setInterval(() => {
-      this.messageQueue = this.messageQueue.filter(msg => {
-        if (Date.now() - msg.timestamp > 86400000) return false; // Expire after 24h
+    window.setInterval(() => {
+      this.messageQueue = this.messageQueue.filter((msg: MeshMessage) => {
+        if (Date.now() - msg.timestamp > 86400000) return false;
         if (this.channels.size > 0) {
           this.sendMessage(msg.text);
-          return false; // Delivered
+          return false;
         }
-        return true; // Keep in queue
+        return true;
       });
     }, 10000);
   }
@@ -655,7 +655,7 @@ class WaveMeshCore {
   }
   
   getConnectedPeers(): MeshPeer[] {
-    return Array.from(this.peers.values()).filter(p => p.connected);
+    return Array.from(this.peers.values()).filter((p: MeshPeer) => p.connected);
   }
   
   isBLEAvailable(): boolean { return this.bleReady; }
