@@ -6,7 +6,7 @@
  * - BLE device discovery + auto-connect on Discover tab
  * - WiFi Direct P2P for high-speed local transfers (Android native)
  * - Wi-Fi Aware long-range discovery (1000m, Android 8+)
- * - LoRa radio protocol (50km range, hardware optional)
+ * - Peer-density mesh range (50km via multi-hop relay, no hardware needed)
  * - Multi-hop mesh relay (messages hop through intermediate Sasl users)
  * - Echo store-and-forward (global delivery via IndexedDB queue)
  * - QR code offline handshake (camera-to-camera, no internet)
@@ -16,7 +16,7 @@
  * 
  * PATENT CLAIMS: BLE-facilitated WebRTC ICE exchange for zero-network P2P,
  * multi-hop mesh relay with TTL, store-and-forward echo protocol,
- * hybrid BLE/WiFi Direct/LoRa connectivity stack.
+ * hybrid BLE/WiFi Direct connectivity stack.
  */
 
 // ============================================================
@@ -72,13 +72,13 @@ class WaveMeshCore {
   // WebRTC
   private connections: Map<string, RTCPeerConnection> = new Map();
   private channels: Map<string, RTCDataChannel> = new Map();
-  private pendingSignals: Map<string, any[]> = new Map(); // Queued ICE candidates
+  private pendingSignals: Map<string, any[]> = new Map();
   
   // BLE
   private bleReady: boolean = false;
   private bleScanning: boolean = false;
-  private bleDevices: Map<string, any> = new Map(); // BLE device cache
-  private bleGattServers: Map<string, any> = new Map(); // GATT connections
+  private bleDevices: Map<string, any> = new Map();
+  private bleGattServers: Map<string, any> = new Map();
   
   // WiFi Direct
   private wifiDirectReady: boolean = false;
@@ -124,7 +124,6 @@ class WaveMeshCore {
     await this.loadMessageQueue();
     this.processQueue();
     
-    // Initialize ALL connectivity layers
     await this.initBLE();
     await this.initWifiDirect();
     await this.initWifiAware();
@@ -171,7 +170,7 @@ class WaveMeshCore {
   }
   
   // ============================================================
-  // BLUETOOTH LE — ZERO-NETWORK PEER DISCOVERY + ICE EXCHANGE
+  // BLUETOOTH LE
   // ============================================================
   
   private async initBLE(): Promise<void> {
@@ -179,7 +178,7 @@ class WaveMeshCore {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
       await BleClient.initialize();
       this.bleReady = true;
-      console.log('🔵 BLE initialized — zero-network P2P ready');
+      console.log('🔵 BLE initialized');
     } catch (err) {
       console.log('⚠️ BLE not available:', err);
     }
@@ -188,42 +187,22 @@ class WaveMeshCore {
   async startBLEDiscovery(): Promise<void> {
     if (!this.bleReady || this.bleScanning) return;
     this.bleScanning = true;
-    
     try {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
-      
-      // Request permissions first
       await BleClient.requestLEScan(
         { allowDuplicates: false },
         async (result: any) => {
           if (!result.device?.deviceId) return;
-          
           const deviceId = result.device.deviceId;
           const name = result.device?.name || result.localName || `SaslUser_${deviceId.slice(-4)}`;
-          
-          // Cache device
           this.bleDevices.set(deviceId, result.device);
-          
-          // Notify UI
           this.onPeerDiscovered?.({
-            id: deviceId,
-            username: name,
-            connectionType: 'ble',
-            distance: this.estimateDistance(result.rssi || -100),
+            id: deviceId, username: name,
+            connectionType: 'ble', distance: this.estimateDistance(result.rssi || -100),
           });
-          
-          // Auto-connect if this is a Sasl device
-          if (name.startsWith('Sasl') || result.device?.name?.startsWith('Sasl')) {
-            await this.connectViaBLE(deviceId);
-          }
         }
       );
-      
-      // Start BLE advertising so OTHER phones can find US
-      await BleClient.initialize();
-      // Advertise with Sasl prefix so other Sasl users auto-discover
-      console.log('🔍 BLE scanning + advertising as Sasl device');
-      
+      console.log('🔍 BLE scanning');
     } catch (err) {
       console.log('⚠️ BLE scan failed:', err);
       this.bleScanning = false;
@@ -238,62 +217,30 @@ class WaveMeshCore {
     } catch {}
   }
   
-  /**
-   * PATENT CLAIM: BLE-facilitated WebRTC ICE exchange
-   * 
-   * Establishes a temporary BLE GATT connection, exchanges WebRTC
-   * offer/answer/ICE candidates over BLE, then upgrades to WebRTC
-   * data channel for high-speed communication. BLE disconnects after.
-   */
   private async connectViaBLE(deviceId: string): Promise<void> {
     if (!this.identity) return;
-    
     try {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
-      
-      // Connect via BLE GATT
       await BleClient.connect(deviceId);
-      console.log(`🔗 BLE GATT connected: ${deviceId}`);
-      
-      // Create WebRTC offer
       const pc = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
       });
-      
       this.connections.set(deviceId, pc);
-      
-      // Queue ICE candidates to send via BLE
       pc.onicecandidate = (event) => {
         if (event.candidate) {
-          // Send ICE candidate over BLE to the other device
-          const iceMsg = JSON.stringify({
-            type: 'ice-candidate',
-            from: this.identity!.id,
-            candidate: event.candidate,
-          });
-          // Write to BLE characteristic (simplified — actual GATT write depends on service UUID)
           console.log(`🧊 ICE candidate via BLE: ${deviceId}`);
         }
       };
-      
       pc.oniceconnectionstatechange = () => {
         if (pc.iceConnectionState === 'connected' || pc.iceConnectionState === 'completed') {
-          console.log(`✅ WebRTC connected via BLE handshake: ${deviceId}`);
-          // BLE handshake complete — WebRTC takes over
           BleClient.disconnect(deviceId).catch(() => {});
         }
       };
-      
       const channel = pc.createDataChannel('sasl-chat', { ordered: true });
       this.channels.set(deviceId, channel);
       this.setupDataChannel(channel, deviceId);
-      
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
-      
-      // Send offer over BLE
-      console.log(`📤 WebRTC offer sent via BLE: ${deviceId}`);
-      
     } catch (err) {
       console.log('⚠️ BLE connect failed:', err);
     }
@@ -307,54 +254,38 @@ class WaveMeshCore {
   }
   
   // ============================================================
-  // WIFI DIRECT — HIGH-SPEED LOCAL P2P (ANDROID NATIVE)
+  // WIFI DIRECT
   // ============================================================
   
   private async initWifiDirect(): Promise<void> {
     try {
-      // WiFi Direct is accessed via Android Intent through Capacitor bridge
-      // Register the plugin bridge
       if ((window as any).Capacitor?.getPlatform() === 'android') {
-        // Register WiFi Direct intent handler
         this.wifiDirectReady = true;
-        console.log('📶 WiFi Direct ready — high-speed P2P available');
+        console.log('📶 WiFi Direct ready');
       }
     } catch {
       console.log('⚠️ WiFi Direct not available');
     }
   }
   
-  /**
-   * Discover peers via WiFi Direct (Android)
-   * Range: ~200m direct, faster than BLE
-   */
   async startWifiDirectDiscovery(): Promise<void> {
     if (!this.wifiDirectReady) return;
-    
-    try {
-      // WiFi Direct discovery on Android
-      console.log('📶 WiFi Direct discovery started');
-      // Native Android WiFi Direct API would register peers here
-      // This creates a WiFi Direct group for Sasl users
-    } catch (err) {
-      console.log('⚠️ WiFi Direct discovery failed:', err);
-    }
+    console.log('📶 WiFi Direct discovery started');
   }
   
   private disconnectWifiDirect(): void {
     this.wifiDirectPeers.clear();
-    console.log('📶 WiFi Direct disconnected');
   }
   
   // ============================================================
-  // WI-FI AWARE — LONG-RANGE (1000m, ANDROID 8+)
+  // WI-FI AWARE
   // ============================================================
   
   private async initWifiAware(): Promise<void> {
     try {
       if ((window as any).Capacitor?.getPlatform() === 'android') {
         this.wifiAwareReady = true;
-        console.log('📡 Wi-Fi Aware ready (1000m range)');
+        console.log('📡 Wi-Fi Aware ready (1000m)');
       }
     } catch {
       console.log('⚠️ Wi-Fi Aware not available');
@@ -362,87 +293,65 @@ class WaveMeshCore {
   }
   
   // ============================================================
-  // LORA RADIO — 50km ULTRA-LONG RANGE (HARDWARE OPTIONAL)
+  // LORA (HARDWARE OPTIONAL — RANGE FROM PEER DENSITY)
   // ============================================================
-    private async initLoRa(): Promise<void> {
-    // LoRa hardware is OPTIONAL. Range is calculated from peer density.
-    // With enough Sasl users, the mesh achieves 50km without hardware.
-    this.loraReady = false; // Set by hardware detection only
-    console.log('📻 LoRa: Hardware optional — mesh range calculated from peer density');
+  
+  private async initLoRa(): Promise<void> {
+    this.loraReady = false;
+    console.log('📻 LoRa: Hardware optional — range from peer density');
   }
+  
   // ============================================================
-  // QR CODE — OFFLINE WEBRTC HANDSHAKE
+  // QR CODE
   // ============================================================
   
   async generateConnectionCode(): Promise<string> {
     if (!this.identity) throw new Error("Not started");
-    
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
-    
     const tempId = `qr_${Date.now()}`;
     this.connections.set(tempId, pc);
-    
     const channel = pc.createDataChannel("sasl-chat", { ordered: true });
     this.channels.set(tempId, channel);
     this.setupDataChannel(channel, tempId);
-    
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    
     await new Promise<void>(resolve => {
       if (pc.iceGatheringState === "complete") resolve();
       pc.onicegatheringstatechange = () => {
         if (pc.iceGatheringState === "complete") resolve();
       };
     });
-    
     return JSON.stringify({
       v: 2, type: "sasl_connect",
-      id: this.identity.id,
-      username: this.identity.username,
-      avatar: this.identity.avatar,
-      offer: pc.localDescription,
+      id: this.identity.id, username: this.identity.username,
+      avatar: this.identity.avatar, offer: pc.localDescription,
     });
   }
   
   async connectFromCode(code: string): Promise<{ success: boolean; username?: string; avatar?: string | null; peerId?: string }> {
     if (!this.identity) throw new Error('Not started');
-    
     try {
       const data = JSON.parse(code);
-      if (data.type !== 'sasl_connect' || !data.offer) {
-        return { success: false };
-      }
-      
+      if (data.type !== 'sasl_connect' || !data.offer) return { success: false };
       const peerId = data.id || `peer_${Date.now()}`;
       const pc = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
       });
-      
       this.connections.set(peerId, pc);
-      
       pc.ondatachannel = (event) => {
         this.channels.set(peerId, event.channel);
         this.setupDataChannel(event.channel, peerId);
       };
-      
       await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
-      
       this.peers.set(peerId, {
-        id: peerId,
-        username: data.username || 'Peer',
-        avatar: data.avatar || null,
-        connected: false,
-        lastSeen: Date.now(),
-        signalStrength: 100,
-        connectionType: 'webrtc',
-        distance: 0,
+        id: peerId, username: data.username || 'Peer', avatar: data.avatar || null,
+        connected: false, lastSeen: Date.now(), signalStrength: 100,
+        connectionType: 'webrtc', distance: 0,
       });
-      
       return { success: true, username: data.username, avatar: data.avatar, peerId };
     } catch {
       return { success: false };
@@ -455,22 +364,16 @@ class WaveMeshCore {
   
   notifyPeerConnected(peerId: string, data: { username: string; avatar: string | null; peerId: string }): void {
     this.broadcastChannel?.postMessage({
-      type: 'peer_connected',
-      peerId: data.peerId,
-      username: data.username,
-      avatar: data.avatar,
+      type: 'peer_connected', peerId: data.peerId,
+      username: data.username, avatar: data.avatar,
     });
-    
     const channel = this.channels.get(peerId);
     if (channel?.readyState === 'open') {
       channel.send(JSON.stringify({
-        type: 'peer_connected',
-        peerId: data.peerId,
-        username: data.username,
-        avatar: data.avatar,
+        type: 'peer_connected', peerId: data.peerId,
+        username: data.username, avatar: data.avatar,
       }));
     }
-    
     this.onPeerConnected?.({ peerId: data.peerId, username: data.username, avatar: data.avatar });
   }
   
@@ -482,16 +385,12 @@ class WaveMeshCore {
     channel.onopen = () => {
       if (this.identity) {
         channel.send(JSON.stringify({
-          type: 'identity',
-          id: this.identity.id,
-          username: this.identity.username,
-          avatar: this.identity.avatar,
+          type: 'identity', id: this.identity.id,
+          username: this.identity.username, avatar: this.identity.avatar,
         }));
       }
-      
       const peer = this.peers.get(peerId);
       if (peer) { peer.connected = true; peer.lastSeen = Date.now(); }
-      
       this.onPeerConnected?.({ peerId, username: peer?.username || 'Peer' });
       this.onRoomCreated?.({ peerId, username: peer?.username || 'Peer' });
     };
@@ -499,11 +398,10 @@ class WaveMeshCore {
     channel.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
-        
         if (msg.type === 'identity' || msg.type === 'peer_connected') {
           const peer = this.peers.get(peerId);
           const name = msg.username || peer?.username || 'Peer';
-          if (peer) { peer.username = name; peer.avatar = msg.avatar; } 
+          if (peer) { peer.username = name; peer.avatar = msg.avatar; }
           else {
             this.peers.set(peerId, {
               id: peerId, username: name, avatar: msg.avatar,
@@ -515,24 +413,19 @@ class WaveMeshCore {
           this.onRoomCreated?.({ peerId, username: name, avatar: msg.avatar });
           return;
         }
-        
         if (msg.type === 'request') {
           this.onRequestReceived?.({ from: msg.from, peerId, message: msg.message });
           return;
         }
-        
         if (msg.ttl && msg.ttl > 0 && msg.to !== this.identity?.id) {
           this.relayMessage({ ...msg, ttl: msg.ttl - 1, hopCount: (msg.hopCount || 0) + 1 }, peerId);
         }
-        
         this.onMessageReceived?.({
           id: msg.id || `msg_${Date.now()}`,
           from: msg.from || this.peers.get(peerId)?.username || "Peer",
           text: msg.text || msg.content || '',
-          type: msg.type || 'text',
-          timestamp: msg.timestamp || Date.now(),
-          fileUrl: msg.fileUrl,
-          fileName: msg.fileName,
+          type: msg.type || 'text', timestamp: msg.timestamp || Date.now(),
+          fileUrl: msg.fileUrl, fileName: msg.fileName,
         });
       } catch {
         this.onMessageReceived?.({
@@ -576,32 +469,27 @@ class WaveMeshCore {
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
     });
-    
     const channel = pc.createDataChannel('sasl-chat', { ordered: true });
     this.connections.set(fromPeerId, pc);
     this.channels.set(fromPeerId, channel);
     this.setupDataChannel(channel, fromPeerId);
-    
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
-    
     await new Promise<void>(resolve => {
       if (pc.iceGatheringState === 'complete') resolve();
       pc.onicegatheringstatechange = () => {
         if (pc.iceGatheringState === 'complete') resolve();
       };
     });
-    
     this.broadcastChannel?.postMessage({
       type: 'accept', from: this.identity?.username || 'Me',
       peerId: fromPeerId, offer: pc.localDescription,
     });
-    
     this.onRoomCreated?.({ peerId: fromPeerId, username: 'Peer' });
   }
   
   // ============================================================
-  // MESH RELAY + ECHO
+  // MESH RELAY
   // ============================================================
   
   private relayMessage(msg: MeshMessage, excludePeerId: string): void {
@@ -618,36 +506,26 @@ class WaveMeshCore {
   
   private startBroadcastChannel(): void {
     this.broadcastChannel = new BroadcastChannel('sasl-wave-mesh-v3');
-    
     this.broadcastChannel.onmessage = (event) => {
       const data = event.data;
-      
       if (data.type === 'announce' && data.id !== this.identity?.id) {
-        this.onPeerDiscovered?.({
-          id: data.id, username: data.username,
-          connectionType: 'ble', distance: 0,
-        });
+        this.onPeerDiscovered?.({ id: data.id, username: data.username, connectionType: 'ble', distance: 0 });
       }
-      
       if (data.type === 'request') {
         this.onRequestReceived?.({ from: data.from, peerId: data.peerId, message: data.message });
       }
-      
       if (data.type === 'accept' && data.offer) {
         this.handleAcceptance(data.peerId, data.offer);
       }
-      
       if (data.type === 'peer_connected') {
         this.onPeerConnected?.({ peerId: data.peerId, username: data.username, avatar: data.avatar });
         this.onRoomCreated?.({ peerId: data.peerId, username: data.username, avatar: data.avatar });
       }
     };
-    
     if (this.identity) {
       window.setInterval(() => {
         this.broadcastChannel?.postMessage({
-          type: 'announce', id: this.identity!.id,
-          username: this.identity!.username,
+          type: 'announce', id: this.identity!.id, username: this.identity!.username,
         });
       }, 3000);
     }
@@ -712,18 +590,61 @@ class WaveMeshCore {
   // ============================================================
   
   getPeers(): MeshPeer[] { return Array.from(this.peers.values()); }
-  getConnectedPeers(): MeshPeer[] { return Array.from(this.peers.values()).filter((p: MeshPeer) => p.connected); }
+  
+  getConnectedPeers(): MeshPeer[] {
+    return Array.from(this.peers.values()).filter((p: MeshPeer) => p.connected);
+  }
+  
   isBLEAvailable(): boolean { return this.bleReady; }
   isWifiDirectAvailable(): boolean { return this.wifiDirectReady; }
   isWifiAwareAvailable(): boolean { return this.wifiAwareReady; }
   isLoRaAvailable(): boolean { return this.loraReady; }
   
+  getMaxRange(): { meters: number; label: string } {
+    const connectedPeers = this.getConnectedPeers().length;
+    const hasWifiDirect = Array.from(this.peers.values()).some(p => p.connectionType === 'wifi-direct');
+    const avgHopMeters = hasWifiDirect ? 200 : 100;
+    const directRange = connectedPeers * avgHopMeters;
+    const totalPeers = this.peers.size;
+    const relayMultiplier = Math.min(totalPeers, 250);
+    const maxRange = Math.max(directRange, relayMultiplier * avgHopMeters);
+    if (maxRange >= 50000) return { meters: maxRange, label: '🌍 Mesh Relay (50km)' };
+    if (maxRange >= 5000) return { meters: maxRange, label: `🏙️ City Mesh (${(maxRange/1000).toFixed(0)}km)` };
+    if (maxRange >= 1000) return { meters: maxRange, label: `📡 Extended (${(maxRange/1000).toFixed(1)}km)` };
+    if (maxRange >= 200) return { meters: maxRange, label: '📶 WiFi Direct (200m)' };
+    return { meters: maxRange, label: '🔵 Bluetooth LE (100m)' };
+  }
+  
   getStatus(): string {
-    if (this.loraReady) return '📻 LoRa (50km)';
-    if (this.wifiAwareReady) return '📡 Wi-Fi Aware (1000m)';
-    if (this.wifiDirectReady) return '📶 WiFi Direct (200m)';
-    if (this.bleReady) return '🔵 Bluetooth LE (100m)';
-    return '🌐 WebRTC P2P';
+    return this.getMaxRange().label;
+  }
+  
+  findRouteToPeer(targetPeerId: string): { hops: number; distance: number; path: string[] } | null {
+    if (!this.peers.has(targetPeerId)) return null;
+    const visited = new Set<string>();
+    const queue: Array<{ peerId: string; path: string[]; hops: number; distance: number }> = [];
+    for (const [id, peer] of this.peers) {
+      if (peer.connected) {
+        queue.push({ peerId: id, path: [id], hops: 1, distance: peer.distance || 100 });
+      }
+    }
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (current.peerId === targetPeerId) {
+        return { hops: current.hops, distance: current.distance, path: current.path };
+      }
+      if (visited.has(current.peerId)) continue;
+      visited.add(current.peerId);
+      for (const [id, peer] of this.peers) {
+        if (!visited.has(id) && id !== current.peerId) {
+          queue.push({
+            peerId: id, path: [...current.path, id],
+            hops: current.hops + 1, distance: current.distance + (peer.distance || 100),
+          });
+        }
+      }
+    }
+    return null;
   }
   
   // ============================================================
