@@ -10,7 +10,7 @@
  * WebRTC ICE candidates are exchanged directly through the QR code payload
  * and the data channel itself, enabling true offline P2P.
  */
-
+import WaveMeshPlugin from '../plugins/WaveMeshPlugin';
 // ============================================================
 // TYPES
 // ============================================================
@@ -110,26 +110,40 @@ class WaveMeshCore {
   // ============================================================
   // NATIVE LAYER INIT
   // ============================================================
-
   private async initBLE(): Promise<void> {
     try {
-      const plugin = this.getNativeBridge();
+      const { Capacitor } = (window as any);
+      console.log('🔍 Capacitor available:', !!Capacitor);
+      console.log('🔍 getPlugin available:', !!Capacitor?.getPlugin);
+      console.log('🔍 Plugins available:', !!Capacitor?.Plugins);
+      console.log('🔍 WaveMeshPlugin in Plugins:', !!Capacitor?.Plugins?.WaveMeshPlugin);
+      
+      const plugin = Capacitor?.getPlugin?.('WaveMeshPlugin');
+      console.log('🔍 getPlugin result:', !!plugin);
+      
       if (plugin) {
         const caps = await plugin.getCapabilities();
+        console.log('🔍 Capabilities:', JSON.stringify(caps));
         this.bleReady = caps?.bleReady || false;
         this.wifiDirectReady = caps?.wifiDirectReady || false;
         this.wifiAwareReady = caps?.wifiAwareReady || false;
         this.multipeerReady = caps?.multipeerReady || false;
         if (this.bleReady) console.log('🔵 Native BLE ready');
         if (this.multipeerReady) console.log('📱 Native Multipeer ready');
+      } else {
+        console.log('⚠️ WaveMeshPlugin not found via getPlugin or Plugins');
+        // Fallback to Capacitor BLE
+        try {
+          const { BleClient } = await import('@capacitor-community/bluetooth-le');
+          await BleClient.initialize();
+          this.bleReady = true;
+          console.log('🔵 Capacitor BLE ready (fallback)');
+        } catch { 
+          console.log('⚠️ BLE not available at all'); 
+        }
       }
-    } catch {
-      try {
-        const { BleClient } = await import('@capacitor-community/bluetooth-le');
-        await BleClient.initialize();
-        this.bleReady = true;
-        console.log('🔵 Capacitor BLE ready');
-      } catch { console.log('⚠️ BLE not available'); }
+    } catch (err) {
+      console.log('⚠️ BLE init error:', err);
     }
   }
 
@@ -175,12 +189,7 @@ class WaveMeshCore {
 
 
     private getNativeBridge(): any | null {
-    try {
-      const { Capacitor } = (window as any);
-      if (!Capacitor) return null;
-      // Custom plugins registered via registerPlugin() are accessed via getPlugin()
-      return Capacitor.getPlugin?.('WaveMeshPlugin') || Capacitor.Plugins?.WaveMeshPlugin || null;
-    } catch { return null; }
+    return WaveMeshPlugin;
   }
 
   private stopNativeLayers(): void {
