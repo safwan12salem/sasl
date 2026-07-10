@@ -245,20 +245,22 @@ export default function WaveMesh() {
     try { setQrCode(await waveMeshCore.generateConnectionCode()); } catch { setQrCode('Failed'); }
   };
 
+ 
   const connectFromCode = async () => {
     if (!pasteInput.trim()) return toast.error('Enter a code');
     try {
       const result = await waveMeshCore.connectFromCode(pasteInput.trim());
       if (result.success) {
-        // Create room on THIS device
+        const peerId = result.peerId || `peer_${Date.now()}`;
+        const peerName = result.username || 'Peer';
         const newRoom: ChatRoom = {
-          id: result.peerId || `room_${Date.now()}`,
-          name: result.username || 'Peer',
+          id: peerId,
+          name: peerName,
           avatar: result.avatar || null,
           lastMessage: 'Connected!',
           lastMessageTime: new Date().toISOString(),
           unread: 0,
-          peerId: result.peerId || `peer_${Date.now()}`,
+          peerId: peerId,
         };
         
         setRooms(prev => {
@@ -270,24 +272,47 @@ export default function WaveMesh() {
         setTab('rooms');
         setMessages([]);
         
-        // CRITICAL: Notify the OTHER peer that connection succeeded
-        // This triggers setOnPeerConnected on the remote device
-        waveMeshCore.notifyPeerConnected(result.peerId || pasteInput.trim(), {
-          username: myUsername,
-          avatar: myAvatar,
-          peerId: waveMeshCore.getIdentity()?.id || `peer_${Date.now()}`,
-        });
-        
         setQrConnected(true);
-        setQrPeerName(result.username || 'Peer');
+        setQrPeerName(peerName);
         setPasteInput('');
         setShowQRModal(false);
-        toast.success(`🌊 Connected with ${result.username || 'Peer'}!`);
+        toast.success(`🌊 Connected with ${peerName}!`);
+        
+        // Generate response code for Phone A to complete handshake
+        setTimeout(async () => {
+          const responseCode = await waveMeshCore.generateConnectionCode();
+          setQrCode(responseCode);
+          setShowQRModal(true);
+          toast.success('📱 Copy this code and send it back to the other phone!');
+        }, 1000);
       } else {
         toast.error('Invalid code');
       }
     } catch {
       toast.error('Connection failed');
+    }
+  };
+
+  const completeHandshake = async () => {
+    if (!pasteInput.trim()) return toast.error('Enter the response code');
+    try {
+      const result = await waveMeshCore.connectFromCode(pasteInput.trim());
+      if (result.success) {
+        const peerId = result.peerId || `peer_${Date.now()}`;
+        const peerName = result.username || 'Peer';
+        
+        waveMeshCore.notifyPeerConnected(peerId, {
+          username: myUsername,
+          avatar: myAvatar,
+          peerId: waveMeshCore.getIdentity()?.id || peerId,
+        });
+        
+        setPasteInput('');
+        setShowQRModal(false);
+        toast.success(`🤝 Handshake complete with ${peerName}!`);
+      }
+    } catch {
+      toast.error('Handshake failed');
     }
   };
 
@@ -703,9 +728,9 @@ export default function WaveMesh() {
                 <input value={pasteInput} onChange={e => setPasteInput(e.target.value)}
                   placeholder="Or paste code here..."
                   className="flex-1 px-4 py-2.5 rounded-xl border text-sm dark:bg-gray-700 dark:border-gray-600" />
-                <button onClick={connectFromCode}
+                               <button onClick={qrConnected ? completeHandshake : connectFromCode}
                   className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold">
-                  Connect
+                  {qrConnected ? 'Complete Handshake' : 'Connect'}
                 </button>
               </div>
               
