@@ -410,7 +410,7 @@ export default function WaveMesh() {
               </div>
               <p className="text-xs text-gray-500 flex items-center gap-1">
                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                {meshStatus} · {peers.length} peers
+               {waveMeshCore.getMaxRange().label} · {peers.length} peers · {waveMeshCore.getMaxRange().meters >= 50000 ? '🌍 Global Ready' : ''}
               </p>
             </div>
             
@@ -469,7 +469,7 @@ export default function WaveMesh() {
                     <div className="text-center py-16 px-4">
                       <Users size={36} className="mx-auto mb-3 text-gray-300" />
                       <p className="font-semibold text-gray-500">Searching for nearby users...</p>
-                      <p className="text-sm text-gray-400">WaveMesh scans via {meshStatus}</p>
+                <p className="text-sm text-gray-400">WaveMesh scans via {waveMeshCore.getStatus()}</p>
                       <div className="flex justify-center gap-1 mt-3">
                         <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" />
                         <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
@@ -522,7 +522,7 @@ export default function WaveMesh() {
             {/* Footer */}
             <div className="p-4 border-t border-gray-100 dark:border-gray-800 text-center">
               <p className="text-[10px] text-gray-400">
-                🌊 SL WaveMesh · Offline P2P · {meshStatus}
+               🌊 SL WaveMesh · Offline P2P · {waveMeshCore.getMaxRange().label}
               </p>
             </div>
           </motion.div>
