@@ -237,3 +237,72 @@ class ChatRequest(models.Model):
 
     def __str__(self):
         return f"{self.from_user.username} → {self.to_user.username}: {self.status}"
+
+
+
+
+
+
+# ============================================================
+# OPTICAL MESH RELAY MODELS (WaveMesh 2.0)
+# ============================================================
+
+class OpticalRelayNode(models.Model):
+    """
+    A node in the optical mesh relay network.
+    Each Sasl user becomes a relay node when they open WaveMesh.
+    Nodes forward encrypted messages via screen/camera optical channel.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='optical_relay_node'
+    )
+    node_id = models.CharField(max_length=64, unique=True, db_index=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    last_seen = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['node_id']),
+            models.Index(fields=['-last_seen']),
+            models.Index(fields=['is_active', '-last_seen']),
+        ]
+
+    def __str__(self):
+        return f"OpticalRelay({self.user.username})"
+
+
+class RelayMessage(models.Model):
+    """
+    An encrypted message routed through the optical relay network.
+    Intermediate nodes CANNOT read the message — only forward it.
+    Message is encrypted with recipient's public key.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='sent_relay_messages'
+    )
+    recipient_node_id = models.CharField(max_length=64, db_index=True)
+    encrypted_payload = models.BinaryField(help_text="Encrypted with recipient's public key")
+    ttl = models.IntegerField(default=50, help_text="Max relay hops")
+    hop_count = models.IntegerField(default=0)
+    relayed_by = models.JSONField(default=list, help_text="Node IDs that relayed this message")
+    delivered = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['recipient_node_id', '-created_at']),
+            models.Index(fields=['delivered', '-created_at']),
+        ]
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"RelayMsg {self.id.hex[:8]} → {self.recipient_node_id[:8]}"        

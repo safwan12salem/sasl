@@ -343,6 +343,44 @@ extension WaveMeshNativeService: MCNearbyServiceBrowserDelegate {
     }
     
     func browser(_ browser: MCNearbyServiceBrowser, lostPeer peerID: MCPeerID) {}
+
+
+    // ============================================================
+    // OPTICAL DATA CHANNEL — Camera & Screen Control
+    // ============================================================
+    
+    private var opticalChannelActive = false
+    private var screenBrightness: Float = 0.5
+    
+    func initOpticalChannel() {
+        opticalChannelActive = true
+        print("📷 iOS Optical channel initialized")
+    }
+    
+    func setScreenBrightness(_ level: Float) {
+        // Level 0.0-1.0
+        screenBrightness = level
+        DispatchQueue.main.async {
+            UIScreen.main.brightness = level
+        }
+    }
+    
+    func getScreenBrightness() -> Float {
+        return Float(UIScreen.main.brightness)
+    }
+    
+    func isOpticalActive() -> Bool {
+        return opticalChannelActive
+    }
+    
+    func stopOpticalChannel() {
+        opticalChannelActive = false
+        DispatchQueue.main.async {
+            UIScreen.main.brightness = 0.5
+        }
+        print("📷 iOS Optical channel stopped")
+    }
+
 }
 
 // ============================================================

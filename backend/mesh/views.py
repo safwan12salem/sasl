@@ -17,8 +17,11 @@ from rest_framework.permissions import IsAuthenticated
 
 from .models import (
     MeshNode, PeerConnection, MeshMessage,
-    ChatRoom, ChatRoomMembership, ChatMessage, ChatRequest
+    ChatRoom, ChatRoomMembership, ChatMessage, ChatRequest,
+    OpticalRelayNode, RelayMessage
 )
+
+
 from .serializers import (
     MeshMessageSerializer, MeshNodeSerializer, PeerConnectionSerializer,
     ChatRoomListSerializer, ChatRoomDetailSerializer,
@@ -77,7 +80,79 @@ class MeshViewSet(viewsets.GenericViewSet):
         node = request.user.mesh_node
         return Response(MeshNodeSerializer(node).data)
 
+    @action(detail=False, methods=['post'])
+    def optical_register(self, request):
+        """Register this user as an optical relay node."""
+        node_id = request.data.get('node_id')
+        latitude = request.data.get('latitude')
+        longitude = request.data.get('longitude')
+        
+        node, created = OpticalRelayNode.objects.update_or_create(
+            user=request.user,
+            defaults={
+                'node_id': node_id or f"opt_{uuid.uuid4().hex[:12]}",
+                'latitude': latitude,
+                'longitude': longitude,
+                'is_active': True,
+            }
+        )
+        return Response({
+            'node_id': node.node_id,
+            'is_active': node.is_active,
+            'message': 'Relay node registered'
+        })
 
+    @action(detail=False, methods=['get'])
+    def optical_nodes(self, request):
+        """Get nearby active relay nodes for route finding."""
+        nodes = OpticalRelayNode.objects.filter(
+            is_active=True,
+            last_seen__gte=timezone.now() - timezone.timedelta(minutes=30)
+        ).values('node_id', 'latitude', 'longitude', 'last_seen')
+        return Response(list(nodes))
+
+    @action(detail=False, methods=['post'])
+    def optical_relay(self, request):
+        """Forward an encrypted relay message to the next hop."""
+        recipient_node_id = request.data.get('recipient_node_id')
+        encrypted_payload = request.data.get('encrypted_payload')
+        ttl = request.data.get('ttl', 50)
+        
+        msg = RelayMessage.objects.create(
+            sender=request.user,
+            recipient_node_id=recipient_node_id,
+            encrypted_payload=encrypted_payload.encode() if isinstance(encrypted_payload, str) else encrypted_payload,
+            ttl=ttl,
+        )
+        return Response({
+            'id': str(msg.id),
+            'status': 'relayed',
+            'ttl': msg.ttl,
+        }, status=201)
+
+    @action(detail=False, methods=['get'])
+    def optical_pull(self, request):
+        """Pull undelivered relay messages addressed to this user."""
+        node = get_object_or_404(OpticalRelayNode, user=request.user)
+        messages = RelayMessage.objects.filter(
+            recipient_node_id=node.node_id,
+            delivered=False
+        ).order_by('created_at')[:50]
+        
+        result = []
+        for msg in messages:
+            result.append({
+                'id': str(msg.id),
+                'sender': msg.sender.username,
+                'encrypted_payload': msg.encrypted_payload.decode() if isinstance(msg.encrypted_payload, bytes) else msg.encrypted_payload,
+                'ttl': msg.ttl,
+                'hop_count': msg.hop_count,
+                'created_at': msg.created_at.isoformat(),
+            })
+            msg.delivered = True
+            msg.save()
+        
+        return Response(result) 
 # ============================================================
 # NEW: CHAT ROOM VIEWSET
 # ============================================================

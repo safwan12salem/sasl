@@ -53,6 +53,13 @@ urlpatterns = [
     path('requests/<uuid:pk>/accept/', request_accept, name='request-accept'),
     path('requests/<uuid:pk>/decline/', request_decline, name='request-decline'),
     path('chat-boards/', chat_boards, name='chat-boards'),
+
+
+        # Optical Relay endpoints (WaveMesh 2.0)
+    path('optical/register/', MeshViewSet.as_view({'post': 'optical_register'}), name='optical-register'),
+    path('optical/nodes/', MeshViewSet.as_view({'get': 'optical_nodes'}), name='optical-nodes'),
+    path('optical/relay/', MeshViewSet.as_view({'post': 'optical_relay'}), name='optical-relay'),
+    path('optical/pull/', MeshViewSet.as_view({'get': 'optical_pull'}), name='optical-pull'),
 ]
 
 
