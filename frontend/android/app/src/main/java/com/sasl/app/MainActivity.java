@@ -6,11 +6,15 @@ import android.content.pm.PackageManager;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.getcapacitor.BridgeActivity;
+import app.sasl.plugin.WaveMeshPlugin;
 
 public class MainActivity extends BridgeActivity {
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // Register the WaveMesh native plugin BEFORE super.onCreate
+        registerPlugin(WaveMeshPlugin.class);
+        
         super.onCreate(savedInstanceState);
         
         // Request ALL permissions at startup
@@ -22,18 +26,32 @@ public class MainActivity extends BridgeActivity {
                 Manifest.permission.BLUETOOTH_CONNECT,
                 Manifest.permission.BLUETOOTH_ADVERTISE,
                 Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.NEARBY_WIFI_DEVICES
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.NEARBY_WIFI_DEVICES,
+                Manifest.permission.CHANGE_WIFI_STATE,
+                Manifest.permission.ACCESS_WIFI_STATE,
+            };
+        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            permissions = new String[]{
+                Manifest.permission.CAMERA,
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
+                Manifest.permission.CHANGE_WIFI_STATE,
+                Manifest.permission.ACCESS_WIFI_STATE,
             };
         } else {
             permissions = new String[]{
                 Manifest.permission.CAMERA,
                 Manifest.permission.BLUETOOTH,
                 Manifest.permission.BLUETOOTH_ADMIN,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION,
             };
         }
         
-        // Check if any permission is not granted
+        // Request all permissions
         boolean needsRequest = false;
         for (String perm : permissions) {
             if (ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED) {

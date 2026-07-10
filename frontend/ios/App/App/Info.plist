@@ -47,5 +47,19 @@
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+    <!-- Bluetooth LE for WaveMesh -->
+    <key>NSBluetoothAlwaysUsageDescription</key>
+    <string>Sasl uses Bluetooth to connect with nearby users without internet for WaveMesh P2P chat.</string>
+    <key>NSBluetoothPeripheralUsageDescription</key>
+    <string>Sasl advertises via Bluetooth so other users can discover and connect to you offline.</string>
+    
+    <!-- Local Network for Multipeer/WiFi Direct -->
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Sasl uses the local network to discover and connect with nearby Sasl users for offline messaging.</string>
+    <key>NSBonjourServices</key>
+    <array>
+        <string>_sasl-mesh._tcp</string>
+    </array>
+
 </dict>
 </plist>
