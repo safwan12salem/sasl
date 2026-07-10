@@ -78,6 +78,8 @@ public class WaveMeshPlugin extends Plugin {
     @PluginMethod
     public void startBLEScan(PluginCall call) {
         waveMeshService.startBLEScan();
+        waveMeshService.startWifiDirectDiscovery();
+        waveMeshService.startWifiAwareDiscovery();
         call.resolve();
     }
     
@@ -103,6 +105,7 @@ public class WaveMeshPlugin extends Plugin {
         String data = call.getString("data", "");
         if (peerAddress != null) {
             waveMeshService.sendOverBLE(peerAddress, type, data);
+            waveMeshService.sendOverWifiDirect(peerAddress, type, data);
         }
         call.resolve();
     }
@@ -110,6 +113,17 @@ public class WaveMeshPlugin extends Plugin {
     @PluginMethod
     public void startWifiDirectDiscovery(PluginCall call) {
         waveMeshService.startWifiDirectDiscovery();
+        call.resolve();
+    }
+    
+    @PluginMethod
+    public void sendOverWifiDirect(PluginCall call) {
+        String peerAddress = call.getString("peerAddress");
+        String type = call.getString("type", "MSG");
+        String data = call.getString("data", "");
+        if (peerAddress != null) {
+            waveMeshService.sendOverWifiDirect(peerAddress, type, data);
+        }
         call.resolve();
     }
     
@@ -125,6 +139,7 @@ public class WaveMeshPlugin extends Plugin {
         caps.put("bleReady", waveMeshService.isBleReady());
         caps.put("wifiDirectReady", waveMeshService.isWifiDirectReady());
         caps.put("wifiAwareReady", waveMeshService.isWifiAwareReady());
+        caps.put("multipeerReady", false);
         call.resolve(caps);
     }
     
