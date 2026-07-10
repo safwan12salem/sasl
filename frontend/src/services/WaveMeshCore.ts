@@ -173,7 +173,7 @@ class WaveMeshCore {
     console.log('🔌 Native event listeners attached');
   }
 
-  
+
     private getNativeBridge(): any | null {
     try {
       const { Capacitor } = (window as any);
@@ -254,21 +254,31 @@ class WaveMeshCore {
   // WebRTC connects directly using the exchanged ICE candidates.
   // NO STUN servers, NO internet, NO WiFi required.
 
-  async generateConnectionCode(): Promise<string> {
+    async generateConnectionCode(): Promise<string> {
     if (!this.identity) throw new Error("Not started");
     
-    // Use our identity ID as the peerId so both sides match
     const peerId = this.identity.id;
-    
-    // Create peer connection with NO STUN/TURN servers — true offline
     const pc = new RTCPeerConnection({ iceServers: [] });
     this.connections.set(peerId, pc);
+    
+    // CRITICAL: When the remote peer connects, create the room on THIS device too
+    pc.onconnectionstatechange = () => {
+      if (pc.connectionState === 'connected') {
+        const peer = this.peers.get(peerId);
+        if (peer) {
+          peer.connected = true;
+          peer.lastSeen = Date.now();
+        }
+        this.onPeerConnected?.({ peerId, username: peer?.username || 'Peer', avatar: peer?.avatar });
+        this.onRoomCreated?.({ peerId, username: peer?.username || 'Peer', avatar: peer?.avatar });
+        console.log('📡 Phone A: Remote peer connected — room created');
+      }
+    };
     
     const channel = pc.createDataChannel("sasl-chat", { ordered: true });
     this.channels.set(peerId, channel);
     this.setupDataChannel(channel, peerId);
     
-    // Collect ICE candidates manually — they'll be included in the QR payload
     const iceCandidates: any[] = [];
     pc.onicecandidate = (event) => {
       if (event.candidate) {
@@ -279,7 +289,6 @@ class WaveMeshCore {
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     
-    // Wait for ICE gathering to complete
     await new Promise<void>(resolve => {
       if (pc.iceGatheringState === "complete") resolve();
       pc.onicegatheringstatechange = () => { 
@@ -293,9 +302,10 @@ class WaveMeshCore {
       username: this.identity.username,
       avatar: this.identity.avatar,
       offer: pc.localDescription,
-      iceCandidates: iceCandidates, // Include all ICE candidates in QR
+      iceCandidates: iceCandidates,
     });
   }
+
 
   async connectFromCode(code: string): Promise<{ success: boolean; username?: string; avatar?: string | null; peerId?: string }> {
     if (!this.identity) throw new Error('Not started');
@@ -309,7 +319,14 @@ class WaveMeshCore {
       // Create peer connection with NO STUN/TURN — true offline
       const pc = new RTCPeerConnection({ iceServers: [] });
       this.connections.set(peerId, pc);
-      
+            // CRITICAL: Create room when connection is established
+           // Create room when connection + data channel are both ready
+      pc.onconnectionstatechange = () => {
+        if (pc.connectionState === 'connected') {
+          // Data channel might not be ready yet — ondatachannel handles room creation
+          console.log('📡 Phone B: Connection established');
+        }
+      };
       // Set up data channel receiver
       pc.ondatachannel = (event) => {
         this.channels.set(peerId, event.channel);
