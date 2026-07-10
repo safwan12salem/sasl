@@ -235,56 +235,67 @@ class WaveMeshCore {
   // ============================================================
   // QR CODE
   // ============================================================
-
   async generateConnectionCode(): Promise<string> {
     if (!this.identity) throw new Error("Not started");
+    
+    // Use our identity ID as the peerId so both sides match
+    const peerId = this.identity.id;
     const pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
-    const tempId = `qr_${Date.now()}`;
-    this.connections.set(tempId, pc);
+    this.connections.set(peerId, pc);
+    
     const channel = pc.createDataChannel("sasl-chat", { ordered: true });
-    this.channels.set(tempId, channel);
-    this.setupDataChannel(channel, tempId);
+    this.channels.set(peerId, channel);
+    this.setupDataChannel(channel, peerId);
+    
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
+    
     await new Promise<void>(resolve => {
       if (pc.iceGatheringState === "complete") resolve();
       pc.onicegatheringstatechange = () => { if (pc.iceGatheringState === "complete") resolve(); };
     });
+    
     return JSON.stringify({
       v: 2, type: "sasl_connect",
-      id: this.identity.id, username: this.identity.username,
-      avatar: this.identity.avatar, offer: pc.localDescription,
+      id: this.identity.id,
+      username: this.identity.username,
+      avatar: this.identity.avatar,
+      offer: pc.localDescription,
     });
   }
-
-  async connectFromCode(code: string): Promise<{ success: boolean; username?: string; avatar?: string | null; peerId?: string }> {
+    
+    async connectFromCode(code: string): Promise<{ success: boolean; username?: string; avatar?: string | null; peerId?: string }> {
     if (!this.identity) throw new Error('Not started');
     try {
       const data = JSON.parse(code);
       if (data.type !== 'sasl_connect' || !data.offer) return { success: false };
-      const peerId = data.id || `peer_${Date.now()}`;
+      
+      // Use the GENERATOR's ID as the peerId so both sides use the same key
+      const peerId = data.id;
       const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
       this.connections.set(peerId, pc);
+      
+      // Set up data channel receiver BEFORE setting remote description
       pc.ondatachannel = (event) => {
         this.channels.set(peerId, event.channel);
         this.setupDataChannel(event.channel, peerId);
       };
+      
       await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
+      
       this.peers.set(peerId, {
         id: peerId, username: data.username || 'Peer', avatar: data.avatar || null,
         connected: false, lastSeen: Date.now(), signalStrength: 100,
         connectionType: 'webrtc', distance: 0,
       });
+      
       return { success: true, username: data.username, avatar: data.avatar, peerId };
-    } catch { return { success: false }; }
+    } catch {
+      return { success: false };
+    }
   }
-
-  // ============================================================
-  // BIDIRECTIONAL NOTIFICATION
-  // ============================================================
-
   notifyPeerConnected(peerId: string, data: { username: string; avatar: string | null; peerId: string }): void {
     this.broadcastChannel?.postMessage({ type: 'peer_connected', peerId: data.peerId, username: data.username, avatar: data.avatar });
     const channel = this.channels.get(peerId);
