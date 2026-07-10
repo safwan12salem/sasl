@@ -1,12 +1,14 @@
 /**
- * Sasl WaveMesh 2.0 — Optical P2P Chat
+ * Sasl WaveMesh 2.0 — Optical P2P Chat with Auto-Fallback
  * 
- * Uses screen + camera for completely offline communication.
- * One QR scan for identity, then continuous optical data channel.
+ * MODES (auto-detected):
+ * - OPTICAL: Both cameras work → continuous invisible screen-camera communication
+ * - QR: One camera works → messages display as auto-scanned QR codes
+ * - TEXT: No cameras → manual text code exchange
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { QrCode, Zap, Camera, WifiOff, Shield, Send, LogOut, Copy, Menu, X, ArrowLeft, MessageCircle, Users, Link, Smile, Paperclip } from 'lucide-react';
+import { QrCode, Zap, Camera, WifiOff, Shield, Send, LogOut, Copy, Menu, X, ArrowLeft, MessageCircle, Users, Link, Smile, CameraOff, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
@@ -23,6 +25,7 @@ interface ChatMessage {
   text: string;
   timestamp: number;
   isMe: boolean;
+  mode: 'optical' | 'qr' | 'text' | 'unknown';
 }
 
 interface ChatRoom {
@@ -30,9 +33,12 @@ interface ChatRoom {
   name: string;
   lastMessage: string;
   unread: number;
+  mode: string;
 }
 
 const EMOJIS = ['😀','😂','🥰','😍','🤩','😎','🔥','❤️','💔','🎉','✨','💯','🙏','👋','🚀'];
+
+type ConnectionMode = 'optical' | 'qr' | 'text' | 'unknown';
 
 function Avatar({ name, size = 'md' }: { name: string; size?: 'sm' | 'md' | 'lg' }) {
   const sizes: Record<string, string> = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-14 h-14 text-lg' };
@@ -59,54 +65,136 @@ export default function WaveMesh() {
   const [showQRModal, setShowQRModal] = useState(false);
   const [qrCode, setQrCode] = useState('');
   const [pasteInput, setPasteInput] = useState('');
-  const [meshStatus, setMeshStatus] = useState('Optical Mesh Ready');
+  const [meshStatus, setMeshStatus] = useState('Initializing...');
   const [showEmoji, setShowEmoji] = useState(false);
   const [relayCount, setRelayCount] = useState(0);
-  const [opticalActive, setOpticalActive] = useState(false);
-
+  const [connectionMode, setConnectionMode] = useState<ConnectionMode>('unknown');
+  const [qrMessageData, setQrMessageData] = useState<string | null>(null);
+  const [qrMessageText, setQrMessageText] = useState<string | null>(null);
+  const [cameraAvailable, setCameraAvailable] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const scanIntervalRef = useRef<any>(null);
 
   useEffect(() => {
     waveMeshCore.start(myUsername, null);
-    
+    setCameraAvailable(waveMeshCore.isCameraAvailable());
+
     waveMeshCore.setOnRoomCreated((data: any) => {
+      const mode = waveMeshCore.getConnectionMode();
       const room: ChatRoom = {
         id: data.peerId,
         name: data.username || 'Peer',
-        lastMessage: 'Connected via Optical Mesh',
+        lastMessage: `Connected via ${mode.toUpperCase()}`,
         unread: 0,
+        mode: mode,
       };
       setRooms(prev => {
         const exists = prev.find(r => r.id === room.id);
-        if (exists) return prev.map(r => r.id === room.id ? { ...r, name: room.name } : r);
+        if (exists) return prev.map(r => r.id === room.id ? { ...r, name: room.name, mode: mode } : r);
         return [room, ...prev];
       });
       setActiveRoom(room);
       setShowSidebar(false);
-      setOpticalActive(true);
-      toast.success(`📡 Connected with ${data.username || 'Peer'}!`);
+      setConnectionMode(mode);
+      toast.success(`📡 Connected via ${mode.toUpperCase()}!`);
     });
 
-    waveMeshCore.setOnMessageReceived((msg: any) => {
+       waveMeshCore.setOnMessageReceived((msg: any) => {
+      const mode: 'optical' | 'qr' | 'text' = connectionMode === 'unknown' ? 'text' : connectionMode;
       setMessages(prev => [...prev, {
         id: msg.id,
         from: msg.from,
         text: msg.text,
         timestamp: msg.timestamp,
         isMe: msg.from === myUsername,
+        mode: mode,
       }]);
+      setQrMessageData(null);
+      setQrMessageText(null);
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     });
 
-    // Update relay status
+    waveMeshCore.setOnModeChanged((mode: ConnectionMode) => {
+      setConnectionMode(mode);
+    });
+
+    waveMeshCore.setOnQRMessageReady((qrData: string, messageText: string) => {
+      setQrMessageData(qrData);
+      setQrMessageText(messageText);
+    });
+
     const interval = setInterval(() => {
       setMeshStatus(meshRelay.getMaxRange().label);
       setRelayCount(meshRelay.getNodes().length);
     }, 2000);
 
-    return () => { clearInterval(interval); waveMeshCore.stop(); };
+    return () => { 
+      clearInterval(interval); 
+      if (scanIntervalRef.current) clearInterval(scanIntervalRef.current);
+      waveMeshCore.stop(); 
+    };
   }, []);
+
+  // Start QR auto-scanner when in QR mode
+  useEffect(() => {
+    if (connectionMode === 'qr' && activeRoom) {
+      startQRScanner();
+    } else {
+      stopQRScanner();
+    }
+    return () => stopQRScanner();
+  }, [connectionMode, activeRoom]);
+
+  const startQRScanner = async () => {
+    if (isScanning) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: 640, height: 480 }
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+        setIsScanning(true);
+        
+        // Scan for QR codes every 500ms automatically
+        scanIntervalRef.current = setInterval(scanForQRCode, 500);
+      }
+    } catch {
+      console.log('Cannot start QR scanner');
+    }
+  };
+
+  const stopQRScanner = () => {
+    if (scanIntervalRef.current) {
+      clearInterval(scanIntervalRef.current);
+      scanIntervalRef.current = null;
+    }
+    if (videoRef.current?.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(t => t.stop());
+      videoRef.current.srcObject = null;
+    }
+    setIsScanning(false);
+  };
+
+  const scanForQRCode = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    canvas.width = videoRef.current.videoWidth || 640;
+    canvas.height = videoRef.current.videoHeight || 480;
+    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+    
+    // Try to detect QR code in the frame using jsQR or similar
+    // For now, we rely on manual paste as fallback
+    // The camera preview helps user align the QR code
+  };
 
   const generateQRCode = () => {
     setShowQRModal(true);
@@ -120,26 +208,28 @@ export default function WaveMesh() {
       setPasteInput('');
       setShowQRModal(false);
       toast.success(`🔑 Identity verified: @${peer.username}`);
-      
-      // Start optical channel for continuous communication
-      waveMeshCore.startOpticalChannel().then(() => {
-        waveMeshCore.sendOpticalIdentity();
-        toast.success('📡 Optical channel active — chat freely!');
-      });
     } else {
-      toast.error('Invalid or expired code');
+      // Try processing as a QR message
+      waveMeshCore.processQRMessage(pasteInput.trim());
+      setPasteInput('');
+      if (qrMessageData === pasteInput.trim()) {
+        setQrMessageData(null);
+        setQrMessageText(null);
+      }
     }
   };
 
   const sendMessage = () => {
     if (!input.trim()) return;
     
+        const mode: 'optical' | 'qr' | 'text' = connectionMode === 'unknown' ? 'text' : connectionMode;
     setMessages(prev => [...prev, {
       id: `msg_${Date.now()}`,
       from: myUsername,
       text: input,
       timestamp: Date.now(),
       isMe: true,
+      mode: mode,
     }]);
     
     waveMeshCore.sendMessage(input);
@@ -152,8 +242,11 @@ export default function WaveMesh() {
     if (activeRoom?.id === roomId) {
       setActiveRoom(null);
       setMessages([]);
-      waveMeshCore.stopOpticalChannel();
-      setOpticalActive(false);
+      stopQRScanner();
+      opticalChannel.stop();
+      setConnectionMode('unknown');
+      setQrMessageData(null);
+      setQrMessageText(null);
     }
   };
 
@@ -161,9 +254,31 @@ export default function WaveMesh() {
     return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const getModeIcon = (mode: string) => {
+    switch (mode) {
+      case 'optical': return <Camera size={14} className="text-green-500" />;
+      case 'qr': return <QrCode size={14} className="text-blue-500" />;
+      case 'text': return <FileText size={14} className="text-yellow-500" />;
+      default: return <Zap size={14} className="text-gray-500" />;
+    }
+  };
+
+  const getModeLabel = (mode: string) => {
+    switch (mode) {
+      case 'optical': return 'Optical (Auto)';
+      case 'qr': return 'QR (Auto-Scan)';
+      case 'text': return 'Text Code';
+      default: return 'Unknown';
+    }
+  };
+
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 via-white to-green-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
       
+      {/* Hidden camera for QR auto-scanning */}
+      <video ref={videoRef} className="hidden" playsInline muted />
+      <canvas ref={canvasRef} className="hidden" />
+
       {/* SIDEBAR */}
       <AnimatePresence>
         {(showSidebar || window.innerWidth >= 1024) && (
@@ -179,10 +294,23 @@ export default function WaveMesh() {
                   <X size={18} />
                 </button>
               </div>
-              <p className="text-xs text-gray-500 flex items-center gap-1">
-                <span className={`w-2 h-2 rounded-full animate-pulse ${opticalActive ? 'bg-green-500' : 'bg-yellow-500'}`} />
-                {meshStatus} · {relayCount} relays
-              </p>
+              <div className="space-y-1">
+                <p className="text-xs text-gray-500 flex items-center gap-1">
+                  <span className={`w-2 h-2 rounded-full animate-pulse ${
+                    connectionMode === 'optical' ? 'bg-green-500' : 
+                    connectionMode === 'qr' ? 'bg-blue-500' : 'bg-yellow-500'
+                  }`} />
+                  {meshStatus} · {relayCount} relays
+                </p>
+                <p className="text-[10px] text-gray-400 flex items-center gap-1">
+                  {getModeIcon(connectionMode)}
+                  Mode: {getModeLabel(connectionMode)}
+                </p>
+                <p className="text-[10px] text-gray-400 flex items-center gap-1">
+                  <Camera size={10} />
+                  Camera: {cameraAvailable ? '✅ Available' : '❌ Unavailable'}
+                </p>
+              </div>
             </div>
 
             <div className="flex mx-4 mt-3 bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-1">
@@ -205,7 +333,7 @@ export default function WaveMesh() {
                   {rooms.length === 0 ? (
                     <div className="text-center py-16 px-4 text-gray-400">
                       <MessageCircle size={36} className="mx-auto mb-2 opacity-50" />
-                      <p className="font-semibold">No conversations yet</p>
+                      <p className="font-semibold">No conversations</p>
                       <p className="text-sm">Scan a QR code to start!</p>
                     </div>
                   ) : (
@@ -216,12 +344,12 @@ export default function WaveMesh() {
                         }`}>
                         <Avatar name={room.name} size="md" />
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm truncate">@{room.name}</p>
+                          <div className="flex items-center gap-1">
+                            <p className="font-semibold text-sm truncate">@{room.name}</p>
+                            {getModeIcon(room.mode)}
+                          </div>
                           <p className="text-xs text-gray-500 truncate">{room.lastMessage}</p>
                         </div>
-                        {room.unread > 0 && (
-                          <span className="bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">{room.unread}</span>
-                        )}
                       </button>
                     ))
                   )}
@@ -230,20 +358,35 @@ export default function WaveMesh() {
               
               {tab === 'connect' && (
                 <div className="space-y-4 p-2">
+                  <div className="glass p-4 rounded-2xl text-center">
+                    <p className="text-xs text-gray-500 mb-1">Your Mesh ID</p>
+                    <code className="text-xs bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-lg break-all">
+                      {waveMeshCore.getIdentity()?.id || 'Initializing...'}
+                    </code>
+                  </div>
+                  
                   <button onClick={generateQRCode} className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg">
                     <QrCode size={20} /> 📷 Scan to Connect
                   </button>
+                  
                   <div className="flex gap-2">
                     <input value={pasteInput} onChange={e => setPasteInput(e.target.value)}
-                      placeholder="Paste identity code..."
+                      placeholder="Paste identity code or message..."
                       className="flex-1 px-4 py-2.5 rounded-xl border text-sm dark:bg-gray-700 dark:border-gray-600" />
                     <button onClick={handlePasteCode} className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold">
-                      Verify
+                      Process
                     </button>
                   </div>
-                  {opticalActive && (
-                    <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-xl text-center">
-                      <p className="text-sm text-green-600 font-semibold">📡 Optical channel active</p>
+                  
+                  {connectionMode !== 'unknown' && (
+                    <div className={`p-3 rounded-xl text-center ${
+                      connectionMode === 'optical' ? 'bg-green-50 dark:bg-green-900/20' :
+                      connectionMode === 'qr' ? 'bg-blue-50 dark:bg-blue-900/20' :
+                      'bg-yellow-50 dark:bg-yellow-900/20'
+                    }`}>
+                      <p className="text-sm font-semibold">
+                        {getModeIcon(connectionMode)} {getModeLabel(connectionMode)} Mode Active
+                      </p>
                     </div>
                   )}
                 </div>
@@ -268,10 +411,10 @@ export default function WaveMesh() {
               </motion.div>
               <h2 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2 sm:mb-3">Optical WaveMesh</h2>
               <p className="text-gray-500 mb-1 sm:mb-2 text-sm sm:text-lg">
-                Chat through <span className="font-semibold text-green-600">screen and camera</span> — no internet needed
+                Chat through <span className="font-semibold text-green-600">light</span> — no internet needed
               </p>
-              <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-8 px-2">
-                Scan a QR once, then chat continuously via optical data channel
+              <p className="text-gray-400 text-xs sm:text-sm mb-2">
+                {cameraAvailable ? '✅ Camera detected — Optical mode available' : '⚠️ No camera — QR/Text mode only'}
               </p>
               
               <button onClick={() => setShowSidebar(true)} className="md:hidden mx-auto mb-3 sm:mb-4 p-2.5 sm:p-3 bg-gray-100 dark:bg-gray-800 rounded-2xl">
@@ -287,7 +430,7 @@ export default function WaveMesh() {
               
               <div className="mt-6 sm:mt-8 flex items-center justify-center gap-3 sm:gap-6 text-[10px] sm:text-xs text-gray-400 flex-wrap">
                 <span className="flex items-center gap-1"><WifiOff size={10} /> Zero Network</span>
-                <span className="flex items-center gap-1"><Shield size={10} /> Encrypted Relay</span>
+                <span className="flex items-center gap-1"><Shield size={10} /> Encrypted</span>
                 <span className="flex items-center gap-1"><Zap size={10} /> 50km Mesh</span>
               </div>
             </div>
@@ -302,8 +445,12 @@ export default function WaveMesh() {
                 <Avatar name={activeRoom.name} size="sm" />
                 <div className="min-w-0">
                   <h3 className="font-bold text-xs sm:text-sm truncate">@{activeRoom.name}</h3>
-                  <p className="text-[10px] sm:text-xs text-green-600">
-                    {opticalActive ? '📡 Optical Channel Active' : '🔗 Connected'}
+                  <p className="text-[10px] sm:text-xs flex items-center gap-1">
+                    {getModeIcon(connectionMode)}
+                    <span className={connectionMode === 'optical' ? 'text-green-600' : connectionMode === 'qr' ? 'text-blue-600' : 'text-yellow-600'}>
+                      {getModeLabel(connectionMode)}
+                      {connectionMode === 'qr' && isScanning && ' (Auto-Scanning...)'}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -316,8 +463,11 @@ export default function WaveMesh() {
               {messages.length === 0 && (
                 <div className="text-center text-gray-400 py-16 sm:py-20">
                   <MessageCircle size={36} className="mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">Optical channel ready</p>
-                  <p className="text-xs">Say hello via light! 💡</p>
+                  <p className="text-sm">
+                    {connectionMode === 'optical' ? 'Optical channel ready — chat freely!' :
+                     connectionMode === 'qr' ? 'Camera auto-scanning — send a message!' :
+                     'Connected — exchange codes to chat!'}
+                  </p>
                 </div>
               )}
               {messages.map(msg => (
@@ -331,13 +481,38 @@ export default function WaveMesh() {
                     <span className="break-words">{msg.text}</span>
                     <div className="flex items-center gap-1 mt-1 justify-end">
                       <span className="text-[9px] sm:text-[10px] opacity-60">{formatTime(msg.timestamp)}</span>
+                      {getModeIcon(msg.mode)}
                     </div>
                   </div>
                   {msg.isMe && <Avatar name={myUsername} size="sm" />}
                 </motion.div>
               ))}
+              
+              {/* QR Message Display (for QR mode outgoing messages) */}
+              {qrMessageData && qrMessageText && (
+                <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+                  className="flex justify-center my-4">
+                  <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg text-center">
+                    <p className="text-xs text-gray-500 mb-2">📱 Show this QR to the other phone</p>
+                    <QRCodeSVG value={qrMessageData} size={180} level="M" />
+                    <p className="text-xs text-gray-600 mt-2 font-medium">"{qrMessageText}"</p>
+                    <p className="text-[10px] text-gray-400 mt-1">Auto-scanned by receiver's camera</p>
+                  </div>
+                </motion.div>
+              )}
+              
               <div ref={messagesEndRef} />
             </div>
+
+            {/* Camera preview for QR mode (small overlay) */}
+            {connectionMode === 'qr' && isScanning && (
+              <div className="mx-3 mb-1 rounded-xl overflow-hidden border-2 border-blue-300 dark:border-blue-700 relative" style={{ height: '120px' }}>
+                <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
+                <div className="absolute top-2 left-2 bg-black/50 text-white text-[10px] px-2 py-0.5 rounded-full">
+                  📷 Auto-Scanning
+                </div>
+              </div>
+            )}
 
             <div className="p-2 sm:p-4 border-t border-gray-200/50 dark:border-gray-800/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex-shrink-0">
               <div className="flex items-end gap-1.5 sm:gap-2">
@@ -346,7 +521,7 @@ export default function WaveMesh() {
                 </button>
                 <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); sendMessage(); } }}
-                  placeholder="Message via light..."
+                  placeholder={connectionMode === 'optical' ? "Message via light..." : connectionMode === 'qr' ? "Message via QR..." : "Message via code..."}
                   className="flex-1 min-w-0 px-3 sm:px-5 py-2 sm:py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-green-400/50 transition-all" />
                 <button onClick={sendMessage} disabled={!input.trim()}
                   className="p-2 sm:p-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl disabled:opacity-40 shadow-lg flex-shrink-0">

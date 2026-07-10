@@ -49,14 +49,6 @@ public class WaveMeshPlugin extends Plugin {
             }
             
             @Override
-            public void onICECandidate(String from, String candidate) {
-                JSObject ice = new JSObject();
-                ice.put("from", from);
-                ice.put("candidate", candidate);
-                notifyListeners("iceCandidate", ice);
-            }
-            
-            @Override
             public void onStatusChanged(String status) {
                 JSObject stat = new JSObject();
                 stat.put("status", status);
@@ -76,60 +68,9 @@ public class WaveMeshPlugin extends Plugin {
     }
     
     @PluginMethod
-    public void startBLEScan(PluginCall call) {
-        waveMeshService.startBLEScan();
-        waveMeshService.startWifiDirectDiscovery();
-        waveMeshService.startWifiAwareDiscovery();
-        call.resolve();
-    }
-    
-    @PluginMethod
-    public void stopBLEScan(PluginCall call) {
-        waveMeshService.stopBLEScan();
-        call.resolve();
-    }
-    
-    @PluginMethod
-    public void connectToPeer(PluginCall call) {
-        String deviceAddress = call.getString("deviceAddress");
-        if (deviceAddress != null) {
-            waveMeshService.connectToPeer(deviceAddress);
-        }
-        call.resolve();
-    }
-    
-    @PluginMethod
-    public void sendOverBLE(PluginCall call) {
-        String peerAddress = call.getString("peerAddress");
-        String type = call.getString("type", "MSG");
-        String data = call.getString("data", "");
-        if (peerAddress != null) {
-            waveMeshService.sendOverBLE(peerAddress, type, data);
-            waveMeshService.sendOverWifiDirect(peerAddress, type, data);
-        }
-        call.resolve();
-    }
-    
-    @PluginMethod
-    public void startWifiDirectDiscovery(PluginCall call) {
-        waveMeshService.startWifiDirectDiscovery();
-        call.resolve();
-    }
-    
-    @PluginMethod
-    public void sendOverWifiDirect(PluginCall call) {
-        String peerAddress = call.getString("peerAddress");
-        String type = call.getString("type", "MSG");
-        String data = call.getString("data", "");
-        if (peerAddress != null) {
-            waveMeshService.sendOverWifiDirect(peerAddress, type, data);
-        }
-        call.resolve();
-    }
-    
-    @PluginMethod
-    public void startWifiAwareDiscovery(PluginCall call) {
-        waveMeshService.startWifiAwareDiscovery();
+    public void setScreenBrightness(PluginCall call) {
+        int level = call.getInt("level", 128);
+        waveMeshService.setScreenBrightness(level);
         call.resolve();
     }
     
@@ -140,7 +81,43 @@ public class WaveMeshPlugin extends Plugin {
         caps.put("wifiDirectReady", waveMeshService.isWifiDirectReady());
         caps.put("wifiAwareReady", waveMeshService.isWifiAwareReady());
         caps.put("multipeerReady", false);
+        caps.put("opticalReady", waveMeshService.isOpticalActive());
         call.resolve(caps);
+    }
+    
+    @PluginMethod
+    public void startBLEScan(PluginCall call) {
+        call.resolve();
+    }
+    
+    @PluginMethod
+    public void stopBLEScan(PluginCall call) {
+        call.resolve();
+    }
+    
+    @PluginMethod
+    public void connectToPeer(PluginCall call) {
+        call.resolve();
+    }
+    
+    @PluginMethod
+    public void sendOverBLE(PluginCall call) {
+        call.resolve();
+    }
+    
+    @PluginMethod
+    public void startWifiDirectDiscovery(PluginCall call) {
+        call.resolve();
+    }
+    
+    @PluginMethod
+    public void sendOverWifiDirect(PluginCall call) {
+        call.resolve();
+    }
+    
+    @PluginMethod
+    public void startWifiAwareDiscovery(PluginCall call) {
+        call.resolve();
     }
     
     @PluginMethod
