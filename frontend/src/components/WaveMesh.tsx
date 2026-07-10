@@ -165,7 +165,13 @@ export default function WaveMesh() {
         peerId: data.peerId,
       };
       setTimeout(() => {
-        setRooms(prev => { if (prev.find(r => r.id === room.id)) return prev; return [room, ...prev]; });
+                setRooms(prev => {
+          const exists = prev.find(r => r.id === room.id);
+          if (exists) {
+            return prev.map(r => r.id === room.id ? { ...r, name: room.name, avatar: room.avatar } : r);
+          }
+          return [room, ...prev];
+        });
         setActiveRoom(room);
         setShowSidebar(false);
         setTab("rooms");
@@ -196,7 +202,7 @@ export default function WaveMesh() {
     });
     
     // Room created
-    waveMeshCore.setOnRoomCreated((data: any) => {
+       waveMeshCore.setOnRoomCreated((data: any) => {
       const room: ChatRoom = {
         id: data.peerId,
         name: data.username || 'Peer',
@@ -206,7 +212,13 @@ export default function WaveMesh() {
         unread: 0,
         peerId: data.peerId,
       };
-      setRooms(prev => { if (prev.find(r => r.id === room.id)) return prev; return [room, ...prev]; });
+      setRooms(prev => {
+        const exists = prev.find(r => r.id === room.id);
+        if (exists) {
+          return prev.map(r => r.id === room.id ? { ...r, name: room.name, avatar: room.avatar } : r);
+        }
+        return [room, ...prev];
+      });
       setActiveRoom(room);
       setShowSidebar(false);
       setTab('rooms');
