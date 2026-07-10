@@ -140,7 +140,12 @@ class WaveMeshCore {
     this.listenToNativeEvents(plugin);
   }
 
-  private listenToNativeEvents(plugin: any): void {
+    private listenToNativeEvents(plugin: any): void {
+    if (!plugin) return;
+    
+    // Remove any existing listeners first to prevent duplicates
+    try { plugin.removeAllListeners?.(); } catch {}
+    
     plugin.addListener('peerDiscovered', (peer: any) => {
       this.onPeerDiscovered?.({
         id: peer.deviceId, username: peer.name,
@@ -164,11 +169,17 @@ class WaveMeshCore {
     plugin.addListener('iceCandidate', (ice: any) => {
       console.log('🧊 ICE from native:', ice.from);
     });
+    
+    console.log('🔌 Native event listeners attached');
   }
 
-  private getNativeBridge(): any | null {
+  
+    private getNativeBridge(): any | null {
     try {
-      return (window as any).Capacitor?.Plugins?.WaveMeshPlugin || null;
+      const { Capacitor } = (window as any);
+      if (!Capacitor) return null;
+      // Custom plugins registered via registerPlugin() are accessed via getPlugin()
+      return Capacitor.getPlugin?.('WaveMeshPlugin') || Capacitor.Plugins?.WaveMeshPlugin || null;
     } catch { return null; }
   }
 
