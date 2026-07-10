@@ -1,6 +1,6 @@
 from django.db import router
 from django.urls import path
-from .views import MeshViewSet, ChatRoomViewSet, ChatRequestViewSet, ChatBoardViewSet
+from .views import MeshViewSet, ChatRoomViewSet, ChatRequestViewSet, ChatBoardViewSet, qr_confirm, qr_poll
 # MeshViewSet routes
 mesh_pull = MeshViewSet.as_view({'get': 'pull'})
 mesh_relay = MeshViewSet.as_view({'post': 'relay'})
@@ -63,3 +63,7 @@ urlpatterns = [
 ]
 
 
+
+# QR Confirmation endpoints
+path('qr-confirm/', qr_confirm, name='qr-confirm'),
+path('qr-poll/', qr_poll, name='qr-poll'),

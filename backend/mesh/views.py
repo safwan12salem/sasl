@@ -759,3 +759,51 @@ class ChatBoardViewSet(viewsets.ViewSet):
             })
         return chats
 
+
+# ============================================================
+# QR CONFIRMATION ENDPOINT (Cross-device room creation)
+# ============================================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def qr_confirm(request):
+    """Phone B confirms QR handshake — Phone A polls this to create room."""
+    to_node_id = request.data.get('to_node_id')
+    from_username = request.data.get('from_username')
+    from_node_id = request.data.get('from_node_id')
+    
+    if not to_node_id or not from_username:
+        return Response({'error': 'Missing fields'}, status=400)
+    
+    # Store confirmation in cache/db for the target user to poll
+    from django.core.cache import cache
+    cache_key = f'qr_confirm_{to_node_id}'
+    cache.set(cache_key, {
+        'from_username': from_username,
+        'from_node_id': from_node_id,
+        'timestamp': timezone.now().isoformat(),
+    }, timeout=300)  # 5 minute expiry
+    
+    return Response({'status': 'confirmation_stored'})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def qr_poll(request):
+    """Phone A polls to check if Phone B confirmed the QR handshake."""
+    node_id = request.query_params.get('node_id')
+    if not node_id:
+        return Response({'error': 'Missing node_id'}, status=400)
+    
+    from django.core.cache import cache
+    cache_key = f'qr_confirm_{node_id}'
+    confirmation = cache.get(cache_key)
+    
+    if confirmation:
+        cache.delete(cache_key)  # One-time use
+        return Response({
+            'confirmed': True,
+            'from_username': confirmation['from_username'],
+            'from_node_id': confirmation['from_node_id'],
+        })
+    
+    return Response({'confirmed': False})

@@ -203,6 +203,40 @@ class WaveMeshCore {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
       await BleClient.initialize();
       this.bleReady = true;
+            // Listen for incoming BLE notifications (identity from other Sasl phones)
+      try {
+        await BleClient.startNotifications(
+          '00000000-0000-0000-0000-000000000000', // Will match any device
+          SASL_BLE_SERVICE_UUID,
+          SASL_BLE_CHAR_IDENTITY_UUID,
+          (data: DataView) => {
+            try {
+              const text = new TextDecoder().decode(data);
+              const identity = JSON.parse(text);
+              if (identity.type === 'identity') {
+                const peer: MeshPeer = {
+                  id: identity.nodeId,
+                  username: identity.username,
+                  avatar: null,
+                  distance: 0,
+                  connectionType: 'ble4',
+                  lastSeen: Date.now(),
+                  signalStrength: 100,
+                  connected: true,
+                  nodeId: identity.nodeId,
+                };
+                this.peers.set(identity.nodeId, peer);
+                this.onPeerConnected?.({ peerId: identity.nodeId, username: identity.username });
+                this.onRoomCreated?.({ peerId: identity.nodeId, username: identity.username });
+                this.log(`📬 BLE identity received from @${identity.username} — room created`);
+              }
+            } catch {}
+          }
+        );
+        this.log('🔔 BLE notification listener active');
+      } catch {
+        // startNotifications may fail if device not supported — that's ok
+      }
       this.log('🔵 BLE initialized — 100-500m range');
     } catch (e: any) {
       this.log(`⚠️ BLE not available: ${e.message || e}`);
@@ -234,7 +268,7 @@ class WaveMeshCore {
 
   private async initBroadcastChannel(): Promise<void> {
     this.broadcastChannel = new BroadcastChannel('sasl-wave-mesh-v4');
-    this.broadcastChannel.onmessage = (event) => {
+          this.broadcastChannel.onmessage = (event) => {
       const data = event.data;
       
       if (data.type === 'announce' && data.nodeId !== this.identity?.id) {
@@ -249,9 +283,24 @@ class WaveMeshCore {
           type: 'text',
           timestamp: data.timestamp,
         });
+      } else if (data.type === 'qr_confirmation' && data.toNodeId === this.identity?.id) {
+        this.log(`📬 Confirmation from @${data.fromUsername}`);
+        const peer: MeshPeer = {
+          id: data.peerId,
+          username: data.username,
+          avatar: null,
+          distance: 0,
+          connectionType: 'ble4',
+          lastSeen: Date.now(),
+          signalStrength: 100,
+          connected: true,
+          nodeId: data.peerId,
+        };
+        this.peers.set(data.peerId, peer);
+        this.onPeerConnected?.({ peerId: data.peerId, username: data.username });
+        this.onRoomCreated?.({ peerId: data.peerId, username: data.username });
       }
     };
-    
     // Announce presence periodically
     setInterval(() => {
       if (this.identity) {
@@ -315,7 +364,7 @@ class WaveMeshCore {
         return;
       }
       
-      await BleClient.requestLEScan(
+           await BleClient.requestLEScan(
         { allowDuplicates: false },
         (result: any) => {
           const deviceId = result?.device?.deviceId;
@@ -323,7 +372,11 @@ class WaveMeshCore {
           
           const name = result.device?.name || 
                       result?.localName || 
-                      `Device_${deviceId.slice(-4)}`;
+                      '';
+          
+          // ONLY show Sasl devices or devices with names
+          if (!name || name.length === 0) return;
+          
           const rssi = result.rssi || -100;
           const distance = this.calculateDistance(rssi);
           
@@ -349,7 +402,7 @@ class WaveMeshCore {
           if (!existing || existing.distance !== peer.distance) {
             this.peers.set(deviceId, peer);
             this.onPeerDiscovered?.(peer);
-            this.log(`📡 ${connectionType.toUpperCase()}: ${name} at ${peer.distance}m (RSSI: ${rssi})`);
+            this.log(`📡 ${connectionType.toUpperCase()}: ${name} at ${peer.distance}m`);
           }
         }
       );
@@ -387,7 +440,7 @@ class WaveMeshCore {
   // PEER CONNECTION
   // ============================================================
 
-  async connectToPeer(deviceId: string): Promise<void> {
+    async connectToPeer(deviceId: string): Promise<void> {
     const peer = this.peers.get(deviceId);
     const peerName = peer?.username || 'Unknown Device';
     
@@ -403,6 +456,8 @@ class WaveMeshCore {
       }
       
       this.log(`✅ Connected to ${peerName}`);
+      
+      // Create room on THIS device
       this.onPeerConnected?.({ 
         peerId: deviceId, 
         username: peerName,
@@ -413,10 +468,85 @@ class WaveMeshCore {
         username: peerName,
         connectionType: peer?.connectionType || 'ble4',
       });
+      
+      // CRITICAL: Send our identity to the other phone so IT also creates the room
+           // CRITICAL: Send our identity and listen for the other phone's identity
+      if (this.identity) {
+        try {
+          // Listen for incoming identity from the connected device
+          await BleClient.startNotifications(
+            deviceId,
+            SASL_BLE_SERVICE_UUID,
+            SASL_BLE_CHAR_IDENTITY_UUID,
+            (data: DataView) => {
+              try {
+                const text = new TextDecoder().decode(data);
+                const identity = JSON.parse(text);
+                if (identity.type === 'identity' && identity.nodeId !== this.identity?.id) {
+                  this.log(`📬 BLE identity received from @${identity.username}`);
+                  const newPeer: MeshPeer = {
+                    id: identity.nodeId,
+                    username: identity.username,
+                    avatar: null,
+                    distance: 0,
+                    connectionType: 'ble4',
+                    lastSeen: Date.now(),
+                    signalStrength: 100,
+                    connected: true,
+                    nodeId: identity.nodeId,
+                  };
+                  this.peers.set(identity.nodeId, newPeer);
+                  this.onPeerConnected?.({ peerId: identity.nodeId, username: identity.username });
+                  this.onRoomCreated?.({ peerId: identity.nodeId, username: identity.username });
+                }
+              } catch {}
+            }
+          );
+          this.log('🔔 BLE notification listener active for this connection');
+        } catch (e) {
+          this.log('⚠️ Could not set up BLE notifications');
+        }
+        
+        // Send our identity to the other phone
+        try {
+          const identityData = JSON.stringify({
+            type: 'identity',
+            nodeId: this.identity.id,
+            username: this.identity.username,
+            timestamp: Date.now(),
+          });
+          const encoded = new TextEncoder().encode(identityData);
+          await BleClient.writeWithoutResponse(
+            deviceId,
+            SASL_BLE_SERVICE_UUID,
+            SASL_BLE_CHAR_IDENTITY_UUID,
+            new DataView(encoded.buffer)
+          );
+          this.log(`📤 Identity sent to ${peerName} via BLE`);
+        } catch (e) {
+          this.log(`⚠️ BLE identity send failed`);
+        }
+      }
+      
+            // Also send via BroadcastChannel as fallback
+      if (this.identity) {
+        this.broadcastChannel?.postMessage({
+          type: 'qr_confirmation',
+          fromNodeId: this.identity.id,
+          fromUsername: this.identity.username,
+          toNodeId: deviceId,
+          peerId: this.identity.id,
+          username: this.identity.username,
+          timestamp: Date.now(),
+        });
+      }
     } catch (err: any) {
       this.log(`❌ Connection failed: ${err.message || err}`);
     }
   }
+
+
+
 
   async disconnectPeer(deviceId: string): Promise<void> {
     const peer = this.peers.get(deviceId);
@@ -745,7 +875,7 @@ class WaveMeshCore {
     return JSON.stringify(payload);
   }
 
-  processConnectionCode(code: string): { username: string; peerId: string; capabilities?: any } | null {
+   processConnectionCode(code: string): { username: string; peerId: string; capabilities?: any } | null {
     try {
       const data = JSON.parse(code);
       
@@ -770,10 +900,18 @@ class WaveMeshCore {
       };
       
       this.peers.set(data.nodeId, peer);
+      
+      // Create room on THIS device (the one that pasted the code)
       this.onPeerConnected?.({ peerId: data.nodeId, username: data.username });
       this.onRoomCreated?.({ peerId: data.nodeId, username: data.username });
       
-      this.log(`🤝 QR handshake with @${data.username}`);
+      // CRITICAL: Send confirmation back to Phone A via BroadcastChannel
+      // so Phone A ALSO creates the room
+            // CRITICAL: Send confirmation to backend so Phone A can poll it
+      // This works across different phones (unlike BroadcastChannel)
+      this.sendQRConfirmation(data.nodeId).catch(() => {});
+      
+      this.log(`🤝 QR handshake with @${data.username} — confirmation sent`);
       
       return {
         username: data.username,
@@ -852,6 +990,70 @@ class WaveMeshCore {
     this.broadcastChannel?.close();
     this.peers.clear();
     this.log('🛑 WaveMesh stopped');
+  }
+
+
+  // ============================================================
+  // QR CONFIRMATION (Cross-device via Backend API)
+  // ============================================================
+
+  private async sendQRConfirmation(toNodeId: string): Promise<void> {
+    if (!this.identity) return;
+    
+    try {
+      const apiBase = (window as any).REACT_APP_API_URL || 'https://sasl-api-i34r.onrender.com';
+      await fetch(`${apiBase}/api/mesh/qr-confirm/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('sasl_token')}`,
+        },
+        body: JSON.stringify({
+          to_node_id: toNodeId,
+          from_username: this.identity.username,
+          from_node_id: this.identity.id,
+        }),
+      });
+      this.log('📤 QR confirmation sent to backend');
+    } catch (err: any) {
+      this.log(`⚠️ QR confirmation send failed: ${err.message}`);
+    }
+  }
+
+  async pollQRConfirmation(): Promise<void> {
+    if (!this.identity) return;
+    
+    try {
+      const apiBase = (window as any).REACT_APP_API_URL || 'https://sasl-api-i34r.onrender.com';
+      const token = localStorage.getItem('sasl_token');
+      if (!token) return;
+      
+      const response = await fetch(`${apiBase}/api/mesh/qr-poll/?node_id=${this.identity.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
+      
+      const data = await response.json();
+      
+      if (data.confirmed) {
+        this.log(`📬 QR confirmation received from @${data.from_username}`);
+        const peer: MeshPeer = {
+          id: data.from_node_id,
+          username: data.from_username,
+          avatar: null,
+          distance: 0,
+          connectionType: 'ble4',
+          lastSeen: Date.now(),
+          signalStrength: 100,
+          connected: true,
+          nodeId: data.from_node_id,
+        };
+        this.peers.set(data.from_node_id, peer);
+        this.onPeerConnected?.({ peerId: data.from_node_id, username: data.from_username });
+        this.onRoomCreated?.({ peerId: data.from_node_id, username: data.from_username });
+      }
+    } catch (err: any) {
+      // Silent fail — will retry on next poll
+    }
   }
 
   // Callback setters

@@ -280,9 +280,17 @@ export default function WaveMesh() {
     }
   };
 
-  const generateQR = () => {
+    const generateQR = () => {
     setShowQR(true);
     setQrCode(waveMeshCore.generateConnectionCode());
+    
+    // Start polling for confirmation from Phone B
+    const pollInterval = setInterval(async () => {
+      await waveMeshCore.pollQRConfirmation();
+    }, 2000);
+    
+    // Stop polling when modal closes
+    setTimeout(() => clearInterval(pollInterval), 300000); // 5 min max
   };
 
   const pasteCode = () => {
