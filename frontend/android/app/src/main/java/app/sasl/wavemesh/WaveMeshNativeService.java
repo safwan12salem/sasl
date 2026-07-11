@@ -140,7 +140,8 @@ public class WaveMeshNativeService {
         
         this.myUsername = username;
         String advName = "Sasl_" + username;
-        if (advName.length() > 25) advName = advName.substring(0, 25); // BLE name limit
+        if (advName.length() > 25) advName = advName.substring(0, 25);
+        final String finalAdvName = advName; // BLE name limit
         
         try {
             AdvertiseSettings settings = new AdvertiseSettings.Builder()
@@ -161,7 +162,7 @@ public class WaveMeshNativeService {
                 @Override
                 public void onStartSuccess(AdvertiseSettings settingsInEffect) {
                     advertising = true;
-                    Log.d(TAG, "📡 Advertising as: " + advName);
+                    Log.d(TAG, "📡 Advertising as: " + finalAdvName);
                     if (callback != null) callback.onStatusChanged("advertising_started");
                 }
                 

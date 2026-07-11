@@ -395,3 +395,35 @@ extension WaveMeshNativeService {
         return Int(round(pow(10, ratio) * 100))
     }
 }
+    // ============================================================
+    // BLE ADVERTISING (iOS)
+    // ============================================================
+    
+    func startAdvertising(username: String) {
+        let advName = "Sasl_\(username)".prefix(25)
+        
+        let serviceUUID = CBUUID(string: "4fafc201-1fb5-459e-8fcc-c5c9c331914b")
+        let characteristicUUID = CBUUID(string: "beb5483e-36e1-4688-b7f5-ea07361b26a8")
+        
+        let characteristic = CBMutableCharacteristic(
+            type: characteristicUUID,
+            properties: [.read, .write, .notify],
+            value: nil,
+            permissions: [.readable, .writeable]
+        )
+        
+        let service = CBMutableService(type: serviceUUID, primary: true)
+        service.characteristics = [characteristic]
+        
+        peripheralManager.add(service)
+        peripheralManager.startAdvertising([
+            CBAdvertisementDataServiceUUIDsKey: [serviceUUID],
+            CBAdvertisementDataLocalNameKey: String(advName)
+        ])
+        
+        print("📡 iOS Advertising as: \(advName)")
+    }
+    
+    func stopAdvertising() {
+        peripheralManager.stopAdvertising()
+    }

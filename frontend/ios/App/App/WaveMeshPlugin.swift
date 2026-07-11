@@ -108,3 +108,13 @@ public class WaveMeshPlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve()
     }
 }
+    @objc func startAdvertising(_ call: CAPPluginCall) {
+        let username = call.getString("username") ?? "SaslUser"
+        waveMesh.startAdvertising(username: username)
+        call.resolve()
+    }
+    
+    @objc func stopAdvertising(_ call: CAPPluginCall) {
+        waveMesh.stopAdvertising()
+        call.resolve()
+    }
