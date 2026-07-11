@@ -31,7 +31,6 @@ import {
   MeshPeer, 
   RangeInfo, 
   MeshStats, 
-  RelayMessage 
 } from '../services/WaveMeshCore';
 import { useTranslation } from 'react-i18next';
 
@@ -158,10 +157,8 @@ export default function WaveMesh() {
   const [tierInfo, setTierInfo] = useState({ tier: 0, name: 'Initializing', description: '', color: 'gray' });
 
   // Relay
-  const [relayMessages, setRelayMessages] = useState<RelayMessage[]>([]);
+    // Relay
   const [showRelayDetail, setShowRelayDetail] = useState(false);
-  const [selectedRelay, setSelectedRelay] = useState<RelayMessage | null>(null);
-
   // UI State
   const [showEmoji, setShowEmoji] = useState(false);
   const [showStats, setShowStats] = useState(false);
@@ -285,12 +282,10 @@ export default function WaveMesh() {
     setQrCode(waveMeshCore.generateConnectionCode());
     
     // Start polling for confirmation from Phone B
-    const pollInterval = setInterval(async () => {
-      await waveMeshCore.pollQRConfirmation();
-    }, 2000);
+   
     
     // Stop polling when modal closes
-    setTimeout(() => clearInterval(pollInterval), 300000); // 5 min max
+     // 5 min max
   };
 
   const pasteCode = () => {
@@ -312,11 +307,8 @@ export default function WaveMesh() {
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
   };
 
-  const sendRelayMessage = async () => {
-    if (!input.trim() || !activeRoom) return;
-    await waveMeshCore.sendRelayMessage(activeRoom.id, input);
-    setInput('');
-    toast.success('📤 Message sent via Echo Relay');
+    const sendRelayMessage = async () => {
+    toast.success('📤 Relay mode coming soon');
   };
 
   const connectToPeer = async (deviceId: string) => {

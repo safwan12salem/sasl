@@ -2,13 +2,11 @@ package app.sasl.plugin;
 
 import android.content.Context;
 import android.util.Log;
-
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
-
 import app.sasl.wavemesh.WaveMeshNativeService;
 
 @CapacitorPlugin(name = "WaveMeshPlugin")
@@ -31,7 +29,6 @@ public class WaveMeshPlugin extends Plugin {
                 peer.put("distance", distance);
                 notifyListeners("peerDiscovered", peer);
             }
-            
             @Override
             public void onPeerConnected(String deviceId, String name) {
                 JSObject peer = new JSObject();
@@ -39,7 +36,6 @@ public class WaveMeshPlugin extends Plugin {
                 peer.put("name", name);
                 notifyListeners("peerConnected", peer);
             }
-            
             @Override
             public void onMessageReceived(String from, String text) {
                 JSObject msg = new JSObject();
@@ -47,30 +43,56 @@ public class WaveMeshPlugin extends Plugin {
                 msg.put("text", text);
                 notifyListeners("messageReceived", msg);
             }
-            
             @Override
             public void onStatusChanged(String status) {
-                JSObject stat = new JSObject();
-                stat.put("status", status);
-                notifyListeners("statusChanged", stat);
+                JSObject s = new JSObject();
+                s.put("status", status);
+                notifyListeners("statusChanged", s);
             }
         });
-        
         Log.d(TAG, "WaveMeshPlugin loaded");
     }
     
     @PluginMethod
     public void setIdentity(PluginCall call) {
-        String id = call.getString("id", "unknown");
-        String username = call.getString("username", "User");
-        waveMeshService.setIdentity(id, username);
+        waveMeshService.setIdentity(call.getString("id",""), call.getString("username","User"));
         call.resolve();
     }
     
     @PluginMethod
-    public void setScreenBrightness(PluginCall call) {
-        int level = call.getInt("level", 128);
-        waveMeshService.setScreenBrightness(level);
+    public void startAdvertising(PluginCall call) {
+        String username = call.getString("username", "SaslUser");
+        waveMeshService.startAdvertising(username);
+        call.resolve();
+    }
+    
+    @PluginMethod
+    public void stopAdvertising(PluginCall call) {
+        waveMeshService.stopAdvertising();
+        call.resolve();
+    }
+    
+    @PluginMethod
+    public void startBLEScan(PluginCall call) {
+        waveMeshService.startBLEScan();
+        call.resolve();
+    }
+    
+    @PluginMethod
+    public void stopBLEScan(PluginCall call) {
+        waveMeshService.stopBLEScan();
+        call.resolve();
+    }
+    
+    @PluginMethod
+    public void connectToPeer(PluginCall call) {
+        waveMeshService.connectToPeer(call.getString("deviceAddress",""));
+        call.resolve();
+    }
+    
+    @PluginMethod
+    public void sendMessage(PluginCall call) {
+        waveMeshService.sendMessage(call.getString("deviceAddress",""), call.getString("message",""));
         call.resolve();
     }
     
@@ -78,46 +100,9 @@ public class WaveMeshPlugin extends Plugin {
     public void getCapabilities(PluginCall call) {
         JSObject caps = new JSObject();
         caps.put("bleReady", waveMeshService.isBleReady());
-        caps.put("wifiDirectReady", waveMeshService.isWifiDirectReady());
-        caps.put("wifiAwareReady", waveMeshService.isWifiAwareReady());
-        caps.put("multipeerReady", false);
-        caps.put("opticalReady", waveMeshService.isOpticalActive());
+        caps.put("isAdvertising", waveMeshService.isAdvertising());
+        caps.put("isScanning", waveMeshService.isScanning());
         call.resolve(caps);
-    }
-    
-    @PluginMethod
-    public void startBLEScan(PluginCall call) {
-        call.resolve();
-    }
-    
-    @PluginMethod
-    public void stopBLEScan(PluginCall call) {
-        call.resolve();
-    }
-    
-    @PluginMethod
-    public void connectToPeer(PluginCall call) {
-        call.resolve();
-    }
-    
-    @PluginMethod
-    public void sendOverBLE(PluginCall call) {
-        call.resolve();
-    }
-    
-    @PluginMethod
-    public void startWifiDirectDiscovery(PluginCall call) {
-        call.resolve();
-    }
-    
-    @PluginMethod
-    public void sendOverWifiDirect(PluginCall call) {
-        call.resolve();
-    }
-    
-    @PluginMethod
-    public void startWifiAwareDiscovery(PluginCall call) {
-        call.resolve();
     }
     
     @PluginMethod
