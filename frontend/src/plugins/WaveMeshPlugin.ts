@@ -9,6 +9,8 @@ export interface WaveMeshPluginInterface {
   startWifiDirectDiscovery(): Promise<void>;
   sendOverWifiDirect(options: { peerAddress: string; type: string; data: string }): Promise<void>;
   startWifiAwareDiscovery(): Promise<void>;
+  startAdvertising(options: { username: string }): Promise<void>;
+  stopAdvertising(): Promise<void>;
   getCapabilities(): Promise<{ bleReady: boolean; wifiDirectReady: boolean; wifiAwareReady: boolean; multipeerReady: boolean }>;
   stop(): Promise<void>;
   addListener(eventName: string, listenerFunc: (data: any) => void): Promise<{ remove: () => void }>;
