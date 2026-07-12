@@ -139,9 +139,9 @@ public class WaveMeshNativeService {
         if (!bleReady || advertising) return;
         
         this.myUsername = username;
-        String advName = "Sasl_" + username;
+        String advName = username;
         if (advName.length() > 25) advName = advName.substring(0, 25);
-        final String finalAdvName = advName; // BLE name limit
+        final String finalAdvName = username; // BLE name limit
         
         try {
             AdvertiseSettings settings = new AdvertiseSettings.Builder()

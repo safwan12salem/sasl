@@ -33,6 +33,7 @@ class WaveMeshCore {
   private peers: Map<string, MeshPeer> = new Map();
   private scanning = false;
   private connectedDevices: Set<string> = new Set();
+  private broadcastChannel: BroadcastChannel | null = null;
   public debugLog: string[] = [];
   private onDebugUpdate: (() => void) | null = null;
   private startTime = Date.now();
@@ -58,6 +59,12 @@ class WaveMeshCore {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
       await BleClient.initialize();
       this.log('🔵 Community BLE plugin ready (PRIMARY)');
+    this.broadcastChannel = new BroadcastChannel("sasl-wave-mesh-v5");
+    this.broadcastChannel.onmessage = (event) => {
+      if (event.data.from !== this.identity?.username) {
+        this.onMessageReceived?.(event.data);
+      }
+    };
     } catch (e: any) { this.log(`❌ Community BLE not available: ${e.message}`); return; }
     try {
       const plugin = WaveMeshPlugin;
@@ -119,17 +126,38 @@ class WaveMeshCore {
     } catch (err: any) { this.log(`❌ Connect failed: ${err.message}`); }
   }
 
+  
+
   async sendMessage(text: string): Promise<void> {
     if (!this.identity) return;
-    this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
+    
+    const msg = { id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() };
+    
+    // Echo to sender's UI
+    this.onMessageReceived?.(msg);
+    
+    // Send via BLE to ALL connected devices
     for (const deviceId of this.connectedDevices) {
       try {
         const { BleClient } = await import('@capacitor-community/bluetooth-le');
         const encoded = new TextEncoder().encode(text);
         await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
-      } catch {}
+        this.log(`📤 BLE sent: "${text.substring(0, 20)}"`);
+      } catch (e) {
+        this.log(`⚠️ BLE send failed: ${e}`);
+      }
+    }
+    
+    // ALSO broadcast via BroadcastChannel for cross-tab delivery
+    if (this.broadcastChannel) {
+      this.broadcastChannel.postMessage(msg);
     }
   }
+
+    // ALSO broadcast via BroadcastChannel for same-device/cross-tab delivery
+   
+
+
 
   generateConnectionCode(): string { if (!this.identity) return ''; return JSON.stringify({ type: 'sasl_connect', version: 3, nodeId: this.identity.id, username: this.identity.username, timestamp: Date.now() }); }
 
