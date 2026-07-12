@@ -148,6 +148,7 @@ export default function WaveMesh() {
   const [showQR, setShowQR] = useState(false);
   const [qrCode, setQrCode] = useState('');
   const [pasteInput, setPasteInput] = useState('');
+  const [qrConnected, setQrConnected] = useState(false);
 
   // Discovery
   const [peers, setPeers] = useState<MeshPeer[]>([]);
@@ -277,26 +278,42 @@ export default function WaveMesh() {
     }
   };
 
-    const generateQR = () => {
+      const generateQR = () => {
     setShowQR(true);
     setQrCode(waveMeshCore.generateConnectionCode());
-    
-    // Start polling for confirmation from Phone B
-   
-    
-    // Stop polling when modal closes
-     // 5 min max
+    setQrConnected(false);
+    setPasteInput('');
   };
 
-  const pasteCode = () => {
+
+
+    const pasteCode = () => {
     if (!pasteInput.trim()) return toast.error('Enter connection code');
+    const result = waveMeshCore.processConnectionCode(pasteInput.trim());
+    if (result) {
+      // FIRST PASTE: Phone B just connected to Phone A
+      // Now generate a RESPONSE code for Phone A to paste back
+      const responseCode = waveMeshCore.generateConnectionCode();
+      setQrCode(responseCode);
+      setQrConnected(true);
+      setPasteInput('');
+      toast.success(`📱 Now copy THIS code and send it back to the other phone!`);
+    } else {
+      toast.error('Invalid or expired code');
+    }
+  };
+
+
+  const completeHandshake = () => {
+    if (!pasteInput.trim()) return toast.error('Enter the response code from other phone');
     const result = waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
       setPasteInput('');
       setShowQR(false);
-      toast.success(`🤝 Connected with @${result.username}!`);
+      setQrConnected(false);
+      toast.success(`🤝 Handshake complete! Both rooms open!`);
     } else {
-      toast.error('Invalid or expired code');
+      toast.error('Invalid response code');
     }
   };
 
@@ -701,7 +718,7 @@ export default function WaveMesh() {
                   </div>
 
                   <button
-                    onClick={generateQR}
+                                      onClick={qrConnected ? completeHandshake : pasteCode}
                     className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg"
                   >
                     <QrCode size={20} /> Share Connection Code
@@ -715,7 +732,7 @@ export default function WaveMesh() {
                       className="flex-1 px-4 py-2.5 rounded-xl border text-sm dark:bg-gray-700 dark:border-gray-600"
                     />
                     <button
-                      onClick={pasteCode}
+                      onClick={qrConnected ? completeHandshake : pasteCode}
                       className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold"
                     >
                       Connect

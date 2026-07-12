@@ -133,13 +133,21 @@ class WaveMeshCore {
 
   generateConnectionCode(): string { if (!this.identity) return ''; return JSON.stringify({ type: 'sasl_connect', version: 3, nodeId: this.identity.id, username: this.identity.username, timestamp: Date.now() }); }
 
-  processConnectionCode(code: string): { username: string; peerId: string } | null {
+    processConnectionCode(code: string): { username: string; peerId: string } | null {
     try {
       const data = JSON.parse(code); if (data.type !== 'sasl_connect') return null;
       if (Date.now() - data.timestamp > 300000) { this.log('⚠️ Code expired'); return null; }
       this.peers.set(data.nodeId, { id: data.nodeId, username: data.username, distance: 0, connectionType: 'ble4', lastSeen: Date.now(), signalStrength: 100, connected: true, nodeId: data.nodeId });
       this.onPeerConnected?.({ peerId: data.nodeId, username: data.username });
       this.onRoomCreated?.({ peerId: data.nodeId, username: data.username });
+      
+      // Auto-connect via BLE if the device is in our scan results
+      // This establishes the BLE link for message exchange
+      const existingPeer = Array.from(this.peers.values()).find(p => p.username === data.username && p.id !== data.nodeId);
+      if (existingPeer) {
+        this.connectToPeer(existingPeer.id).catch(() => {});
+      }
+      
       return { username: data.username, peerId: data.nodeId };
     } catch { return null; }
   }
