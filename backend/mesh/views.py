@@ -16,7 +16,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 from .models import (
-    MeshNode, PeerConnection, MeshMessage,
+    MeshNode, MeshRegionPolicy, PeerConnection, MeshMessage,
     ChatRoom, ChatRoomMembership, ChatMessage, ChatRequest,
     OpticalRelayNode, RelayMessage
 )
@@ -153,6 +153,11 @@ class MeshViewSet(viewsets.GenericViewSet):
             msg.save()
         
         return Response(result) 
+    
+
+
+    
+
 # ============================================================
 # NEW: CHAT ROOM VIEWSET
 # ============================================================
@@ -807,3 +812,26 @@ def qr_poll(request):
         })
     
     return Response({'confirmed': False})
+
+
+
+
+
+
+@api_view(['GET'])
+def check_mesh_access(request):
+    """Check if WaveMesh is available in the user's region."""
+    country_code = request.GET.get('country', '').upper()
+    if not country_code:
+      return Response({'enabled': True, 'message': 'No country specified'})
+    
+    try:
+       policy =  MeshRegionPolicy.objects.get(country_code=country_code)
+       return Response({
+         'enabled': policy.is_enabled,
+         'country': policy.country_name,
+         'max_range': policy.max_range_meters,
+     })
+    except MeshRegionPolicy.DoesNotExist:
+       # If no policy exists, allow by default
+        return Response({'enabled': True, 'message': 'No restrictions'})

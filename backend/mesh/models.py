@@ -306,3 +306,39 @@ class RelayMessage(models.Model):
 
     def __str__(self):
         return f"RelayMsg {self.id.hex[:8]} → {self.recipient_node_id[:8]}"        
+
+
+class MeshRegionPolicy(models.Model):
+    """Controls which regions can use WaveMesh offline P2P."""
+    country_code = models.CharField(max_length=2, unique=True)  # ISO 3166-1 alpha-2
+    country_name = models.CharField(max_length=100)
+    is_enabled = models.BooleanField(default=True)
+    requires_verification = models.BooleanField(default=False)
+    max_range_meters = models.IntegerField(default=500)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Mesh Region Policy"
+        verbose_name_plural = "Mesh Region Policies"
+
+    def __str__(self):
+        return f"{self.country_name} ({self.country_code}): {'✅' if self.is_enabled else '❌'}"
+
+
+class MeshRelayNode(models.Model):
+    """Tracks relay nodes for mesh health monitoring."""
+    node_id = models.CharField(max_length=64, unique=True, db_index=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    country_code = models.CharField(max_length=2, blank=True)
+    is_active = models.BooleanField(default=True)
+    last_seen = models.DateTimeField(auto_now=True)
+    messages_relayed = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['country_code', '-last_seen']),
+        ]
+

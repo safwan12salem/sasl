@@ -4,7 +4,6 @@ from .models import (
     ChatRoom, ChatRoomMembership, ChatMessage, ChatRequest
 )
 
-
 @admin.register(MeshNode)
 class MeshNodeAdmin(admin.ModelAdmin):
     list_display = ('user', 'node_id', 'is_online', 'last_seen', 'latitude', 'longitude')
@@ -21,12 +20,10 @@ class MeshNodeAdmin(admin.ModelAdmin):
         queryset.update(is_online=False)
     mark_offline.short_description = 'Mark as offline'
 
-
 @admin.register(PeerConnection)
 class PeerConnectionAdmin(admin.ModelAdmin):
     list_display = ('node', 'peer_username', 'peer_node_id', 'signal_strength', 'connected_at')
     search_fields = ('peer_username', 'peer_node_id')
-
 
 @admin.register(MeshMessage)
 class MeshMessageAdmin(admin.ModelAdmin):
@@ -36,7 +33,6 @@ class MeshMessageAdmin(admin.ModelAdmin):
     def expire_messages(self, request, queryset):
         queryset.update(ttl=0)
     expire_messages.short_description = 'Set TTL to 0 (expire)'
-
 
 @admin.register(ChatRoom)
 class ChatRoomAdmin(admin.ModelAdmin):
@@ -49,12 +45,10 @@ class ChatRoomAdmin(admin.ModelAdmin):
         return obj.members.count()
     member_count.short_description = 'Members'
 
-
 @admin.register(ChatRoomMembership)
 class ChatRoomMembershipAdmin(admin.ModelAdmin):
     list_display = ('user', 'room', 'role', 'unread_count', 'is_muted', 'joined_at')
     list_filter = ('role', 'is_muted')
-
 
 @admin.register(ChatMessage)
 class ChatMessageAdmin(admin.ModelAdmin):
@@ -66,9 +60,34 @@ class ChatMessageAdmin(admin.ModelAdmin):
         return obj.content[:80] if obj.content else f"[{obj.message_type}]"
     content_preview.short_description = 'Content'
 
-
 @admin.register(ChatRequest)
 class ChatRequestAdmin(admin.ModelAdmin):
     list_display = ('from_user', 'to_user', 'status', 'created_at')
     list_filter = ('status',)
     search_fields = ('from_user__username', 'to_user__username')
+
+# Region Governor - loads after migrations
+try:
+    from .models import MeshRegionPolicy, MeshRelayNode
+
+    @admin.register(MeshRegionPolicy)
+    class MeshRegionPolicyAdmin(admin.ModelAdmin):
+        list_display = ['country_name', 'country_code', 'is_enabled', 'requires_verification', 'max_range_meters']
+        list_filter = ['is_enabled', 'requires_verification']
+        search_fields = ['country_name', 'country_code']
+        actions = ['enable_regions', 'disable_regions']
+
+        def enable_regions(self, request, queryset):
+            queryset.update(is_enabled=True)
+        enable_regions.short_description = 'Enable selected regions'
+
+        def disable_regions(self, request, queryset):
+            queryset.update(is_enabled=False)
+        disable_regions.short_description = 'Disable selected regions'
+
+    @admin.register(MeshRelayNode)
+    class MeshRelayNodeAdmin(admin.ModelAdmin):
+        list_display = ['node_id', 'user', 'country_code', 'is_active', 'last_seen', 'messages_relayed']
+        list_filter = ['is_active', 'country_code']
+except ImportError:
+    pass

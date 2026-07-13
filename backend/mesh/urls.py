@@ -1,6 +1,7 @@
 from django.db import router
 from django.urls import path
-from .views import MeshViewSet, ChatRoomViewSet, ChatRequestViewSet, ChatBoardViewSet, qr_confirm, qr_poll
+from .views import MeshViewSet, ChatRoomViewSet, ChatRequestViewSet, ChatBoardViewSet, qr_confirm, qr_poll, check_mesh_access
+
 # MeshViewSet routes
 mesh_pull = MeshViewSet.as_view({'get': 'pull'})
 mesh_relay = MeshViewSet.as_view({'post': 'relay'})
@@ -53,7 +54,7 @@ urlpatterns = [
     path('requests/<uuid:pk>/accept/', request_accept, name='request-accept'),
     path('requests/<uuid:pk>/decline/', request_decline, name='request-decline'),
     path('chat-boards/', chat_boards, name='chat-boards'),
-
+    path('check-access/', check_mesh_access, name='check-mesh-access'),
 
         # Optical Relay endpoints (WaveMesh 2.0)
     path('optical/register/', MeshViewSet.as_view({'post': 'optical_register'}), name='optical-register'),
