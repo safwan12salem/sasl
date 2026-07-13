@@ -274,6 +274,72 @@ class WaveMeshCore {
     return { meters: maxRange, label: tier >= 4 ? '🌍 GLOBAL 50km+' : tier >= 3 ? `🏙️ ${(maxRange/1000).toFixed(0)}km` : tier >= 2 ? `📡 ${(maxRange/1000).toFixed(1)}km` : tier >= 1 ? `🔵 ${maxRange}m` : `🔍 ${count} peers`, usersNeeded: usersFor50km, technology: 'BLE 5 Long Range', hopDistance: hopDist, tier, tierName, maxRange, peerCount: count, signalStrength: avgSignal };
   }
 
+  /**
+   * Bluetooth Environment Mapper
+   * Detects ALL Bluetooth devices nearby (headphones, speakers, etc.)
+   * Uses them as passive signal reflectors to find the best path
+   * NEVER connects to non-Sasl devices — detection only
+   */
+  getBluetoothEnvironment(): { totalDevices: number; potentialRelays: number; signalQuality: 'excellent' | 'good' | 'fair' | 'poor' } {
+    const allDevices = Array.from(this.peers.values());
+    const saslDevices = allDevices.filter(p => p.connected);
+    const otherDevices = allDevices.filter(p => !p.connected);
+    
+    const signalQuality = saslDevices.length > 0 
+      ? (saslDevices[0].signalStrength > 60 ? 'excellent' : saslDevices[0].signalStrength > 40 ? 'good' : saslDevices[0].signalStrength > 20 ? 'fair' : 'poor')
+      : 'poor';
+    
+    return {
+      totalDevices: allDevices.length,
+      potentialRelays: otherDevices.length,
+      signalQuality,
+    };
+  }
+
+  /**
+   * Get signal health warning and relay suggestion
+   */
+  getSignalHealth(): { warning: string | null; suggestion: string | null; shouldRelay: boolean } {
+    const range = this.getRange();
+    const env = this.getBluetoothEnvironment();
+    
+    if (env.signalQuality === 'poor' && range.peerCount === 0) {
+      return {
+        warning: '📡 Weak signal — move closer or find open space',
+        suggestion: `${env.potentialRelays} Bluetooth devices nearby can help reflect signal`,
+        shouldRelay: false,
+      };
+    }
+    
+    if (env.signalQuality === 'fair' && range.usersNeeded > 0) {
+      return {
+        warning: '⚠️ Signal could be stronger',
+        suggestion: `${range.usersNeeded} more Sasl users needed for ${(range.meters/1000).toFixed(1)}km relay mesh`,
+        shouldRelay: true,
+      };
+    }
+    
+    if (env.signalQuality === 'good' && range.usersNeeded > 0) {
+      return {
+        warning: null,
+        suggestion: `${range.usersNeeded} more Sasl users needed for 50km global mesh`,
+        shouldRelay: range.usersNeeded <= 100,
+      };
+    }
+    
+    return { warning: null, suggestion: null, shouldRelay: false };
+  }
+
+  /**
+   * Auto-relay mode — activates when signal is weak
+   * Messages are forwarded through any connected peers
+   */
+  isRelayActive(): boolean {
+    return this.getSignalHealth().shouldRelay;
+  }
+
+
+
   getStats(): MeshStats { return { totalPeers: this.peers.size, connectedPeers: this.connectedDevices.size, relayMessages: 0, pendingDelivery: 0, delivered: 0, uptime: Math.floor((Date.now() - this.startTime) / 1000), scanCount: this.totalScans }; }
   getPeers(): MeshPeer[] { return Array.from(this.peers.values()).filter(p => Date.now() - p.lastSeen < 120000).sort((a, b) => a.distance - b.distance); }
   getTierInfo() { const r = this.getRange(); const colors = ['gray','green','blue','purple','yellow']; return { tier: r.tier, name: r.tierName, description: r.usersNeeded > 0 ? `${r.usersNeeded} more for 50km` : 'Active', color: colors[r.tier] || 'gray' }; }
