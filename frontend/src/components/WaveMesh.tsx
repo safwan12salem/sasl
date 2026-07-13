@@ -681,7 +681,7 @@ export default function WaveMesh() {
                               <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full">Connected</span>
                             ) : (
                               <button
-                                onClick={() => connectToPeer(peer.id)}
+                                onClick={() => { waveMeshCore.sendConnectionRequest(peer.id); toast.success("📩 Request sent!"); }}
                                 className="p-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
                               >
                                 <Send size={14} />
