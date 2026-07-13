@@ -139,6 +139,8 @@ export default function WaveMesh() {
   const [activeRoom, setActiveRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
+  const [incomingRequest, setIncomingRequest] = useState<{ from: string; peerId: string; message: string } | null>(null);
+  const [pendingRequestSent, setPendingRequestSent] = useState(false);
   const [editText, setEditText] = useState("");
   const [input, setInput] = useState('');
 
@@ -194,6 +196,9 @@ export default function WaveMesh() {
 
     // Peer connected
     waveMeshCore.setOnPeerConnected((data: any) => {
+    waveMeshCore.setOnRequestReceived((data: any) => {
+      setIncomingRequest({ from: data.username || "User", peerId: data.peerId || data.deviceId, message: "Wants to connect via WaveMesh" });
+    });
       const room: ChatRoom = {
         id: data.peerId,
         name: data.username || 'Peer',
@@ -440,6 +445,27 @@ export default function WaveMesh() {
   // ============================================================
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 via-white to-green-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+      {/* INCOMING REQUEST MODAL */}
+      <AnimatePresence>
+        {incomingRequest && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-green-400 to-emerald-500 flex items-center justify-center text-white text-2xl font-bold">
+                {incomingRequest.from[0]?.toUpperCase()}
+              </div>
+              <h3 className="font-bold text-xl mb-1">@{incomingRequest.from}</h3>
+              <p className="text-gray-500 text-sm mb-4">{incomingRequest.message}</p>
+              <div className="flex gap-2">
+                <button onClick={() => { waveMeshCore.acceptRequest(incomingRequest.peerId); setIncomingRequest(null); toast.success("✅ Accepted!"); }}
+                  className="flex-1 py-3 bg-green-500 text-white rounded-xl font-bold">✅ Accept</button>
+                <button onClick={() => setIncomingRequest(null)}
+                  className="flex-1 py-3 bg-gray-200 dark:bg-gray-700 rounded-xl font-medium">❌ Decline</button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* ============================================================ */}
       {/* SIDEBAR */}
       {/* ============================================================ */}

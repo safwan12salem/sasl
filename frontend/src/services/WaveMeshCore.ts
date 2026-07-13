@@ -139,7 +139,7 @@ class WaveMeshCore {
       if (!await BleClient.isEnabled()) { this.log('❌ Bluetooth is OFF'); this.scanning = false; return; }
       await BleClient.requestLEScan({ allowDuplicates: false }, (result: any) => {
         const deviceId = result?.device?.deviceId; if (!deviceId) return;
-        const name = result.device?.name || result?.localName || ''; if (!name) return;
+        const name = result.device?.name || result?.localName || `Device_${deviceId.slice(-4)}`;
         const rssi = result.rssi || -100;
         const distance = Math.round(Math.pow(10, (-59 - rssi) / 20) * 100);
         const peer: MeshPeer = {
