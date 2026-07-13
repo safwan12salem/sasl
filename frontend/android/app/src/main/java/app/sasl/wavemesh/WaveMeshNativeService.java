@@ -249,6 +249,11 @@ public class WaveMeshNativeService {
         Log.d(TAG, "🔗 Connecting to: " + deviceAddress);
         
         BluetoothGatt gatt = device.connectGatt(context, false, new BluetoothGattCallback() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+          gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+          // Request BLE 5 Long Range PHY
+          gatt.requestMtu(517);
+        }
             @Override
             public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {

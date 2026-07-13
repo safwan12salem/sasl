@@ -14,7 +14,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  QrCode, Radio, WifiOff, Shield, Send, LogOut, Copy, Menu, X,
+  ImageIcon, QrCode, Radio, WifiOff, Shield, Send, LogOut, Copy, Menu, X,
   ArrowLeft, MessageCircle, Link, Smile, Bluetooth, Terminal,
   Wifi, Zap, TrendingUp, Users, Activity, BarChart3, Globe,
   Smartphone, RadioTower, Satellite, Heart, Share2, MoreVertical,
@@ -171,6 +171,7 @@ export default function WaveMesh() {
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ============================================================
   // INITIALIZATION
@@ -322,6 +323,23 @@ export default function WaveMesh() {
     waveMeshCore.sendMessage(input);
     setInput('');
     setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    toast.success(`📎 Uploading ${file.name}...`);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "sasl_upload");
+      const res = await fetch("https://api.cloudinary.com/v1_1/dwem1chqc/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.secure_url) {
+        waveMeshCore.sendMessage(`📎 ${data.secure_url}`);
+        toast.success("File uploaded!");
+      }
+    } catch { toast.error("Upload failed"); }
   };
 
     const sendRelayMessage = async () => {
@@ -948,6 +966,10 @@ export default function WaveMesh() {
                   className="p-2 sm:p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 flex-shrink-0"
                 >
                   <Smile size={18} />
+                </button>
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleFileUpload} />
+                <button onClick={() => fileInputRef.current?.click()} className="p-2 sm:p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 flex-shrink-0">
+                  <ImageIcon size={18} />
                 </button>
                 <input
                   ref={inputRef}
