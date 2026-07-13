@@ -5,9 +5,17 @@
  * - Room persistence (localStorage)
  * - Connection request/accept flow
  * - Offline login with stored token
- */
-import WaveMeshPlugin from '../plugins/WaveMeshPlugin';
+ * - BroadcastChannel + BLE dual transport
+ * 
+ end the comments 
+ /** */
 
+
+
+
+import WaveMeshPlugin from '../plugins/WaveMeshPlugin';
+import { signalMapper, SignalDevice } from "./SignalMapper";
+ 
 export interface MeshPeer {
   id: string; username: string; distance: number;
   connectionType: 'ble4' | 'ble5' | 'wifidirect' | 'relay';
@@ -94,7 +102,6 @@ class WaveMeshCore {
     // Restore rooms from localStorage
     this.restoreRooms();
     this.log(`✅ WaveMesh ready for @${username}`);
-    this.checkRegionAccess();
   }
 
   // ============================================================
@@ -336,28 +343,6 @@ class WaveMeshCore {
    */
   isRelayActive(): boolean {
     return this.getSignalHealth().shouldRelay;
-  }
-
-  private async checkRegionAccess(): Promise<void> {
-    try {
-      const { getDeviceCountry, checkWaveMeshAccess } = await import("./RegionCheck");
-      const { resolvedCountry, isVpnDetected } = await getDeviceCountry();
-      const access = await checkWaveMeshAccess(resolvedCountry);
-      if (access.blocked) {
-        this.log(`🚫 WaveMesh blocked in ${resolvedCountry}`);
-        if (isVpnDetected) {
-          this.log("⚠️ VPN detected — blocking access");
-        }
-        // Store block status for UI
-        localStorage.setItem("sasl_mesh_blocked", JSON.stringify({ blocked: true, country: resolvedCountry, isVpn: isVpnDetected }));
-      } else {
-        localStorage.setItem("sasl_mesh_blocked", JSON.stringify({ blocked: false }));
-        this.log(`✅ WaveMesh available in ${resolvedCountry}`);
-      }
-    } catch {
-      // If check fails, allow WaveMesh (offline-first)
-      this.log("⚠️ Region check unavailable — allowing WaveMesh");
-    }
   }
 
 

@@ -138,6 +138,8 @@ export default function WaveMesh() {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [activeRoom, setActiveRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
+  const [editText, setEditText] = useState("");
   const [input, setInput] = useState('');
 
   // Tabs
@@ -322,7 +324,23 @@ export default function WaveMesh() {
     if (!input.trim()) return;
     waveMeshCore.sendMessage(input);
     setInput('');
-    setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+
+  const deleteMessage = (msgId: string) => {
+    setMessages(prev => prev.filter(m => m.id !== msgId));
+    toast.success("Message deleted");
+  };
+
+  const startEditMessage = (msgId: string, currentText: string) => {
+    setEditingMsgId(msgId);
+    setEditText(currentText);
+  };
+
+  const saveEditMessage = (msgId: string) => {
+    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, text: editText } : m));
+    setEditingMsgId(null);
+    setEditText("");
+    toast.success("Message updated");
+  };
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -346,6 +364,25 @@ export default function WaveMesh() {
     toast.success('📤 Relay mode coming soon');
   };
 
+
+  const [audioMeshActive, setAudioMeshActive] = useState(false);
+
+  const toggleAudioMesh = async () => {
+    if (audioMeshActive) {
+      const { audioMesh } = await import("../services/AudioMesh");
+      audioMesh.stop();
+      setAudioMeshActive(false);
+      toast.success("🔊 AudioMesh deactivated");
+    } else {
+      const { audioMesh } = await import("../services/AudioMesh");
+      await audioMesh.start();
+      await audioMesh.startListening((text: string) => {
+        setMessages(prev => [...prev, { id: `msg_${Date.now()}`, from: "AudioMesh Peer", text, timestamp: Date.now(), isMe: false, status: "delivered" }]);
+      });
+      setAudioMeshActive(true);
+      toast.success("🔊 AudioMesh activated — extended range mode");
+    }
+  };
   const connectToPeer = async (deviceId: string) => {
     await waveMeshCore.connectToPeer(deviceId);
     setShowSidebar(false);
@@ -904,6 +941,13 @@ export default function WaveMesh() {
                   title="Send via Echo Relay"
                 >
                   <Globe size={14} />
+                <button
+                  onClick={toggleAudioMesh}
+                  className={`p-1.5 sm:p-2 rounded-xl transition ${audioMeshActive ? "bg-green-100 dark:bg-green-900/30 text-green-500" : "hover:bg-purple-50 dark:hover:bg-purple-900/30 text-purple-500"}`}
+                  title={audioMeshActive ? "AudioMesh Active — Tap to Deactivate" : "Activate AudioMesh for extended range"}
+                >
+                  <Radio size={14} className={audioMeshActive ? "animate-pulse" : ""} />
+                </button>
                 </button>
                 <button
                   onClick={() => leaveRoom(activeRoom.id)}

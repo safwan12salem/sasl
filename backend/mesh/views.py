@@ -835,3 +835,39 @@ def check_mesh_access(request):
     except MeshRegionPolicy.DoesNotExist:
        # If no policy exists, allow by default
         return Response({'enabled': True, 'message': 'No restrictions'})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def audio_relay(request):
+    """Relay audio-transmitted messages through the server when users are online."""
+    text = request.data.get('text', '')
+    to_node_id = request.data.get('to_node_id', '')
+    
+    if not text:
+        return Response({'error': 'No text provided'}, status=400)
+    
+    # Store for recipient to pull
+    from django.core.cache import cache
+    cache_key = f'audio_relay_{to_node_id}'
+    cache.set(cache_key, {
+        'text': text,
+        'from': request.user.username,
+        'timestamp': timezone.now().isoformat(),
+    }, timeout=600)  # 10 minutes
+    
+    return Response({'status': 'relayed', 'method': 'audio'})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def audio_pull(request):
+    """Pull audio-relayed messages."""
+    node_id = request.query_params.get('node_id', '')
+    from django.core.cache import cache
+    cache_key = f'audio_relay_{node_id}'
+    msg = cache.get(cache_key)
+    
+    if msg:
+        cache.delete(cache_key)
+        return Response({'found': True, 'text': msg['text'], 'from': msg['from']})
+    
+    return Response({'found': False})
