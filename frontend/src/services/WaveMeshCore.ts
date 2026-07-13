@@ -94,6 +94,7 @@ class WaveMeshCore {
     // Restore rooms from localStorage
     this.restoreRooms();
     this.log(`✅ WaveMesh ready for @${username}`);
+    this.checkRegionAccess();
   }
 
   // ============================================================
@@ -335,6 +336,28 @@ class WaveMeshCore {
    */
   isRelayActive(): boolean {
     return this.getSignalHealth().shouldRelay;
+  }
+
+  private async checkRegionAccess(): Promise<void> {
+    try {
+      const { getDeviceCountry, checkWaveMeshAccess } = await import("./RegionCheck");
+      const { resolvedCountry, isVpnDetected } = await getDeviceCountry();
+      const access = await checkWaveMeshAccess(resolvedCountry);
+      if (access.blocked) {
+        this.log(`🚫 WaveMesh blocked in ${resolvedCountry}`);
+        if (isVpnDetected) {
+          this.log("⚠️ VPN detected — blocking access");
+        }
+        // Store block status for UI
+        localStorage.setItem("sasl_mesh_blocked", JSON.stringify({ blocked: true, country: resolvedCountry, isVpn: isVpnDetected }));
+      } else {
+        localStorage.setItem("sasl_mesh_blocked", JSON.stringify({ blocked: false }));
+        this.log(`✅ WaveMesh available in ${resolvedCountry}`);
+      }
+    } catch {
+      // If check fails, allow WaveMesh (offline-first)
+      this.log("⚠️ Region check unavailable — allowing WaveMesh");
+    }
   }
 
 
