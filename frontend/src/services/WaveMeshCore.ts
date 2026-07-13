@@ -5,7 +5,6 @@
  * - Room persistence (localStorage)
  * - Connection request/accept flow
  * - Offline login with stored token
- * - BroadcastChannel + BLE dual transport
  */
 import WaveMeshPlugin from '../plugins/WaveMeshPlugin';
 
