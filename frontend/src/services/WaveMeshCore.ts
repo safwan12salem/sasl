@@ -76,9 +76,26 @@ class WaveMeshCore {
       this.log('🔵 Community BLE plugin ready (PRIMARY)');
     } catch (e: any) { this.log(`❌ Community BLE not available: ${e.message}`); return; }
     this.broadcastChannel = new BroadcastChannel("sasl-wave-mesh-v5");
-    this.broadcastChannel.onmessage = (event) => {
-      if (event.data.from !== this.identity?.username) {
-        this.onMessageReceived?.(event.data);
+        this.broadcastChannel.onmessage = (event) => {
+      const data = event.data;
+      // Handle connection requests
+      if (data.type === 'request') {
+        this.onRequestReceived?.({ username: data.from, peerId: data.peerId, message: data.message });
+        return;
+      }
+      // Handle QR confirmation
+      if (data.type === 'qr_confirm' && data.toNodeId === this.identity?.id) {
+        this.log(`📬 QR confirmation from @${data.from}`);
+        this.peers.set(data.peerId, { id: data.peerId, username: data.username, distance: 0, connectionType: 'ble4', lastSeen: Date.now(), signalStrength: 100, connected: true, nodeId: data.peerId });
+        this.onPeerConnected?.({ peerId: data.peerId, username: data.username });
+        this.onRoomCreated?.({ peerId: data.peerId, username: data.username });
+        this.connectedDevices.add(data.peerId);
+        this.saveRooms();
+        return;
+      }
+      // Handle regular messages
+      if (data.from !== this.identity?.username) {
+        this.onMessageReceived?.(data);
       }
     };
     try {
@@ -139,7 +156,7 @@ class WaveMeshCore {
       if (!await BleClient.isEnabled()) { this.log('❌ Bluetooth is OFF'); this.scanning = false; return; }
       await BleClient.requestLEScan({ allowDuplicates: false }, (result: any) => {
         const deviceId = result?.device?.deviceId; if (!deviceId) return;
-        const name = result.device?.name || result?.localName || `Device_${deviceId.slice(-4)}`;
+        const name = result.device?.name || result?.localName || ''; if (!name) return;
         const rssi = result.rssi || -100;
         const distance = Math.round(Math.pow(10, (-59 - rssi) / 20) * 100);
         const peer: MeshPeer = {
@@ -161,13 +178,41 @@ class WaveMeshCore {
   // ============================================================
   // REQUEST/ACCEPT FLOW
   // ============================================================
-  sendConnectionRequest(deviceId: string): void {
+      async sendConnectionRequest(deviceId: string): Promise<void> {
     const peer = this.peers.get(deviceId);
     const username = peer?.username || 'Unknown';
     this.log(`📩 Sending connection request to ${username}`);
     this.pendingRequests.set(deviceId, username);
-    // Notify UI
     this.onPeerDiscovered?.({ ...peer, isRequested: true });
+    // BROADCAST to other phone via BroadcastChannel
+       // BROADCAST to other phone via BroadcastChannel (same-device)
+    if (this.identity) {
+      this.broadcastChannel?.postMessage({ 
+        type: 'request', from: this.identity.username, 
+        peerId: this.identity.id, 
+        message: '👋 Wants to connect via WaveMesh!' 
+      });
+    }
+    
+    // ALSO send via BLE GATT write for cross-device delivery (no internet)
+    try {
+      const { BleClient } = await import('@capacitor-community/bluetooth-le');
+      const requestPayload = JSON.stringify({ 
+        type: 'request', from: this.identity?.username, 
+        peerId: this.identity?.id, 
+        message: '👋 Wants to connect via WaveMesh!' 
+      });
+      const encoded = new TextEncoder().encode(requestPayload);
+      await BleClient.writeWithoutResponse(
+        deviceId, 
+        '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 
+        '6e400001-b5a3-f393-e0a9-e50e24dcca9e', 
+        new DataView(encoded.buffer)
+      );
+      this.log(`📤 Request sent to ${username} via BLE`);
+    } catch (e) {
+      this.log(`⚠️ BLE request send failed, using BroadcastChannel only`);
+    }
   }
 
   getPendingRequests(): { deviceId: string; username: string }[] {
@@ -254,18 +299,26 @@ class WaveMeshCore {
   // ============================================================
   generateConnectionCode(): string { if (!this.identity) return ''; return JSON.stringify({ type: 'sasl_connect', version: 3, nodeId: this.identity.id, username: this.identity.username, timestamp: Date.now() }); }
 
-  processConnectionCode(code: string): { username: string; peerId: string } | null {
+    processConnectionCode(code: string): { username: string; peerId: string } | null {
     try {
       const data = JSON.parse(code); if (data.type !== 'sasl_connect') return null;
       if (Date.now() - data.timestamp > 300000) { this.log('⚠️ Code expired'); return null; }
       this.peers.set(data.nodeId, { id: data.nodeId, username: data.username, distance: 0, connectionType: 'ble4', lastSeen: Date.now(), signalStrength: 100, connected: true, nodeId: data.nodeId });
       this.onPeerConnected?.({ peerId: data.nodeId, username: data.username });
       this.onRoomCreated?.({ peerId: data.nodeId, username: data.username });
+      this.connectedDevices.add(data.nodeId);
       this.saveRooms();
+      // Send confirmation back so the OTHER phone also creates the room
+      if (this.identity) {
+        this.broadcastChannel?.postMessage({
+          type: 'qr_confirm', from: this.identity.username,
+          peerId: this.identity.id, toNodeId: data.nodeId,
+          username: this.identity.username,
+        });
+      }
       return { username: data.username, peerId: data.nodeId };
     } catch { return null; }
   }
-
   getRange(): RangeInfo {
     const count = this.peers.size;
     const connectedPeers = Array.from(this.peers.values()).filter(p => p.connected);
