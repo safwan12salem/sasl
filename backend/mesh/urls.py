@@ -29,8 +29,6 @@ request_accept = ChatRequestViewSet.as_view({'post': 'accept'})
 request_decline = ChatRequestViewSet.as_view({'post': 'decline'})
 
 urlpatterns = [
-    path("audio-relay/", audio_relay, name="audio-relay"),
-    path("audio-pull/", audio_pull, name="audio-pull"),
     # Mesh endpoints
     path('pull/', mesh_pull, name='mesh-pull'),
     path('relay/', mesh_relay, name='mesh-relay'),
