@@ -707,7 +707,20 @@ export default function WaveMesh() {
                               <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full">Connected</span>
                             ) : (
                               <button
-                                onClick={() => { waveMeshCore.sendConnectionRequest(peer.id); toast.success("📩 Request sent!"); }}
+                                onClick={async () => { 
+  const pending = waveMeshCore.getPendingRequests();
+  const alreadyRequested = pending.find(r => r.deviceId === peer.id);
+  
+  if (alreadyRequested) {
+    // Both users tapped Send — connect!
+    waveMeshCore.acceptRequest(peer.id);
+    toast.success("🔗 Both requested — connecting!");
+  } else {
+    // First user to tap — send request
+    await waveMeshCore.sendConnectionRequest(peer.id);
+    toast.success("📩 Request sent! Waiting for other user to tap Send too...");
+  }
+}}
                                 className="p-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
                               >
                                 <Send size={14} />
