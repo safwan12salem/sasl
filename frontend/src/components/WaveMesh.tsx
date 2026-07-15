@@ -14,7 +14,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  ImageIcon, QrCode, Radio, WifiOff, Shield, Send, LogOut, Copy, Menu, X,
+  ImageIcon, QrCode, Radio, WifiOff, Shield, Send, LogOut, Copy, Menu, X, Edit3, Trash2,
   ArrowLeft, MessageCircle, Link, Smile, Bluetooth, Terminal,
   Wifi, Zap, TrendingUp, Users, Activity, BarChart3, Globe,
   Smartphone, RadioTower, Satellite, Heart, Share2, MoreVertical,
@@ -195,7 +195,7 @@ export default function WaveMesh() {
     });
 
     // Peer connected
-       // Peer connected
+        // Peer connected
     waveMeshCore.setOnPeerConnected((data: any) => {
       const name = (data.username && !/^\d+$/.test(data.username)) ? data.username : 'Peer';
       const room: ChatRoom = {
@@ -223,6 +223,7 @@ export default function WaveMesh() {
     waveMeshCore.setOnRequestReceived((data: any) => {
       setIncomingRequest({ from: data.username || "User", peerId: data.peerId || data.deviceId, message: "Wants to connect via WaveMesh" });
     });
+
     // Room created
     waveMeshCore.setOnRoomCreated((data: any) => {
       const room: ChatRoom = {
@@ -246,22 +247,21 @@ export default function WaveMesh() {
     });
 
     // Message received
-    waveMeshCore.setOnMessageReceived((msg: any) => {
-            setMessages(prev => {
+       waveMeshCore.setOnMessageReceived((msg: any) => {
+      setMessages(prev => {
         if (prev.find(m => m.id === msg.id)) return prev;
         return [...prev, {
-        id: msg.id,
-        from: msg.from,
-        text: msg.text || msg.content || '',
-        timestamp: msg.timestamp || Date.now(),
-        isMe: msg.from === myUsername,
-        status: msg.relayed ? 'relayed' : 'delivered',
-        relayPath: msg.relayPath,
-            }];
+          id: msg.id,
+          from: msg.from,
+          text: msg.text || msg.content || '',
+          timestamp: msg.timestamp || Date.now(),
+          isMe: msg.from === myUsername,
+          status: msg.relayed ? 'relayed' : 'delivered',
+          relayPath: msg.relayPath,
+        }];
       });
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     });
-
     // Periodic updates
     const interval = setInterval(() => {
       const range = waveMeshCore.getRange();
@@ -334,7 +334,7 @@ export default function WaveMesh() {
   const sendMessage = () => {
     if (!input.trim()) return;
     waveMeshCore.sendMessage(input);
-    setInput('');
+    setInput('');}
 
   const deleteMessage = (msgId: string) => {
     setMessages(prev => prev.filter(m => m.id !== msgId));
@@ -351,7 +351,7 @@ export default function WaveMesh() {
     setEditingMsgId(null);
     setEditText("");
     toast.success("Message updated");
-  };
+  
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1032,8 +1032,18 @@ export default function WaveMesh() {
                           @{msg.from}
                         </p>
                       )}
-                      <span className="break-words">{msg.text}</span>
+                                            <span className="break-words">{msg.text}</span>
                       <div className="flex items-center gap-1 mt-1 justify-end">
+                        {msg.isMe && (
+                          <>
+                            <button onClick={() => startEditMessage(msg.id, msg.text)} className="text-[9px] text-white/70 hover:text-white" title="Edit">
+                              <Edit3 size={10} />
+                            </button>
+                            <button onClick={() => deleteMessage(msg.id)} className="text-[9px] text-white/70 hover:text-white" title="Delete">
+                              <Trash2 size={10} />
+                            </button>
+                          </>
+                        )}
                         {msg.status === 'relayed' && (
                           <Globe size={8} className="text-blue-400" />
                         )}

@@ -211,11 +211,14 @@ class WaveMeshCore {
   // MESSAGING — Via BLE GATT (CROSS-DEVICE)
   // ============================================================
   
-  async sendMessage(text: string): Promise<void> {
+    async sendMessage(text: string): Promise<void> {
     if (!this.identity) return;
     
-    // Echo to sender
-    this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
+    const msgId = `msg_${Date.now()}`;
+    const msg = { id: msgId, from: this.identity.username, text, type: 'text', timestamp: Date.now() };
+    
+    // Echo to sender's UI
+    this.onMessageReceived?.(msg);
     
     // Send to ALL connected devices via BLE GATT
     for (const deviceId of this.connectedDevices) {
@@ -227,9 +230,10 @@ class WaveMeshCore {
         this.log(`📤 Sent to ${peer?.username || deviceId}`);
       } catch (e) { this.log(`⚠️ BLE send failed`); }
     }
-        // Also broadcast via BroadcastChannel for same-device delivery
+    
+    // Also broadcast via BroadcastChannel with SAME msgId
     if (this.broadcastChannel) {
-      this.broadcastChannel.postMessage({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
+      this.broadcastChannel.postMessage(msg);
     }
   }
 
