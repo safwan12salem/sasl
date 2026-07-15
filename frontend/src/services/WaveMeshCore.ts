@@ -288,11 +288,22 @@ class WaveMeshCore {
   // AUDIO MESH — Sonic data transmission (long range through obstacles)
   // ============================================================
   
-  async sendViaAudioMesh(text: string): Promise<void> {
+    async sendViaAudioMesh(text: string): Promise<void> {
     if (!this.identity) return;
-    const msg = { id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'audiomesh', timestamp: Date.now() };
+    const msgId = `msg_${Date.now()}`;
+    const msg = { id: msgId, from: this.identity.username, text, type: 'audiomesh', timestamp: Date.now() };
     this.onMessageReceived?.(msg);
     
+    // Send to all connected devices via BLE
+    for (const deviceId of this.connectedDevices) {
+      try {
+        const { BleClient } = await import('@capacitor-community/bluetooth-le');
+        const encoded = new TextEncoder().encode(text);
+        await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
+      } catch {}
+    }
+    
+    // Also try AudioMesh sonic transmission
     try {
       const { audioMesh } = await import('./AudioMesh');
       await audioMesh.start();
@@ -301,8 +312,12 @@ class WaveMeshCore {
     } catch (e) {
       this.log(`⚠️ AudioMesh failed: ${e}`);
     }
+    
+    // BroadcastChannel fallback
+    if (this.broadcastChannel) {
+      this.broadcastChannel.postMessage(msg);
+    }
   }
-
   // ============================================================
   // FILE TRANSFER — Chunked BLE file transfer (offline)
   // ============================================================

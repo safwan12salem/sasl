@@ -214,6 +214,11 @@ export default function WaveMesh() {
         return [room, ...prev];
       });
       setActiveRoom(room);
+            // Restore messages for this room from localStorage
+      try {
+        const saved = JSON.parse(localStorage.getItem('sasl_mesh_messages') || '{}');
+        if (saved[room.id]) setMessages(saved[room.id]);
+      } catch {}
       setShowSidebar(false);
       setShowWelcome(false);
       toast.success(`🔗 Connected with ${name}!`);
@@ -248,6 +253,18 @@ export default function WaveMesh() {
 
     // Message received
        waveMeshCore.setOnMessageReceived((msg: any) => {
+              // Handle edit/delete commands
+      try {
+        const cmd = JSON.parse(msg.text);
+        if (cmd.type === 'delete') {
+          setMessages(prev => prev.filter(m => m.id !== cmd.msgId));
+          return;
+        }
+        if (cmd.type === 'edit') {
+          setMessages(prev => prev.map(m => m.id === cmd.msgId ? { ...m, text: cmd.text } : m));
+          return;
+        }
+      } catch {}
       setMessages(prev => {
         if (prev.find(m => m.id === msg.id)) return prev;
         return [...prev, {
@@ -259,9 +276,13 @@ export default function WaveMesh() {
           status: msg.relayed ? 'relayed' : 'delivered',
           relayPath: msg.relayPath,
         }];
+
       });
-      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+
+           setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     });
+
+    // Periodic updates   
     // Periodic updates
     const interval = setInterval(() => {
       const range = waveMeshCore.getRange();
@@ -277,6 +298,16 @@ export default function WaveMesh() {
     };
   }, []);
 
+
+  useEffect(() => {
+    if (activeRoom?.id && messages.length > 0) {
+      try {
+        const saved = JSON.parse(localStorage.getItem('sasl_mesh_messages') || '{}');
+        saved[activeRoom.id] = messages;
+        localStorage.setItem('sasl_mesh_messages', JSON.stringify(saved));
+      } catch {}
+    }
+  }, [messages, activeRoom]);
   // ============================================================
   // ACTIONS
   // ============================================================
@@ -336,28 +367,35 @@ export default function WaveMesh() {
     waveMeshCore.sendMessage(input);
     setInput('');}
 
-  const deleteMessage = (msgId: string) => {
+   const deleteMessage = (msgId: string) => {
     setMessages(prev => prev.filter(m => m.id !== msgId));
+    waveMeshCore.sendMessage(JSON.stringify({ type: 'delete', msgId }));
     toast.success("Message deleted");
   };
+
 
   const startEditMessage = (msgId: string, currentText: string) => {
     setEditingMsgId(msgId);
     setEditText(currentText);
   };
 
-  const saveEditMessage = (msgId: string) => {
+   const saveEditMessage = (msgId: string) => {
     setMessages(prev => prev.map(m => m.id === msgId ? { ...m, text: editText } : m));
+    waveMeshCore.sendMessage(JSON.stringify({ type: 'edit', msgId, text: editText }));
     setEditingMsgId(null);
     setEditText("");
     toast.success("Message updated");
-  
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    toast.success(`📎 Uploading ${file.name}...`);
+    
+    // Convert file to Uint8Array for BLE transfer
+    const arrayBuffer = await file.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    // Try online Cloudinary first
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -366,9 +404,19 @@ export default function WaveMesh() {
       const data = await res.json();
       if (data.secure_url) {
         waveMeshCore.sendMessage(`📎 ${data.secure_url}`);
-        toast.success("File uploaded!");
+        toast.success("File uploaded to cloud!");
+        return;
       }
-    } catch { toast.error("Upload failed"); }
+    } catch {}
+    
+    // Offline fallback: send via BLE chunked transfer
+    try {
+      toast.success(`📎 Sending ${file.name} via BLE...`);
+      await waveMeshCore.sendFile(uint8Array, file.name);
+      toast.success("File sent via BLE!");
+    } catch {
+      toast.error("File transfer failed");
+    }
   };
 
     const sendRelayMessage = async () => {
@@ -399,12 +447,21 @@ export default function WaveMesh() {
     setShowSidebar(false);
   };
 
-  const leaveRoom = (roomId: string) => {
+    const leaveRoom = (roomId: string) => {
     setRooms(prev => prev.filter(r => r.id !== roomId));
     if (activeRoom?.id === roomId) {
       setActiveRoom(null);
       setMessages([]);
     }
+    // Remove from localStorage saved room
+    localStorage.removeItem('sasl_mesh_was_active');
+    localStorage.removeItem('sasl_active_mesh_room');
+    // Clear saved messages for this room
+    try {
+      const saved = JSON.parse(localStorage.getItem('sasl_mesh_messages') || '{}');
+      delete saved[roomId];
+      localStorage.setItem('sasl_mesh_messages', JSON.stringify(saved));
+    } catch {}
   };
 
   // ============================================================
@@ -969,7 +1026,7 @@ export default function WaveMesh() {
                 >
                   <ArrowLeft size={18} />
                 </button>
-                <Avatar name={activeRoom.name} size="sm" />
+                                <Avatar src={activeRoom.avatar} name={activeRoom.name} size="sm" />
                 <div className="min-w-0">
                   <h3 className="font-bold text-xs sm:text-sm truncate">@{activeRoom.name}</h3>
                   <p className="text-[10px] sm:text-xs text-green-600 flex items-center gap-1">
@@ -1032,11 +1089,20 @@ export default function WaveMesh() {
                           @{msg.from}
                         </p>
                       )}
-                                            <span className="break-words">{msg.text}</span>
+                                                                  <span className="break-words">
+                        {(() => {
+                          try {
+                            const cmd = JSON.parse(msg.text);
+                            if (cmd.type === 'delete') return '🗑️ Message deleted';
+                            if (cmd.type === 'edit') return cmd.text;
+                          } catch {}
+                          return msg.text;
+                        })()}
+                      </span>
                       <div className="flex items-center gap-1 mt-1 justify-end">
                         {msg.isMe && (
                           <>
-                            <button onClick={() => startEditMessage(msg.id, msg.text)} className="text-[9px] text-white/70 hover:text-white" title="Edit">
+                                                        <button onClick={() => startEditMessage(msg.id, msg.text)} className="text-[9px] text-white/70 hover:text-white mr-2" title="Edit">
                               <Edit3 size={10} />
                             </button>
                             <button onClick={() => deleteMessage(msg.id)} className="text-[9px] text-white/70 hover:text-white" title="Delete">
@@ -1084,12 +1150,9 @@ export default function WaveMesh() {
                   className="flex-1 min-w-0 px-3 sm:px-5 py-2 sm:py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-green-400/50 transition-all"
                 />
                                 <button
-                  onClick={async () => {
+                                   onClick={async () => {
                     if (!input.trim()) return;
-                    const { audioMesh } = await import('../services/AudioMesh');
-                    await audioMesh.start();
-                    await audioMesh.transmit(input);
-                    setMessages(prev => [...prev, { id: `msg_${Date.now()}`, from: myUsername, text: input, timestamp: Date.now(), isMe: true, status: 'delivered' }]);
+                    await waveMeshCore.sendViaAudioMesh(input);
                     toast.success('🔊 Sent via AudioMesh');
                     setInput('');
                   }}
