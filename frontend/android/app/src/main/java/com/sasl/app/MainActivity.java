@@ -16,7 +16,9 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(WaveMeshPlugin.class);
         
         super.onCreate(savedInstanceState);
-        
+                // Enable localStorage in WebView for message persistence
+        getBridge().getWebView().getSettings().setDomStorageEnabled(true);
+        getBridge().getWebView().getSettings().setDatabaseEnabled(true);
         // Request ALL permissions at startup
         String[] permissions;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {

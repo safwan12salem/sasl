@@ -362,11 +362,20 @@ export default function WaveMesh() {
     }
   };
 
-  const sendMessage = () => {
+    const sendMessage = () => {
     if (!input.trim()) return;
-    waveMeshCore.sendMessage(input);
-    setInput('');}
-
+    if (editingMsgId) {
+      // Save edit
+      setMessages(prev => prev.map(m => m.id === editingMsgId ? { ...m, text: input } : m));
+      waveMeshCore.sendMessage(JSON.stringify({ type: 'edit', msgId: editingMsgId, text: input }));
+      setEditingMsgId(null);
+      setEditText("");
+      toast.success("Message updated");
+    } else {
+      waveMeshCore.sendMessage(input);
+    }
+    setInput('');
+  };
    const deleteMessage = (msgId: string) => {
     setMessages(prev => prev.filter(m => m.id !== msgId));
     waveMeshCore.sendMessage(JSON.stringify({ type: 'delete', msgId }));
@@ -377,6 +386,8 @@ export default function WaveMesh() {
   const startEditMessage = (msgId: string, currentText: string) => {
     setEditingMsgId(msgId);
     setEditText(currentText);
+    setInput(currentText);
+    inputRef.current?.focus();
   };
 
    const saveEditMessage = (msgId: string) => {
@@ -452,6 +463,7 @@ export default function WaveMesh() {
     if (activeRoom?.id === roomId) {
       setActiveRoom(null);
       setMessages([]);
+        waveMeshCore.disconnectPeer(roomId);
     }
     // Remove from localStorage saved room
     localStorage.removeItem('sasl_mesh_was_active');

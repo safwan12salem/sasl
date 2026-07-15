@@ -77,7 +77,7 @@ class WaveMeshCore {
         if (!this.peers.has(p.id)) { this.peers.set(p.id, p); this.onPeerDiscovered?.(p); }
       });
       
-      plugin.addListener('peerConnected', (peer: any) => {
+            plugin.addListener('peerConnected', (peer: any) => {
         const name = peer.name || 'Peer';
         this.connectedDevices.add(peer.deviceId);
         this.onPeerConnected?.({ peerId: peer.deviceId, username: name });
@@ -97,20 +97,20 @@ class WaveMeshCore {
     this.log(`✅ WaveMesh ready for @${username}`);
   }
 
-  private restoreRooms(): void {
+   private restoreRooms(): void {
     try {
       const saved = localStorage.getItem('sasl_wavemesh_rooms');
       if (saved) {
         const rooms = JSON.parse(saved);
         for (const room of rooms) {
           this.peers.set(room.id, room);
+          this.connectedDevices.add(room.id);
           this.onRoomCreated?.({ peerId: room.id, username: room.username });
         }
         this.log(`📂 Restored ${rooms.length} rooms`);
       }
     } catch {}
   }
-
   private saveRooms(): void {
     try {
       const rooms = Array.from(this.peers.values()).filter(p => p.connected);
@@ -407,6 +407,13 @@ class WaveMeshCore {
   getConnectedDevices(): string[] { return Array.from(this.connectedDevices); }
 
   async stop(): Promise<void> { await this.stopScanning(); this.saveRooms(); this.peers.clear(); this.connectedDevices.clear(); }
+
+
+  disconnectPeer(peerId: string): void {
+    this.connectedDevices.delete(peerId);
+    this.peers.delete(peerId);
+    this.saveRooms();
+  }
 
   setOnPeerDiscovered(cb: Callback): void { this.onPeerDiscovered = cb; }
   setOnPeerConnected(cb: Callback): void { this.onPeerConnected = cb; }
