@@ -195,13 +195,12 @@ export default function WaveMesh() {
     });
 
     // Peer connected
+       // Peer connected
     waveMeshCore.setOnPeerConnected((data: any) => {
-    waveMeshCore.setOnRequestReceived((data: any) => {
-      setIncomingRequest({ from: data.username || "User", peerId: data.peerId || data.deviceId, message: "Wants to connect via WaveMesh" });
-    });
+      const name = (data.username && !/^\d+$/.test(data.username)) ? data.username : 'Peer';
       const room: ChatRoom = {
         id: data.peerId,
-        name: data.username || 'Peer',
+        name: name,
         avatar: null,
         lastMessage: `Connected via ${data.connectionType || 'BLE'}`,
         lastMessageTime: new Date().toISOString(),
@@ -217,9 +216,13 @@ export default function WaveMesh() {
       setActiveRoom(room);
       setShowSidebar(false);
       setShowWelcome(false);
-      toast.success(`🔗 Connected with ${data.username || 'Peer'}!`);
+      toast.success(`🔗 Connected with ${name}!`);
     });
 
+    // Incoming request
+    waveMeshCore.setOnRequestReceived((data: any) => {
+      setIncomingRequest({ from: data.username || "User", peerId: data.peerId || data.deviceId, message: "Wants to connect via WaveMesh" });
+    });
     // Room created
     waveMeshCore.setOnRoomCreated((data: any) => {
       const room: ChatRoom = {
@@ -244,7 +247,9 @@ export default function WaveMesh() {
 
     // Message received
     waveMeshCore.setOnMessageReceived((msg: any) => {
-      setMessages(prev => [...prev, {
+            setMessages(prev => {
+        if (prev.find(m => m.id === msg.id)) return prev;
+        return [...prev, {
         id: msg.id,
         from: msg.from,
         text: msg.text || msg.content || '',
@@ -252,7 +257,8 @@ export default function WaveMesh() {
         isMe: msg.from === myUsername,
         status: msg.relayed ? 'relayed' : 'delivered',
         relayPath: msg.relayPath,
-      }]);
+            }];
+      });
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     });
 
