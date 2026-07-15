@@ -132,7 +132,12 @@ public class WaveMeshNativeService {
     // ============================================================
     
     public void startAdvertising(String username) {
-        if (!bleReady || advertising) return;
+                if (advertising) return;
+        if (!bleReady) {
+            Log.w(TAG, "BLE not ready yet, retrying in 1s...");
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> startAdvertising(username), 1000);
+            return;
+        }
         this.myUsername = username;
         String advName = username;
         if (advName.length() > 25) advName = advName.substring(0, 25);

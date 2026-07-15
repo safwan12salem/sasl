@@ -398,13 +398,30 @@ export default function WaveMesh() {
     toast.success("Message updated");
   };
 
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+
+const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ratio = Math.min(1, maxWidth / img.width);
+      canvas.width = img.width * ratio;
+      canvas.height = img.height * ratio;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => {
+        if (blob) blob.arrayBuffer().then(resolve).catch(reject);
+        else reject(new Error('compress failed'));
+      }, 'image/jpeg', 0.6);
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+};
+
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    // Convert file to Uint8Array for BLE transfer
-    const arrayBuffer = await file.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
     
     // Try online Cloudinary first
     try {
@@ -420,16 +437,21 @@ export default function WaveMesh() {
       }
     } catch {}
     
-    // Offline fallback: send via BLE chunked transfer
+    // Offline: compress image then BLE transfer
     try {
-      toast.success(`📎 Sending ${file.name} via BLE...`);
-      await waveMeshCore.sendFile(uint8Array, file.name);
+      // If image, compress to max 200px wide
+      if (file.type.startsWith('image/')) {
+        const compressed = await compressImage(file, 200);
+        await waveMeshCore.sendFile(new Uint8Array(compressed), file.name);
+      } else {
+        const arrayBuffer = await file.arrayBuffer();
+        await waveMeshCore.sendFile(new Uint8Array(arrayBuffer), file.name);
+      }
       toast.success("File sent via BLE!");
     } catch {
       toast.error("File transfer failed");
     }
   };
-
     const sendRelayMessage = async () => {
     toast.success('📤 Relay mode coming soon');
   };
@@ -782,19 +804,9 @@ export default function WaveMesh() {
                               <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full">Connected</span>
                             ) : (
                               <button
-                                onClick={async () => { 
-  const pending = waveMeshCore.getPendingRequests();
-  const alreadyRequested = pending.find(r => r.deviceId === peer.id);
-  
-  if (alreadyRequested) {
-    // Both users tapped Send — connect!
-    waveMeshCore.acceptRequest(peer.id);
-    toast.success("🔗 Both requested — connecting!");
-  } else {
-    // First user to tap — send request
-    await waveMeshCore.sendConnectionRequest(peer.id);
-    toast.success("📩 Request sent! Waiting for other user to tap Send too...");
-  }
+                                                               onClick={async () => { 
+  toast.success("🔗 Connecting...");
+  await waveMeshCore.connectToPeer(peer.id);
 }}
                                 className="p-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
                               >
