@@ -3,7 +3,7 @@
  * No BroadcastChannel for cross-device. All communication via BLE GATT.
  */
 import WaveMeshPlugin from '../plugins/WaveMeshPlugin';
-
+import { Preferences } from '@capacitor/preferences';
 export interface MeshPeer {
   id: string; username: string; distance: number;
   connectionType: 'ble4' | 'ble5' | 'wifidirect' | 'relay';
@@ -97,11 +97,11 @@ class WaveMeshCore {
     this.log(`✅ WaveMesh ready for @${username}`);
   }
 
-   private restoreRooms(): void {
+    private async restoreRooms(): Promise<void> {
     try {
-      const saved = localStorage.getItem('sasl_wavemesh_rooms');
-      if (saved) {
-        const rooms = JSON.parse(saved);
+      const { value } = await Preferences.get({ key: 'sasl_wavemesh_rooms' });
+      if (value) {
+        const rooms = JSON.parse(value);
         for (const room of rooms) {
           this.peers.set(room.id, room);
           this.connectedDevices.add(room.id);
@@ -111,13 +111,12 @@ class WaveMeshCore {
       }
     } catch {}
   }
-  private saveRooms(): void {
+   private async saveRooms(): Promise<void> {
     try {
       const rooms = Array.from(this.peers.values()).filter(p => p.connected);
-      localStorage.setItem('sasl_wavemesh_rooms', JSON.stringify(rooms));
+      await Preferences.set({ key: 'sasl_wavemesh_rooms', value: JSON.stringify(rooms) });
     } catch {}
   }
-
   async startScanning(): Promise<void> {
     if (this.scanning) return;
     this.scanning = true; this.totalScans++;
@@ -409,12 +408,13 @@ class WaveMeshCore {
   async stop(): Promise<void> { await this.stopScanning(); this.saveRooms(); this.peers.clear(); this.connectedDevices.clear(); }
 
 
-  disconnectPeer(peerId: string): void {
+   async disconnectPeer(peerId: string): Promise<void> {
     this.connectedDevices.delete(peerId);
     this.peers.delete(peerId);
-    this.saveRooms();
+    await this.saveRooms();
   }
 
+  
   setOnPeerDiscovered(cb: Callback): void { this.onPeerDiscovered = cb; }
   setOnPeerConnected(cb: Callback): void { this.onPeerConnected = cb; }
   setOnPeerDisconnected(cb: Callback): void { this.onPeerDisconnected = cb; }
