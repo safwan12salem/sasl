@@ -31,6 +31,7 @@ class WaveMeshCore {
   private peers: Map<string, MeshPeer> = new Map();
   private scanning = false;
   private connectedDevices: Set<string> = new Set();
+    private broadcastChannel: BroadcastChannel | null = null;
   public debugLog: string[] = [];
   private onDebugUpdate: (() => void) | null = null;
   private startTime = Date.now();
@@ -58,6 +59,12 @@ class WaveMeshCore {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
       await BleClient.initialize();
       this.log('🔵 Community BLE ready');
+          this.broadcastChannel = new BroadcastChannel("sasl-wave-mesh-v5");
+    this.broadcastChannel.onmessage = (event) => {
+      if (event.data.from !== this.identity?.username) {
+        this.onMessageReceived?.(event.data);
+      }
+    };
     } catch (e: any) { this.log(`❌ BLE not available: ${e.message}`); return; }
     
     // Try native plugin for advertising + GATT server
@@ -220,6 +227,10 @@ class WaveMeshCore {
         this.log(`📤 Sent to ${peer?.username || deviceId}`);
       } catch (e) { this.log(`⚠️ BLE send failed`); }
     }
+        // Also broadcast via BroadcastChannel for same-device delivery
+    if (this.broadcastChannel) {
+      this.broadcastChannel.postMessage({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
+    }
   }
 
   // ============================================================
@@ -268,9 +279,108 @@ class WaveMeshCore {
     return { meters: maxRange, label: tier >= 4 ? '🌍 GLOBAL 50km+' : tier >= 3 ? `🏙️ ${(maxRange/1000).toFixed(0)}km` : tier >= 2 ? `📡 ${(maxRange/1000).toFixed(1)}km` : tier >= 1 ? `🔵 ${maxRange}m` : `🔍 ${count} peers`, usersNeeded: usersFor50km, technology: 'BLE 5 Long Range', hopDistance: hopDist, tier, tierName, maxRange, peerCount: count, signalStrength: avgSignal };
   }
 
+
+  // ============================================================
+  // AUDIO MESH — Sonic data transmission (long range through obstacles)
+  // ============================================================
+  
+  async sendViaAudioMesh(text: string): Promise<void> {
+    if (!this.identity) return;
+    const msg = { id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'audiomesh', timestamp: Date.now() };
+    this.onMessageReceived?.(msg);
+    
+    try {
+      const { audioMesh } = await import('./AudioMesh');
+      await audioMesh.start();
+      await audioMesh.transmit(text);
+      this.log(`🔊 Sent via AudioMesh: "${text.substring(0, 20)}"`);
+    } catch (e) {
+      this.log(`⚠️ AudioMesh failed: ${e}`);
+    }
+  }
+
+  // ============================================================
+  // FILE TRANSFER — Chunked BLE file transfer (offline)
+  // ============================================================
+  
+  async sendFile(fileData: Uint8Array, fileName: string): Promise<void> {
+    if (!this.identity) return;
+    const CHUNK_SIZE = 512;
+    const totalChunks = Math.ceil(fileData.length / CHUNK_SIZE);
+    this.log(`📎 Sending file: ${fileName} (${fileData.length} bytes, ${totalChunks} chunks)`);
+    
+    const header = JSON.stringify({ type: 'file_start', name: fileName, size: fileData.length, chunks: totalChunks });
+    await this.broadcastData(header, 'message');
+    
+    for (let i = 0; i < totalChunks; i++) {
+      const chunk = fileData.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+      const chunkB64 = btoa(String.fromCharCode(...chunk));
+      const chunkMsg = JSON.stringify({ type: 'file_chunk', name: fileName, index: i, total: totalChunks, data: chunkB64 });
+      await this.broadcastData(chunkMsg, 'message');
+    }
+    this.log(`✅ File sent: ${fileName}`);
+  }
+
+  async sendVoiceMessage(audioData: Uint8Array): Promise<void> {
+    if (!this.identity) return;
+    const msg = { id: `msg_${Date.now()}`, from: this.identity.username, text: '🎤 Voice message', type: 'voice', timestamp: Date.now() };
+    this.onMessageReceived?.(msg);
+    await this.sendFile(audioData, `voice_${Date.now()}.wav`);
+  }
+
+  // ============================================================
+  // BROADCAST DATA — Dual transport (BLE + BroadcastChannel)
+  // ============================================================
+  
+  private async broadcastData(data: string, type: string): Promise<void> {
+    const payload = typeof data === 'string' ? data : JSON.stringify(data);
+    for (const deviceId of this.connectedDevices) {
+      try {
+        const { BleClient } = await import('@capacitor-community/bluetooth-le');
+        const encoded = new TextEncoder().encode(payload);
+        await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
+      } catch {}
+    }
+    if (this.broadcastChannel) {
+      this.broadcastChannel.postMessage({ id: `msg_${Date.now()}`, from: this.identity?.username, text: payload, type, timestamp: Date.now() });
+    }
+  }
+
+  // ============================================================
+  // SIGNAL HEALTH — Bluetooth environment analysis
+  // ============================================================
+  
+  getBluetoothEnvironment(): { totalDevices: number; potentialRelays: number; signalQuality: 'excellent' | 'good' | 'fair' | 'poor' } {
+    const allDevices = Array.from(this.peers.values());
+    const saslDevices = allDevices.filter(p => p.connected);
+    const otherDevices = allDevices.filter(p => !p.connected);
+    const signalQuality = saslDevices.length > 0 
+      ? (saslDevices[0].signalStrength > 60 ? 'excellent' : saslDevices[0].signalStrength > 40 ? 'good' : saslDevices[0].signalStrength > 20 ? 'fair' : 'poor')
+      : 'poor';
+    return { totalDevices: allDevices.length, potentialRelays: otherDevices.length, signalQuality };
+  }
+
+  getSignalHealth(): { warning: string | null; suggestion: string | null; shouldRelay: boolean } {
+    const range = this.getRange();
+    const env = this.getBluetoothEnvironment();
+    if (env.signalQuality === 'poor' && range.peerCount === 0) {
+      return { warning: '📡 Weak signal — move closer or find open space', suggestion: `${env.potentialRelays} Bluetooth devices nearby can help reflect signal`, shouldRelay: false };
+    }
+    if (env.signalQuality === 'fair' && range.usersNeeded > 0) {
+      return { warning: '⚠️ Signal could be stronger', suggestion: `${range.usersNeeded} more Sasl users needed for ${(range.meters/1000).toFixed(1)}km relay mesh`, shouldRelay: true };
+    }
+    if (env.signalQuality === 'good' && range.usersNeeded > 0) {
+      return { warning: null, suggestion: `${range.usersNeeded} more Sasl users needed for 50km global mesh`, shouldRelay: range.usersNeeded <= 100 };
+    }
+    return { warning: null, suggestion: null, shouldRelay: false };
+  }
+
+  isRelayActive(): boolean { return this.getSignalHealth().shouldRelay; }
+
   getStats(): MeshStats { return { totalPeers: this.peers.size, connectedPeers: this.connectedDevices.size, relayMessages: 0, pendingDelivery: 0, delivered: 0, uptime: Math.floor((Date.now() - this.startTime) / 1000), scanCount: this.totalScans }; }
   getPeers(): MeshPeer[] { return Array.from(this.peers.values()).filter(p => Date.now() - p.lastSeen < 120000).sort((a, b) => a.distance - b.distance); }
   getTierInfo() { const r = this.getRange(); const colors = ['gray','green','blue','purple','yellow']; return { tier: r.tier, name: r.tierName, description: r.usersNeeded > 0 ? `${r.usersNeeded} more for 50km` : 'Active', color: colors[r.tier] || 'gray' }; }
+   
   getStatus(): string { return this.getRange().label; }
   getIdentity() { return this.identity; }
   isScanning(): boolean { return this.scanning; }
@@ -288,3 +398,4 @@ class WaveMeshCore {
 }
 
 export const waveMeshCore = new WaveMeshCore();
+
