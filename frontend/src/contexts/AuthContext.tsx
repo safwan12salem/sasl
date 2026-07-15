@@ -38,16 +38,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try { return localStorage.getItem('sasl_token'); } catch { return null; }
   });
 
-  useEffect(() => {
+    useEffect(() => {
     const t = token || localStorage.getItem('sasl_token');
     if (t) {
       api.defaults.headers.common['Authorization'] = `Bearer ${t}`;
       api.get('/users/profile/')
         .then(r => { setUser(r.data); setLoading(false); })
         .catch(() => { 
-          localStorage.removeItem('sasl_token');
-          setToken(null);
-          setLoading(false); 
+          // If offline, keep token and allow access with cached user
+          const cached = localStorage.getItem('sasl_user');
+          if (cached) {
+            try { setUser(JSON.parse(cached)); } catch {}
+            setLoading(false);
+          } else {
+            setLoading(false);
+          }
         });
     } else {
       setLoading(false);
@@ -68,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const profileRes = await api.get('/users/profile/');
       setUser(profileRes.data);
+       localStorage.setItem('sasl_user', JSON.stringify(profileRes.data));
     } catch (profileErr) {
       console.warn('Profile fetch failed, but token is set');
     }
@@ -92,6 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try { 
       const r = await api.get('/users/profile/'); 
       setUser(r.data); 
+       localStorage.setItem('sasl_user', JSON.stringify(r.data));
     } catch {}
   };
 

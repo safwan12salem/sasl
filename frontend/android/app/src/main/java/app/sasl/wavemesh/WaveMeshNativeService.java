@@ -78,8 +78,26 @@ public class WaveMeshNativeService {
                 
                 if (characteristic.getUuid().toString().equalsIgnoreCase(SASL_CHAR_MESSAGE_UUID)) {
                     if (callback != null) callback.onMessageReceived(device.getAddress(), message);
-                } else if (characteristic.getUuid().toString().equalsIgnoreCase(SASL_CHAR_IDENTITY_UUID)) {
-                    if (callback != null) callback.onPeerDiscovered(device.getAddress(), message, "ble", 10);
+                              } else if (characteristic.getUuid().toString().equalsIgnoreCase(SASL_CHAR_IDENTITY_UUID)) {
+                    // Check if it's a request or identity
+                    try {
+                        org.json.JSONObject json = new org.json.JSONObject(message);
+                        String msgType = json.optString("type", "identity");
+                        String from = json.optString("from", device.getName());
+                        String msgText = json.optString("message", "");
+                        
+                        if ("request".equals(msgType)) {
+                            // Send as peerConnected so the JS listener fires
+                            if (callback != null) {
+                                callback.onPeerConnected(device.getAddress(), from);
+                                callback.onMessageReceived(from, msgText);
+                            }
+                        } else {
+                            if (callback != null) callback.onPeerDiscovered(device.getAddress(), from, "ble", 10);
+                        }
+                    } catch (Exception e) {
+                        if (callback != null) callback.onPeerDiscovered(device.getAddress(), message, "ble", 10);
+                    }
                 }
                 
                 if (responseNeeded) {
