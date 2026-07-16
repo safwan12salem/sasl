@@ -32,6 +32,7 @@ class WaveMeshCore {
   private peers: Map<string, MeshPeer> = new Map();
   private scanning = false;
   private connectedDevices: Set<string> = new Set();
+    private commandQueue: { command: string; timestamp: number }[] = [];
   public debugLog: string[] = [];
   private onDebugUpdate: (() => void) | null = null;
   private startTime = Date.now();
@@ -182,6 +183,17 @@ class WaveMeshCore {
       this.onPeerConnected?.({ peerId: deviceId, username: name });
       this.onRoomCreated?.({ peerId: deviceId, username: name });
       await this.saveRooms();
+            // Flush queued commands on new connection
+      if (this.commandQueue.length > 0) {
+        this.log(`📤 Flushing ${this.commandQueue.length} queued commands on new connection`);
+        for (const { command } of [...this.commandQueue]) {
+          try {
+            const encoded = new TextEncoder().encode(command);
+            await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
+          } catch {}
+        }
+        this.commandQueue = [];
+      }
       this.log(`✅ Connected to ${name}`);
       if (this.identity) {
         try {
@@ -205,6 +217,18 @@ class WaveMeshCore {
         await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
         const peer = this.peers.get(deviceId);
         this.log(`📤 Sent to ${peer?.username || deviceId}`);
+            // Flush command queue after successful message
+    if (this.commandQueue.length > 0) {
+      this.log(`📤 Flushing ${this.commandQueue.length} queued commands`);
+      for (const { command } of [...this.commandQueue]) {
+        try {
+          const { BleClient } = await import('@capacitor-community/bluetooth-le');
+          const encoded = new TextEncoder().encode(command);
+          await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
+        } catch {}
+      }
+      this.commandQueue = [];
+    }
       } catch (e) {
         this.log(`⚠️ BLE send failed, removing device`);
         this.connectedDevices.delete(deviceId);
@@ -212,8 +236,10 @@ class WaveMeshCore {
     }
   }
 
-  async sendControlCommand(command: string): Promise<void> {
+   async sendControlCommand(command: string): Promise<void> {
     if (!this.identity) return;
+    
+    let sent = false;
     for (const deviceId of this.connectedDevices) {
       try {
         const { BleClient } = await import('@capacitor-community/bluetooth-le');
@@ -221,9 +247,17 @@ class WaveMeshCore {
         const encoded = new TextEncoder().encode(command);
         await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
         this.log(`📤 Control sent to ${deviceId}`);
-      } catch (e) { this.log(`⚠️ Control send failed`); }
+        sent = true;
+      } catch (e) {}
+    }
+    
+    // If not sent, queue for later delivery
+    if (!sent) {
+      this.commandQueue.push({ command, timestamp: Date.now() });
+      this.log(`📥 Command queued for later delivery (${this.commandQueue.length} pending)`);
     }
   }
+
 
   async disconnectPeer(peerId: string): Promise<void> {
     this.connectedDevices.delete(peerId);
