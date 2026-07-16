@@ -406,7 +406,7 @@ export default function WaveMesh() {
               {tab === 'rooms' && (
                 <div className="space-y-1">
                   {rooms.length === 0 ? (
-                    <div className="text-center py-16 px-4 text-gray-400"><MessageCircle size={36} className="mx-auto mb-2 opacity-50" /><p className="font-semibold">No conversations yet</p><p className="text-sm">Start scanning to find peers</p><button onClick={toggleScan} className="mt-4 px-4 py-2 bg-green-500 text-white rounded-xl text-sm">Start Scan</button></div>
+                    <div className="text-center py-16 px-4 text-gray-400"><MessageCircle size={36} className="mx-auto mb-2 opacity-50" /><p className="font-semibold">{t('No conversations yet')}</p><p className="text-sm">{t('Start scanning to find peers')}</p><button onClick={toggleScan} className="mt-4 px-4 py-2 bg-green-500 text-white rounded-xl text-sm">{t('Start Scan')}</button></div>
                   ) : (
                     rooms.map(room => (
                       <button key={room.id} onClick={() => { setActiveRoom(room); setShowSidebar(false); }} className={`w-full flex items-center gap-3 p-3.5 rounded-2xl transition-all text-left ${activeRoom?.id === room.id ? 'bg-green-50 dark:bg-green-900/20 border-2 border-green-200' : 'hover:bg-gray-50 dark:hover:bg-gray-800/50 border-2 border-transparent'}`}>
@@ -437,7 +437,7 @@ export default function WaveMesh() {
                           <Avatar name={peer.username} size="md" />
                           <div className="flex-1 min-w-0"><p className="font-semibold text-sm">{peer.username}</p><p className="text-xs flex items-center gap-1"><LayerIcon size={10} className={peer.connectionType === 'ble5' ? 'text-purple-500' : peer.connectionType === 'wifidirect' ? 'text-orange-500' : peer.connectionType === 'relay' ? 'text-blue-500' : 'text-green-500'} /><span className="text-gray-500">{peer.connectionType.toUpperCase()} · ~{peer.distance}m · {peer.signalStrength}%</span></p></div>
                           <div className="flex items-center gap-1">
-                            {peer.connected ? <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full">Connected</span> : (
+                            {peer.connected ? <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full">{t('Connected')}</span> : (
                               <button onClick={async () => { toast.success("🔗 Connecting..."); await waveMeshCore.connectToPeer(peer.id); }} className="p-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"><Send size={14} /></button>
                             )}
                           </div>
@@ -452,16 +452,16 @@ export default function WaveMesh() {
                 <div>
                   <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 mb-3">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold flex items-center gap-1"><Globe size={12} className="text-blue-500" /> Echo Relay</span>
-                      <span className="text-[10px] text-blue-500">{relayStats.pendingDelivery} pending</span>
+                      <span className="text-xs font-bold flex items-center gap-1"><Globe size={12} className="text-blue-500" /> {t('Echo Relay')}</span>
+                      <span className="text-[10px] text-blue-500">{relayStats.pendingDelivery} {t('pending')}</span>
                     </div>
-                    <p className="text-[10px] text-gray-500">Messages hop through Sasl users until they reach the destination.{rangeInfo && rangeInfo.usersNeeded > 0 ? ` Need ${rangeInfo.usersNeeded} more users for 50km mesh.` : ' Global mesh active!'}</p>
+                    <p className="text-[10px] text-gray-500">{t('Messages hop through Sasl users until they reach the destination.')}{rangeInfo && rangeInfo.usersNeeded > 0 ? ` ${t('Need')} ${rangeInfo.usersNeeded} ${t('more users for 50km mesh.')}` : ` ${t('Global mesh active!')}`}</p>
                     {rangeInfo && <div className="mt-2 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 overflow-hidden"><div className="bg-gradient-to-r from-blue-400 to-purple-500 h-full rounded-full transition-all" style={{ width: `${getRangePercentage()}%` }} /></div>}
                   </div>
                   <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center"><p className="text-[10px] text-gray-500">Stored</p><p className="text-lg font-bold">{relayStats.totalMessages}</p></div>
-                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center"><p className="text-[10px] text-gray-500">Pending</p><p className="text-lg font-bold text-orange-500">{relayStats.pendingDelivery}</p></div>
-                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center"><p className="text-[10px] text-gray-500">Delivered</p><p className="text-lg font-bold text-green-500">{relayStats.delivered}</p></div>
+                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center"><p className="text-[10px] text-gray-500">{t('Stored')}</p><p className="text-lg font-bold">{relayStats.totalMessages}</p></div>
+                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center"><p className="text-[10px] text-gray-500">{t('Pending')}</p><p className="text-lg font-bold text-orange-500">{relayStats.pendingDelivery}</p></div>
+                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center"><p className="text-[10px] text-gray-500">{t('Delivered')}</p><p className="text-lg font-bold text-green-500">{relayStats.delivered}</p></div>
                   </div>
                   {rangeInfo && (
                     <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 mb-3">
@@ -470,21 +470,21 @@ export default function WaveMesh() {
                       <p className="text-[10px] text-gray-400 mt-2 text-center">{rangeInfo.usersNeeded > 0 ? `${rangeInfo.peerCount} peers · ${rangeInfo.usersNeeded} more for 50km global mesh` : '🎉 50km GLOBAL MESH ACTIVE!'}</p>
                     </div>
                   )}
-                  <p className="text-[10px] text-gray-400 text-center">Each Sasl user extends the mesh by ~200m</p>
+                  <p className="text-[10px] text-gray-400 text-center">{t('Each Sasl user extends the mesh by ~200m. The more users, the farther the mesh reaches!')}</p>
                 </div>
               )}
 
               {tab === 'connect' && (
                 <div className="space-y-4 p-2">
-                  <div className="glass p-4 rounded-2xl text-center"><p className="text-xs text-gray-500 mb-1">Your Sasl Mesh ID</p><code className="text-xs bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-lg break-all">{waveMeshCore.getIdentity()?.id || 'Initializing...'}</code><button onClick={() => { navigator.clipboard.writeText(waveMeshCore.getIdentity()?.id || ''); toast.success('ID copied!'); }} className="mt-2 text-[10px] text-green-500 flex items-center gap-1 mx-auto"><Copy size={10} /> Copy ID</button></div>
-                  <button onClick={generateQR} className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg"><QrCode size={20} /> Share Connection Code</button>
-                  <div className="flex gap-2"><input value={pasteInput} onChange={e => setPasteInput(e.target.value)} placeholder="Paste connection code..." className="flex-1 px-4 py-2.5 rounded-xl border text-sm dark:bg-gray-700 dark:border-gray-600" /><button onClick={qrConnected ? completeHandshake : pasteCode} className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold">Connect</button></div>
-                  {stats && <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800"><h4 className="text-xs font-bold mb-3">Mesh Statistics</h4><div className="grid grid-cols-2 gap-2"><div className="p-2 rounded-xl bg-white dark:bg-gray-700"><p className="text-[10px] text-gray-500">Peers</p><p className="text-lg font-bold">{stats.totalPeers}</p></div><div className="p-2 rounded-xl bg-white dark:bg-gray-700"><p className="text-[10px] text-gray-500">Connected</p><p className="text-lg font-bold">{stats.connectedPeers}</p></div><div className="p-2 rounded-xl bg-white dark:bg-gray-700"><p className="text-[10px] text-gray-500">Relay Msgs</p><p className="text-lg font-bold">{stats.relayMessages}</p></div><div className="p-2 rounded-xl bg-white dark:bg-gray-700"><p className="text-[10px] text-gray-500">Delivered</p><p className="text-lg font-bold">{stats.delivered}</p></div></div></div>}
+                  <div className="glass p-4 rounded-2xl text-center"><p className="text-xs text-gray-500 mb-1">{t('Your Sasl Mesh ID')}</p><code className="text-xs bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-lg break-all">{waveMeshCore.getIdentity()?.id || 'Initializing...'}</code><button onClick={() => { navigator.clipboard.writeText(waveMeshCore.getIdentity()?.id || ''); toast.success('ID copied!'); }} className="mt-2 text-[10px] text-green-500 flex items-center gap-1 mx-auto"><Copy size={10} /> {t('Copy ID')}</button></div>
+                  <button onClick={generateQR} className="w-full py-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-bold flex items-center justify-center gap-2 shadow-lg"><QrCode size={20} /> {t('Share Connection Code')}</button>
+                  <div className="flex gap-2"><input value={pasteInput} onChange={e => setPasteInput(e.target.value)} placeholder={t('Paste connection code...')} className="flex-1 px-4 py-2.5 rounded-xl border text-sm dark:bg-gray-700 dark:border-gray-600" /><button onClick={qrConnected ? completeHandshake : pasteCode} className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold">{t('Connect')}</button></div>
+                  {stats && <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800"><h4 className="text-xs font-bold mb-3">{t('Mesh Statistics')}</h4><div className="grid grid-cols-2 gap-2"><div className="p-2 rounded-xl bg-white dark:bg-gray-700"><p className="text-[10px] text-gray-500">{t('Peers')}</p><p className="text-lg font-bold">{stats.totalPeers}</p></div><div className="p-2 rounded-xl bg-white dark:bg-gray-700"><p className="text-[10px] text-gray-500">{t('Connected')}</p><p className="text-lg font-bold">{stats.connectedPeers}</p></div><div className="p-2 rounded-xl bg-white dark:bg-gray-700"><p className="text-[10px] text-gray-500">{t('Relay Msgs')}</p><p className="text-lg font-bold">{stats.relayMessages}</p></div><div className="p-2 rounded-xl bg-white dark:bg-gray-700"><p className="text-[10px] text-gray-500">{t('Delivered')}</p><p className="text-lg font-bold">{stats.delivered}</p></div></div></div>}
                 </div>
               )}
 
               {tab === 'debug' && (
-                <div className="space-y-1"><p className="text-xs font-bold mb-2">📋 System Log:</p>{debugLog.length === 0 ? <p className="text-xs text-gray-400">No log entries. Start scanning to see activity.</p> : debugLog.map((line, i) => <p key={i} className="text-[10px] text-gray-600 dark:text-gray-400 font-mono leading-relaxed border-b border-gray-100 dark:border-gray-800 pb-1">{line}</p>)}</div>
+                <div className="space-y-1"><p className="text-xs font-bold mb-2">📋  System Log:</p>{debugLog.length === 0 ? <p className="text-xs text-gray-400">{t('No log entries. Start scanning to see activity.')}</p> : debugLog.map((line, i) => <p key={i} className="text-[10px] text-gray-600 dark:text-gray-400 font-mono leading-relaxed border-b border-gray-100 dark:border-gray-800 pb-1">{line}</p>)}</div>
               )}
             </div>
 
@@ -502,15 +502,15 @@ export default function WaveMesh() {
             <div className="text-center max-w-md w-full">
               <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 3, repeat: Infinity }} className="w-20 h-20 sm:w-28 sm:h-28 mx-auto mb-4 sm:mb-8 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-green-400 via-emerald-500 to-teal-600 flex items-center justify-center shadow-2xl shadow-green-500/30"><Radio size={36} className="text-white sm:size-14" /></motion.div>
               <div className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold mb-3 bg-gradient-to-r ${getTierColors().gradient} text-white`}>{tierInfo.name}</div>
-              <h2 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2 sm:mb-3">Sasl WaveMesh</h2>
-              <p className="text-gray-500 mb-1 sm:mb-2 text-sm sm:text-lg"><span className="font-semibold text-green-600">Multi-Layer P2P</span> · Zero Internet</p>
-              <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-8">BLE 4 (100m) + BLE 5 (500m) + Echo Relay (∞) + AudioMesh<br /><span className="font-semibold">100 users = 50km Global Mesh</span></p>
+              <h2 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2 sm:mb-3"> {t('Sasl WaveMesh')}</h2>
+              <p className="text-gray-500 mb-1 sm:mb-2 text-sm sm:text-lg"><span className="font-semibold text-green-600"> {t('Multi-Layer P2P')}</span> · {t('Zero Internet')}</p>
+              <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-8">BLE 4 (100m) + BLE 5 (500m) + Echo Relay (∞) + AudioMesh<br /><span className="font-semibold">{t('100  users = 50km Global Mesh')}</span></p>
               <button onClick={() => setShowSidebar(true)} className="md:hidden mx-auto mb-3 sm:mb-4 p-2.5 sm:p-3 bg-gray-100 dark:bg-gray-800 rounded-2xl"><Menu size={20} /></button>
               <div className="flex gap-2 sm:gap-3 justify-center flex-wrap">
-                <button onClick={() => { setTab('discover'); setShowSidebar(true); }} className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-semibold shadow-lg text-xs sm:text-base">🔍 Discover Peers</button>
-                <button onClick={generateQR} className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-semibold shadow-lg flex items-center gap-2 text-xs sm:text-base"><QrCode size={16} /> Share Code</button>
+                <button onClick={() => { setTab('discover'); setShowSidebar(true); }} className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-semibold shadow-lg text-xs sm:text-base">🔍  {t('Discover Peers')}</button>
+                <button onClick={generateQR} className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-semibold shadow-lg flex items-center gap-2 text-xs sm:text-base"><QrCode size={16} /> {t('Share Connection Code')}</button>
               </div>
-              <div className="mt-6 sm:mt-8 flex items-center justify-center gap-3 sm:gap-6 text-[10px] sm:text-xs text-gray-400 flex-wrap"><span className="flex items-center gap-1"><WifiOff size={10} /> No Internet</span><span className="flex items-center gap-1"><Shield size={10} /> E2E Encrypted</span><span className="flex items-center gap-1"><Globe size={10} /> Global Relay</span></div>
+              <div className="mt-6 sm:mt-8 flex items-center justify-center gap-3 sm:gap-6 text-[10px] sm:text-xs text-gray-400 flex-wrap"><span className="flex items-center gap-1"><WifiOff size={10} /> {t('No Internet')}</span><span className="flex items-center gap-1"><Shield size={10} /> {t('E2E Encrypted')}</span><span className="flex items-center gap-1"><Globe size={10} /> {t('Global Relay')}</span></div>
             </div>
           </div>
         ) : (
@@ -531,7 +531,7 @@ export default function WaveMesh() {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-3 sm:py-4 space-y-3 min-h-0">
               {messages.length === 0 ? (
-                <div className="text-center text-gray-400 py-16 sm:py-20"><MessageCircle size={36} className="mx-auto mb-2 opacity-30" /><p className="text-sm sm:text-base">Connected via WaveMesh</p><p className="text-xs sm:text-sm">Say hello! 👋</p></div>
+                <div className="text-center text-gray-400 py-16 sm:py-20"><MessageCircle size={36} className="mx-auto mb-2 opacity-30" /><p className="text-sm sm:text-base"> {t('Connected via WaveMesh')}</p><p className="text-xs sm:text-sm"> {t('Say hello! 👋')}</p></div>
               ) : (
                 messages.map(msg => (
                   <motion.div key={msg.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`flex items-end gap-1.5 sm:gap-2 ${msg.isMe ? 'justify-end' : 'justify-start'}`}>

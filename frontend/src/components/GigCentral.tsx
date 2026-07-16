@@ -1,6 +1,6 @@
 /**
- * Sasl - Social Asynchronous Sharing Layer
- * Gig Central – Advanced freelancer marketplace with milestones, reviews, disputes, portfolio
+ * Sasl Gig Central — VIRAL EDITION
+ * Modern freelancer marketplace with elegant card UI, milestones, reviews, disputes, portfolio
  */
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import api from '../services/api';
@@ -11,12 +11,13 @@ import {
   AlertCircle, DollarSign, MessageCircle, Calendar, FileText,
   Search, Filter, Clock, Award, Shield, Zap, TrendingUp,
   ChevronDown, ChevronUp, X, Image as ImageIcon, Link, Upload,
-  ThumbsUp, Flag, Users, Target, BarChart3
+  ThumbsUp, Flag, Users, Target, BarChart3, Eye, Send, MapPin, Verified
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GigChat from './GigChat';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
+
 
 interface Gig {
   id: string;
@@ -70,27 +71,29 @@ interface Portfolio {
   link?: string;
 }
 
-const STATUS_COLORS: Record<string, string> = {
-  open: 'bg-blue-100 text-blue-700 border-blue-300',
-  in_progress: 'bg-yellow-100 text-yellow-700 border-yellow-300',
-  completed: 'bg-green-100 text-green-700 border-green-300',
-  disputed: 'bg-red-100 text-red-700 border-red-300',
-  cancelled: 'bg-gray-100 text-gray-700 border-gray-300',
+const STATUS_CONFIG: Record<string, { bg: string; text: string; border: string; icon: JSX.Element; label: string }> = {
+  open: { bg: 'bg-blue-50 dark:bg-blue-900/20', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800', icon: <Target size={12} />, label: 'Open' },
+  in_progress: { bg: 'bg-amber-50 dark:bg-amber-900/20', text: 'text-amber-600 dark:text-amber-400', border: 'border-amber-200 dark:border-amber-800', icon: <Clock size={12} />, label: 'In Progress' },
+  completed: { bg: 'bg-emerald-50 dark:bg-emerald-900/20', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800', icon: <CheckCircle size={12} />, label: 'Completed' },
+  disputed: { bg: 'bg-red-50 dark:bg-red-900/20', text: 'text-red-600 dark:text-red-400', border: 'border-red-200 dark:border-red-800', icon: <Flag size={12} />, label: 'Disputed' },
+  cancelled: { bg: 'bg-gray-50 dark:bg-gray-800', text: 'text-gray-500 dark:text-gray-400', border: 'border-gray-200 dark:border-gray-700', icon: <X size={12} />, label: 'Cancelled' },
 };
 
-const STATUS_ICONS: Record<string, JSX.Element> = {
-  open: <Target size={14} />,
-  in_progress: <Clock size={14} />,
-  completed: <CheckCircle size={14} />,
-  disputed: <Flag size={14} />,
-  cancelled: <X size={14} />,
+const CATEGORY_GRADIENTS: Record<string, string> = {
+  design: 'from-pink-500 to-rose-500',
+  development: 'from-blue-500 to-indigo-500',
+  writing: 'from-violet-500 to-purple-500',
+  marketing: 'from-orange-500 to-red-500',
+  video: 'from-teal-500 to-cyan-500',
+  music: 'from-yellow-500 to-amber-500',
+  business: 'from-emerald-500 to-green-500',
+  other: 'from-gray-500 to-slate-500',
 };
 
 export default function GigCentral() {
   const { user } = useAuth();
   const { t } = useTranslation();
 
-  // State
   const [gigs, setGigs] = useState<Gig[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,27 +102,22 @@ export default function GigCentral() {
   const [showForm, setShowForm] = useState(false);
   const [expandedGig, setExpandedGig] = useState<string | null>(null);
   const [chatRoom, setChatRoom] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
 
-  // Form state
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newBudget, setNewBudget] = useState('');
   const [newCategory, setNewCategory] = useState('design');
   const [newDeadline, setNewDeadline] = useState('');
-  const [milestones, setMilestones] = useState<{ title: string; amount: string }[]>([
-    { title: '', amount: '' }
-  ]);
+  const [milestones, setMilestones] = useState<{ title: string; amount: string }[]>([{ title: '', amount: '' }]);
 
-  // Review state
   const [showReview, setShowReview] = useState<string | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
   const [reviewComment, setReviewComment] = useState('');
 
-  // Dispute state
   const [showDispute, setShowDispute] = useState<string | null>(null);
   const [disputeReason, setDisputeReason] = useState('');
 
-  // Portfolio state
   const [portfolio, setPortfolio] = useState<Portfolio[]>([]);
   const [showPortfolioForm, setShowPortfolioForm] = useState(false);
   const [pfTitle, setPfTitle] = useState('');
@@ -127,79 +125,47 @@ export default function GigCentral() {
   const [pfLink, setPfLink] = useState('');
   const [pfImage, setPfImage] = useState<File | null>(null);
 
-  // Skill badges
   const [skillBadges, setSkillBadges] = useState<SkillBadge[]>([]);
   const [showBadges, setShowBadges] = useState(false);
 
-  // Stats
   const [stats, setStats] = useState({ totalGigs: 0, completedGigs: 0, totalEarned: '0', avgRating: 0 });
 
-  // Negotiation state
   const [negotiateGig, setNegotiateGig] = useState<string | null>(null);
   const [proposalMessage, setProposalMessage] = useState('');
   const [proposalBudget, setProposalBudget] = useState('');
 
   const [likedGigs, setLikedGigs] = useState<Set<string>>(new Set());
-
-  // Payment state
   const [showPayment, setShowPayment] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
-
-  // ============================================================
-  // FETCH
-  // ============================================================
+  
   const fetchGigs = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+    setLoading(true); setError(null);
     try {
       const params = new URLSearchParams();
       if (activeTab !== 'mine') params.set('status', activeTab);
       if (activeTab === 'mine') params.set('mine', 'true');
       if (searchQuery) params.set('search', searchQuery);
-
       const res = await api.get(`/gigs/gigs/?${params.toString()}`);
-      setGigs(Array.isArray(res.data) ? res.data : res.data.results || []);
-
-      // Calculate stats
-      const all = Array.isArray(res.data) ? res.data : res.data.results || [];
-      const completed = all.filter((g: Gig) => g.status === 'completed');
+      const data = Array.isArray(res.data) ? res.data : res.data.results || [];
+      setGigs(data);
+      const completed = data.filter((g: Gig) => g.status === 'completed');
       setStats({
-        totalGigs: all.length,
+        totalGigs: data.length,
         completedGigs: completed.length,
         totalEarned: completed.reduce((sum: number, g: Gig) => sum + parseFloat(g.budget || '0'), 0).toFixed(2),
-        avgRating: completed.length > 0
-          ? completed.reduce((sum: number, g: Gig) => sum + (g.average_rating || 0), 0) / completed.length
-          : 0,
+        avgRating: completed.length > 0 ? completed.reduce((sum: number, g: Gig) => sum + (g.average_rating || 0), 0) / completed.length : 0,
       });
-    } catch (err) {
-      setError(t('Could not load gigs.'));
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { setError(t('Could not load gigs.')); }
+    finally { setLoading(false); }
   }, [activeTab, searchQuery]);
 
   useEffect(() => { fetchGigs(); }, [fetchGigs]);
 
-  const fetchPortfolio = async () => {
-    try {
-      const res = await api.get('/gigs/gigs/portfolio/');
-      setPortfolio(res.data || []);
-    } catch {}
-  };
-
-  const fetchBadges = async () => {
-    try {
-      const res = await api.get('/gigs/gigs/my_badges/');
-      setSkillBadges(res.data || []);
-    } catch {}
-  };
-
+  const fetchPortfolio = async () => { try { const res = await api.get('/gigs/gigs/portfolio/'); setPortfolio(res.data || []); } catch {} };
+  const fetchBadges = async () => { try { const res = await api.get('/gigs/gigs/my_badges/'); setSkillBadges(res.data || []); } catch {} };
   useEffect(() => { fetchPortfolio(); fetchBadges(); }, []);
 
-  // ============================================================
-  // ACTIONS
-  // ============================================================
-   const createGig = async () => {
+  const createGig = async () => {
     if (!newTitle || !newBudget) return toast.error(t('Title & budget required'));
     const token = localStorage.getItem('sasl_token');
     const baseURL = process.env.REACT_APP_API_URL || 'https://sasl-api-i34r.onrender.com';
@@ -207,229 +173,128 @@ export default function GigCentral() {
       const res = await fetch(`${baseURL}/api/gigs/gigs/`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newTitle,
-          description: newDesc,
-          budget: parseFloat(newBudget),
-          category: newCategory,
-          deadline: newDeadline || null,
-          milestones: milestones.filter(m => m.title && m.amount),
-        }),
+        body: JSON.stringify({ title: newTitle, description: newDesc, budget: parseFloat(newBudget), category: newCategory, deadline: newDeadline || null, milestones: milestones.filter(m => m.title && m.amount) }),
       });
       if (!res.ok) throw new Error('Failed');
       toast.success(t('🎉 Gig posted successfully!'));
-      setShowForm(false);
-      resetForm();
-      fetchGigs();
-    } catch (err: any) {
-      toast.error(t('Failed to post gig'));
-    }
+      setShowForm(false); resetForm(); fetchGigs();
+    } catch { toast.error(t('Failed to post gig')); }
   };
 
   const requestGig = async (gigId: string) => {
     try {
-      await api.post(`/gigs/gigs/${gigId}/apply/`, {
-        message: proposalMessage || 'I would like to work on this gig.',
-        proposed_budget: proposalBudget || undefined,
-      });
-      toast.success('Proposal sent to client! 📨');
-      setNegotiateGig(null);
-      setProposalMessage('');
-      setProposalBudget('');
-      fetchGigs();
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || 'Failed to send proposal');
-    }
+      await api.post(`/gigs/gigs/${gigId}/apply/`, { message: proposalMessage || 'I would like to work on this gig.', proposed_budget: proposalBudget || undefined });
+      toast.success('Proposal sent! 📨'); setNegotiateGig(null); setProposalMessage(''); setProposalBudget(''); fetchGigs();
+    } catch (err: any) { toast.error(err.response?.data?.error || 'Failed to send proposal'); }
   };
 
   const completeGig = async (id: string) => {
-    try {
-      await api.post(`/gigs/gigs/${id}/complete/`);
-      toast.success(t('🎉 Gig completed & payment released!'));
-      fetchGigs();
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || t('Completion failed'));
-    }
+    try { await api.post(`/gigs/gigs/${id}/complete/`); toast.success(t('🎉 Gig completed & payment released!')); fetchGigs(); }
+    catch (err: any) { toast.error(err.response?.data?.error || t('Completion failed')); }
   };
 
   const completeMilestone = async (gigId: string, milestoneId: string) => {
-    try {
-      await api.post(`/gigs/gigs/${gigId}/complete_milestone/`, { milestone_id: milestoneId });
-      toast.success(t('Milestone approved & paid!'));
-      fetchGigs();
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || t('Failed'));
-    }
+    try { await api.post(`/gigs/gigs/${gigId}/complete_milestone/`, { milestone_id: milestoneId }); toast.success(t('Milestone approved & paid!')); fetchGigs(); }
+    catch (err: any) { toast.error(err.response?.data?.error || t('Failed')); }
   };
 
   const submitReview = async (gigId: string) => {
-    try {
-      await api.post(`/gigs/gigs/${gigId}/review/`, {
-        rating: reviewRating,
-        comment: reviewComment,
-      });
-      toast.success(t('Review submitted!'));
-      setShowReview(null);
-      setReviewComment('');
-      setReviewRating(5);
-      fetchGigs();
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || t('Review failed'));
-    }
+    try { await api.post(`/gigs/gigs/${gigId}/review/`, { rating: reviewRating, comment: reviewComment }); toast.success(t('Review submitted!')); setShowReview(null); setReviewComment(''); setReviewRating(5); fetchGigs(); }
+    catch (err: any) { toast.error(err.response?.data?.error || t('Review failed')); }
   };
 
   const fileDispute = async (gigId: string) => {
     if (!disputeReason.trim()) return toast.error(t('Please provide a reason'));
-    try {
-      await api.post(`/gigs/gigs/${gigId}/dispute/`, { reason: disputeReason });
-      toast.success(t('Dispute filed. Our team will review within 24 hours.'));
-      setShowDispute(null);
-      setDisputeReason('');
-      fetchGigs();
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || t('Failed to file dispute'));
-    }
+    try { await api.post(`/gigs/gigs/${gigId}/dispute/`, { reason: disputeReason }); toast.success(t('Dispute filed. Our team will review within 24 hours.')); setShowDispute(null); setDisputeReason(''); fetchGigs(); }
+    catch (err: any) { toast.error(err.response?.data?.error || t('Failed to file dispute')); }
   };
 
   const addPortfolioItem = async () => {
     if (!pfTitle) return toast.error(t('Title required'));
-    const formData = new FormData();
-    formData.append('title', pfTitle);
-    formData.append('description', pfDesc);
-    formData.append('link', pfLink);
+    const formData = new FormData(); formData.append('title', pfTitle); formData.append('description', pfDesc); formData.append('link', pfLink);
     if (pfImage) formData.append('image', pfImage);
-
-    try {
-      await api.post('/gigs/gigs/add_portfolio/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      toast.success(t('Portfolio item added!'));
-      setShowPortfolioForm(false);
-      setPfTitle(''); setPfDesc(''); setPfLink(''); setPfImage(null);
-      fetchPortfolio();
-    } catch (err: any) {
-      toast.error(t('Failed to add portfolio item'));
-    }
+    try { await api.post('/gigs/gigs/add_portfolio/', formData, { headers: { 'Content-Type': 'multipart/form-data' } }); toast.success(t('Portfolio item added!')); setShowPortfolioForm(false); setPfTitle(''); setPfDesc(''); setPfLink(''); setPfImage(null); fetchPortfolio(); }
+    catch { toast.error(t('Failed to add portfolio item')); }
   };
 
-  // ============================================================
-  // HELPERS
-  // ============================================================
-  const resetForm = () => {
-    setNewTitle(''); setNewDesc(''); setNewBudget('');
-    setNewDeadline(''); setNewCategory(t('design'));
-    setMilestones([{ title: '', amount: '' }]);
-  };
+  const resetForm = () => { setNewTitle(''); setNewDesc(''); setNewBudget(''); setNewDeadline(''); setNewCategory('design'); setMilestones([{ title: '', amount: '' }]); };
+  const addMilestone = () => setMilestones(prev => [...prev, { title: '', amount: '' }]);
+  const updateMilestone = (index: number, field: 'title' | 'amount', value: string) => { const updated = [...milestones]; updated[index][field] = value; setMilestones(updated); };
+  const removeMilestone = (index: number) => setMilestones(prev => prev.filter((_, i) => i !== index));
+  const toggleExpand = (gigId: string) => setExpandedGig(expandedGig === gigId ? null : gigId);
+  const renderStars = (rating: number) => [...Array(5)].map((_, i) => <Star key={i} size={12} className={i < Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-200 dark:text-gray-600'} />);
 
-  const addMilestone = () => {
-    setMilestones(prev => [...prev, { title: '', amount: '' }]);
-  };
-
-  const updateMilestone = (index: number, field: 'title' | 'amount', value: string) => {
-    const updated = [...milestones];
-    updated[index][field] = value;
-    setMilestones(updated);
-  };
-
-  const removeMilestone = (index: number) => {
-    setMilestones(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const toggleExpand = (gigId: string) => {
-    setExpandedGig(expandedGig === gigId ? null : gigId);
-  };
-
-  // ============================================================
-  // RENDER HELPERS
-  // ============================================================
   const tabs = [
-    { key: 'open' as const, icon: <Target size={16} />, label: t('Open'), count: gigs.filter(g => g.status === 'open').length },
-    { key: 'in_progress' as const, icon: <Clock size={16} />, label: t('In Progress'), count: gigs.filter(g => g.status === 'in_progress').length },
-    { key: 'completed' as const, icon: <CheckCircle size={16} />, label: t('Completed'), count: gigs.filter(g => g.status === 'completed').length },
-    { key: 'mine' as const, icon: <Briefcase size={16} />, label: t('My Gigs'), count: 0 },
+    { key: 'open' as const, icon: <Target size={15} />, label: t('Open'), count: gigs.filter(g => g.status === 'open').length },
+    { key: 'in_progress' as const, icon: <Clock size={15} />, label: t('In Progress'), count: gigs.filter(g => g.status === 'in_progress').length },
+    { key: 'completed' as const, icon: <CheckCircle size={15} />, label: t('Completed'), count: gigs.filter(g => g.status === 'completed').length },
+    { key: 'mine' as const, icon: <Briefcase size={15} />, label: t('My Gigs'), count: 0 },
   ];
 
-  const categories = [t('design'), t('development'), t('writing'), t('marketing'), t('video'), t('music'), t('business'), t('other')];
+  const categories = ['design', 'development', 'writing', 'marketing', 'video', 'music', 'business', 'other'];
 
-  const renderStars = (rating: number) => {
-    return [...Array(5)].map((_, i) => (
-      <Star key={i} size={14} className={i < Math.round(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
-    ));
-  };
-
-  // ============================================================
-  // RENDER
-  // ============================================================
   if (loading && gigs.length === 0) {
-    return (
-      <div className="flex justify-center py-20">
-        <Loader2 className="animate-spin text-green-500" size={48} />
-      </div>
-    );
+    return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-green-500" size={48} /></div>;
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-5xl mx-auto">
-      {/* Header */}
+    <div className="p-4 md:p-6 max-w-6xl mx-auto">
+      {/* HEADER */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <div>
-          <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-            <Briefcase className="text-green-500" /> {t('Gig Central')}
+          <h2 className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent flex items-center gap-2">
+            <Briefcase className="text-green-500" size={28} /> {t('Gig Central')}
           </h2>
-          <p className="text-gray-500 text-sm mt-1">{t('Find work, hire talent, earn money – all in one place')}</p>
+          <p className="text-gray-500 text-sm mt-1 flex items-center gap-2">
+            <Zap size={14} className="text-amber-500" /> {t('Find work, hire talent, earn money')}
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setShowBadges(!showBadges)} className="btn-ghost text-sm flex items-center gap-1">
-            <Award size={16} />{t( 'Badges')} {skillBadges.length > 0 && `(${skillBadges.length})`}
+        <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={() => setShowBadges(!showBadges)} className="px-4 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-600 text-sm font-medium flex items-center gap-1.5 hover:bg-amber-100 transition">
+            <Award size={16} /> {t('Badges')} {skillBadges.length > 0 && `(${skillBadges.length})`}
           </button>
-          <button onClick={() => setShowPortfolioForm(!showPortfolioForm)} className="btn-ghost text-sm flex items-center gap-1">
+          <button onClick={() => setShowPortfolioForm(!showPortfolioForm)} className="px-4 py-2 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-600 text-sm font-medium flex items-center gap-1.5 hover:bg-purple-100 transition">
             <ImageIcon size={16} /> {t('Portfolio')}
           </button>
-          <button onClick={() => setShowForm(!showForm)} className="btn-primary flex items-center gap-2">
+          <button onClick={() => setShowForm(!showForm)} className="px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold flex items-center gap-2 shadow-lg shadow-green-500/25 hover:shadow-xl hover:shadow-green-500/30 transition-all">
             <PlusCircle size={18} /> {showForm ? t('Cancel') : t('Post a Gig')}
           </button>
         </div>
       </div>
 
-      {/* Stats Bar */}
+      {/* STATS CARDS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
-          { icon: <Briefcase size={18} />, label: t('Total Gigs'), value: stats.totalGigs, color: 'blue' },
-          { icon: <CheckCircle size={18} />, label: t('Completed'), value: stats.completedGigs, color: 'green' },
-          { icon: <DollarSign size={18} />, label: t('Earned'), value: `$${stats.totalEarned}`, color: 'yellow' },
-          { icon: <Star size={18} />, label: t('Avg Rating'), value: stats.avgRating.toFixed(1), color: 'purple' },
+          { icon: <Briefcase size={20} />, label: t('Total Gigs'), value: stats.totalGigs, gradient: 'from-blue-500 to-cyan-500' },
+          { icon: <CheckCircle size={20} />, label: t('Completed'), value: stats.completedGigs, gradient: 'from-emerald-500 to-green-500' },
+          { icon: <DollarSign size={20} />, label: t('Earned'), value: `$${stats.totalEarned}`, gradient: 'from-amber-500 to-yellow-500' },
+          { icon: <Star size={20} />, label: t('Avg Rating'), value: stats.avgRating.toFixed(1), gradient: 'from-violet-500 to-purple-500' },
         ].map((stat, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.1 }}
-            className="glass p-3 rounded-xl text-center"
-          >
-            <div className={`text-${stat.color}-500 mx-auto mb-1`}>{stat.icon}</div>
-            <p className="text-2xl font-bold">{stat.value}</p>
-            <p className="text-xs text-gray-500">{stat.label}</p>
+          <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
+            className="relative overflow-hidden rounded-2xl p-4 bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-br ${stat.gradient} opacity-10 rounded-bl-full`} />
+            <div className="relative">
+              <div className={`inline-flex p-2 rounded-xl bg-gradient-to-br ${stat.gradient} text-white mb-2`}>{stat.icon}</div>
+              <p className="text-2xl font-bold">{stat.value}</p>
+              <p className="text-xs text-gray-500">{stat.label}</p>
+            </div>
           </motion.div>
         ))}
       </div>
 
-      {/* Badges Panel */}
+      {/* BADGES PANEL */}
       <AnimatePresence>
         {showBadges && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-6">
-            <div className="glass p-4 rounded-2xl">
-              <h3 className="font-bold mb-3 flex items-center gap-2"><Award size={18} /> {t('My Skill Badges')}</h3>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700">
+              <h3 className="font-bold mb-3 flex items-center gap-2"><Award size={18} className="text-amber-500" /> {t('My Skill Badges')}</h3>
               {skillBadges.length === 0 ? (
                 <p className="text-gray-500 text-sm">{t('Complete gigs to earn skill badges!')}</p>
               ) : (
                 <div className="flex flex-wrap gap-3">
                   {skillBadges.map(badge => (
-                    <div key={badge.id} className="bg-white rounded-xl p-3 shadow-sm flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        badge.level === 'expert' ? 'bg-purple-100 text-purple-600' :
-                        badge.level === 'intermediate' ? 'bg-blue-100 text-blue-600' :
-                        'bg-green-100 text-green-600'
-                      }`}>
+                    <div key={badge.id} className="flex items-center gap-3 bg-gray-50 dark:bg-gray-700 rounded-xl p-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${badge.level === 'expert' ? 'bg-purple-100 text-purple-600' : badge.level === 'intermediate' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>
                         <Award size={20} />
                       </div>
                       <div>
@@ -445,347 +310,308 @@ export default function GigCentral() {
         )}
       </AnimatePresence>
 
-      {/* Portfolio Panel */}
+      {/* PORTFOLIO FORM */}
       <AnimatePresence>
         {showPortfolioForm && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden mb-6">
-            <div className="glass p-6 rounded-2xl space-y-3">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 space-y-3">
               <h3 className="font-bold text-lg flex items-center gap-2"><Upload size={18} /> {t('Add Portfolio Item')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input className="input-field" placeholder="Project title" value={pfTitle} onChange={e => setPfTitle(e.target.value)} />
-                <input className="input-field" placeholder="Link (optional)" value={pfLink} onChange={e => setPfLink(e.target.value)} />
+                <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder="Project title" value={pfTitle} onChange={e => setPfTitle(e.target.value)} />
+                <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder="Link (optional)" value={pfLink} onChange={e => setPfLink(e.target.value)} />
               </div>
-              <textarea className="input-field" placeholder="Description..." value={pfDesc} onChange={e => setPfDesc(e.target.value)} rows={2} />
+              <textarea className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder="Description..." value={pfDesc} onChange={e => setPfDesc(e.target.value)} rows={2} />
               <div className="flex items-center gap-3">
-                <label className="btn-ghost cursor-pointer flex items-center gap-1 text-sm">
+                <label className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-700 cursor-pointer flex items-center gap-1.5 text-sm hover:bg-gray-200 transition">
                   <ImageIcon size={16} /> {pfImage ? pfImage.name : t('Upload Image')}
                   <input type="file" accept="image/*" className="hidden" onChange={e => setPfImage(e.target.files?.[0] || null)} />
                 </label>
-                <button onClick={addPortfolioItem} className="btn-primary">{t('Add to Portfolio')}</button>
+                <button onClick={addPortfolioItem} className="px-5 py-2.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold">{t('Add to Portfolio')}</button>
               </div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Create Gig Form */}
+      {/* CREATE GIG FORM */}
       <AnimatePresence>
         {showForm && (
-          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="glass p-6 rounded-2xl mb-6 space-y-4 shadow-xl border-2 border-green-200">
-            <h3 className="font-bold text-xl flex items-center gap-2"><FileText size={20} /> {t('Create New Gig')}</h3>
-
+          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            className="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-6 space-y-4 shadow-xl border-2 border-green-200 dark:border-green-800">
+            <h3 className="font-bold text-xl flex items-center gap-2"><FileText size={20} className="text-green-500" /> {t('Create New Gig')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input className="input-field" placeholder="What do you need done? *" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
-              <select className="input-field" value={newCategory} onChange={e => setNewCategory(e.target.value)}>
+              <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder="What do you need done? *" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
+              <select className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" value={newCategory} onChange={e => setNewCategory(e.target.value)}>
                 {categories.map(cat => <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>)}
               </select>
             </div>
-
-            <textarea className="input-field" placeholder="Describe the work in detail..." value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={3} />
-
+            <textarea className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder="Describe the work in detail..." value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={3} />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input className="input-field" type="number" placeholder="Total Budget ($) *" value={newBudget} onChange={e => setNewBudget(e.target.value)} />
-              <input className="input-field" type="date" placeholder="Deadline" value={newDeadline} onChange={e => setNewDeadline(e.target.value)} />
+              <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" type="number" placeholder="Total Budget ($) *" value={newBudget} onChange={e => setNewBudget(e.target.value)} />
+              <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" type="date" placeholder="Deadline" value={newDeadline} onChange={e => setNewDeadline(e.target.value)} />
             </div>
-
-            {/* Milestones */}
-            <div className="space-y-2 bg-gray-50 rounded-xl p-4">
+            <div className="space-y-2 bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold flex items-center gap-1"><Target size={14} /> Milestones</p>
                 <button onClick={addMilestone} className="text-xs text-green-600 hover:underline font-semibold">+ Add Milestone</button>
               </div>
               {milestones.map((m, idx) => (
                 <div key={idx} className="flex gap-2 items-center">
-                  <input className="input-field flex-1 text-sm" placeholder="Milestone title" value={m.title} onChange={e => updateMilestone(idx, 'title', e.target.value)} />
-                  <input className="input-field w-28 text-sm" type="number" placeholder="Amount" value={m.amount} onChange={e => updateMilestone(idx, 'amount', e.target.value)} />
-                  {milestones.length > 1 && (
-                    <button onClick={() => removeMilestone(idx)} className="text-red-500 hover:text-red-700 p-1">✕</button>
-                  )}
+                  <input className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-600 text-sm outline-none" placeholder="Milestone title" value={m.title} onChange={e => updateMilestone(idx, 'title', e.target.value)} />
+                  <input className="w-28 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-600 text-sm outline-none" type="number" placeholder="Amount" value={m.amount} onChange={e => updateMilestone(idx, 'amount', e.target.value)} />
+                  {milestones.length > 1 && <button onClick={() => removeMilestone(idx)} className="text-red-500 hover:text-red-700 p-1">✕</button>}
                 </div>
               ))}
             </div>
-
-            <button onClick={createGig} className="btn-primary w-full py-3 text-lg font-bold">
-              {t('🚀 Post Gig')}
+            <button onClick={createGig} className="w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-green-500/25 hover:shadow-xl transition">
+              🚀 {t('Post Gig')}
             </button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Search & Tabs */}
-      <div className="flex flex-col md:flex-row gap-3 mb-4">
+      {/* SEARCH + TABS */}
+      <div className="flex flex-col md:flex-row gap-3 mb-6">
         <div className="relative flex-1">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            className="input-field pl-10"
-            placeholder={t('Search gigs...')}
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-          />
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input className="w-full pl-11 pr-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-green-500 shadow-sm" placeholder={t('Search gigs...')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
-        <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto">
+        <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-2xl p-1.5 overflow-x-auto">
           {tabs.map(tab => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold whitespace-nowrap transition ${
-                activeTab === tab.key
-                  ? 'bg-white shadow text-green-600'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
-            >
+            <button key={tab.key} onClick={() => setActiveTab(tab.key)}
+              className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
+                activeTab === tab.key ? 'bg-white dark:bg-gray-700 shadow-sm text-green-600' : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}>
               {tab.icon} {tab.label}
-              {tab.count > 0 && <span className="text-xs bg-gray-200 px-1.5 py-0.5 rounded-full">{tab.count}</span>}
+              {tab.count > 0 && <span className="text-xs bg-gray-200 dark:bg-gray-600 px-1.5 py-0.5 rounded-full">{tab.count}</span>}
             </button>
           ))}
         </div>
       </div>
 
-      {/* Gigs List */}
+      {/* GIGS LIST */}
       {error ? (
-        <div className="glass p-12 rounded-2xl text-center">
+        <div className="text-center py-16">
           <AlertCircle className="mx-auto mb-3 text-red-500" size={48} />
           <p className="text-lg text-gray-600">{error}</p>
-          <button onClick={fetchGigs} className="btn-primary mt-4"> {t('Retry')}</button>
+          <button onClick={fetchGigs} className="mt-4 px-6 py-2.5 bg-green-500 text-white rounded-xl font-semibold">{t('Retry')}</button>
         </div>
       ) : gigs.length === 0 ? (
-        <div className="glass p-12 rounded-2xl text-center">
+        <div className="text-center py-16">
           <Briefcase size={48} className="mx-auto mb-3 text-gray-300" />
           <p className="text-xl text-gray-500">{t('No gigs found')}</p>
           <p className="text-sm text-gray-400 mt-1">{t('Be the first to post a gig!')}</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {gigs.map(gig => (
-            <motion.div
-              key={gig.id}
-              layout
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className={`glass rounded-2xl overflow-hidden transition hover:shadow-lg ${
-                expandedGig === gig.id ? 'ring-2 ring-green-300' : ''
-              }`}
-            >
-              {/* Main Row */}
-              <div className="p-5 cursor-pointer" onClick={() => toggleExpand(gig.id)}>
-                <div className="flex flex-col md:flex-row justify-between gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+          {gigs.map((gig, idx) => {
+            const statusConfig = STATUS_CONFIG[gig.status] || STATUS_CONFIG.open;
+            const catGradient = CATEGORY_GRADIENTS[gig.category || 'other'] || CATEGORY_GRADIENTS.other;
+            return (
+              <motion.div key={gig.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}
+                className={`bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 transition-all ${
+                  expandedGig === gig.id ? 'ring-2 ring-green-300 dark:ring-green-700 shadow-lg' : 'hover:shadow-md'
+                }`}>
+                
+                {/* MAIN CARD */}
+                <div className="p-5 cursor-pointer" onClick={() => toggleExpand(gig.id)}>
+                  <div className="flex items-start gap-4">
+                    {/* Creator Avatar */}
+                    <div className="flex-shrink-0">
                       {gig.creator_avatar ? (
-                        <img src={gig.creator_avatar} className="w-10 h-10 rounded-full object-cover" alt="" />
+                        <img src={gig.creator_avatar} className="w-12 h-12 rounded-full object-cover ring-2 ring-white dark:ring-gray-700 shadow-sm" alt="" />
                       ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white font-bold text-sm">
-                          {gig.creator_name[0]?.toUpperCase()}
+                        <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${catGradient} flex items-center justify-center text-white font-bold text-lg ring-2 ring-white dark:ring-gray-700 shadow-sm`}>
+                          {(gig.creator_name || 'U')[0]?.toUpperCase()}
                         </div>
                       )}
-                      <div>
-                        <h3 className="font-bold text-lg flex items-center gap-2">
-                          {gig.title}
-                          <span className={`text-xs px-2 py-0.5 rounded-full border font-semibold flex items-center gap-1 ${STATUS_COLORS[gig.status]}`}>
-                            {STATUS_ICONS[gig.status]} {gig.status.replace('_', ' ')}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h3 className="font-bold text-lg leading-snug">{gig.title}</h3>
+                          <p className="text-sm text-gray-500 flex items-center gap-2 flex-wrap mt-0.5">
+                            <span>@{gig.creator_name}</span>
+                            {gig.taker_name && (
+                              <span className="flex items-center gap-1 text-purple-600 font-medium"><UserCheck size={14} /> @{gig.taker_name}</span>
+                            )}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
+                            {statusConfig.icon} {statusConfig.label}
                           </span>
-                        </h3>
-                        <p className="text-sm text-gray-500 flex items-center gap-3">
-                          <span>{t('by')} @{gig.creator_name}</span>
-                          {gig.taker_name && (
-                            <span className="flex items-center gap-1 text-purple-600">
-                              <UserCheck size={14} /> @{gig.taker_name}
-                            </span>
-                          )}
-                          {gig.average_rating && (
-                            <span className="flex items-center gap-1 text-yellow-500">
-                              <Star size={14} className="fill-yellow-400" /> {gig.average_rating}
-                            </span>
-                          )}
-                        </p>
+                          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                            {expandedGig === gig.id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{gig.description}</p>
+
+                      {/* Meta Row */}
+                      <div className="flex items-center gap-4 mt-3 flex-wrap">
+                        <span className="text-green-600 font-bold flex items-center gap-1 text-lg"><DollarSign size={16} />${gig.budget}</span>
+                        {gig.category && (
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${catGradient} text-white`}>
+                            {gig.category}
+                          </span>
+                        )}
+                        {gig.average_rating && (
+                          <span className="flex items-center gap-1 text-amber-500 text-sm">{renderStars(gig.average_rating)} <span className="text-xs text-gray-500">({gig.review_count})</span></span>
+                        )}
+                        {gig.deadline && <span className="text-xs text-gray-400 flex items-center gap-1"><Calendar size={12} /> {new Date(gig.deadline).toLocaleDateString()}</span>}
+                      </div>
+
+                      {/* Quick Actions */}
+                      <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex-wrap">
+                        <button onClick={async (e) => { e.stopPropagation();
+                          const newLiked = new Set(likedGigs); newLiked.has(gig.id) ? newLiked.delete(gig.id) : newLiked.add(gig.id);
+                          setLikedGigs(newLiked); try { await api.post(`/gigs/gigs/${gig.id}/like/`); } catch {}
+                        }} className={`flex items-center gap-1 text-xs transition ${likedGigs.has(gig.id) ? 'text-green-500 font-bold' : 'text-gray-500 hover:text-green-500'}`}>
+                          <ThumbsUp size={14} className={likedGigs.has(gig.id) ? 'fill-green-500' : ''} /> Like
+                        </button>
+                        <span className="flex items-center gap-1 text-xs text-gray-400"><Eye size={14} /> {gig.views || 0}</span>
+                        <span className="flex items-center gap-1 text-xs text-gray-400"><Users size={14} /> {gig.applicants_count || 0} applicants</span>
+                        {user && (
+                          <button onClick={(e) => { e.stopPropagation(); setChatRoom(gig.id); }} className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 font-medium">
+                            <MessageCircle size={14} /> {t('Chat')}
+                          </button>
+                        )}
+                        {gig.creator_name !== user?.username && gig.status === 'open' && (
+                          <button onClick={(e) => { e.stopPropagation(); setPaymentAmount(parseFloat(gig.budget)); setShowPayment(true); }}
+                            className="ml-auto px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition flex items-center gap-1">
+                            <Zap size={14} /> {t('Take Gig')}
+                          </button>
+                        )}
+                        {gig.taker_name === user?.username && gig.status === 'in_progress' && (
+                          <button onClick={(e) => { e.stopPropagation(); completeGig(gig.id); }}
+                            className="ml-auto px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition flex items-center gap-1">
+                            <CheckCircle size={14} /> {t('Complete')}
+                          </button>
+                        )}
                       </div>
                     </div>
-                    <p className="text-sm text-gray-600 line-clamp-2">{gig.description}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm">
-                      <span className="text-green-600 font-bold flex items-center gap-1"><DollarSign size={14} />${gig.budget}</span>
-                      {gig.category && <span className="text-gray-400">📁 {gig.category}</span>}
-                      {gig.deadline && <span className="text-gray-400">📅 {new Date(gig.deadline).toLocaleDateString()}</span>}
-                    </div>
-                    {/* Action Buttons Row */}
-                    <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex-wrap">
-                      <button onClick={async () => {
-                        const newLiked = new Set(likedGigs);
-                        if (newLiked.has(gig.id)) { newLiked.delete(gig.id); } else { newLiked.add(gig.id); }
-                        setLikedGigs(newLiked);
-                        try { await api.post(`/gigs/gigs/${gig.id}/like/`); } catch {}
-                      }} className={`flex items-center gap-1 text-xs transition ${likedGigs.has(gig.id) ? 'text-green-500 font-bold' : 'text-gray-500 hover:text-green-500'}`}>
-                        <ThumbsUp size={14} className={likedGigs.has(gig.id) ? 'fill-green-500' : ''} /> Like
-                      </button>
-                      <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/gigs/${gig.id}`); toast.success('Link copied!'); }} className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600"><Link size={14} /> Copy</button>
-                      <span className="flex items-center gap-1 text-xs text-gray-400"><Users size={14} /> {gig.applicants_count || 0}</span>
-                      <span className="flex items-center gap-1 text-xs text-gray-400"><BarChart3 size={14} /> {gig.views || 0}</span>
-
-                      <span className="flex items-center gap-1 text-xs text-orange-500"><TrendingUp size={14} /> Trending</span>
-                      <span className="flex items-center gap-1 text-xs text-gray-400"><Calendar size={14} /> {gig.deadline || 'Open'}</span>
-                      <span className="flex items-center gap-1 text-xs text-green-500"><Shield size={14} /> Verified</span>
-                    </div>
-                  </div>
-
-                  {/* Quick Actions */}
-                  <div className="flex items-center gap-2 flex-shrink-0">
-             {user && (
-  <button
-    onClick={(e) => {
-      e.stopPropagation();
-      setChatRoom(gig.id);
-    }}
-    className="btn-ghost text-sm flex items-center gap-1"
-  >
-    <MessageCircle size={14} /> {t('Chat')}
-  </button>
-)}
-                    {gig.creator_name !== user?.username && gig.status === 'open' && (
-                      <button onClick={(e) => { e.stopPropagation(); setPaymentAmount(parseFloat(gig.budget)); setShowPayment(true); }} className="btn-primary text-sm">
-                        <Zap size={14} className="mr-1" /> {t('Take Gig')}
-                      </button>
-                    )}
-                    {gig.taker_name === user?.username && gig.status === 'in_progress' && (
-                      <button onClick={(e) => { e.stopPropagation(); completeGig(gig.id); }} className="btn-secondary text-sm">
-                        <CheckCircle size={14} className="mr-1" /> {t('Complete')}
-                      </button>
-                    )}
-                    <button onClick={(e) => { e.stopPropagation(); toggleExpand(gig.id); }} className="p-2 rounded-full hover:bg-gray-100">
-                      {expandedGig === gig.id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </button>
                   </div>
                 </div>
-              </div>
 
-              {/* Expanded Details */}
-              <AnimatePresence>
-                {expandedGig === gig.id && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t">
-                    <div className="p-5 space-y-4 bg-gray-50/50">
-                      {/* Milestones */}
-                      {gig.milestones && gig.milestones.length > 0 && (
-                        <div>
-                          <h4 className="font-semibold text-sm mb-2 flex items-center gap-1"><Target size={14} /> Milestones</h4>
-                          <div className="space-y-2">
-                            {gig.milestones.map(m => (
-                              <div key={m.id} className="flex items-center justify-between bg-white p-3 rounded-xl">
-                                <div className="flex items-center gap-2">
-                                  <CheckCircle size={16} className={m.completed ? 'text-green-500' : 'text-gray-300'} />
-                                  <span className="text-sm">{m.title}</span>
+                {/* EXPANDED DETAILS */}
+                <AnimatePresence>
+                  {expandedGig === gig.id && (
+                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-t border-gray-100 dark:border-gray-700">
+                      <div className="p-5 space-y-5 bg-gray-50/50 dark:bg-gray-800/50">
+                        {gig.milestones && gig.milestones.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold text-sm mb-3 flex items-center gap-2"><Target size={16} className="text-green-500" /> {t('Milestones')}</h4>
+                            <div className="space-y-2">
+                              {gig.milestones.map(m => (
+                                <div key={m.id} className="flex items-center justify-between bg-white dark:bg-gray-700 p-3 rounded-xl shadow-sm">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${m.completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                                      <CheckCircle size={16} />
+                                    </div>
+                                    <span className="text-sm font-medium">{m.title}</span>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <span className="font-bold text-sm">${m.amount}</span>
+                                    {gig.creator_name === user?.username && !m.completed && gig.taker_name && (
+                                      <button onClick={() => completeMilestone(gig.id, m.id)} className="text-xs text-green-600 font-semibold hover:underline"> {t('Approve & Pay')}</button>
+                                    )}
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                  <span className="font-semibold text-sm">${m.amount}</span>
-                                  {gig.creator_name === user?.username && !m.completed && gig.taker_name && (
-                                    <button onClick={() => completeMilestone(gig.id, m.id)} className="text-xs text-green-600 hover:underline">
-                                      {t('Approve & Pay')}
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {/* Reviews */}
-                      {gig.reviews && gig.reviews.length > 0 && (
-                        <div>
-                          <h4 className="font-semibold text-sm mb-2 flex items-center gap-1"><Star size={14} /> {t('Reviews')} ({gig.reviews.length})</h4>
-                          <div className="space-y-2">
-                            {gig.reviews.map(r => (
-                              <div key={r.id} className="bg-white p-3 rounded-xl">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="font-semibold text-sm">{r.reviewer_name}</span>
-                                  <div className="flex">{renderStars(r.rating)}</div>
+                        {gig.reviews && gig.reviews.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold text-sm mb-3 flex items-center gap-2"><Star size={16} className="text-amber-500" /> {t('Reviews')} ({gig.reviews.length})</h4>
+                            <div className="space-y-2">
+                              {gig.reviews.map(r => (
+                                <div key={r.id} className="bg-white dark:bg-gray-700 p-3 rounded-xl shadow-sm">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-semibold text-sm">{r.reviewer_name}</span>
+                                    <div className="flex">{renderStars(r.rating)}</div>
+                                  </div>
+                                  <p className="text-sm text-gray-600 dark:text-gray-400">{r.comment}</p>
                                 </div>
-                                <p className="text-sm text-gray-600">{r.comment}</p>
-                              </div>
-                            ))}
+                              ))}
+                            </div>
                           </div>
+                        )}
+
+                        <div className="flex gap-2 flex-wrap">
+                          {gig.status === 'completed' && (gig.creator_name === user?.username || gig.taker_name === user?.username) && (
+                            <button onClick={() => setShowReview(gig.id)} className="px-4 py-2 rounded-xl bg-amber-50 text-amber-600 text-sm font-medium flex items-center gap-1.5 hover:bg-amber-100 transition">
+                              <Star size={14} />{t('Leave Review')}
+                            </button>
+                          )}
+                          {(gig.creator_name === user?.username || gig.taker_name === user?.username) && gig.status === 'in_progress' && (
+                            <button onClick={() => setShowDispute(gig.id)} className="px-4 py-2 rounded-xl bg-red-50 text-red-500 text-sm font-medium flex items-center gap-1.5 hover:bg-red-100 transition">
+                              <Flag size={14} />{t('File Dispute')}
+                            </button>
+                          )}
                         </div>
-                      )}
 
-                      {/* Action Buttons */}
-                      <div className="flex gap-2 flex-wrap">
-                        {gig.status === 'completed' && (gig.creator_name === user?.username || gig.taker_name === user?.username) && (
-                          <button onClick={() => setShowReview(gig.id)} className="btn-ghost text-sm flex items-center gap-1">
-                            <Star size={14} /> {t('Leave Review')}
-                          </button>
-                        )}
-                        {(gig.creator_name === user?.username || gig.taker_name === user?.username) && gig.status === 'in_progress' && (
-                          <button onClick={() => setShowDispute(gig.id)} className="btn-ghost text-sm text-red-500 flex items-center gap-1">
-                            <Flag size={14} /> {t('File Dispute')}
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Review Form */}
-                      <AnimatePresence>
                         {showReview === gig.id && (
-                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white p-4 rounded-xl space-y-3">
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white dark:bg-gray-700 p-4 rounded-xl shadow-sm space-y-3">
                             <div className="flex items-center gap-1">
                               {[1,2,3,4,5].map(i => (
                                 <button key={i} onClick={() => setReviewRating(i)}>
-                                  <Star size={24} className={i <= reviewRating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
+                                  <Star size={24} className={i <= reviewRating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'} />
                                 </button>
                               ))}
                             </div>
-                            <textarea className="input-field" placeholder={t('Write your review...')} value={reviewComment} onChange={e => setReviewComment(e.target.value)} rows={2} />
+                            <textarea className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-600 text-sm outline-none" placeholder="Write your review..." value={reviewComment} onChange={e => setReviewComment(e.target.value)} rows={2} />
                             <div className="flex gap-2">
-                              <button onClick={() => submitReview(gig.id)} className="btn-primary text-sm">{t('Submit')}</button>
-                              <button onClick={() => setShowReview(null)} className="btn-ghost text-sm">{t('Cancel')}</button>
+                              <button onClick={() => submitReview(gig.id)} className="px-5 py-2 bg-green-500 text-white rounded-xl text-sm font-semibold"> {t('Submit')}</button>
+                              <button onClick={() => setShowReview(null)} className="px-5 py-2 bg-gray-200 dark:bg-gray-600 rounded-xl text-sm"> {t('Cancel')}</button>
                             </div>
                           </motion.div>
                         )}
-                      </AnimatePresence>
 
-                      {/* Dispute Form */}
-                      <AnimatePresence>
                         {showDispute === gig.id && (
-                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-red-50 p-4 rounded-xl space-y-3">
-                            <textarea className="input-field" placeholder={t('Describe the issue...')} value={disputeReason} onChange={e => setDisputeReason(e.target.value)} rows={2} />
+                          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-red-50 dark:bg-red-900/20 p-4 rounded-xl space-y-3">
+                            <textarea className="w-full px-4 py-3 rounded-xl border border-red-200 dark:border-red-800 bg-white dark:bg-gray-700 text-sm outline-none" placeholder="Describe the issue..." value={disputeReason} onChange={e => setDisputeReason(e.target.value)} rows={2} />
                             <div className="flex gap-2">
-                              <button onClick={() => fileDispute(gig.id)} className="bg-red-500 text-white px-4 py-2 rounded-lg text-sm">{t('File Dispute')}</button>
-                              <button onClick={() => setShowDispute(null)} className="btn-ghost text-sm">{t('Cancel')}</button>
+                              <button onClick={() => fileDispute(gig.id)} className="px-5 py-2 bg-red-500 text-white rounded-xl text-sm font-semibold"> {t('File Dispute')}</button>
+                              <button onClick={() => setShowDispute(null)} className="px-5 py-2 bg-gray-200 dark:bg-gray-600 rounded-xl text-sm"> {t('Cancel')}</button>
                             </div>
                           </motion.div>
                         )}
-                      </AnimatePresence>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* NEGOTIATION MODAL */}
+      <AnimatePresence>
+        {negotiateGig && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setNegotiateGig(null)}>
+            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+              <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Send size={18} className="text-green-500" /> {t('Send Proposal')}</h3>
+              <textarea className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none mb-3" placeholder={t("Introduce yourself...")} value={proposalMessage} onChange={e => setProposalMessage(e.target.value)} rows={3} />
+              <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none mb-4" type="number" placeholder={t('Your proposed budget (optional)')} value={proposalBudget} onChange={e => setProposalBudget(e.target.value)} />
+              <div className="flex gap-2">
+                <button onClick={() => requestGig(negotiateGig)} className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold">{t('Send Proposal')}</button>
+                <button onClick={() => setNegotiateGig(null)} className="px-6 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl font-medium">{t('Cancel')}</button>
+              </div>
             </motion.div>
-          ))}
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Negotiation Modal */}
-      {negotiateGig && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setNegotiateGig(null)}>
-          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="font-bold text-lg mb-4">{t('Send Proposal')}</h3>
-            <textarea className="input-field mb-3" placeholder={t('Introduce yourself and explain why you\'re a good fit...')}
-              value={proposalMessage} onChange={e => setProposalMessage(e.target.value)} rows={3} />
-            <input className="input-field mb-3" type="number" placeholder={t('Your proposed budget (optional)')}
-              value={proposalBudget} onChange={e => setProposalBudget(e.target.value)} />
-            <div className="flex gap-2">
-              <button onClick={() => requestGig(negotiateGig)} className="btn-primary flex-1">{t('Send Proposal')}</button>
-              <button onClick={() => setNegotiateGig(null)} className="btn-ghost">{t('Cancel')}</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Chat Modal */}
-     {chatRoom && <GigChat roomId={chatRoom} onClose={() => setChatRoom(null)} />}
-
-      {/* Payment Modal */}
-      {showPayment && (
-        <PaymentModal amount={paymentAmount} type="gig"
-          onSuccess={() => { setShowPayment(false); fetchGigs(); toast.success('Payment successful!'); }}
-          onClose={() => setShowPayment(false)} />
-      )}
-
+      {chatRoom && <GigChat roomId={chatRoom} onClose={() => setChatRoom(null)} />}
+      {showPayment && <PaymentModal amount={paymentAmount} type="gig" onSuccess={() => { setShowPayment(false); fetchGigs(); toast.success('Payment successful!'); }} onClose={() => setShowPayment(false)} />}
     </div>
   );
 }
