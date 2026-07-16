@@ -11,11 +11,10 @@
  * - Dark mode support
  * - Mobile responsive
  */
-import { Preferences } from '@capacitor/preferences';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  ImageIcon, QrCode, Radio, WifiOff, Shield, Send, LogOut, Copy, Menu, X, Edit3, Trash2,
+  ImageIcon, QrCode, Radio, WifiOff, Shield, Send, LogOut, Copy, Menu, X,
   ArrowLeft, MessageCircle, Link, Smile, Bluetooth, Terminal,
   Wifi, Zap, TrendingUp, Users, Activity, BarChart3, Globe,
   Smartphone, RadioTower, Satellite, Heart, Share2, MoreVertical,
@@ -196,12 +195,13 @@ export default function WaveMesh() {
     });
 
     // Peer connected
-        // Peer connected
-    waveMeshCore.setOnPeerConnected(async (data: any) => {
-      const name = (data.username && !/^\d+$/.test(data.username)) ? data.username : 'Peer';
+    waveMeshCore.setOnPeerConnected((data: any) => {
+    waveMeshCore.setOnRequestReceived((data: any) => {
+      setIncomingRequest({ from: data.username || "User", peerId: data.peerId || data.deviceId, message: "Wants to connect via WaveMesh" });
+    });
       const room: ChatRoom = {
         id: data.peerId,
-        name: name,
+        name: data.username || 'Peer',
         avatar: null,
         lastMessage: `Connected via ${data.connectionType || 'BLE'}`,
         lastMessageTime: new Date().toISOString(),
@@ -215,23 +215,9 @@ export default function WaveMesh() {
         return [room, ...prev];
       });
       setActiveRoom(room);
-            // Restore messages for this room from localStorage
-            // Restore messages for this room
-      try {
-        const { value } = await Preferences.get({ key: 'sasl_mesh_messages' });
-        const saved = value ? JSON.parse(value) : {};
-        if (saved[room.id]) setMessages(saved[room.id]);
-      } catch {}
-
-      
       setShowSidebar(false);
       setShowWelcome(false);
-      toast.success(`🔗 Connected with ${name}!`);
-    });
-
-    // Incoming request
-    waveMeshCore.setOnRequestReceived((data: any) => {
-      setIncomingRequest({ from: data.username || "User", peerId: data.peerId || data.deviceId, message: "Wants to connect via WaveMesh" });
+      toast.success(`🔗 Connected with ${data.username || 'Peer'}!`);
     });
 
     // Room created
@@ -257,37 +243,19 @@ export default function WaveMesh() {
     });
 
     // Message received
-       waveMeshCore.setOnMessageReceived((msg: any) => {
-              // Handle edit/delete commands
-      try {
-        const cmd = JSON.parse(msg.text);
-        if (cmd.type === 'delete') {
-          setMessages(prev => prev.filter(m => m.id !== cmd.msgId));
-          return;
-        }
-        if (cmd.type === 'edit') {
-          setMessages(prev => prev.map(m => m.id === cmd.msgId ? { ...m, text: cmd.text } : m));
-          return;
-        }
-      } catch {}
-      setMessages(prev => {
-        if (prev.find(m => m.id === msg.id)) return prev;
-        return [...prev, {
-          id: msg.id,
-          from: msg.from,
-          text: msg.text || msg.content || '',
-          timestamp: msg.timestamp || Date.now(),
-          isMe: msg.from === myUsername,
-          status: msg.relayed ? 'relayed' : 'delivered',
-          relayPath: msg.relayPath,
-        }];
-
-      });
-
-           setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    waveMeshCore.setOnMessageReceived((msg: any) => {
+      setMessages(prev => [...prev, {
+        id: msg.id,
+        from: msg.from,
+        text: msg.text || msg.content || '',
+        timestamp: msg.timestamp || Date.now(),
+        isMe: msg.from === myUsername,
+        status: msg.relayed ? 'relayed' : 'delivered',
+        relayPath: msg.relayPath,
+      }]);
+      setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     });
 
-    // Periodic updates   
     // Periodic updates
     const interval = setInterval(() => {
       const range = waveMeshCore.getRange();
@@ -303,19 +271,6 @@ export default function WaveMesh() {
     };
   }, []);
 
-  useEffect(() => {
-    const saveMessages = async () => {
-      if (activeRoom?.id && messages.length > 0) {
-        try {
-          const { value } = await Preferences.get({ key: 'sasl_mesh_messages' });
-          const saved = value ? JSON.parse(value) : {};
-          saved[activeRoom.id] = messages;
-          await Preferences.set({ key: 'sasl_mesh_messages', value: JSON.stringify(saved) });
-        } catch {}
-      }
-    };
-    saveMessages();
-  }, [messages, activeRoom]);
   // ============================================================
   // ACTIONS
   // ============================================================
@@ -340,9 +295,9 @@ export default function WaveMesh() {
 
 
 
-        const pasteCode = async () => {
+    const pasteCode = () => {
     if (!pasteInput.trim()) return toast.error('Enter connection code');
-    const result = await waveMeshCore.processConnectionCode(pasteInput.trim());
+    const result = waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
       // FIRST PASTE: Phone B just connected to Phone A
       // Now generate a RESPONSE code for Phone A to paste back
@@ -357,9 +312,9 @@ export default function WaveMesh() {
   };
 
 
-  const completeHandshake = async () => {
+  const completeHandshake = () => {
     if (!pasteInput.trim()) return toast.error('Enter the response code from other phone');
-       const result = await waveMeshCore.processConnectionCode(pasteInput.trim());
+    const result = waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
       setPasteInput('');
       setShowQR(false);
@@ -373,9 +328,8 @@ export default function WaveMesh() {
     const sendMessage = () => {
     if (!input.trim()) return;
     if (editingMsgId) {
-      // Save edit
-            waveMeshCore.sendControlCommand(JSON.stringify({ type: 'edit', msgId: editingMsgId, text: input }));
-      waveMeshCore.sendMessage(JSON.stringify({ type: 'edit', msgId: editingMsgId, text: input }));
+      setMessages(prev => prev.map(m => m.id === editingMsgId ? { ...m, text: input } : m));
+      waveMeshCore.sendControlCommand(JSON.stringify({ type: 'edit', msgId: editingMsgId, text: input }));
       setEditingMsgId(null);
       setEditText("");
       toast.success("Message updated");
@@ -384,9 +338,10 @@ export default function WaveMesh() {
     }
     setInput('');
   };
-   const deleteMessage = (msgId: string) => {
+
+    const deleteMessage = (msgId: string) => {
     setMessages(prev => prev.filter(m => m.id !== msgId));
-        waveMeshCore.sendControlCommand(JSON.stringify({ type: 'delete', msgId }));
+    waveMeshCore.sendControlCommand(JSON.stringify({ type: 'delete', msgId }));
     toast.success("Message deleted");
   };
 
@@ -394,11 +349,9 @@ export default function WaveMesh() {
   const startEditMessage = (msgId: string, currentText: string) => {
     setEditingMsgId(msgId);
     setEditText(currentText);
-    setInput(currentText);
-    inputRef.current?.focus();
   };
 
-   const saveEditMessage = (msgId: string) => {
+    const saveEditMessage = (msgId: string) => {
     setMessages(prev => prev.map(m => m.id === msgId ? { ...m, text: editText } : m));
     waveMeshCore.sendControlCommand(JSON.stringify({ type: 'edit', msgId, text: editText }));
     setEditingMsgId(null);
@@ -406,32 +359,10 @@ export default function WaveMesh() {
     toast.success("Message updated");
   };
 
-
-const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ratio = Math.min(1, maxWidth / img.width);
-      canvas.width = img.width * ratio;
-      canvas.height = img.height * ratio;
-      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(blob => {
-        if (blob) blob.arrayBuffer().then(resolve).catch(reject);
-        else reject(new Error('compress failed'));
-      }, 'image/jpeg', 0.6);
-    };
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
-};
-
-
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    // Try online Cloudinary first
+    toast.success(`📎 Uploading ${file.name}...`);
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -440,26 +371,11 @@ const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
       const data = await res.json();
       if (data.secure_url) {
         waveMeshCore.sendMessage(`📎 ${data.secure_url}`);
-        toast.success("File uploaded to cloud!");
-        return;
+        toast.success("File uploaded!");
       }
-    } catch {}
-    
-    // Offline: compress image then BLE transfer
-    try {
-      // If image, compress to max 200px wide
-      if (file.type.startsWith('image/')) {
-        const compressed = await compressImage(file, 200);
-        await waveMeshCore.sendFile(new Uint8Array(compressed), file.name);
-      } else {
-        const arrayBuffer = await file.arrayBuffer();
-        await waveMeshCore.sendFile(new Uint8Array(arrayBuffer), file.name);
-      }
-      toast.success("File sent via BLE!");
-    } catch {
-      toast.error("File transfer failed");
-    }
+    } catch { toast.error("Upload failed"); }
   };
+
     const sendRelayMessage = async () => {
     toast.success('📤 Relay mode coming soon');
   };
@@ -488,23 +404,12 @@ const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
     setShowSidebar(false);
   };
 
-    const leaveRoom = async (roomId: string) => {
+  const leaveRoom = (roomId: string) => {
     setRooms(prev => prev.filter(r => r.id !== roomId));
     if (activeRoom?.id === roomId) {
       setActiveRoom(null);
       setMessages([]);
-        waveMeshCore.disconnectPeer(roomId);
     }
-    // Remove from localStorage saved room
-    localStorage.removeItem('sasl_mesh_was_active');
-    localStorage.removeItem('sasl_active_mesh_room');
-    // Clear saved messages for this room
-        try {
-      const { value } = await Preferences.get({ key: 'sasl_mesh_messages' });
-      const saved = value ? JSON.parse(value) : {};
-      delete saved[roomId];
-      await Preferences.set({ key: 'sasl_mesh_messages', value: JSON.stringify(saved) });
-    } catch {}
   };
 
   // ============================================================
@@ -813,9 +718,19 @@ const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
                               <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full">Connected</span>
                             ) : (
                               <button
-                                                               onClick={async () => { 
-  toast.success("🔗 Connecting...");
-  await waveMeshCore.connectToPeer(peer.id);
+                                onClick={async () => { 
+  const pending = waveMeshCore.getPendingRequests();
+  const alreadyRequested = pending.find(r => r.deviceId === peer.id);
+  
+  if (alreadyRequested) {
+    // Both users tapped Send — connect!
+    waveMeshCore.acceptRequest(peer.id);
+    toast.success("🔗 Both requested — connecting!");
+  } else {
+    // First user to tap — send request
+    await waveMeshCore.sendConnectionRequest(peer.id);
+    toast.success("📩 Request sent! Waiting for other user to tap Send too...");
+  }
 }}
                                 className="p-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
                               >
@@ -1059,7 +974,7 @@ const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
                 >
                   <ArrowLeft size={18} />
                 </button>
-                                <Avatar src={activeRoom.avatar} name={activeRoom.name} size="sm" />
+                <Avatar name={activeRoom.name} size="sm" />
                 <div className="min-w-0">
                   <h3 className="font-bold text-xs sm:text-sm truncate">@{activeRoom.name}</h3>
                   <p className="text-[10px] sm:text-xs text-green-600 flex items-center gap-1">
@@ -1122,27 +1037,8 @@ const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
                           @{msg.from}
                         </p>
                       )}
-                                                                  <span className="break-words">
-                        {(() => {
-                          try {
-                            const cmd = JSON.parse(msg.text);
-                            if (cmd.type === 'delete') return '🗑️ Message deleted';
-                            if (cmd.type === 'edit') return cmd.text;
-                          } catch {}
-                          return msg.text;
-                        })()}
-                      </span>
+                      <span className="break-words">{msg.text}</span>
                       <div className="flex items-center gap-1 mt-1 justify-end">
-                        {msg.isMe && (
-                          <>
-                                                        <button onClick={() => startEditMessage(msg.id, msg.text)} className="text-[9px] text-white/70 hover:text-white mr-2" title="Edit">
-                              <Edit3 size={10} />
-                            </button>
-                            <button onClick={() => deleteMessage(msg.id)} className="text-[9px] text-white/70 hover:text-white" title="Delete">
-                              <Trash2 size={10} />
-                            </button>
-                          </>
-                        )}
                         {msg.status === 'relayed' && (
                           <Globe size={8} className="text-blue-400" />
                         )}
@@ -1183,9 +1079,12 @@ const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
                   className="flex-1 min-w-0 px-3 sm:px-5 py-2 sm:py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-green-400/50 transition-all"
                 />
                                 <button
-                                   onClick={async () => {
+                  onClick={async () => {
                     if (!input.trim()) return;
-                    await waveMeshCore.sendViaAudioMesh(input);
+                    const { audioMesh } = await import('../services/AudioMesh');
+                    await audioMesh.start();
+                    await audioMesh.transmit(input);
+                    setMessages(prev => [...prev, { id: `msg_${Date.now()}`, from: myUsername, text: input, timestamp: Date.now(), isMe: true, status: 'delivered' }]);
                     toast.success('🔊 Sent via AudioMesh');
                     setInput('');
                   }}

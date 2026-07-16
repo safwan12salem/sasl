@@ -3,7 +3,7 @@
  * No BroadcastChannel for cross-device. All communication via BLE GATT.
  */
 import WaveMeshPlugin from '../plugins/WaveMeshPlugin';
-import { Preferences } from '@capacitor/preferences';
+
 export interface MeshPeer {
   id: string; username: string; distance: number;
   connectionType: 'ble4' | 'ble5' | 'wifidirect' | 'relay';
@@ -31,7 +31,6 @@ class WaveMeshCore {
   private peers: Map<string, MeshPeer> = new Map();
   private scanning = false;
   private connectedDevices: Set<string> = new Set();
-    private broadcastChannel: BroadcastChannel | null = null;
   public debugLog: string[] = [];
   private onDebugUpdate: (() => void) | null = null;
   private startTime = Date.now();
@@ -54,19 +53,11 @@ class WaveMeshCore {
   onDebug(cb: () => void): void { this.onDebugUpdate = cb; }
 
   async start(username: string, avatar: string | null): Promise<void> {
-        this.scanning = false;
     this.identity = { id: `sasl_${Date.now().toString(36)}_${Math.random().toString(36).substr(2,6)}`, username, avatar };
-        
     try {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
       await BleClient.initialize();
       this.log('🔵 Community BLE ready');
-          this.broadcastChannel = new BroadcastChannel("sasl-wave-mesh-v5");
-    this.broadcastChannel.onmessage = (event) => {
-      if (event.data.from !== this.identity?.username) {
-        this.onMessageReceived?.(event.data);
-      }
-    };
     } catch (e: any) { this.log(`❌ BLE not available: ${e.message}`); return; }
     
     // Try native plugin for advertising + GATT server
@@ -79,7 +70,7 @@ class WaveMeshCore {
         if (!this.peers.has(p.id)) { this.peers.set(p.id, p); this.onPeerDiscovered?.(p); }
       });
       
-            plugin.addListener('peerConnected', (peer: any) => {
+      plugin.addListener('peerConnected', (peer: any) => {
         const name = peer.name || 'Peer';
         this.connectedDevices.add(peer.deviceId);
         this.onPeerConnected?.({ peerId: peer.deviceId, username: name });
@@ -95,38 +86,33 @@ class WaveMeshCore {
       this.log('📡 Native GATT server + advertising active');
     } catch (e: any) { this.log(`⚠️ Native plugin unavailable: ${e.message || e}`); }
     
-    await this.restoreRooms(); 
+    this.restoreRooms();
     this.log(`✅ WaveMesh ready for @${username}`);
-    this.log('📡 Native GATT server + advertising active'); 
   }
 
-      private async restoreRooms(): Promise<void> {
+  private restoreRooms(): void {
     try {
-      const { value } = await Preferences.get({ key: 'sasl_wavemesh_rooms' });
-      if (value) {
-        const rooms = JSON.parse(value);
+      const saved = localStorage.getItem('sasl_wavemesh_rooms');
+      if (saved) {
+        const rooms = JSON.parse(saved);
         for (const room of rooms) {
           this.peers.set(room.id, room);
-          this.connectedDevices.add(room.id);
           this.onRoomCreated?.({ peerId: room.id, username: room.username });
-          // Try to reconnect BLE
-          try {
-            await this.connectToPeer(room.id);
-          } catch {}
         }
         this.log(`📂 Restored ${rooms.length} rooms`);
       }
     } catch {}
   }
-   private async saveRooms(): Promise<void> {
+
+  private saveRooms(): void {
     try {
       const rooms = Array.from(this.peers.values()).filter(p => p.connected);
-      await Preferences.set({ key: 'sasl_wavemesh_rooms', value: JSON.stringify(rooms) });
+      localStorage.setItem('sasl_wavemesh_rooms', JSON.stringify(rooms));
     } catch {}
   }
-   async startScanning(): Promise<void> {
+
+  async startScanning(): Promise<void> {
     if (this.scanning) return;
-    try { const { BleClient } = await import('@capacitor-community/bluetooth-le'); await BleClient.stopLEScan(); } catch {}
     this.scanning = true; this.totalScans++;
     try {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
@@ -199,7 +185,7 @@ class WaveMeshCore {
       if (peer) { peer.connected = true; peer.lastSeen = Date.now(); }
       this.onPeerConnected?.({ peerId: deviceId, username: name });
       this.onRoomCreated?.({ peerId: deviceId, username: name });
-      await this.saveRooms();
+      this.saveRooms();
       this.log(`✅ Connected to ${name}`);
       
       // Send identity via BLE
@@ -221,11 +207,17 @@ class WaveMeshCore {
     async sendMessage(text: string): Promise<void> {
     if (!this.identity) return;
     
-    const msgId = `msg_${Date.now()}`;
-    const msg = { id: msgId, from: this.identity.username, text, type: 'text', timestamp: Date.now() };
+    // Echo to sender
+    this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
     
-    // Echo to sender's UI
-    this.onMessageReceived?.(msg);
+    // Reconnect to any disconnected peers before sending
+    for (const deviceId of this.connectedDevices) {
+      try {
+        const { BleClient } = await import('@capacitor-community/bluetooth-le');
+        // Try to reconnect — if already connected, this is a no-op
+        await BleClient.connect(deviceId);
+      } catch {}
+    }
     
     // Send to ALL connected devices via BLE GATT
     for (const deviceId of this.connectedDevices) {
@@ -235,30 +227,29 @@ class WaveMeshCore {
         await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
         const peer = this.peers.get(deviceId);
         this.log(`📤 Sent to ${peer?.username || deviceId}`);
-      } catch (e) { this.log(`⚠️ BLE send failed`); }
-    }
-    
-    // Also broadcast via BroadcastChannel with SAME msgId
-    if (this.broadcastChannel) {
-      this.broadcastChannel.postMessage(msg);
+      } catch (e) {
+        this.log(`⚠️ BLE send failed, removing device`);
+        this.connectedDevices.delete(deviceId);
+      }
     }
   }
 
 
+
+
+   
   async sendControlCommand(command: string): Promise<void> {
     if (!this.identity) return;
     for (const deviceId of this.connectedDevices) {
       try {
         const { BleClient } = await import('@capacitor-community/bluetooth-le');
+        await BleClient.connect(deviceId);
         const encoded = new TextEncoder().encode(command);
         await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
       } catch {}
     }
-    if (this.broadcastChannel) {
-      this.broadcastChannel.postMessage({ id: `ctrl_${Date.now()}`, from: this.identity.username, text: command, type: 'control', timestamp: Date.now() });
-    }
+   
   }
-
   // ============================================================
   // QR HANDSHAKE
   // ============================================================
@@ -268,7 +259,7 @@ class WaveMeshCore {
     return JSON.stringify({ type: 'sasl_connect', version: 3, nodeId: this.identity.id, username: this.identity.username, timestamp: Date.now() });
   }
 
-    async processConnectionCode(code: string): Promise<{ username: string; peerId: string } | null> {
+  processConnectionCode(code: string): { username: string; peerId: string } | null {
     try {
       const data = JSON.parse(code); if (data.type !== 'sasl_connect') return null;
       if (Date.now() - data.timestamp > 300000) { this.log('⚠️ Code expired'); return null; }
@@ -276,7 +267,7 @@ class WaveMeshCore {
       this.connectedDevices.add(data.nodeId);
       this.onPeerConnected?.({ peerId: data.nodeId, username: data.username });
       this.onRoomCreated?.({ peerId: data.nodeId, username: data.username });
-      await this.saveRooms();
+      this.saveRooms();
       
       // Send QR confirmation via BLE so the other phone also creates the room
       if (this.identity) {
@@ -305,138 +296,16 @@ class WaveMeshCore {
     return { meters: maxRange, label: tier >= 4 ? '🌍 GLOBAL 50km+' : tier >= 3 ? `🏙️ ${(maxRange/1000).toFixed(0)}km` : tier >= 2 ? `📡 ${(maxRange/1000).toFixed(1)}km` : tier >= 1 ? `🔵 ${maxRange}m` : `🔍 ${count} peers`, usersNeeded: usersFor50km, technology: 'BLE 5 Long Range', hopDistance: hopDist, tier, tierName, maxRange, peerCount: count, signalStrength: avgSignal };
   }
 
-
-  // ============================================================
-  // AUDIO MESH — Sonic data transmission (long range through obstacles)
-  // ============================================================
-  
-    async sendViaAudioMesh(text: string): Promise<void> {
-    if (!this.identity) return;
-    const msgId = `msg_${Date.now()}`;
-    const msg = { id: msgId, from: this.identity.username, text, type: 'audiomesh', timestamp: Date.now() };
-    this.onMessageReceived?.(msg);
-    
-    // Send to all connected devices via BLE
-    for (const deviceId of this.connectedDevices) {
-      try {
-        const { BleClient } = await import('@capacitor-community/bluetooth-le');
-        const encoded = new TextEncoder().encode(text);
-        await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
-      } catch {}
-    }
-    
-    // Also try AudioMesh sonic transmission
-    try {
-      const { audioMesh } = await import('./AudioMesh');
-      await audioMesh.start();
-      await audioMesh.transmit(text);
-      this.log(`🔊 Sent via AudioMesh: "${text.substring(0, 20)}"`);
-    } catch (e) {
-      this.log(`⚠️ AudioMesh failed: ${e}`);
-    }
-    
-    // BroadcastChannel fallback
-    if (this.broadcastChannel) {
-      this.broadcastChannel.postMessage(msg);
-    }
-  }
-  // ============================================================
-  // FILE TRANSFER — Chunked BLE file transfer (offline)
-  // ============================================================
-  
-  async sendFile(fileData: Uint8Array, fileName: string): Promise<void> {
-    if (!this.identity) return;
-    const CHUNK_SIZE = 512;
-    const totalChunks = Math.ceil(fileData.length / CHUNK_SIZE);
-    this.log(`📎 Sending file: ${fileName} (${fileData.length} bytes, ${totalChunks} chunks)`);
-    
-    const header = JSON.stringify({ type: 'file_start', name: fileName, size: fileData.length, chunks: totalChunks });
-    await this.broadcastData(header, 'message');
-    
-    for (let i = 0; i < totalChunks; i++) {
-      const chunk = fileData.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-      const chunkB64 = btoa(String.fromCharCode(...chunk));
-      const chunkMsg = JSON.stringify({ type: 'file_chunk', name: fileName, index: i, total: totalChunks, data: chunkB64 });
-      await this.broadcastData(chunkMsg, 'message');
-    }
-    this.log(`✅ File sent: ${fileName}`);
-  }
-
-  async sendVoiceMessage(audioData: Uint8Array): Promise<void> {
-    if (!this.identity) return;
-    const msg = { id: `msg_${Date.now()}`, from: this.identity.username, text: '🎤 Voice message', type: 'voice', timestamp: Date.now() };
-    this.onMessageReceived?.(msg);
-    await this.sendFile(audioData, `voice_${Date.now()}.wav`);
-  }
-
-  // ============================================================
-  // BROADCAST DATA — Dual transport (BLE + BroadcastChannel)
-  // ============================================================
-  
-  private async broadcastData(data: string, type: string): Promise<void> {
-    const payload = typeof data === 'string' ? data : JSON.stringify(data);
-    for (const deviceId of this.connectedDevices) {
-      try {
-        const { BleClient } = await import('@capacitor-community/bluetooth-le');
-        const encoded = new TextEncoder().encode(payload);
-        await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
-      } catch {}
-    }
-    if (this.broadcastChannel) {
-      this.broadcastChannel.postMessage({ id: `msg_${Date.now()}`, from: this.identity?.username, text: payload, type, timestamp: Date.now() });
-    }
-  }
-
-  // ============================================================
-  // SIGNAL HEALTH — Bluetooth environment analysis
-  // ============================================================
-  
-  getBluetoothEnvironment(): { totalDevices: number; potentialRelays: number; signalQuality: 'excellent' | 'good' | 'fair' | 'poor' } {
-    const allDevices = Array.from(this.peers.values());
-    const saslDevices = allDevices.filter(p => p.connected);
-    const otherDevices = allDevices.filter(p => !p.connected);
-    const signalQuality = saslDevices.length > 0 
-      ? (saslDevices[0].signalStrength > 60 ? 'excellent' : saslDevices[0].signalStrength > 40 ? 'good' : saslDevices[0].signalStrength > 20 ? 'fair' : 'poor')
-      : 'poor';
-    return { totalDevices: allDevices.length, potentialRelays: otherDevices.length, signalQuality };
-  }
-
-  getSignalHealth(): { warning: string | null; suggestion: string | null; shouldRelay: boolean } {
-    const range = this.getRange();
-    const env = this.getBluetoothEnvironment();
-    if (env.signalQuality === 'poor' && range.peerCount === 0) {
-      return { warning: '📡 Weak signal — move closer or find open space', suggestion: `${env.potentialRelays} Bluetooth devices nearby can help reflect signal`, shouldRelay: false };
-    }
-    if (env.signalQuality === 'fair' && range.usersNeeded > 0) {
-      return { warning: '⚠️ Signal could be stronger', suggestion: `${range.usersNeeded} more Sasl users needed for ${(range.meters/1000).toFixed(1)}km relay mesh`, shouldRelay: true };
-    }
-    if (env.signalQuality === 'good' && range.usersNeeded > 0) {
-      return { warning: null, suggestion: `${range.usersNeeded} more Sasl users needed for 50km global mesh`, shouldRelay: range.usersNeeded <= 100 };
-    }
-    return { warning: null, suggestion: null, shouldRelay: false };
-  }
-
-  isRelayActive(): boolean { return this.getSignalHealth().shouldRelay; }
-
   getStats(): MeshStats { return { totalPeers: this.peers.size, connectedPeers: this.connectedDevices.size, relayMessages: 0, pendingDelivery: 0, delivered: 0, uptime: Math.floor((Date.now() - this.startTime) / 1000), scanCount: this.totalScans }; }
   getPeers(): MeshPeer[] { return Array.from(this.peers.values()).filter(p => Date.now() - p.lastSeen < 120000).sort((a, b) => a.distance - b.distance); }
   getTierInfo() { const r = this.getRange(); const colors = ['gray','green','blue','purple','yellow']; return { tier: r.tier, name: r.tierName, description: r.usersNeeded > 0 ? `${r.usersNeeded} more for 50km` : 'Active', color: colors[r.tier] || 'gray' }; }
-   
   getStatus(): string { return this.getRange().label; }
   getIdentity() { return this.identity; }
   isScanning(): boolean { return this.scanning; }
   getDebugLog(): string[] { return [...this.debugLog]; }
   getConnectedDevices(): string[] { return Array.from(this.connectedDevices); }
 
-  async stop(): Promise<void> { await this.stopScanning(); await this.saveRooms(); this.peers.clear(); this.connectedDevices.clear(); }
-
-
-   async disconnectPeer(peerId: string): Promise<void> {
-    this.connectedDevices.delete(peerId);
-    this.peers.delete(peerId);
-    await this.saveRooms();
-  }
-
+  async stop(): Promise<void> { await this.stopScanning(); this.saveRooms(); this.peers.clear(); this.connectedDevices.clear(); }
 
   setOnPeerDiscovered(cb: Callback): void { this.onPeerDiscovered = cb; }
   setOnPeerConnected(cb: Callback): void { this.onPeerConnected = cb; }
@@ -447,4 +316,3 @@ class WaveMeshCore {
 }
 
 export const waveMeshCore = new WaveMeshCore();
-

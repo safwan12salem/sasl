@@ -230,7 +230,6 @@ public class WaveMeshNativeService {
                     gatt.discoverServices();
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
-                        gatt.requestMtu(512);
                     }
                     if (callback != null) callback.onPeerConnected(deviceAddress, device.getName() != null ? device.getName() : "Sasl Peer");
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
