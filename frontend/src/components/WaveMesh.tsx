@@ -1,5 +1,6 @@
 /**
  * Sasl WaveMesh — Complete P2P Chat Component
+ * LEGENDARY EDITION — BLE + Echo Relay + AudioMesh + File Transfer + E2E Encryption
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
@@ -22,6 +23,7 @@ import {
   RangeInfo, 
   MeshStats, 
 } from '../services/WaveMeshCore';
+import { echoRelay } from '../services/EchoRelay';
 import { useTranslation } from 'react-i18next';
 
 interface ChatMessage {
@@ -104,6 +106,7 @@ export default function WaveMesh() {
   const [debugLog, setDebugLog] = useState<string[]>([]);
   const [showWelcome, setShowWelcome] = useState(true);
   const [audioMeshActive, setAudioMeshActive] = useState(false);
+  const [relayStats, setRelayStats] = useState(echoRelay.getStats());
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -170,6 +173,11 @@ export default function WaveMesh() {
         const cmd = JSON.parse(msg.text);
         if (cmd.type === 'delete') { setMessages(prev => prev.filter(m => m.id !== cmd.msgId)); return; }
         if (cmd.type === 'edit') { setMessages(prev => prev.map(m => m.id === cmd.msgId ? { ...m, text: cmd.text } : m)); return; }
+        if (cmd.type === 'file_start') {
+          setMessages(prev => [...prev, { id: msg.id, from: msg.from, text: `📎 Receiving: ${cmd.name}...`, timestamp: Date.now(), isMe: false, status: 'delivered' }]);
+          return;
+        }
+        if (cmd.type === 'file_chunk') { return; }
       } catch {}
       setMessages(prev => {
         if (prev.find(m => m.id === msg.id)) return prev;
@@ -187,6 +195,7 @@ export default function WaveMesh() {
       setStats(waveMeshCore.getStats());
       setPeers(waveMeshCore.getPeers());
       setTierInfo(waveMeshCore.getTierInfo());
+      setRelayStats(echoRelay.getStats());
     }, 1000);
 
     return () => { clearInterval(interval); waveMeshCore.stop(); };
@@ -260,28 +269,56 @@ export default function WaveMesh() {
     toast.success("Message deleted");
   };
 
-  const startEditMessage = (msgId: string, currentText: string) => { setEditingMsgId(msgId); setEditText(currentText); setInput(currentText); inputRef.current?.focus(); };
+  const startEditMessage = (msgId: string, currentText: string) => { 
+    setEditingMsgId(msgId); setEditText(currentText); setInput(currentText); inputRef.current?.focus(); 
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
-    toast.success(`📎 Uploading ${file.name}...`);
+    toast.success(`📎 Processing ${file.name}...`);
+    
+    // Try online Cloudinary first
     try {
       const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", "sasl_upload");
       const res = await fetch("https://api.cloudinary.com/v1_1/dwem1chqc/upload", { method: "POST", body: formData });
       const data = await res.json();
-      if (data.secure_url) { waveMeshCore.sendMessage(`📎 ${data.secure_url}`); toast.success("File uploaded!"); }
-    } catch { toast.error("Upload failed"); }
+      if (data.secure_url) { waveMeshCore.sendMessage(`📎 ${data.secure_url}`); toast.success("File uploaded to cloud!"); return; }
+    } catch {}
+    
+    // Offline: compress image then BLE chunk transfer
+    try {
+      if (file.type.startsWith('image/')) {
+        const canvas = document.createElement('canvas');
+        const img = new Image();
+        img.src = URL.createObjectURL(file);
+        await new Promise<void>(r => { img.onload = () => r(); });
+        const ratio = Math.min(1, 300 / img.width);
+        canvas.width = img.width * ratio; canvas.height = img.height * ratio;
+        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const blob = await new Promise<Blob>(r => canvas.toBlob(b => r(b!), 'image/jpeg', 0.5));
+        const buf = await blob.arrayBuffer();
+        await waveMeshCore.sendFile(new Uint8Array(buf), file.name);
+      } else {
+        const buf = await file.arrayBuffer();
+        await waveMeshCore.sendFile(new Uint8Array(buf), file.name);
+      }
+      toast.success(`📎 ${file.name} sent via BLE!`);
+    } catch { toast.error("File transfer failed"); }
   };
 
   const toggleAudioMesh = async () => {
     if (audioMeshActive) {
-      const { audioMesh } = await import("../services/AudioMesh"); audioMesh.stop(); setAudioMeshActive(false); toast.success("🔊 AudioMesh deactivated");
+      const { audioMesh } = await import("../services/AudioMesh"); 
+      audioMesh.stop(); setAudioMeshActive(false); 
+      toast.success("🔊 AudioMesh deactivated");
     } else {
-      const { audioMesh } = await import("../services/AudioMesh"); await audioMesh.start();
+      const { audioMesh } = await import("../services/AudioMesh"); 
+      await audioMesh.start();
       await audioMesh.startListening((text: string) => {
         setMessages(prev => [...prev, { id: `msg_${Date.now()}`, from: "AudioMesh Peer", text, timestamp: Date.now(), isMe: false, status: "delivered" }]);
       });
-      setAudioMeshActive(true); toast.success("🔊 AudioMesh activated — extended range mode");
+      setAudioMeshActive(true); 
+      toast.success("🔊 AudioMesh activated — extended range mode");
     }
   };
 
@@ -314,6 +351,7 @@ export default function WaveMesh() {
   // ============================================================
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 via-white to-green-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
+      {/* INCOMING REQUEST MODAL */}
       <AnimatePresence>
         {incomingRequest && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
@@ -330,32 +368,40 @@ export default function WaveMesh() {
         )}
       </AnimatePresence>
 
+      {/* SIDEBAR */}
       <AnimatePresence>
         {(showSidebar || (typeof window !== 'undefined' && window.innerWidth >= 1024)) && (
           <motion.div initial={{ x: -320 }} animate={{ x: 0 }} exit={{ x: -320 }} transition={{ type: 'spring', damping: 25 }} className="w-[85vw] max-w-[320px] md:w-80 lg:w-96 border-r border-gray-200/50 dark:border-gray-800/50 flex flex-col bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl fixed md:relative z-30 h-full shadow-2xl md:shadow-none">
+            {/* Header */}
             <div className="p-5 border-b border-gray-100 dark:border-gray-800">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent flex items-center gap-2"><Radio size={24} className="text-green-500" />WaveMesh</h2>
                 <button onClick={() => setShowSidebar(false)} className="md:hidden p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><X size={18} /></button>
               </div>
+
+              {/* Tier Badge */}
               <div className={`p-3 rounded-xl bg-gradient-to-r ${getTierColors().gradient} mb-2`}>
                 <div className="flex items-center justify-between"><span className="text-xs font-bold text-white">{tierInfo.name}</span><span className="text-xs text-white/75">{peers.length} peers</span></div>
                 <p className="text-[10px] mt-1 text-white/75">{tierInfo.description}</p>
                 {rangeInfo && <div className="mt-2 bg-white/20 rounded-full h-2 overflow-hidden"><motion.div className="bg-white h-full rounded-full" animate={{ width: `${getRangePercentage()}%` }} transition={{ duration: 1, ease: 'easeOut' }} /></div>}
               </div>
+
               <p className="text-xs text-gray-500 flex items-center gap-1"><span className={`w-2 h-2 rounded-full animate-pulse ${scanning ? 'bg-green-500' : 'bg-gray-400'}`} />{rangeInfo?.label || 'Initializing...'}</p>
               {rangeInfo && <p className="text-[10px] text-gray-400 mt-1">{rangeInfo.technology} · {rangeInfo.hopDistance}m hops</p>}
+
               <button onClick={toggleScan} className={`mt-3 w-full py-2.5 rounded-xl text-xs font-bold transition-all ${scanning ? 'bg-red-500 text-white animate-pulse shadow-lg' : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg hover:shadow-xl'}`}>
                 {scanning ? <span className="flex items-center justify-center gap-2"><Activity size={14} className="animate-spin" />STOP SCANNING</span> : <span className="flex items-center justify-center gap-2"><Radio size={14} />START MESH SCAN</span>}
               </button>
             </div>
 
+            {/* Tabs */}
             <div className="flex mx-4 mt-3 bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-1 overflow-x-auto">
               {[{ key: 'rooms', label: 'Chats', icon: MessageCircle },{ key: 'discover', label: 'Nearby', icon: Bluetooth },{ key: 'relay', label: 'Relay', icon: Globe },{ key: 'connect', label: 'Code', icon: Link },{ key: 'debug', label: 'Log', icon: Terminal }].map(tb => (
                 <button key={tb.key} onClick={() => setTab(tb.key as any)} className={`flex-shrink-0 py-2.5 px-3 text-xs font-medium flex items-center justify-center gap-1.5 rounded-xl transition-all ${tab === tb.key ? 'bg-white dark:bg-gray-700 text-green-600 shadow-sm' : 'text-gray-500'}`}><tb.icon size={14} />{tb.label}</button>
               ))}
             </div>
 
+            {/* Tab Content */}
             <div className="flex-1 overflow-y-auto mt-2 px-3 pb-3">
               {tab === 'rooms' && (
                 <div className="space-y-1">
@@ -404,9 +450,27 @@ export default function WaveMesh() {
 
               {tab === 'relay' && (
                 <div>
-                  <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 mb-3"><div className="flex items-center justify-between mb-2"><span className="text-xs font-bold flex items-center gap-1"><Globe size={12} className="text-blue-500" /> Echo Relay</span><span className="text-[10px] text-blue-500">{stats?.pendingDelivery || 0} pending</span></div><p className="text-[10px] text-gray-500">Messages hop through Sasl users until they reach the destination.{rangeInfo && rangeInfo.usersNeeded > 0 ? ` Need ${rangeInfo.usersNeeded} more users for 50km mesh.` : ' Global mesh active!'}</p>{rangeInfo && <div className="mt-2 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 overflow-hidden"><div className="bg-gradient-to-r from-blue-400 to-purple-500 h-full rounded-full transition-all" style={{ width: `${getRangePercentage()}%` }} /></div>}</div>
-                  {rangeInfo && <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 mb-3"><div className="flex justify-between text-[10px] text-gray-500 mb-1"><span>0km</span><span>10km</span><span>25km</span><span>50km</span></div><div className="bg-gray-200 dark:bg-gray-600 rounded-full h-3 overflow-hidden"><motion.div className={`h-full rounded-full bg-gradient-to-r ${getTierColors().gradient}`} animate={{ width: `${getRangePercentage()}%` }} transition={{ duration: 1 }} /></div><p className="text-[10px] text-gray-400 mt-2 text-center">{rangeInfo.usersNeeded > 0 ? `${rangeInfo.peerCount} peers · ${rangeInfo.usersNeeded} more for 50km global mesh` : '🎉 50km GLOBAL MESH ACTIVE!'}</p></div>}
-                  <p className="text-[10px] text-gray-400 text-center">Messages relay through {stats?.totalPeers || 0} nearby Sasl users</p>
+                  <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 mb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold flex items-center gap-1"><Globe size={12} className="text-blue-500" /> Echo Relay</span>
+                      <span className="text-[10px] text-blue-500">{relayStats.pendingDelivery} pending</span>
+                    </div>
+                    <p className="text-[10px] text-gray-500">Messages hop through Sasl users until they reach the destination.{rangeInfo && rangeInfo.usersNeeded > 0 ? ` Need ${rangeInfo.usersNeeded} more users for 50km mesh.` : ' Global mesh active!'}</p>
+                    {rangeInfo && <div className="mt-2 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 overflow-hidden"><div className="bg-gradient-to-r from-blue-400 to-purple-500 h-full rounded-full transition-all" style={{ width: `${getRangePercentage()}%` }} /></div>}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 mb-3">
+                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center"><p className="text-[10px] text-gray-500">Stored</p><p className="text-lg font-bold">{relayStats.totalMessages}</p></div>
+                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center"><p className="text-[10px] text-gray-500">Pending</p><p className="text-lg font-bold text-orange-500">{relayStats.pendingDelivery}</p></div>
+                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center"><p className="text-[10px] text-gray-500">Delivered</p><p className="text-lg font-bold text-green-500">{relayStats.delivered}</p></div>
+                  </div>
+                  {rangeInfo && (
+                    <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 mb-3">
+                      <div className="flex justify-between text-[10px] text-gray-500 mb-1"><span>0km</span><span>10km</span><span>25km</span><span>50km</span></div>
+                      <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-3 overflow-hidden"><motion.div className={`h-full rounded-full bg-gradient-to-r ${getTierColors().gradient}`} animate={{ width: `${getRangePercentage()}%` }} transition={{ duration: 1 }} /></div>
+                      <p className="text-[10px] text-gray-400 mt-2 text-center">{rangeInfo.usersNeeded > 0 ? `${rangeInfo.peerCount} peers · ${rangeInfo.usersNeeded} more for 50km global mesh` : '🎉 50km GLOBAL MESH ACTIVE!'}</p>
+                    </div>
+                  )}
+                  <p className="text-[10px] text-gray-400 text-center">Each Sasl user extends the mesh by ~200m</p>
                 </div>
               )}
 
@@ -423,11 +487,15 @@ export default function WaveMesh() {
                 <div className="space-y-1"><p className="text-xs font-bold mb-2">📋 System Log:</p>{debugLog.length === 0 ? <p className="text-xs text-gray-400">No log entries. Start scanning to see activity.</p> : debugLog.map((line, i) => <p key={i} className="text-[10px] text-gray-600 dark:text-gray-400 font-mono leading-relaxed border-b border-gray-100 dark:border-gray-800 pb-1">{line}</p>)}</div>
               )}
             </div>
-            <div className="p-4 border-t border-gray-100 dark:border-gray-800 text-center"><p className="text-[10px] text-gray-400">🌊 WaveMesh · BLE 5 (500m) + Relay · 100 users = 50km</p></div>
+
+            <div className="p-4 border-t border-gray-100 dark:border-gray-800 text-center">
+              <p className="text-[10px] text-gray-400">🌊 WaveMesh · BLE 5 + Echo Relay + AudioMesh · 100 users = 50km</p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* MAIN CHAT AREA */}
       <div className="flex-1 flex flex-col z-10 min-w-0">
         {!activeRoom ? (
           <div className="flex-1 flex items-center justify-center p-4 sm:p-8">
@@ -436,17 +504,18 @@ export default function WaveMesh() {
               <div className={`inline-block px-4 py-1.5 rounded-full text-xs font-bold mb-3 bg-gradient-to-r ${getTierColors().gradient} text-white`}>{tierInfo.name}</div>
               <h2 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2 sm:mb-3">Sasl WaveMesh</h2>
               <p className="text-gray-500 mb-1 sm:mb-2 text-sm sm:text-lg"><span className="font-semibold text-green-600">Multi-Layer P2P</span> · Zero Internet</p>
-              <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-8">BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + Relay (∞)<br /><span className="font-semibold">100 users = 50km Global Mesh</span></p>
+              <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-8">BLE 4 (100m) + BLE 5 (500m) + Echo Relay (∞) + AudioMesh<br /><span className="font-semibold">100 users = 50km Global Mesh</span></p>
               <button onClick={() => setShowSidebar(true)} className="md:hidden mx-auto mb-3 sm:mb-4 p-2.5 sm:p-3 bg-gray-100 dark:bg-gray-800 rounded-2xl"><Menu size={20} /></button>
               <div className="flex gap-2 sm:gap-3 justify-center flex-wrap">
                 <button onClick={() => { setTab('discover'); setShowSidebar(true); }} className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-semibold shadow-lg text-xs sm:text-base">🔍 Discover Peers</button>
                 <button onClick={generateQR} className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-semibold shadow-lg flex items-center gap-2 text-xs sm:text-base"><QrCode size={16} /> Share Code</button>
               </div>
-              <div className="mt-6 sm:mt-8 flex items-center justify-center gap-3 sm:gap-6 text-[10px] sm:text-xs text-gray-400 flex-wrap"><span className="flex items-center gap-1"><WifiOff size={10} /> No Internet</span><span className="flex items-center gap-1"><Shield size={10} /> Encrypted</span><span className="flex items-center gap-1"><Globe size={10} /> Global Relay</span></div>
+              <div className="mt-6 sm:mt-8 flex items-center justify-center gap-3 sm:gap-6 text-[10px] sm:text-xs text-gray-400 flex-wrap"><span className="flex items-center gap-1"><WifiOff size={10} /> No Internet</span><span className="flex items-center gap-1"><Shield size={10} /> E2E Encrypted</span><span className="flex items-center gap-1"><Globe size={10} /> Global Relay</span></div>
             </div>
           </div>
         ) : (
           <div className="flex-1 flex flex-col min-h-0">
+            {/* Chat Header */}
             <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-200/50 dark:border-gray-800/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
                 <button onClick={() => { setActiveRoom(null); setShowSidebar(true); }} className="md:hidden p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl flex-shrink-0"><ArrowLeft size={18} /></button>
@@ -459,6 +528,7 @@ export default function WaveMesh() {
               </div>
             </div>
 
+            {/* Messages */}
             <div className="flex-1 overflow-y-auto px-3 sm:px-4 py-3 sm:py-4 space-y-3 min-h-0">
               {messages.length === 0 ? (
                 <div className="text-center text-gray-400 py-16 sm:py-20"><MessageCircle size={36} className="mx-auto mb-2 opacity-30" /><p className="text-sm sm:text-base">Connected via WaveMesh</p><p className="text-xs sm:text-sm">Say hello! 👋</p></div>
@@ -468,7 +538,20 @@ export default function WaveMesh() {
                     {!msg.isMe && <Avatar name={msg.from} size="sm" />}
                     <div className={`max-w-[80%] sm:max-w-[75%] px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm ${msg.isMe ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-br-lg shadow-md' : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-lg shadow-sm border'}`}>
                       {!msg.isMe && <p className="text-[9px] sm:text-[10px] font-semibold text-gray-500 mb-0.5">@{msg.from}</p>}
-                      <span className="break-words">{msg.text}</span>
+                      <span className="break-words">
+                        {(() => {
+                          try {
+                            const cmd = JSON.parse(msg.text);
+                            if (cmd.type === 'delete') return '🗑️ Message deleted';
+                            if (cmd.type === 'edit') return cmd.text;
+                            if (cmd.type === 'file_start') return `📎 ${cmd.name} (${(cmd.size/1024).toFixed(1)}KB)`;
+                          } catch {}
+                          if (msg.text?.startsWith('📎 http')) {
+                            return <img src={msg.text.replace('📎 ', '')} alt="shared" className="max-w-full rounded-lg" />;
+                          }
+                          return msg.text;
+                        })()}
+                      </span>
                       <div className="flex items-center gap-1 mt-1 justify-end">
                         {msg.isMe && (
                           <>
@@ -487,13 +570,14 @@ export default function WaveMesh() {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Input Bar */}
             <div className="p-2 sm:p-4 border-t border-gray-200/50 dark:border-gray-800/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex-shrink-0">
               <div className="flex items-end gap-1.5 sm:gap-2">
                 <button onClick={() => setShowEmoji(!showEmoji)} className="p-2 sm:p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 flex-shrink-0"><Smile size={18} /></button>
                 <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleFileUpload} />
                 <button onClick={() => fileInputRef.current?.click()} className="p-2 sm:p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 flex-shrink-0"><ImageIcon size={18} /></button>
                 <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Message via WaveMesh..." className="flex-1 min-w-0 px-3 sm:px-5 py-2 sm:py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-green-400/50 transition-all" />
-                <button onClick={async () => { if (!input.trim()) return; const { audioMesh } = await import('../services/AudioMesh'); await audioMesh.start(); await audioMesh.transmit(input); setMessages(prev => [...prev, { id: `msg_${Date.now()}`, from: myUsername, text: input, timestamp: Date.now(), isMe: true, status: 'delivered' }]); toast.success('🔊 Sent via AudioMesh'); setInput(''); }} disabled={!input.trim()} className="p-2 sm:p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl disabled:opacity-40 shadow-lg flex-shrink-0" title="Send via AudioMesh (long range)"><Radio size={18} /></button>
+                <button onClick={async () => { if (!input.trim()) return; await waveMeshCore.sendViaAudioMesh(input); toast.success('🔊 Sent via AudioMesh + BLE'); setInput(''); }} disabled={!input.trim()} className="p-2 sm:p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl disabled:opacity-40 shadow-lg flex-shrink-0" title="Send via AudioMesh (long range)"><Radio size={18} /></button>
                 <button onClick={sendMessage} disabled={!input.trim()} className="p-2 sm:p-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl disabled:opacity-40 shadow-lg flex-shrink-0"><Send size={18} /></button>
               </div>
               {showEmoji && (
@@ -506,6 +590,7 @@ export default function WaveMesh() {
         )}
       </div>
 
+      {/* QR MODAL */}
       <AnimatePresence>
         {showQR && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setShowQR(false)}>

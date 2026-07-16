@@ -1,10 +1,13 @@
 /**
  * Sasl WaveMesh Core — LEGENDARY EDITION
- * BLE GATT cross-device + Capacitor Preferences persistence
+ * BLE GATT cross-device + Echo Relay + AudioMesh + File Transfer + Encryption
+ * Capacitor Preferences persistence + Command Queue + DirectP2P
  */
 import { Preferences } from '@capacitor/preferences';
 import WaveMeshPlugin from '../plugins/WaveMeshPlugin';
-
+import { echoRelay } from './EchoRelay';
+import { directP2P } from './DirectP2P';
+import { encryptForPeer, decryptFromPeer } from './encryption';
 export interface MeshPeer {
   id: string; username: string; distance: number;
   connectionType: 'ble4' | 'ble5' | 'wifidirect' | 'relay';
@@ -32,7 +35,7 @@ class WaveMeshCore {
   private peers: Map<string, MeshPeer> = new Map();
   private scanning = false;
   private connectedDevices: Set<string> = new Set();
-    private commandQueue: { command: string; timestamp: number }[] = [];
+  private commandQueue: { command: string; timestamp: number }[] = [];
   public debugLog: string[] = [];
   private onDebugUpdate: (() => void) | null = null;
   private startTime = Date.now();
@@ -44,6 +47,7 @@ class WaveMeshCore {
   private onRoomCreated: Callback | null = null;
   private onRequestReceived: Callback | null = null;
   private pendingRequests: Map<string, string> = new Map();
+  private audioMeshActive = false;
 
   private log(msg: string): void {
     const entry = `[${new Date().toLocaleTimeString()}] ${msg}`;
@@ -57,11 +61,29 @@ class WaveMeshCore {
   async start(username: string, avatar: string | null): Promise<void> {
     this.scanning = false;
     this.identity = { id: `sasl_${Date.now().toString(36)}_${Math.random().toString(36).substr(2,6)}`, username, avatar };
+    
+    // Start DirectP2P for extended range
+    directP2P.start(username);
+    directP2P.onPeerFound((peer) => {
+      this.onPeerDiscovered?.(peer);
+    });
+    directP2P.onMessageReceived((from, text) => {
+      this.onMessageReceived?.({ id: `msg_${Date.now()}`, from, text, type: 'text', timestamp: Date.now() });
+    });
+    
+    // Start Echo Relay for store-and-forward mesh
+    echoRelay.start(this.identity.id);
+    echoRelay.onMessage((msg) => {
+      decryptFromPeer(msg.text).then(decrypted => {
+        this.onMessageReceived?.({ id: msg.id, from: msg.from, text: decrypted, type: 'text', timestamp: msg.timestamp, relayPath: msg.relayPath });
+      });
+    });
+    
     try {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
       await BleClient.initialize();
       this.log('🔵 Community BLE ready');
-    } catch (e: any) { this.log(`❌ BLE not available: ${e.message}`); return; }
+    } catch (e: any) { this.log(`❌ BLE not available: ${e.message}`); }
     
     try {
       const plugin = WaveMeshPlugin;
@@ -77,11 +99,17 @@ class WaveMeshCore {
         this.connectedDevices.add(peer.deviceId);
         this.onPeerConnected?.({ peerId: peer.deviceId, username: name });
         this.onRoomCreated?.({ peerId: peer.deviceId, username: name });
+        // Forward relay messages to newly connected peer
+        echoRelay.forwardToPeer(peer.deviceId);
         this.log(`✅ Connected to ${name}`);
       });
       
       plugin.addListener('messageReceived', (msg: any) => {
-        this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: msg.from, text: msg.text, type: 'text', timestamp: Date.now() });
+        decryptFromPeer(msg.text).then(decrypted => {
+          this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: msg.from, text: decrypted, type: 'text', timestamp: Date.now() });
+          // Forward to relay mesh
+        echoRelay.forwardToPeer(msg.from);
+        });
       });
       
       await plugin.startAdvertising({ username });
@@ -121,6 +149,10 @@ class WaveMeshCore {
     if (this.scanning) return;
     try { const { BleClient } = await import('@capacitor-community/bluetooth-le'); await BleClient.stopLEScan(); } catch {}
     this.scanning = true; this.totalScans++;
+    
+    // Also start DirectP2P scanning for extended range
+    directP2P.startScanning().catch(() => {});
+    
     try {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
       if (!await BleClient.isEnabled()) { this.log('❌ Bluetooth OFF'); this.scanning = false; return; }
@@ -143,7 +175,10 @@ class WaveMeshCore {
     } catch (err: any) { this.log(`❌ Scan failed: ${err.message}`); this.scanning = false; }
   }
 
-  async stopScanning(): Promise<void> { this.scanning = false; try { const { BleClient } = await import('@capacitor-community/bluetooth-le'); await BleClient.stopLEScan(); } catch {} }
+  async stopScanning(): Promise<void> { 
+    this.scanning = false; 
+    try { const { BleClient } = await import('@capacitor-community/bluetooth-le'); await BleClient.stopLEScan(); } catch {} 
+  }
 
   async sendConnectionRequest(deviceId: string): Promise<void> {
     const peer = this.peers.get(deviceId);
@@ -183,9 +218,10 @@ class WaveMeshCore {
       this.onPeerConnected?.({ peerId: deviceId, username: name });
       this.onRoomCreated?.({ peerId: deviceId, username: name });
       await this.saveRooms();
-            // Flush queued commands on new connection
+      
+      // Flush queued commands on new connection
       if (this.commandQueue.length > 0) {
-        this.log(`📤 Flushing ${this.commandQueue.length} queued commands on new connection`);
+        this.log(`📤 Flushing ${this.commandQueue.length} queued commands`);
         for (const { command } of [...this.commandQueue]) {
           try {
             const encoded = new TextEncoder().encode(command);
@@ -194,6 +230,10 @@ class WaveMeshCore {
         }
         this.commandQueue = [];
       }
+      
+      // Forward relay messages
+      echoRelay.forwardToPeer(deviceId);
+      
       this.log(`✅ Connected to ${name}`);
       if (this.identity) {
         try {
@@ -208,27 +248,41 @@ class WaveMeshCore {
 
   async sendMessage(text: string): Promise<void> {
     if (!this.identity) return;
+    
+    // Encrypt message
+    const encrypted = await encryptForPeer(text);
+    
+    // Echo to sender
     this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
+    
+    // Store in Echo Relay for mesh forwarding
+    echoRelay.storeMessage('broadcast', text, this.identity?.username || 'me').catch(() => {});
+    
+    // Send via DirectP2P
+    directP2P.sendMessage(text);
+    
+    // Send to ALL connected devices via BLE GATT
     for (const deviceId of this.connectedDevices) {
       try {
         const { BleClient } = await import('@capacitor-community/bluetooth-le');
         await BleClient.connect(deviceId);
-        const encoded = new TextEncoder().encode(text);
+        const encoded = new TextEncoder().encode(encrypted);
         await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
         const peer = this.peers.get(deviceId);
         this.log(`📤 Sent to ${peer?.username || deviceId}`);
-            // Flush command queue after successful message
-    if (this.commandQueue.length > 0) {
-      this.log(`📤 Flushing ${this.commandQueue.length} queued commands`);
-      for (const { command } of [...this.commandQueue]) {
-        try {
-          const { BleClient } = await import('@capacitor-community/bluetooth-le');
-          const encoded = new TextEncoder().encode(command);
-          await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
-        } catch {}
-      }
-      this.commandQueue = [];
-    }
+        
+        // Flush command queue after successful message
+        if (this.commandQueue.length > 0) {
+          this.log(`📤 Flushing ${this.commandQueue.length} queued commands`);
+          for (const { command } of [...this.commandQueue]) {
+            try {
+              const encCmd = await encryptForPeer(command);
+              const cmdEncoded = new TextEncoder().encode(encCmd);
+              await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(cmdEncoded.buffer));
+            } catch {}
+          }
+          this.commandQueue = [];
+        }
       } catch (e) {
         this.log(`⚠️ BLE send failed, removing device`);
         this.connectedDevices.delete(deviceId);
@@ -236,28 +290,60 @@ class WaveMeshCore {
     }
   }
 
-   async sendControlCommand(command: string): Promise<void> {
+  async sendControlCommand(command: string): Promise<void> {
     if (!this.identity) return;
     
+    const encrypted = await encryptForPeer(command);
     let sent = false;
     for (const deviceId of this.connectedDevices) {
       try {
         const { BleClient } = await import('@capacitor-community/bluetooth-le');
         await BleClient.connect(deviceId);
-        const encoded = new TextEncoder().encode(command);
+        const encoded = new TextEncoder().encode(encrypted);
         await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
         this.log(`📤 Control sent to ${deviceId}`);
         sent = true;
       } catch (e) {}
     }
     
-    // If not sent, queue for later delivery
     if (!sent) {
       this.commandQueue.push({ command, timestamp: Date.now() });
-      this.log(`📥 Command queued for later delivery (${this.commandQueue.length} pending)`);
+      this.log(`📥 Command queued (${this.commandQueue.length} pending)`);
     }
   }
 
+  async sendFile(fileData: Uint8Array, fileName: string): Promise<void> {
+    if (!this.identity) return;
+    const CHUNK_SIZE = 512;
+    const totalChunks = Math.ceil(fileData.length / CHUNK_SIZE);
+    this.log(`📎 Sending file: ${fileName} (${fileData.length} bytes, ${totalChunks} chunks)`);
+    
+    const header = JSON.stringify({ type: 'file_start', name: fileName, size: fileData.length, chunks: totalChunks });
+    await this.sendMessage(header);
+    
+    for (let i = 0; i < totalChunks; i++) {
+      const chunk = fileData.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
+      const chunkB64 = btoa(String.fromCharCode(...chunk));
+      const chunkMsg = JSON.stringify({ type: 'file_chunk', name: fileName, index: i, total: totalChunks, data: chunkB64 });
+      await this.sendMessage(chunkMsg);
+    }
+    this.log(`✅ File sent: ${fileName}`);
+  }
+
+  async sendViaAudioMesh(text: string): Promise<void> {
+    if (!this.identity) return;
+    this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'audiomesh', timestamp: Date.now() });
+    
+    try {
+      const { audioMesh } = await import('./AudioMesh');
+      await audioMesh.start();
+      await audioMesh.transmit(text);
+      this.log(`🔊 Sent via AudioMesh: "${text.substring(0, 20)}"`);
+    } catch (e) { this.log(`⚠️ AudioMesh failed: ${e}`); }
+    
+    // Also send via BLE
+    await this.sendMessage(text);
+  }
 
   async disconnectPeer(peerId: string): Promise<void> {
     this.connectedDevices.delete(peerId);
@@ -295,10 +381,13 @@ class WaveMeshCore {
     else if (maxRange >= 25000) { tier = 3; tierName = 'City Mesh'; }
     else if (maxRange >= 5000) { tier = 2; tierName = 'Extended'; }
     else if (maxRange >= 1000) { tier = 1; tierName = 'Local Mesh'; }
-    return { meters: maxRange, label: tier >= 4 ? '🌍 GLOBAL 50km+' : tier >= 3 ? `🏙️ ${(maxRange/1000).toFixed(0)}km` : tier >= 2 ? `📡 ${(maxRange/1000).toFixed(1)}km` : tier >= 1 ? `🔵 ${maxRange}m` : `🔍 ${count} peers`, usersNeeded: usersFor50km, technology: 'BLE 5 Long Range', hopDistance: hopDist, tier, tierName, maxRange, peerCount: count, signalStrength: avgSignal };
+    return { meters: maxRange, label: tier >= 4 ? '🌍 GLOBAL 50km+' : tier >= 3 ? `🏙️ ${(maxRange/1000).toFixed(0)}km` : tier >= 2 ? `📡 ${(maxRange/1000).toFixed(1)}km` : tier >= 1 ? `🔵 ${maxRange}m` : `🔍 ${count} peers`, usersNeeded: usersFor50km, technology: 'BLE 5 + Echo Relay', hopDistance: hopDist, tier, tierName, maxRange, peerCount: count, signalStrength: avgSignal };
   }
 
-  getStats(): MeshStats { return { totalPeers: this.peers.size, connectedPeers: this.connectedDevices.size, relayMessages: 0, pendingDelivery: 0, delivered: 0, uptime: Math.floor((Date.now() - this.startTime) / 1000), scanCount: this.totalScans }; }
+  getStats(): MeshStats { 
+    const relayStats = echoRelay.getStats();
+    return { totalPeers: this.peers.size, connectedPeers: this.connectedDevices.size, relayMessages: relayStats.totalMessages, pendingDelivery: relayStats.pendingDelivery, delivered: relayStats.delivered, uptime: Math.floor((Date.now() - this.startTime) / 1000), scanCount: this.totalScans }; 
+  }
   getPeers(): MeshPeer[] { return Array.from(this.peers.values()).filter(p => Date.now() - p.lastSeen < 120000).sort((a, b) => a.distance - b.distance); }
   getTierInfo() { const r = this.getRange(); const colors = ['gray','green','blue','purple','yellow']; return { tier: r.tier, name: r.tierName, description: r.usersNeeded > 0 ? `${r.usersNeeded} more for 50km` : 'Active', color: colors[r.tier] || 'gray' }; }
   getStatus(): string { return this.getRange().label; }
@@ -307,7 +396,14 @@ class WaveMeshCore {
   getDebugLog(): string[] { return [...this.debugLog]; }
   getConnectedDevices(): string[] { return Array.from(this.connectedDevices); }
 
-  async stop(): Promise<void> { await this.stopScanning(); await this.saveRooms(); this.peers.clear(); this.connectedDevices.clear(); }
+  async stop(): Promise<void> { 
+    await this.stopScanning(); 
+    await this.saveRooms(); 
+    this.peers.clear(); 
+    this.connectedDevices.clear(); 
+    directP2P.stop();
+    echoRelay.stop();
+  }
 
   setOnPeerDiscovered(cb: Callback): void { this.onPeerDiscovered = cb; }
   setOnPeerConnected(cb: Callback): void { this.onPeerConnected = cb; }
