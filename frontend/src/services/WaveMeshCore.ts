@@ -1,7 +1,8 @@
 /**
- * Sasl WaveMesh Core — BLE GATT ONLY (True Cross-Device)
- * No BroadcastChannel for cross-device. All communication via BLE GATT.
+ * Sasl WaveMesh Core — LEGENDARY EDITION
+ * BLE GATT cross-device + Capacitor Preferences persistence
  */
+import { Preferences } from '@capacitor/preferences';
 import WaveMeshPlugin from '../plugins/WaveMeshPlugin';
 
 export interface MeshPeer {
@@ -53,6 +54,7 @@ class WaveMeshCore {
   onDebug(cb: () => void): void { this.onDebugUpdate = cb; }
 
   async start(username: string, avatar: string | null): Promise<void> {
+    this.scanning = false;
     this.identity = { id: `sasl_${Date.now().toString(36)}_${Math.random().toString(36).substr(2,6)}`, username, avatar };
     try {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
@@ -60,7 +62,6 @@ class WaveMeshCore {
       this.log('🔵 Community BLE ready');
     } catch (e: any) { this.log(`❌ BLE not available: ${e.message}`); return; }
     
-    // Try native plugin for advertising + GATT server
     try {
       const plugin = WaveMeshPlugin;
       await plugin.setIdentity({ id: this.identity.id, username });
@@ -86,36 +87,38 @@ class WaveMeshCore {
       this.log('📡 Native GATT server + advertising active');
     } catch (e: any) { this.log(`⚠️ Native plugin unavailable: ${e.message || e}`); }
     
-        await this.restoreRooms();
+    await this.restoreRooms();
     this.log(`✅ WaveMesh ready for @${username}`);
   }
 
-     private async restoreRooms(): Promise<void> {
+  private async restoreRooms(): Promise<void> {
     try {
-      const saved = localStorage.getItem('sasl_wavemesh_rooms');
-      if (saved) {
-        const rooms = JSON.parse(saved);
+      const { value } = await Preferences.get({ key: 'sasl_wavemesh_rooms' });
+      if (value) {
+        const rooms = JSON.parse(value);
         for (const room of rooms) {
           this.peers.set(room.id, room);
           this.connectedDevices.add(room.id);
           this.onRoomCreated?.({ peerId: room.id, username: room.username });
+          try { await this.connectToPeer(room.id); } catch {}
         }
-        this.log(`📂 Restored ${rooms.length} rooms — starting quick scan to reconnect...`);
-        // Auto-scan for 5 seconds to re-discover peers
+        this.log(`📂 Restored ${rooms.length} rooms — starting quick scan...`);
         await this.startScanning();
         setTimeout(() => this.stopScanning(), 5000);
       }
     } catch {}
   }
-  private saveRooms(): void {
+
+  private async saveRooms(): Promise<void> {
     try {
       const rooms = Array.from(this.peers.values()).filter(p => p.connected);
-      localStorage.setItem('sasl_wavemesh_rooms', JSON.stringify(rooms));
+      await Preferences.set({ key: 'sasl_wavemesh_rooms', value: JSON.stringify(rooms) });
     } catch {}
   }
 
   async startScanning(): Promise<void> {
     if (this.scanning) return;
+    try { const { BleClient } = await import('@capacitor-community/bluetooth-le'); await BleClient.stopLEScan(); } catch {}
     this.scanning = true; this.totalScans++;
     try {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
@@ -141,18 +144,12 @@ class WaveMeshCore {
 
   async stopScanning(): Promise<void> { this.scanning = false; try { const { BleClient } = await import('@capacitor-community/bluetooth-le'); await BleClient.stopLEScan(); } catch {} }
 
-  // ============================================================
-  // REQUEST/ACCEPT — Via BLE GATT write (CROSS-DEVICE)
-  // ============================================================
-  
   async sendConnectionRequest(deviceId: string): Promise<void> {
     const peer = this.peers.get(deviceId);
     const username = peer?.username || 'Unknown';
     this.log(`📩 Sending request to ${username}`);
     this.pendingRequests.set(deviceId, username);
     this.onPeerDiscovered?.({ ...peer, isRequested: true });
-    
-    // Send request via BLE GATT write to the other phone
     if (this.identity) {
       try {
         const { BleClient } = await import('@capacitor-community/bluetooth-le');
@@ -175,10 +172,6 @@ class WaveMeshCore {
     this.connectToPeer(deviceId);
   }
 
-  // ============================================================
-  // BLE CONNECT
-  // ============================================================
-  
   async connectToPeer(deviceId: string): Promise<void> {
     try {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
@@ -188,10 +181,8 @@ class WaveMeshCore {
       if (peer) { peer.connected = true; peer.lastSeen = Date.now(); }
       this.onPeerConnected?.({ peerId: deviceId, username: name });
       this.onRoomCreated?.({ peerId: deviceId, username: name });
-      this.saveRooms();
+      await this.saveRooms();
       this.log(`✅ Connected to ${name}`);
-      
-      // Send identity via BLE
       if (this.identity) {
         try {
           const payload = JSON.stringify({ type: 'identity', nodeId: this.identity.id, username: this.identity.username });
@@ -203,29 +194,13 @@ class WaveMeshCore {
     } catch (err: any) { this.log(`❌ Connect failed: ${err.message}`); }
   }
 
-  // ============================================================
-  // MESSAGING — Via BLE GATT (CROSS-DEVICE)
-  // ============================================================
-  
-    async sendMessage(text: string): Promise<void> {
+  async sendMessage(text: string): Promise<void> {
     if (!this.identity) return;
-    
-    // Echo to sender
     this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
-    
-    // Reconnect to any disconnected peers before sending
     for (const deviceId of this.connectedDevices) {
       try {
         const { BleClient } = await import('@capacitor-community/bluetooth-le');
-        // Try to reconnect — if already connected, this is a no-op
         await BleClient.connect(deviceId);
-      } catch {}
-    }
-    
-    // Send to ALL connected devices via BLE GATT
-    for (const deviceId of this.connectedDevices) {
-      try {
-        const { BleClient } = await import('@capacitor-community/bluetooth-le');
         const encoded = new TextEncoder().encode(text);
         await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
         const peer = this.peers.get(deviceId);
@@ -237,10 +212,6 @@ class WaveMeshCore {
     }
   }
 
-
-
-
-   
   async sendControlCommand(command: string): Promise<void> {
     if (!this.identity) return;
     for (const deviceId of this.connectedDevices) {
@@ -249,14 +220,17 @@ class WaveMeshCore {
         await BleClient.connect(deviceId);
         const encoded = new TextEncoder().encode(command);
         await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
-      } catch {}
+        this.log(`📤 Control sent to ${deviceId}`);
+      } catch (e) { this.log(`⚠️ Control send failed`); }
     }
-   
   }
-  // ============================================================
-  // QR HANDSHAKE
-  // ============================================================
-  
+
+  async disconnectPeer(peerId: string): Promise<void> {
+    this.connectedDevices.delete(peerId);
+    this.peers.delete(peerId);
+    await this.saveRooms();
+  }
+
   generateConnectionCode(): string {
     if (!this.identity) return '';
     return JSON.stringify({ type: 'sasl_connect', version: 3, nodeId: this.identity.id, username: this.identity.username, timestamp: Date.now() });
@@ -271,15 +245,6 @@ class WaveMeshCore {
       this.onPeerConnected?.({ peerId: data.nodeId, username: data.username });
       this.onRoomCreated?.({ peerId: data.nodeId, username: data.username });
       this.saveRooms();
-      
-      // Send QR confirmation via BLE so the other phone also creates the room
-      if (this.identity) {
-        const { BleClient } = require('@capacitor-community/bluetooth-le');
-        const payload = JSON.stringify({ type: 'qr_confirm', from: this.identity.username, peerId: this.identity.id, username: this.identity.username });
-        const encoded = new TextEncoder().encode(payload);
-        BleClient.writeWithoutResponse(data.nodeId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', '6e400001-b5a3-f393-e0a9-e50e24dcca9e', new DataView(encoded.buffer)).catch(() => {});
-      }
-      
       return { username: data.username, peerId: data.nodeId };
     } catch { return null; }
   }
@@ -308,7 +273,7 @@ class WaveMeshCore {
   getDebugLog(): string[] { return [...this.debugLog]; }
   getConnectedDevices(): string[] { return Array.from(this.connectedDevices); }
 
-  async stop(): Promise<void> { await this.stopScanning(); this.saveRooms(); this.peers.clear(); this.connectedDevices.clear(); }
+  async stop(): Promise<void> { await this.stopScanning(); await this.saveRooms(); this.peers.clear(); this.connectedDevices.clear(); }
 
   setOnPeerDiscovered(cb: Callback): void { this.onPeerDiscovered = cb; }
   setOnPeerConnected(cb: Callback): void { this.onPeerConnected = cb; }
