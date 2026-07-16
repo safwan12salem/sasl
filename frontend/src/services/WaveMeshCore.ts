@@ -86,24 +86,27 @@ class WaveMeshCore {
       this.log('📡 Native GATT server + advertising active');
     } catch (e: any) { this.log(`⚠️ Native plugin unavailable: ${e.message || e}`); }
     
-    this.restoreRooms();
+        await this.restoreRooms();
     this.log(`✅ WaveMesh ready for @${username}`);
   }
 
-  private restoreRooms(): void {
+     private async restoreRooms(): Promise<void> {
     try {
       const saved = localStorage.getItem('sasl_wavemesh_rooms');
       if (saved) {
         const rooms = JSON.parse(saved);
         for (const room of rooms) {
           this.peers.set(room.id, room);
+          this.connectedDevices.add(room.id);
           this.onRoomCreated?.({ peerId: room.id, username: room.username });
         }
-        this.log(`📂 Restored ${rooms.length} rooms`);
+        this.log(`📂 Restored ${rooms.length} rooms — starting quick scan to reconnect...`);
+        // Auto-scan for 5 seconds to re-discover peers
+        await this.startScanning();
+        setTimeout(() => this.stopScanning(), 5000);
       }
     } catch {}
   }
-
   private saveRooms(): void {
     try {
       const rooms = Array.from(this.peers.values()).filter(p => p.connected);

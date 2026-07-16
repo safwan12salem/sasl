@@ -20,7 +20,8 @@ import {
   Smartphone, RadioTower, Satellite, Heart, Share2, MoreVertical,
   ChevronRight, ChevronDown, RefreshCw, AlertCircle, CheckCircle2,
   Clock, MapPin, Navigation, Signal, Battery, Layers, GitBranch,
-  ArrowUpRight, ArrowDownRight, Filter, SlidersHorizontal
+  ArrowUpRight, ArrowDownRight, Filter, SlidersHorizontal,
+  Trash2,Edit3
 } from 'lucide-react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
@@ -195,13 +196,11 @@ export default function WaveMesh() {
     });
 
     // Peer connected
-    waveMeshCore.setOnPeerConnected((data: any) => {
-    waveMeshCore.setOnRequestReceived((data: any) => {
-      setIncomingRequest({ from: data.username || "User", peerId: data.peerId || data.deviceId, message: "Wants to connect via WaveMesh" });
-    });
+     waveMeshCore.setOnPeerConnected((data: any) => {
+      const name = (data.username && !/^\d+$/.test(data.username)) ? data.username : 'Peer';
       const room: ChatRoom = {
         id: data.peerId,
-        name: data.username || 'Peer',
+        name: name,
         avatar: null,
         lastMessage: `Connected via ${data.connectionType || 'BLE'}`,
         lastMessageTime: new Date().toISOString(),
@@ -217,9 +216,12 @@ export default function WaveMesh() {
       setActiveRoom(room);
       setShowSidebar(false);
       setShowWelcome(false);
-      toast.success(`🔗 Connected with ${data.username || 'Peer'}!`);
+      toast.success(`🔗 Connected with ${name}!`);
     });
 
+    waveMeshCore.setOnRequestReceived((data: any) => {
+      setIncomingRequest({ from: data.username || "User", peerId: data.peerId || data.deviceId, message: "Wants to connect via WaveMesh" });
+    });
     // Room created
     waveMeshCore.setOnRoomCreated((data: any) => {
       const room: ChatRoom = {
@@ -243,7 +245,20 @@ export default function WaveMesh() {
     });
 
     // Message received
-    waveMeshCore.setOnMessageReceived((msg: any) => {
+       waveMeshCore.setOnMessageReceived((msg: any) => {
+      // Handle edit/delete commands
+      try {
+        const cmd = JSON.parse(msg.text);
+        if (cmd.type === 'delete') {
+          setMessages(prev => prev.filter(m => m.id !== cmd.msgId));
+          return;
+        }
+        if (cmd.type === 'edit') {
+          setMessages(prev => prev.map(m => m.id === cmd.msgId ? { ...m, text: cmd.text } : m));
+          return;
+        }
+      } catch {}
+      // Normal message
       setMessages(prev => [...prev, {
         id: msg.id,
         from: msg.from,
@@ -255,7 +270,6 @@ export default function WaveMesh() {
       }]);
       setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
     });
-
     // Periodic updates
     const interval = setInterval(() => {
       const range = waveMeshCore.getRange();
@@ -722,15 +736,8 @@ export default function WaveMesh() {
   const pending = waveMeshCore.getPendingRequests();
   const alreadyRequested = pending.find(r => r.deviceId === peer.id);
   
-  if (alreadyRequested) {
-    // Both users tapped Send — connect!
-    waveMeshCore.acceptRequest(peer.id);
-    toast.success("🔗 Both requested — connecting!");
-  } else {
-    // First user to tap — send request
-    await waveMeshCore.sendConnectionRequest(peer.id);
-    toast.success("📩 Request sent! Waiting for other user to tap Send too...");
-  }
+    toast.success("🔗 Connecting...");
+  await waveMeshCore.connectToPeer(peer.id);
 }}
                                 className="p-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
                               >
@@ -1017,6 +1024,7 @@ export default function WaveMesh() {
                   <p className="text-xs sm:text-sm">Say hello! 👋</p>
                 </div>
               ) : (
+
                 messages.map(msg => (
                   <motion.div
                     key={msg.id}
@@ -1032,13 +1040,23 @@ export default function WaveMesh() {
                           : 'bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-bl-lg shadow-sm border'
                       }`}
                     >
-                      {!msg.isMe && (
+                                            {!msg.isMe && (
                         <p className="text-[9px] sm:text-[10px] font-semibold text-gray-500 mb-0.5">
                           @{msg.from}
                         </p>
                       )}
                       <span className="break-words">{msg.text}</span>
                       <div className="flex items-center gap-1 mt-1 justify-end">
+                        {msg.isMe && (
+                          <>
+                            <button onClick={() => startEditMessage(msg.id, msg.text)} className="text-[9px] text-white/70 hover:text-white mr-2" title="Edit">
+                              <Edit3 size={10} />
+                            </button>
+                            <button onClick={() => deleteMessage(msg.id)} className="text-[9px] text-white/70 hover:text-white" title="Delete">
+                              <Trash2 size={10} />
+                            </button>
+                          </>
+                        )}
                         {msg.status === 'relayed' && (
                           <Globe size={8} className="text-blue-400" />
                         )}
