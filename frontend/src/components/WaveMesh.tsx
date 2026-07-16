@@ -11,6 +11,7 @@
  * - Dark mode support
  * - Mobile responsive
  */
+import { Preferences } from '@capacitor/preferences';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
@@ -196,7 +197,7 @@ export default function WaveMesh() {
 
     // Peer connected
         // Peer connected
-    waveMeshCore.setOnPeerConnected((data: any) => {
+    waveMeshCore.setOnPeerConnected(async (data: any) => {
       const name = (data.username && !/^\d+$/.test(data.username)) ? data.username : 'Peer';
       const room: ChatRoom = {
         id: data.peerId,
@@ -215,10 +216,14 @@ export default function WaveMesh() {
       });
       setActiveRoom(room);
             // Restore messages for this room from localStorage
+            // Restore messages for this room
       try {
-        const saved = JSON.parse(localStorage.getItem('sasl_mesh_messages') || '{}');
+        const { value } = await Preferences.get({ key: 'sasl_mesh_messages' });
+        const saved = value ? JSON.parse(value) : {};
         if (saved[room.id]) setMessages(saved[room.id]);
       } catch {}
+
+      
       setShowSidebar(false);
       setShowWelcome(false);
       toast.success(`🔗 Connected with ${name}!`);
@@ -298,15 +303,18 @@ export default function WaveMesh() {
     };
   }, []);
 
-
   useEffect(() => {
-    if (activeRoom?.id && messages.length > 0) {
-      try {
-        const saved = JSON.parse(localStorage.getItem('sasl_mesh_messages') || '{}');
-        saved[activeRoom.id] = messages;
-        localStorage.setItem('sasl_mesh_messages', JSON.stringify(saved));
-      } catch {}
-    }
+    const saveMessages = async () => {
+      if (activeRoom?.id && messages.length > 0) {
+        try {
+          const { value } = await Preferences.get({ key: 'sasl_mesh_messages' });
+          const saved = value ? JSON.parse(value) : {};
+          saved[activeRoom.id] = messages;
+          await Preferences.set({ key: 'sasl_mesh_messages', value: JSON.stringify(saved) });
+        } catch {}
+      }
+    };
+    saveMessages();
   }, [messages, activeRoom]);
   // ============================================================
   // ACTIONS
@@ -332,9 +340,9 @@ export default function WaveMesh() {
 
 
 
-    const pasteCode = () => {
+        const pasteCode = async () => {
     if (!pasteInput.trim()) return toast.error('Enter connection code');
-    const result = waveMeshCore.processConnectionCode(pasteInput.trim());
+    const result = await waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
       // FIRST PASTE: Phone B just connected to Phone A
       // Now generate a RESPONSE code for Phone A to paste back
@@ -349,9 +357,9 @@ export default function WaveMesh() {
   };
 
 
-  const completeHandshake = () => {
+  const completeHandshake = async () => {
     if (!pasteInput.trim()) return toast.error('Enter the response code from other phone');
-    const result = waveMeshCore.processConnectionCode(pasteInput.trim());
+       const result = await waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
       setPasteInput('');
       setShowQR(false);
@@ -366,7 +374,7 @@ export default function WaveMesh() {
     if (!input.trim()) return;
     if (editingMsgId) {
       // Save edit
-      setMessages(prev => prev.map(m => m.id === editingMsgId ? { ...m, text: input } : m));
+            waveMeshCore.sendControlCommand(JSON.stringify({ type: 'edit', msgId: editingMsgId, text: input }));
       waveMeshCore.sendMessage(JSON.stringify({ type: 'edit', msgId: editingMsgId, text: input }));
       setEditingMsgId(null);
       setEditText("");
@@ -378,7 +386,7 @@ export default function WaveMesh() {
   };
    const deleteMessage = (msgId: string) => {
     setMessages(prev => prev.filter(m => m.id !== msgId));
-    waveMeshCore.sendMessage(JSON.stringify({ type: 'delete', msgId }));
+        waveMeshCore.sendControlCommand(JSON.stringify({ type: 'delete', msgId }));
     toast.success("Message deleted");
   };
 
@@ -392,7 +400,7 @@ export default function WaveMesh() {
 
    const saveEditMessage = (msgId: string) => {
     setMessages(prev => prev.map(m => m.id === msgId ? { ...m, text: editText } : m));
-    waveMeshCore.sendMessage(JSON.stringify({ type: 'edit', msgId, text: editText }));
+    waveMeshCore.sendControlCommand(JSON.stringify({ type: 'edit', msgId, text: editText }));
     setEditingMsgId(null);
     setEditText("");
     toast.success("Message updated");
@@ -480,7 +488,7 @@ const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
     setShowSidebar(false);
   };
 
-    const leaveRoom = (roomId: string) => {
+    const leaveRoom = async (roomId: string) => {
     setRooms(prev => prev.filter(r => r.id !== roomId));
     if (activeRoom?.id === roomId) {
       setActiveRoom(null);
@@ -491,10 +499,11 @@ const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
     localStorage.removeItem('sasl_mesh_was_active');
     localStorage.removeItem('sasl_active_mesh_room');
     // Clear saved messages for this room
-    try {
-      const saved = JSON.parse(localStorage.getItem('sasl_mesh_messages') || '{}');
+        try {
+      const { value } = await Preferences.get({ key: 'sasl_mesh_messages' });
+      const saved = value ? JSON.parse(value) : {};
       delete saved[roomId];
-      localStorage.setItem('sasl_mesh_messages', JSON.stringify(saved));
+      await Preferences.set({ key: 'sasl_mesh_messages', value: JSON.stringify(saved) });
     } catch {}
   };
 
