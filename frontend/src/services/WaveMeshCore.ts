@@ -74,9 +74,7 @@ class WaveMeshCore {
     // Start Echo Relay for store-and-forward mesh
     echoRelay.start(this.identity.id);
     echoRelay.onMessage((msg) => {
-      decryptFromPeer(msg.text).then(decrypted => {
-        this.onMessageReceived?.({ id: msg.id, from: msg.from, text: decrypted, type: 'text', timestamp: msg.timestamp, relayPath: msg.relayPath });
-      });
+           this.onMessageReceived?.({ id: msg.id, from: msg.from, text: msg.text, type: 'text', timestamp: msg.timestamp, relayPath: msg.relayPath });
     });
     
     try {
@@ -105,11 +103,10 @@ class WaveMeshCore {
       });
       
       plugin.addListener('messageReceived', (msg: any) => {
-        decryptFromPeer(msg.text).then(decrypted => {
-          this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: msg.from, text: decrypted, type: 'text', timestamp: Date.now() });
+          this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: msg.from, text: msg.text, type: 'text', timestamp: Date.now() });
           // Forward to relay mesh
         echoRelay.forwardToPeer(msg.from);
-        });
+        
       });
       
       await plugin.startAdvertising({ username });
@@ -250,7 +247,7 @@ class WaveMeshCore {
     if (!this.identity) return;
     
     // Encrypt message
-    const encrypted = await encryptForPeer(text);
+        const encrypted = text;
     
     // Echo to sender
     this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
@@ -292,8 +289,7 @@ class WaveMeshCore {
 
   async sendControlCommand(command: string): Promise<void> {
     if (!this.identity) return;
-    
-    const encrypted = await encryptForPeer(command);
+        const encrypted = command;
     let sent = false;
     for (const deviceId of this.connectedDevices) {
       try {
