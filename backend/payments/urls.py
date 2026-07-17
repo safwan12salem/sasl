@@ -11,6 +11,3 @@ urlpatterns = [
 ]
 
 
-from .views import confirm_checkout_direct
-
-urlpatterns.append(path('confirm-checkout/', confirm_checkout_direct, name='confirm-checkout-direct'))
