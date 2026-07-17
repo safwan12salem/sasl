@@ -356,7 +356,7 @@ class WaveMeshCore {
     return JSON.stringify({ type: 'sasl_connect', version: 3, nodeId: this.identity.id, username: this.identity.username, timestamp: Date.now() });
   }
 
-  processConnectionCode(code: string): { username: string; peerId: string } | null {
+   processConnectionCode(code: string): { username: string; peerId: string } | null {
     try {
       const data = JSON.parse(code); if (data.type !== 'sasl_connect') return null;
       if (Date.now() - data.timestamp > 300000) { this.log('⚠️ Code expired'); return null; }
@@ -365,6 +365,20 @@ class WaveMeshCore {
       this.onPeerConnected?.({ peerId: data.nodeId, username: data.username });
       this.onRoomCreated?.({ peerId: data.nodeId, username: data.username });
       this.saveRooms();
+            // Send confirmation back so the OTHER phone also creates the room
+      if (this.identity) {
+        const confirmPayload = JSON.stringify({ 
+          type: 'qr_confirm', 
+          from: this.identity.username, 
+          peerId: this.identity.id, 
+          username: this.identity.username 
+        });
+        // Send via the same BLE connection we just established
+        this.sendControlCommand(confirmPayload).catch(() => {});
+      }
+      // Auto-connect BLE so messages flow immediately
+      this.connectToPeer(data.nodeId).catch(() => {});
+      
       return { username: data.username, peerId: data.nodeId };
     } catch { return null; }
   }
