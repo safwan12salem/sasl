@@ -186,6 +186,11 @@ CACHES = {
 
 CHANNEL_LAYERS = {
     "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(REDIS_URL)],
+        },
+    } if os.environ.get('REDIS_URL') else {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
 }
