@@ -14,15 +14,15 @@ class FeeCollector:
     
     @staticmethod
     def marketplace_fee(amount, seller):
-        """5% fee on marketplace sales"""
-        fee = Decimal(str(amount)) * Decimal('0.05')
+        """8% fee on marketplace sales"""
+        fee = Decimal(str(amount)) * Decimal('0.08')
         seller_earns = Decimal(str(amount)) - fee
         
         FeeTransaction.objects.create(
             user=seller,
             amount=seller_earns,
             transaction_type='purchase',
-            description=f'Sale: ${amount} (5% platform fee: ${fee})'
+            description=f'Sale: ${amount} (8% platform fee: ${fee})'
         )
         
         # Log platform fee
@@ -38,23 +38,23 @@ class FeeCollector:
     @staticmethod
     def subscription_fee(amount, creator):
         """30% fee on subscriptions"""
-        fee = Decimal(str(amount)) * Decimal('0.30')
+        fee = Decimal(str(amount)) * Decimal2('0.30')
         creator_earns = Decimal(str(amount)) - fee
         
         return creator_earns, fee
     
     @staticmethod
     def donation_fee(amount, streamer):
-        """5% fee on donations"""
-        fee = Decimal(str(amount)) * Decimal('0.05')
+        """8% fee on donations"""
+        fee = Decimal(str(amount)) * Decimal('0.08')
         streamer_earns = Decimal(str(amount)) - fee
         
         return streamer_earns, fee
     
     @staticmethod
     def gig_fee(amount, worker):
-        """5% fee on completed gigs"""
-        fee = Decimal(str(amount)) * Decimal('0.05')
+        """8% fee on completed gigs"""
+        fee = Decimal(str(amount)) * Decimal('0.08')
         worker_earns = Decimal(str(amount)) - fee
         
         return worker_earns, fee

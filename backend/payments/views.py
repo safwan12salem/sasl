@@ -133,9 +133,11 @@ class PaymentViewSet(viewsets.GenericViewSet):
 
         try:
             session = stripe.checkout.Session.retrieve(session_id)
+            logger.info(f"Session status: {session.payment_status}, amount: {session.amount_total}")
+            
             if session.payment_status == 'paid':
                 amount = session.amount_total / 100
-                user_id = session.metadata.get('user_id')
+                user_id = session.metadata.get('user_id') if session.metadata else None
                 
                 if user_id and str(request.user.id) == user_id:
                     wallet = request.user.wallet
@@ -151,10 +153,12 @@ class PaymentViewSet(viewsets.GenericViewSet):
                         status='completed'
                     )
                     return Response({'status': 'success', 'new_balance': str(wallet.balance)})
-            return Response({'error': 'Payment not completed'}, status=400)
+                return Response({'error': 'User mismatch'}, status=403)
+            return Response({'error': f'Payment status: {session.payment_status}'}, status=400)
         except Exception as e:
+            logger.error(f"Confirm checkout error: {str(e)}")
             return Response({'error': str(e)}, status=500)
-
+        
     @action(detail=False, methods=['post'])
     def request_payout(self, request):
         amount = float(request.data.get('amount', 0))

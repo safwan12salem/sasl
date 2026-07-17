@@ -57,7 +57,7 @@ def reward_engagement(user, action_type, base_amount=None):
 # 2. DONATIONS & SUBSCRIPTIONS
 # ---------------------------------------------------------------------
 def process_donation(donor, receiver, amount):
-    """5% platform fee on donations."""
+    """8% platform fee on donations."""
     amount = Decimal(str(amount))
     if amount <= 0:
         return False
@@ -68,7 +68,7 @@ def process_donation(donor, receiver, amount):
         dw.balance -= amount
         dw.save()
         rw = Wallet.objects.select_for_update().get(user=receiver)
-        fee = amount * Decimal('0.05')
+        fee = amount * Decimal('0.08')
         net = amount - fee
         rw.balance += net
         rw.total_earned += net
@@ -137,7 +137,7 @@ def process_tutoring_payment(student, tutor, amount, subject=''):
 def process_gig_escrow(employer, worker, amount, gig_title):
     """
     Gig escrow: Employer pays → held in escrow → released when work is completed.
-    5% platform fee.
+    8% platform fee.
     """
     from monetization.anti_fraud import EscrowManager
     
@@ -166,7 +166,7 @@ def release_gig_escrow(employer, worker, amount, gig_title):
     from monetization.anti_fraud import EscrowManager
     
     amount = Decimal(str(amount))
-    fee = amount * Decimal('0.05')
+    fee = amount * Decimal('0.08')
     net = amount - fee
     
     with transaction.atomic():
@@ -192,7 +192,7 @@ def process_marketplace_purchase(buyer, seller, amount, product_title):
     """
     Escrow-protected purchase.
     Buyer pays → funds held in escrow → released on delivery confirmation.
-    5% fee on release.
+    8% fee on release.
     """
     from marketplace.models import Order
     from monetization.anti_fraud import EscrowManager
@@ -232,7 +232,7 @@ def release_marketplace_escrow(order_id):
         
         seller = order.product.seller
         amount = order.total_price
-        fee = amount * Decimal('0.05')
+        fee = amount * Decimal('0.08')
         net = amount - fee
         
         sw = Wallet.objects.select_for_update().get(user=seller)
