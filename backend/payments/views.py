@@ -78,7 +78,7 @@ class PaymentViewSet(viewsets.GenericViewSet):
                 'quantity': 1,
             }],
             mode='payment',
-            success_url='https://sasl.vercel.app/wallet?success=true',
+            success_url='https://sasl.vercel.app/wallet?success=true&session_id={CHECKOUT_SESSION_ID}',
             cancel_url='https://sasl.vercel.app/wallet?canceled=true',
             metadata={'user_id': str(request.user.id)}
         )
@@ -123,6 +123,36 @@ class PaymentViewSet(viewsets.GenericViewSet):
         )
 
         return Response({'status': 'success', 'new_balance': str(wallet.balance)})
+    
+    @action(detail=False, methods=['post'])
+    def confirm_checkout(self, request):
+        session_id = request.data.get('session_id')
+        if not session_id:
+            return Response({'error': 'session_id required'}, status=400)
+
+        try:
+            session = stripe.checkout.Session.retrieve(session_id)
+            if session.payment_status == 'paid':
+                amount = session.amount_total / 100
+                user_id = session.metadata.get('user_id')
+                
+                if user_id and str(request.user.id) == user_id:
+                    wallet = request.user.wallet
+                    wallet.balance += amount
+                    wallet.total_earned += amount
+                    wallet.save()
+
+                    Transaction.objects.create(
+                        user=request.user,
+                        amount=amount,
+                        transaction_type='topup',
+                        description='Wallet top-up via Stripe Checkout',
+                        status='completed'
+                    )
+                    return Response({'status': 'success', 'new_balance': str(wallet.balance)})
+            return Response({'error': 'Payment not completed'}, status=400)
+        except Exception as e:
+            return Response({'error': str(e)}, status=500)
 
     @action(detail=False, methods=['post'])
     def request_payout(self, request):

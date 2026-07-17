@@ -38,6 +38,32 @@ export default function Wallet() {
     fetchData();
   }, []);
 
+
+  // Handle Stripe Checkout redirect with ?success=true
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'true') {
+      const sessionId = params.get('session_id');
+      if (sessionId) {
+        api.post('/payments/confirm_checkout/', { session_id: sessionId })
+          .then(() => {
+            toast.success('Payment confirmed! Wallet updated.');
+            // Refresh wallet data
+            api.get('/users/wallet/').then(res => {
+              setWallet(res.data);
+              localStorage.setItem('sasl_cached_balance', String(res.data.balance));
+            });
+            api.get('/monetization/transactions/').then(res => {
+              setTransactions(res.data.results || res.data || []);
+            });
+          })
+          .catch(() => toast.error('Payment confirmation failed'));
+      }
+      // Clear the URL params
+      window.history.replaceState({}, '', '/wallet');
+    }
+  }, []);
+
   const handleWithdraw = async () => {
     setWithdrawing(true);
     try {

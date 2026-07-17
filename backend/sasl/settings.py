@@ -437,3 +437,4 @@ CELERY_BROKER_URL = os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379') + '/2'
 STRIPE_SECRET_KEY = os.environ.get('STRIPE_SECRET_KEY', 'sk_test_placeholder')
 STRIPE_PUBLISHABLE_KEY = os.environ.get('STRIPE_PUBLISHABLE_KEY', 'pk_test_placeholder')
 STRIPE_TEST_MODE = os.environ.get('STRIPE_TEST_MODE', 'true').lower() == 'true'
+STRIPE_WEBHOOK_SECRET = os.environ.get('STRIPE_WEBHOOK_SECRET', '')
