@@ -4,6 +4,7 @@ Complete payment processing endpoints
 """
 import stripe
 import logging
+from rest_framework.permissions import IsAuthenticated
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
@@ -241,3 +242,33 @@ def stripe_webhook(request):
                 pass
 
     return HttpResponse(status=200)
+
+
+
+
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def confirm_checkout_direct(request):
+    session_id = request.data.get('session_id')
+    if not session_id:
+        return Response({'error': 'session_id required'}, status=400)
+    try:
+        session = stripe.checkout.Session.retrieve(session_id)
+        if session.payment_status == 'paid':
+            amount = session.amount_total / 100
+            wallet = request.user.wallet
+            wallet.balance += amount
+            wallet.total_earned += amount
+            wallet.save()
+            Transaction.objects.create(
+                user=request.user, amount=amount,
+                transaction_type='topup',
+                description='Wallet top-up via Stripe Checkout',
+                status='completed'
+            )
+            return Response({'status': 'success', 'new_balance': str(wallet.balance)})
+        return Response({'error': 'Payment not completed'}, status=400)
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
