@@ -38,7 +38,6 @@ urlpatterns = [
     path('api/events/', include('events.urls')),
     path('api/nftbadges/', include('nftbadges.urls')),
     path('api/payments/', include('payments.urls')),
-        path('api/payments/confirm-checkout/', payments_views.PaymentViewSet.as_view({'post': 'confirm_checkout'}), name='confirm-checkout'),
     path('api/creatorstudio/', include('creatorstudio.urls')),
     path('api/moderation/', include('moderation.urls')),
     #path('api/payments/create-checkout/', payments_views.create_checkout_session, name='create-checkout'),
