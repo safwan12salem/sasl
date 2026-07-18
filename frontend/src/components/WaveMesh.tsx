@@ -169,6 +169,14 @@ export default function WaveMesh() {
     });
 
     waveMeshCore.setOnMessageReceived((msg: any) => {
+       if (msg.text === '__SASL_CONNECT_BACK__') {
+        // Find the sender in our peers and connect back
+        const peer = peers.find(p => p.username === msg.from && p.id.includes(':'));
+        if (peer) {
+          waveMeshCore.connectToPeer(peer.id).catch(() => {});
+        }
+        return;
+      }
       try {
         const cmd = JSON.parse(msg.text);
         if (cmd.type === 'delete') { setMessages(prev => prev.filter(m => m.id !== cmd.msgId)); return; }
@@ -233,7 +241,7 @@ export default function WaveMesh() {
   };
 
   const generateQR = () => { setShowQR(true); setQrCode(waveMeshCore.generateConnectionCode()); setQrConnected(false); setPasteInput(''); };
-  const pasteCode = async () => {
+    const pasteCode = async () => {
     if (!pasteInput.trim()) return toast.error('Enter connection code');
     const result = waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
@@ -242,7 +250,6 @@ export default function WaveMesh() {
       setQrConnected(false);
       toast.success("📡 Connecting...");
       
-      // Auto-scan to find the peer
       await waveMeshCore.startScanning();
       const found = await new Promise<any>(resolve => {
         const check = setInterval(() => {
@@ -255,12 +262,17 @@ export default function WaveMesh() {
       
       if (found) {
         await waveMeshCore.connectToPeer(found.id);
+        // Tell the other phone to connect back to us
+        setTimeout(() => {
+          waveMeshCore.sendMessage('__SASL_CONNECT_BACK__');
+        }, 1500);
         toast.success("🔗 Connected via BLE!");
       } else {
-        toast.success("📡 Room created! Messages will flow when peer is nearby.");
+        toast.success("📡 Room created! Messages will flow via Echo Relay.");
       }
     } else { toast.error('Invalid or expired code'); }
   };
+
 
 
   const completeHandshake = async () => {

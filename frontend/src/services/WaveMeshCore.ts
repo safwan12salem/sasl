@@ -243,6 +243,21 @@ class WaveMeshCore {
     } catch (err: any) { this.log(`❌ Connect failed: ${err.message}`); }
   }
 
+
+  generateInviteCode(): string {
+    if (!this.identity) return '';
+    const code = `${this.identity.username.substring(0,2).toUpperCase()}-${Date.now().toString(36).substring(4,8).toUpperCase()}`;
+    return code;
+  }
+
+
+    processInviteCode(code: string): { username: string; peerId: string } | null {
+    if (!this.identity) return null;
+    // Store the code in pending invites
+    localStorage.setItem(`sasl_invite_${code}`, this.identity.username);
+    return { username: this.identity.username, peerId: this.identity.id };
+  }
+
   async sendMessage(text: string): Promise<void> {
     if (!this.identity) return;
     
@@ -316,7 +331,7 @@ class WaveMeshCore {
 
 
 
-  
+
   async sendFile(fileData: Uint8Array, fileName: string): Promise<void> {
     if (!this.identity) return;
     const CHUNK_SIZE = 512;
