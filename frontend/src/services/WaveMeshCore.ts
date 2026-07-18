@@ -309,29 +309,14 @@ class WaveMeshCore {
   }
 
 
-
   async sendQRMessage(text: string, targetNodeId: string): Promise<void> {
     if (!this.identity) return;
-    this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
-    
-    // Try BLE if peer is in scan results
-    for (const peer of this.getPeers()) {
-      if ((peer.username === targetNodeId || peer.nodeId === targetNodeId) && peer.id.includes(':')) {
-        try {
-          const { BleClient } = await import('@capacitor-community/bluetooth-le');
-          await BleClient.connect(peer.id);
-          const encoded = new TextEncoder().encode(text);
-          await BleClient.writeWithoutResponse(peer.id, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
-          this.log(`📤 QR message sent via BLE to ${peer.username}`);
-          return;
-        } catch {}
-      }
-    }
-    
-    // Fallback: send via connectedDevices
     await this.sendMessage(text);
   }
 
+
+
+  
   async sendFile(fileData: Uint8Array, fileName: string): Promise<void> {
     if (!this.identity) return;
     const CHUNK_SIZE = 512;
