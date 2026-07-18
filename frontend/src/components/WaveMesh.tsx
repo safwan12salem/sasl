@@ -233,24 +233,56 @@ export default function WaveMesh() {
   };
 
   const generateQR = () => { setShowQR(true); setQrCode(waveMeshCore.generateConnectionCode()); setQrConnected(false); setPasteInput(''); };
-
-  const pasteCode = () => {
+  const pasteCode = async () => {
     if (!pasteInput.trim()) return toast.error('Enter connection code');
     const result = waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
-      const responseCode = waveMeshCore.generateConnectionCode();
-      setQrCode(responseCode); setQrConnected(true); setPasteInput('');
-      toast.success(`📱 Now copy THIS code and send it back to the other phone!`);
+      setPasteInput('');
+      setShowQR(false);
+      setQrConnected(false);
+      toast.success("📡 Connecting...");
+      
+      // Auto-scan to find the peer
+      await waveMeshCore.startScanning();
+      const found = await new Promise<any>(resolve => {
+        const check = setInterval(() => {
+          const p = peers.find(p => p.username === result.username && p.id.includes(':'));
+          if (p) { clearInterval(check); resolve(p); }
+        }, 500);
+        setTimeout(() => { clearInterval(check); resolve(null); }, 5000);
+      });
+      await waveMeshCore.stopScanning();
+      
+      if (found) {
+        await waveMeshCore.connectToPeer(found.id);
+        toast.success("🔗 Connected via BLE!");
+      } else {
+        toast.success("📡 Room created! Messages will flow when peer is nearby.");
+      }
     } else { toast.error('Invalid or expired code'); }
   };
 
-  const completeHandshake = () => {
+
+  const completeHandshake = async () => {
     if (!pasteInput.trim()) return toast.error('Enter the response code from other phone');
     const result = waveMeshCore.processConnectionCode(pasteInput.trim());
-    if (result) { setPasteInput(''); setShowQR(false); setQrConnected(false); toast.success(`🤝 Handshake complete! Both rooms open!`); }
+    if (result) {
+      setPasteInput(''); 
+      setShowQR(false); 
+      setQrConnected(false);
+      
+      const peer = peers.find(p => p.username === result.username && p.id.includes(':'));
+      if (peer) {
+        await waveMeshCore.connectToPeer(peer.id);
+      }
+      toast.success(`🤝 Handshake complete! Both rooms open!`); 
+    }
     else { toast.error('Invalid response code'); }
   };
 
+
+
+  
   const sendMessage = () => {
     if (!input.trim()) return;
     if (editingMsgId) {
