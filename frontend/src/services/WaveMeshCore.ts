@@ -287,38 +287,6 @@ class WaveMeshCore {
     }
   }
 
-
-
-  async sendQRMessage(text: string, targetNodeId: string): Promise<void> {
-    if (!this.identity) return;
-    
-    // Echo to sender
-    this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
-    
-    // Store in Echo Relay for mesh forwarding to the target
-    echoRelay.storeMessage(targetNodeId, text, this.identity.username).catch(() => {});
-    
-    // Also try BLE if the peer is nearby (check by username match in scan results)
-    for (const peer of this.getPeers()) {
-      if (peer.username === targetNodeId || peer.nodeId === targetNodeId) {
-        if (peer.id.includes(':')) {
-          try {
-            const { BleClient } = await import('@capacitor-community/bluetooth-le');
-            await BleClient.connect(peer.id);
-            const encoded = new TextEncoder().encode(text);
-                        await BleClient.writeWithoutResponse(peer.id, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
-            this.log(`📤 QR message sent via BLE to ${peer.username}`);
-            return;
-          } catch {}
-        }
-      }
-    }
-    
-    this.log(`📤 QR message stored in Echo Relay for ${targetNodeId}`);
-  }
-
-
-
   async sendControlCommand(command: string): Promise<void> {
     if (!this.identity) return;
         const encrypted = command;
@@ -339,14 +307,6 @@ class WaveMeshCore {
       this.log(`📥 Command queued (${this.commandQueue.length} pending)`);
     }
   }
-
-
-
-
-
-
-
-
 
   async sendFile(fileData: Uint8Array, fileName: string): Promise<void> {
     if (!this.identity) return;
