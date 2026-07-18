@@ -84,4 +84,22 @@ public class WaveMeshPlugin extends Plugin {
     @PluginMethod public void stop(PluginCall call) {
         waveMeshService.stop(); call.resolve();
     }
+
+
+        @PluginMethod public void startRelayService(PluginCall call) {
+        Intent intent = new Intent(getContext(), EchoRelayService.class);
+        intent.putExtra("username", call.getString("username", "RelayNode"));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getContext().startForegroundService(intent);
+        } else {
+            getContext().startService(intent);
+        }
+        call.resolve();
+    }
+
+    @PluginMethod public void stopRelayService(PluginCall call) {
+        Intent intent = new Intent(getContext(), EchoRelayService.class);
+        getContext().stopService(intent);
+        call.resolve();
+    }
 }
