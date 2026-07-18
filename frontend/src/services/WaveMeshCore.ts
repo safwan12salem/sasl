@@ -139,7 +139,7 @@ class WaveMeshCore {
 
 
 
-  
+
    private async saveRooms(): Promise<void> {
     try {
       const rooms = Array.from(this.peers.values())
@@ -275,7 +275,7 @@ class WaveMeshCore {
     this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
     
     // Store in Echo Relay for mesh forwarding
-    echoRelay.storeMessage('broadcast', text, this.identity?.username || 'me').catch(() => {});
+        echoRelay.storeMessage('broadcast', encrypted, this.identity?.username || 'me').catch(() => {});
     
     // Send via DirectP2P
     directP2P.sendMessage(text);
