@@ -145,7 +145,10 @@ export default function WaveMesh() {
       setShowSidebar(false);
       setShowWelcome(false);
       toast.success(`🔗 Connected with ${name}!`);
+              // Connect back only if not already connected
+      if (!waveMeshCore.getConnectedDevices().includes(data.peerId)) {
         waveMeshCore.connectToPeer(data.peerId).catch(() => {});
+      }
     });
 
     waveMeshCore.setOnRequestReceived((data: any) => {
