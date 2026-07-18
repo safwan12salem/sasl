@@ -233,7 +233,9 @@ export default function WaveMesh() {
   };
 
   const generateQR = () => { setShowQR(true); setQrCode(waveMeshCore.generateConnectionCode()); setQrConnected(false); setPasteInput(''); };
-      const pasteCode = async () => {
+
+
+  const pasteCode = async () => {
     if (!pasteInput.trim()) return toast.error('Enter connection code');
     const result = waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
@@ -241,33 +243,24 @@ export default function WaveMesh() {
       setShowQR(false);
       setQrConnected(false);
       
-      // Try direct BLE first (check if peer already in scan results)
-      const peer = peers.find(p => p.id === result.peerId || p.username === result.username);
-      if (peer) {
-        toast.success("🔗 Connecting via BLE...");
-        await waveMeshCore.connectToPeer(peer.id);
+      // Auto-scan to find the real BLE address
+      toast.success("📡 Connecting...");
+      await waveMeshCore.startScanning();
+      const found = await new Promise<any>(resolve => {
+        const check = setInterval(() => {
+          const p = peers.find(p => p.username === result.username && p.id.includes(':'));
+          if (p) { clearInterval(check); resolve(p); }
+        }, 500);
+        setTimeout(() => { clearInterval(check); resolve(null); }, 5000);
+      });
+      await waveMeshCore.stopScanning();
+      
+      if (found) {
+        await waveMeshCore.connectToPeer(found.id);
+        toast.success("🔗 Connected via BLE!");
       } else {
-        // No peer in scan — start a quick background scan to find them
-        toast.success("📡 Connecting...");
-        await waveMeshCore.startScanning();
-        // Wait up to 5 seconds to find the peer
-        const found = await new Promise<any>(resolve => {
-          const check = setInterval(() => {
-            const p = waveMeshCore.getPeers().find(p => p.username === result.username);
-            if (p) { clearInterval(check); resolve(p); }
-          }, 500);
-          setTimeout(() => { clearInterval(check); resolve(null); }, 5000);
-        });
-        await waveMeshCore.stopScanning();
-        
-        if (found) {
-          await waveMeshCore.connectToPeer(found.id);
-          toast.success("🔗 Connected via BLE!");
-        } else {
-          toast.success("📡 Connected via Echo Relay mesh!");
-        }
+        toast.success("📡 Connected via Echo Relay mesh!");
       }
-      // Messages always flow — BLE if connected, Echo Relay if not
     } else { toast.error('Invalid or expired code'); }
   };
 
