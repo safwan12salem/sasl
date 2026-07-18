@@ -145,6 +145,7 @@ export default function WaveMesh() {
       setShowSidebar(false);
       setShowWelcome(false);
       toast.success(`🔗 Connected with ${name}!`);
+        waveMeshCore.connectToPeer(data.peerId).catch(() => {});
     });
 
     waveMeshCore.setOnRequestReceived((data: any) => {
@@ -234,7 +235,6 @@ export default function WaveMesh() {
 
   const generateQR = () => { setShowQR(true); setQrCode(waveMeshCore.generateConnectionCode()); setQrConnected(false); setPasteInput(''); };
 
-
   const pasteCode = async () => {
     if (!pasteInput.trim()) return toast.error('Enter connection code');
     const result = waveMeshCore.processConnectionCode(pasteInput.trim());
@@ -243,7 +243,6 @@ export default function WaveMesh() {
       setShowQR(false);
       setQrConnected(false);
       
-      // Auto-scan to find the real BLE address
       toast.success("📡 Connecting...");
       await waveMeshCore.startScanning();
       const found = await new Promise<any>(resolve => {
@@ -257,6 +256,8 @@ export default function WaveMesh() {
       
       if (found) {
         await waveMeshCore.connectToPeer(found.id);
+        // CRITICAL: Also send connection request so the other phone connects back
+        await waveMeshCore.sendConnectionRequest(found.id);
         toast.success("🔗 Connected via BLE!");
       } else {
         toast.success("📡 Connected via Echo Relay mesh!");
