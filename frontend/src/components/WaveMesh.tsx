@@ -263,6 +263,14 @@ export default function WaveMesh() {
     setInput('');
   };
 
+
+    const sendQRMessage = () => {
+    if (!input.trim() || !activeRoom) return;
+    waveMeshCore.sendQRMessage(input, activeRoom.id);
+    setInput('');
+  };
+
+
   const deleteMessage = (msgId: string) => {
     setMessages(prev => prev.filter(m => m.id !== msgId));
     waveMeshCore.sendControlCommand(JSON.stringify({ type: 'delete', msgId }));
@@ -578,7 +586,7 @@ export default function WaveMesh() {
                 <button onClick={() => fileInputRef.current?.click()} className="p-2 sm:p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 flex-shrink-0"><ImageIcon size={18} /></button>
                 <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Message via WaveMesh..." className="flex-1 min-w-0 px-3 sm:px-5 py-2 sm:py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-green-400/50 transition-all" />
                 <button onClick={async () => { if (!input.trim()) return; await waveMeshCore.sendViaAudioMesh(input); toast.success('🔊 Sent via AudioMesh + BLE'); setInput(''); }} disabled={!input.trim()} className="p-2 sm:p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl disabled:opacity-40 shadow-lg flex-shrink-0" title="Send via AudioMesh (long range)"><Radio size={18} /></button>
-                <button onClick={sendMessage} disabled={!input.trim()} className="p-2 sm:p-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl disabled:opacity-40 shadow-lg flex-shrink-0"><Send size={18} /></button>
+                               <button onClick={activeRoom?.id?.startsWith('sasl_') ? sendQRMessage : sendMessage} disabled={!input.trim()} className="p-2 sm:p-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl disabled:opacity-40 shadow-lg flex-shrink-0"><Send size={18} /></button>
               </div>
               {showEmoji && (
                 <div className="absolute bottom-16 sm:bottom-20 left-2 sm:left-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border p-2 sm:p-3 z-50 max-w-[90vw]">
