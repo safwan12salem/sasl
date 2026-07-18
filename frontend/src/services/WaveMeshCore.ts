@@ -117,27 +117,34 @@ class WaveMeshCore {
     this.log(`✅ WaveMesh ready for @${username}`);
   }
 
-  private async restoreRooms(): Promise<void> {
+   private async restoreRooms(): Promise<void> {
     try {
       const { value } = await Preferences.get({ key: 'sasl_wavemesh_rooms' });
       if (value) {
         const rooms = JSON.parse(value);
-        for (const room of rooms) {
+        const recentRooms = rooms.filter((r: any) => r.lastSeen && (Date.now() - r.lastSeen < 86400000));
+        if (recentRooms.length === 0) {
+          await Preferences.remove({ key: 'sasl_wavemesh_rooms' });
+          return;
+        }
+        for (const room of recentRooms) {
           this.peers.set(room.id, room);
           this.connectedDevices.add(room.id);
           this.onRoomCreated?.({ peerId: room.id, username: room.username });
-          try { await this.connectToPeer(room.id); } catch {}
         }
-        this.log(`📂 Restored ${rooms.length} rooms — starting quick scan...`);
-        await this.startScanning();
-        setTimeout(() => this.stopScanning(), 5000);
+        this.log(`📂 Restored ${recentRooms.length} rooms`);
       }
     } catch {}
   }
 
-  private async saveRooms(): Promise<void> {
+
+
+  
+   private async saveRooms(): Promise<void> {
     try {
-      const rooms = Array.from(this.peers.values()).filter(p => p.connected);
+      const rooms = Array.from(this.peers.values())
+        .filter(p => p.connected)
+        .map(p => ({ ...p, lastSeen: Date.now() }));
       await Preferences.set({ key: 'sasl_wavemesh_rooms', value: JSON.stringify(rooms) });
     } catch {}
   }

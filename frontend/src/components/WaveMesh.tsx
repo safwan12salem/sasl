@@ -241,55 +241,32 @@ export default function WaveMesh() {
   };
 
   const generateQR = () => { setShowQR(true); setQrCode(waveMeshCore.generateConnectionCode()); setQrConnected(false); setPasteInput(''); };
-    const pasteCode = async () => {
-    if (!pasteInput.trim()) return toast.error('Enter connection code');
+   
+
+
+
+    const pasteCode = () => {
+    if (!pasteInput.trim()) return toast.error('Enter invitation code');
     const result = waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
       setPasteInput('');
       setShowQR(false);
       setQrConnected(false);
-      toast.success("📡 Connecting...");
-      
-      await waveMeshCore.startScanning();
-      const found = await new Promise<any>(resolve => {
-        const check = setInterval(() => {
-          const p = peers.find(p => p.username === result.username && p.id.includes(':'));
-          if (p) { clearInterval(check); resolve(p); }
-        }, 500);
-        setTimeout(() => { clearInterval(check); resolve(null); }, 5000);
-      });
-      await waveMeshCore.stopScanning();
-      
-      if (found) {
-        await waveMeshCore.connectToPeer(found.id);
-        // Tell the other phone to connect back to us
-        setTimeout(() => {
-          waveMeshCore.sendMessage('__SASL_CONNECT_BACK__');
-        }, 1500);
-        toast.success("🔗 Connected via BLE!");
-      } else {
-        toast.success("📡 Room created! Messages will flow via Echo Relay.");
-      }
-    } else { toast.error('Invalid or expired code'); }
+      toast.success("📡 Connected via Echo Relay! Messages hop through Sasl users.");
+    } else { toast.error('Invalid code'); }
   };
 
 
-
-  const completeHandshake = async () => {
-    if (!pasteInput.trim()) return toast.error('Enter the response code from other phone');
+  const completeHandshake = () => {
+    if (!pasteInput.trim()) return toast.error('Enter invitation code');
     const result = waveMeshCore.processConnectionCode(pasteInput.trim());
-    if (result) {
+    if (result) { 
       setPasteInput(''); 
       setShowQR(false); 
-      setQrConnected(false);
-      
-      const peer = peers.find(p => p.username === result.username && p.id.includes(':'));
-      if (peer) {
-        await waveMeshCore.connectToPeer(peer.id);
-      }
-      toast.success(`🤝 Handshake complete! Both rooms open!`); 
+      setQrConnected(false); 
+      toast.success("📡 Connected via Echo Relay!"); 
     }
-    else { toast.error('Invalid response code'); }
+    else { toast.error('Invalid code'); }
   };
 
 
