@@ -34,7 +34,7 @@ class CreatorProfileViewSet(viewsets.ModelViewSet):
             'recent_earnings': SponsoredContentSerializer(contents[:10], many=True).data
         })
 
-class BrandCampaignViewSet(viewsets.ReadOnlyModelViewSet):
+class BrandCampaignViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     queryset = BrandCampaign.objects.filter(deadline__gte=timezone.now())
     serializer_class = BrandCampaignSerializer

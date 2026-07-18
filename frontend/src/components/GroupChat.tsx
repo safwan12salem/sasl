@@ -576,8 +576,8 @@ useEffect(() => {
             });
             setShowVoiceRecorder(false);
             fetchMessages(activeGroup!, true);
-          } catch {
-            toast.error('Failed to send voice message');
+                    } catch (err: any) {
+            toast.error(err?.response?.data?.error || 'Failed to send voice message');
           }
         }}
         onCancel={() => setShowVoiceRecorder(false)}
