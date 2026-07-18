@@ -145,10 +145,6 @@ export default function WaveMesh() {
       setShowSidebar(false);
       setShowWelcome(false);
       toast.success(`🔗 Connected with ${name}!`);
-              // Connect back only if not already connected
-      if (!waveMeshCore.getConnectedDevices().includes(data.peerId)) {
-        waveMeshCore.connectToPeer(data.peerId).catch(() => {});
-      }
     });
 
     waveMeshCore.setOnRequestReceived((data: any) => {
@@ -238,48 +234,23 @@ export default function WaveMesh() {
 
   const generateQR = () => { setShowQR(true); setQrCode(waveMeshCore.generateConnectionCode()); setQrConnected(false); setPasteInput(''); };
 
-  const pasteCode = async () => {
+  const pasteCode = () => {
     if (!pasteInput.trim()) return toast.error('Enter connection code');
     const result = waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
-      setPasteInput('');
-      setShowQR(false);
-      setQrConnected(false);
-      
-      toast.success("📡 Connecting...");
-      await waveMeshCore.startScanning();
-      const found = await new Promise<any>(resolve => {
-        const check = setInterval(() => {
-          const p = peers.find(p => p.username === result.username && p.id.includes(':'));
-          if (p) { clearInterval(check); resolve(p); }
-        }, 500);
-        setTimeout(() => { clearInterval(check); resolve(null); }, 5000);
-      });
-      await waveMeshCore.stopScanning();
-      
-      if (found) {
-        await waveMeshCore.connectToPeer(found.id);
-        // CRITICAL: Also send connection request so the other phone connects back
-        await waveMeshCore.sendConnectionRequest(found.id);
-        toast.success("🔗 Connected via BLE!");
-      } else {
-        toast.success("📡 Connected via Echo Relay mesh!");
-      }
+      const responseCode = waveMeshCore.generateConnectionCode();
+      setQrCode(responseCode); setQrConnected(true); setPasteInput('');
+      toast.success(`📱 Now copy THIS code and send it back to the other phone!`);
     } else { toast.error('Invalid or expired code'); }
   };
 
   const completeHandshake = () => {
     if (!pasteInput.trim()) return toast.error('Enter the response code from other phone');
     const result = waveMeshCore.processConnectionCode(pasteInput.trim());
-    if (result) { 
-      waveMeshCore.connectToPeer(result.peerId);
-      setPasteInput(''); 
-      setShowQR(false); 
-      setQrConnected(false); 
-      toast.success(`🤝 Handshake complete! Both rooms open!`); 
-    }
+    if (result) { setPasteInput(''); setShowQR(false); setQrConnected(false); toast.success(`🤝 Handshake complete! Both rooms open!`); }
     else { toast.error('Invalid response code'); }
   };
+
   const sendMessage = () => {
     if (!input.trim()) return;
     if (editingMsgId) {

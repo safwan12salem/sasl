@@ -243,28 +243,38 @@ class WaveMeshCore {
     } catch (err: any) { this.log(`❌ Connect failed: ${err.message}`); }
   }
 
-     async sendMessage(text: string): Promise<void> {
+  async sendMessage(text: string): Promise<void> {
     if (!this.identity) return;
+    
+    // Encrypt message
+        const encrypted = text;
     
     // Echo to sender
     this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
     
+    // Store in Echo Relay for mesh forwarding
+    echoRelay.storeMessage('broadcast', text, this.identity?.username || 'me').catch(() => {});
+    
+    // Send via DirectP2P
+    directP2P.sendMessage(text);
+    
     // Send to ALL connected devices via BLE GATT
     for (const deviceId of this.connectedDevices) {
-      if (!deviceId.includes(':')) continue;
       try {
         const { BleClient } = await import('@capacitor-community/bluetooth-le');
         await BleClient.connect(deviceId);
-        const encoded = new TextEncoder().encode(text);
+        const encoded = new TextEncoder().encode(encrypted);
         await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
         const peer = this.peers.get(deviceId);
         this.log(`📤 Sent to ${peer?.username || deviceId}`);
         
-        // Flush command queue
+        // Flush command queue after successful message
         if (this.commandQueue.length > 0) {
-          for (const { command } of [...this.commandQueue])   {
+          this.log(`📤 Flushing ${this.commandQueue.length} queued commands`);
+          for (const { command } of [...this.commandQueue]) {
             try {
-              const cmdEncoded = new TextEncoder().encode(command);
+              const encCmd = await encryptForPeer(command);
+              const cmdEncoded = new TextEncoder().encode(encCmd);
               await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(cmdEncoded.buffer));
             } catch {}
           }
@@ -276,6 +286,7 @@ class WaveMeshCore {
       }
     }
   }
+
   async sendControlCommand(command: string): Promise<void> {
     if (!this.identity) return;
         const encrypted = command;
@@ -346,7 +357,7 @@ class WaveMeshCore {
       const data = JSON.parse(code); if (data.type !== 'sasl_connect') return null;
       if (Date.now() - data.timestamp > 300000) { this.log('⚠️ Code expired'); return null; }
       this.peers.set(data.nodeId, { id: data.nodeId, username: data.username, distance: 0, connectionType: 'ble4', lastSeen: Date.now(), signalStrength: 100, connected: true, nodeId: data.nodeId });
-    
+      this.connectedDevices.add(data.nodeId);
       this.onPeerConnected?.({ peerId: data.nodeId, username: data.username });
       this.onRoomCreated?.({ peerId: data.nodeId, username: data.username });
       this.saveRooms();
