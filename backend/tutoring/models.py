@@ -101,6 +101,7 @@ class TutoringChatMessage(models.Model):
     session = models.ForeignKey(TutoringSession, on_delete=models.CASCADE, related_name='chat_messages')
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     text = models.TextField(blank=True, default='')
+    is_edited = models.BooleanField(default=False)
     image = models.ImageField(upload_to='tutoring/chat/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

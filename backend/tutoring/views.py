@@ -33,6 +33,31 @@ class TutorProfileViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+    
+    def partial_update(self, request, room_id=None):
+        message_id = request.data.get('message_id')
+        text = request.data.get('text', '')
+        if not message_id or not text.strip():
+            return Response({'error': 'message_id and text required'}, status=400)
+        try:
+            msg = TutoringChatMessage.objects.get(id=message_id, sender=request.user)
+            msg.text = text
+            msg.is_edited = True
+            msg.save()
+            return Response({'id': str(msg.id), 'text': msg.text, 'is_edited': True})
+        except TutoringChatMessage.DoesNotExist:
+            return Response({'error': 'Message not found or not yours'}, status=404)
+
+    def destroy(self, request, room_id=None):
+        message_id = request.data.get('message_id')
+        if not message_id:
+            return Response({'error': 'message_id required'}, status=400)
+        try:
+            msg = TutoringChatMessage.objects.get(id=message_id, sender=request.user)
+            msg.delete()
+            return Response({'status': 'deleted'})
+        except TutoringChatMessage.DoesNotExist:
+            return Response({'error': 'Message not found or not yours'}, status=404)
 
     @action(detail=False, methods=['get'])
     def top_rated(self, request):
