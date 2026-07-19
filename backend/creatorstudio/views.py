@@ -38,7 +38,10 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     queryset = BrandCampaign.objects.filter(deadline__gte=timezone.now())
     serializer_class = BrandCampaignSerializer
+    
 
+    def perform_create(self, serializer):
+      serializer.save()
     @action(detail=True, methods=['post'])
     def apply(self, request, pk=None):
         campaign = self.get_object()

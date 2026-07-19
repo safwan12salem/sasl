@@ -2,6 +2,7 @@ import uuid
 from django.db import models
 from content.auto_storage import AutoCloudinaryStorage
 from django.conf import settings
+from cloudinary_storage.storage import VideoMediaCloudinaryStorage
 
 class GroupChat(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
@@ -30,7 +31,7 @@ class GroupMessage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     is_edited = models.BooleanField(default=False)
     edited_at = models.DateTimeField(null=True, blank=True)
-    audio = models.FileField(upload_to='group_voice/', null=True, blank=True)
+    audio = models.FileField(upload_to='group_voice/', null=True, blank=True, storage=VideoMediaCloudinaryStorage())
     audio_duration = models.IntegerField(default=0)  # seconds
     message_type = models.CharField(max_length=20, default='text')
     class Meta:

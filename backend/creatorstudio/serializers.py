@@ -13,7 +13,9 @@ class BrandCampaignSerializer(serializers.ModelSerializer):
     class Meta:
         model = BrandCampaign
         fields = '__all__'
+        read_only_fields = ('brand', 'created_at', 'status')
 
+        
 class SponsoredContentSerializer(serializers.ModelSerializer):
     creator_name = serializers.ReadOnlyField(source='creator.username')
     campaign_title = serializers.ReadOnlyField(source='campaign.title')

@@ -10,7 +10,7 @@ class GroupMessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GroupMessage
-        fields = ['id', 'group', 'sender', 'text', 'image', 'is_system_message', 'created_at']
+        fields = ['id', 'group', 'sender', 'text', 'image', 'audio', 'audio_duration', 'message_type', 'is_system_message', 'created_at']
         read_only_fields = ['sender', 'group', 'is_system_message']
 
 class GroupChatSerializer(serializers.ModelSerializer):
