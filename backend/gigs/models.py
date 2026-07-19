@@ -152,6 +152,8 @@ class GigChatMessage(models.Model):
     text = models.TextField(blank=True, default='')
     is_edited = models.BooleanField(default=False)
     image = models.ImageField(upload_to='gigs/chat/', blank=True, null=True)
+    file_url = models.URLField(blank=True, null=True)
+    file_name = models.CharField(max_length=255, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

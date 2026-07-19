@@ -289,22 +289,32 @@ class GigChatViewSet(viewsets.ViewSet):
     
     def create(self, request, room_id=None):
         text = request.data.get('text', '')
-        if not text.strip():
-            return Response({'error': 'Text required'}, status=400)
+        file_url = request.data.get('file_url', '')
+        file_name = request.data.get('file_name', '')
+        
+        if not text.strip() and not file_url:
+            return Response({'error': 'Text or file required'}, status=400)
         
         msg = GigChatMessage.objects.create(
             gig_id=room_id,
             sender=request.user,
             text=text,
         )
+        
+        # If file was uploaded, store the URL
+        if file_url:
+            msg.file_url = file_url
+            msg.file_name = file_name
+            msg.save()
+        
         return Response({
             'id': str(msg.id),
             'sender_name': msg.sender.username,
             'text': msg.text,
+            'file_url': file_url or None,
+            'file_name': file_name or None,
             'created_at': msg.created_at.isoformat(),
         }, status=201)
-
-
 
     def partial_update(self, request, room_id=None):
         message_id = request.data.get('message_id')

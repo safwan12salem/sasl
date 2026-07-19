@@ -72,14 +72,14 @@ export default function GigChat({ roomId, onClose }: Props) {
     try { await api.delete(`/gigs/chat/${roomId}/`, { data: { message_id: msgId } }); } catch {}
     setMessages(prev => prev.filter(m => m.id !== msgId));
   };
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     toast.success('Uploading...');
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('cloud_name', 'dwem1chqc');
+      formData.append('upload_preset', 'sasl_upload');
       const res = await fetch('https://api.cloudinary.com/v1_1/dwem1chqc/image/upload', { 
         method: 'POST', 
         body: formData 

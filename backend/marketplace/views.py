@@ -3,6 +3,7 @@ Sasl - Social Asynchronous Sharing Layer
 Marketplace: Advanced filtering, wishlist, seller reviews, nearby mesh discovery
 """
 from django.shortcuts import get_object_or_404
+from marketplace.models import MarketplaceChatMessage
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -323,23 +324,33 @@ class MarketplaceChatViewSet(viewsets.ViewSet):
             'text': m.text,
             'created_at': m.created_at.isoformat(),
         } for m in messages])
-    
+  
     def create(self, request, room_id=None):
-        """Save a message to marketplace chat"""
-        from .models import MarketplaceChatMessage
         text = request.data.get('text', '')
-        if not text.strip():
-            return Response({'error': 'Text required'}, status=400)
+        file_url = request.data.get('file_url', '')
+        file_name = request.data.get('file_name', '')
+        
+        if not text.strip() and not file_url:
+            return Response({'error': 'Text or file required'}, status=400)
         
         msg = MarketplaceChatMessage.objects.create(
             room_id=room_id,
             sender=request.user,
             text=text,
         )
+        
+        # If file was uploaded, store the URL
+        if file_url:
+            msg.file_url = file_url
+            msg.file_name = file_name
+            msg.save()
+        
         return Response({
             'id': str(msg.id),
             'sender_name': msg.sender.username,
             'text': msg.text,
+            'file_url': file_url or None,
+            'file_name': file_name or None,
             'created_at': msg.created_at.isoformat(),
         }, status=201)
 
