@@ -72,33 +72,28 @@ export default function GigChat({ roomId, onClose }: Props) {
     try { await api.delete(`/gigs/chat/${roomId}/`, { data: { message_id: msgId } }); } catch {}
     setMessages(prev => prev.filter(m => m.id !== msgId));
   };
-
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     toast.success('Uploading...');
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('upload_preset', 'sasl_upload');
-      const res = await fetch('https://api.cloudinary.com/v1_1/dwem1chqc/upload', { method: 'POST', body: formData });
+      formData.append('cloud_name', 'dwem1chqc');
+      const res = await fetch('https://api.cloudinary.com/v1_1/dwem1chqc/image/upload', { 
+        method: 'POST', 
+        body: formData 
+      });
       const data = await res.json();
       if (data.secure_url) {
         const newMsg = { 
           id: Date.now().toString(), 
           text: `📎 ${data.secure_url}`, 
           file_url: data.secure_url, 
-          file_name: file.name, 
           sender_name: user?.username,
           sender: { username: user?.username }
         };
         setMessages(prev => [...prev, newMsg]);
-        try { await api.post(`/gigs/chat/${roomId}/`, { 
-          text: `📎 ${data.secure_url}`, 
-          file_url: data.secure_url, 
-          file_name: file.name, 
-          message_type: file.type.startsWith('image/') ? 'image' : 'file' 
-        }); } catch {}
         toast.success('Image sent!');
       } else {
         toast.error(data.error?.message || 'Upload failed');
