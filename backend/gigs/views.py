@@ -2,6 +2,7 @@
 Sasl - Social Asynchronous Sharing Layer
 Gig Central: Advanced freelancer marketplace with milestones, disputes, reviews, portfolio
 """
+from datetime import timezone
 from urllib import request
 
 from rest_framework import viewsets, permissions, status
@@ -275,7 +276,6 @@ class GigViewSet(viewsets.ModelViewSet):
 class GigChatViewSet(viewsets.ViewSet):
     """Dedicated gig chat - isolated from WaveMesh"""
     permission_classes = [permissions.IsAuthenticated]
-    
     def list(self, request, room_id=None):
         messages = GigChatMessage.objects.filter(
             gig_id=room_id
@@ -284,9 +284,12 @@ class GigChatViewSet(viewsets.ViewSet):
             'id': str(m.id),
             'sender_name': m.sender.username,
             'text': m.text,
+            'file_url': m.file_url or None,
+            'file_name': m.file_name or None,
+            'is_edited': m.is_edited or False,
             'created_at': m.created_at.isoformat(),
         } for m in messages])
-    
+
     def create(self, request, room_id=None):
         text = request.data.get('text', '')
         file_url = request.data.get('file_url', '')

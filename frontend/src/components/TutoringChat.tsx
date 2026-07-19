@@ -22,12 +22,13 @@ export default function GigChat({ roomId, onClose }: Props) {
   const { user } = useAuth();
 
   useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const res = await api.get(`/tutoring/chat/${roomId}/`);
-        setMessages(Array.isArray(res.data) ? res.data : (res.data?.results || []));
-      } catch {}
-    };
+      const fetchHistory = async () => {
+    try {
+      const res = await api.get(`/tutoring/chat/${roomId}/`);
+      const dataArray = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+      setMessages(dataArray);
+    } catch {}
+  };
     if (roomId) fetchHistory();
   }, [roomId, user]);
 
@@ -93,7 +94,20 @@ export default function GigChat({ roomId, onClose }: Props) {
           sender_name: user?.username,
           sender: { username: user?.username }
         };
-        setMessages(prev => [...prev, newMsg]);
+                setMessages(prev => [...prev, newMsg]);
+        
+        // Save to backend for persistence
+        try { 
+          await api.post(`/gigs/chat/${roomId}/`, { 
+            text: `📎 ${data.secure_url}`, 
+            file_url: data.secure_url,
+            file_name: file.name,
+            message_type: 'image'
+          });
+        } catch (err) {
+          console.error('Backend save failed:', err);
+        }
+        
         toast.success('Image sent!');
       } else {
         toast.error(data.error?.message || 'Upload failed');

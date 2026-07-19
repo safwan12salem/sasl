@@ -313,8 +313,6 @@ class MarketplaceChatViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
     
     def list(self, request, room_id=None):
-        """Get chat history for a marketplace room"""
-        from .models import MarketplaceChatMessage
         messages = MarketplaceChatMessage.objects.filter(
             room_id=room_id
         ).order_by('created_at')[:100]
@@ -322,6 +320,9 @@ class MarketplaceChatViewSet(viewsets.ViewSet):
             'id': str(m.id),
             'sender_name': m.sender.username,
             'text': m.text,
+            'file_url': m.file_url or None,
+            'file_name': m.file_name or None,
+            'is_edited': m.is_edited or False,
             'created_at': m.created_at.isoformat(),
         } for m in messages])
   

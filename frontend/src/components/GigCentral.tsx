@@ -619,7 +619,7 @@ export default function GigCentral() {
         )}
       </AnimatePresence>
 
-      {chatRoom && <GigChat roomId={chatRoom} onClose={() => setChatRoom(null)} />}
+            {chatRoom && <GigChat key={chatRoom} roomId={chatRoom} onClose={() => setChatRoom(null)} />}
       {showPayment && <PaymentModal amount={paymentAmount} type="gig" onSuccess={() => { setShowPayment(false); fetchGigs(); toast.success('Payment successful!'); }} onClose={() => setShowPayment(false)} />}
     </div>
   );
