@@ -184,8 +184,8 @@ export default function GigCentral() {
   const requestGig = async (gigId: string) => {
     try {
       await api.post(`/gigs/gigs/${gigId}/apply/`, { message: proposalMessage || 'I would like to work on this gig.', proposed_budget: proposalBudget || undefined });
-      toast.success('Proposal sent! 📨'); setNegotiateGig(null); setProposalMessage(''); setProposalBudget(''); fetchGigs();
-    } catch (err: any) { toast.error(err.response?.data?.error || 'Failed to send proposal'); }
+      toast.success(t('Proposal sent! 📨')); setNegotiateGig(null); setProposalMessage(''); setProposalBudget(''); fetchGigs();
+    } catch (err: any) { toast.error(err.response?.data?.error || t('Failed to send proposal')); }
   };
 
   const completeGig = async (id: string) => {
@@ -317,10 +317,10 @@ export default function GigCentral() {
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 space-y-3">
               <h3 className="font-bold text-lg flex items-center gap-2"><Upload size={18} /> {t('Add Portfolio Item')}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder="Project title" value={pfTitle} onChange={e => setPfTitle(e.target.value)} />
-                <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder="Link (optional)" value={pfLink} onChange={e => setPfLink(e.target.value)} />
+                <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder={t('Project title')}  value={pfTitle} onChange={e => setPfTitle(e.target.value)} />
+                <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder={t('Link (optional)')}  value={pfLink} onChange={e => setPfLink(e.target.value)} />
               </div>
-              <textarea className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder="Description..." value={pfDesc} onChange={e => setPfDesc(e.target.value)} rows={2} />
+              <textarea className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder={t('Description...')}  value={pfDesc} onChange={e => setPfDesc(e.target.value)} rows={2} />
               <div className="flex items-center gap-3">
                 <label className="px-4 py-2 rounded-xl bg-gray-100 dark:bg-gray-700 cursor-pointer flex items-center gap-1.5 text-sm hover:bg-gray-200 transition">
                   <ImageIcon size={16} /> {pfImage ? pfImage.name : t('Upload Image')}
@@ -340,25 +340,25 @@ export default function GigCentral() {
             className="bg-white dark:bg-gray-800 rounded-2xl p-6 mb-6 space-y-4 shadow-xl border-2 border-green-200 dark:border-green-800">
             <h3 className="font-bold text-xl flex items-center gap-2"><FileText size={20} className="text-green-500" /> {t('Create New Gig')}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder="What do you need done? *" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
+              <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder={t('What do you need done?')} value={newTitle} onChange={e => setNewTitle(e.target.value)} />
               <select className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" value={newCategory} onChange={e => setNewCategory(e.target.value)}>
                 {categories.map(cat => <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>)}
               </select>
             </div>
-            <textarea className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder="Describe the work in detail..." value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={3} />
+            <textarea className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" placeholder={t('Describe the work in detail...')}  value={newDesc} onChange={e => setNewDesc(e.target.value)} rows={3} />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" type="number" placeholder="Total Budget ($) *" value={newBudget} onChange={e => setNewBudget(e.target.value)} />
+              <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" type="number" placeholder={t('Total Budget ($)')} value={newBudget} onChange={e => setNewBudget(e.target.value)} />
               <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" type="date" placeholder="Deadline" value={newDeadline} onChange={e => setNewDeadline(e.target.value)} />
             </div>
             <div className="space-y-2 bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold flex items-center gap-1"><Target size={14} /> Milestones</p>
-                <button onClick={addMilestone} className="text-xs text-green-600 hover:underline font-semibold">+ Add Milestone</button>
+                <button onClick={addMilestone} className="text-xs text-green-600 hover:underline font-semibold">{t('+ Add Milestone')}</button>
               </div>
               {milestones.map((m, idx) => (
                 <div key={idx} className="flex gap-2 items-center">
-                  <input className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-600 text-sm outline-none" placeholder="Milestone title" value={m.title} onChange={e => updateMilestone(idx, 'title', e.target.value)} />
-                  <input className="w-28 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-600 text-sm outline-none" type="number" placeholder="Amount" value={m.amount} onChange={e => updateMilestone(idx, 'amount', e.target.value)} />
+                  <input className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-600 text-sm outline-none" placeholder={t('Milestone title')} value={m.title} onChange={e => updateMilestone(idx, 'title', e.target.value)} />
+                  <input className="w-28 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-600 text-sm outline-none" type="number" placeholder={t('Amount')} value={m.amount} onChange={e => updateMilestone(idx, 'amount', e.target.value)} />
                   {milestones.length > 1 && <button onClick={() => removeMilestone(idx)} className="text-red-500 hover:text-red-700 p-1">✕</button>}
                 </div>
               ))}
@@ -490,6 +490,15 @@ export default function GigCentral() {
                           <button onClick={(e) => { e.stopPropagation(); completeGig(gig.id); }}
                             className="ml-auto px-4 py-2 bg-amber-500 text-white rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition flex items-center gap-1">
                             <CheckCircle size={14} /> {t('Complete')}
+                          </button>
+                        )}
+                                                {gig.creator_name === user?.username && gig.status === 'open' && (
+                          <button onClick={async (e) => { e.stopPropagation();
+                            try { await api.post(`/gigs/gigs/${gig.id}/cancel/`); toast.success(t('Gig cancelled')); fetchGigs(); }
+                            catch { toast.error(t('Failed to cancel')); }
+                          }}
+                            className="ml-auto px-4 py-2 bg-red-100 text-red-600 rounded-xl text-sm font-medium hover:bg-red-200 transition flex items-center gap-1">
+                            <X size={14} /> {t('Cancel Gig')}
                           </button>
                         )}
                       </div>

@@ -258,20 +258,20 @@ export default function Reels() {
             <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
               className="bg-gray-900 rounded-3xl p-6 max-w-md w-full border border-white/10 shadow-2xl">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-xl text-white flex items-center gap-2"><Video size={22} className="text-pink-500" /> Upload Reel</h3>
+                <h3 className="font-bold text-xl text-white flex items-center gap-2"><Video size={22} className="text-pink-500" /> {t('Upload Reel')}</h3>
                 <button onClick={() => setShowUpload(false)} className="text-white/60 hover:text-white"><X size={22} /></button>
               </div>
               <input type="file" accept="video/*" onChange={e => setReelFile(e.target.files?.[0] || null)} className="mb-4 w-full text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pink-500 file:text-white hover:file:bg-pink-600" />
-              <input className="w-full bg-white/10 text-white px-4 py-3 rounded-xl mb-3 text-sm outline-none focus:ring-2 focus:ring-pink-500 placeholder-white/40" placeholder="Write a caption..." value={reelCaption} onChange={e => setReelCaption(e.target.value)} />
+              <input className="w-full bg-white/10 text-white px-4 py-3 rounded-xl mb-3 text-sm outline-none focus:ring-2 focus:ring-pink-500 placeholder-white/40"  placeholder={t('Write a caption...')} value={reelCaption} onChange={e => setReelCaption(e.target.value)} />
               <button onClick={() => setShowSoundPicker(true)} className="w-full flex items-center gap-2 text-sm text-purple-400 hover:bg-purple-500/10 px-4 py-3 rounded-xl transition mb-4">
                 <Music size={18} /> {reelSound ? reelSound : t('Add Sound')}
               </button>
               <div className="flex gap-3">
                 <button onClick={uploadReel} disabled={uploading || !reelFile}
                   className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-red-500 text-white rounded-xl font-semibold disabled:opacity-50 hover:shadow-lg hover:shadow-pink-500/25 transition">
-                  {uploading ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'Upload'}
+                  {uploading ? <Loader2 className="animate-spin mx-auto" size={20} /> : t('Upload')}
                 </button>
-                <button onClick={() => setShowUpload(false)} className="px-6 py-3 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition">Cancel</button>
+                <button onClick={() => setShowUpload(false)} className="px-6 py-3 bg-white/10 text-white rounded-xl font-medium hover:bg-white/20 transition">{t('Cancel')}</button>
               </div>
             </motion.div>
           </motion.div>

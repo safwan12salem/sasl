@@ -142,7 +142,7 @@ export default function SaslAIHub() {
             </h1>
             <p className="text-[11px] text-gray-400 flex items-center gap-1">
               <Zap size={10} className="text-yellow-500" />
-              Powered by GPT-4o
+              {t('Sasl Brain — legendary AI assistant')}
             </p>
           </div>
         </div>
@@ -272,8 +272,8 @@ export default function SaslAIHub() {
               <Crown size={16} className="text-white" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">Upgrade to Premium</p>
-              <p className="text-[11px] text-gray-500">Unlimited GPT-4o access + advanced tools</p>
+              <p className="text-sm font-semibold text-purple-700 dark:text-purple-300">{t('Upgrade to Premium')}</p>
+              <p className="text-[11px] text-gray-500">{t('Unlimited Sasl AI access + advanced tools')}</p>
             </div>
           </div>
                         <button 

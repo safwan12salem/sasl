@@ -410,16 +410,16 @@ export default function WaveMesh() {
 
               {/* Tier Badge */}
               <div className={`p-3 rounded-xl bg-gradient-to-r ${getTierColors().gradient} mb-2`}>
-                <div className="flex items-center justify-between"><span className="text-xs font-bold text-white">{tierInfo.name}</span><span className="text-xs text-white/75">{peers.length} peers</span></div>
+                <div className="flex items-center justify-between"><span className="text-xs font-bold text-white">{tierInfo.name}</span><span className="text-xs text-white/75">{peers.length} {t('peers')}</span></div>
                 <p className="text-[10px] mt-1 text-white/75">{tierInfo.description}</p>
                 {rangeInfo && <div className="mt-2 bg-white/20 rounded-full h-2 overflow-hidden"><motion.div className="bg-white h-full rounded-full" animate={{ width: `${getRangePercentage()}%` }} transition={{ duration: 1, ease: 'easeOut' }} /></div>}
               </div>
 
               <p className="text-xs text-gray-500 flex items-center gap-1"><span className={`w-2 h-2 rounded-full animate-pulse ${scanning ? 'bg-green-500' : 'bg-gray-400'}`} />{rangeInfo?.label || 'Initializing...'}</p>
-              {rangeInfo && <p className="text-[10px] text-gray-400 mt-1">{rangeInfo.technology} · {rangeInfo.hopDistance}m hops</p>}
+              {rangeInfo && <p className="text-[10px] text-gray-400 mt-1">{rangeInfo.technology} · {rangeInfo.hopDistance}{t('m hops')}</p>}
 
               <button onClick={toggleScan} className={`mt-3 w-full py-2.5 rounded-xl text-xs font-bold transition-all ${scanning ? 'bg-red-500 text-white animate-pulse shadow-lg' : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg hover:shadow-xl'}`}>
-                {scanning ? <span className="flex items-center justify-center gap-2"><Activity size={14} className="animate-spin" />STOP SCANNING</span> : <span className="flex items-center justify-center gap-2"><Radio size={14} />START MESH SCAN</span>}
+                {scanning ? <span className="flex items-center justify-center gap-2"><Activity size={14} className="animate-spin" />{t('STOP SCANNING')}</span> : <span className="flex items-center justify-center gap-2"><Radio size={14} />{t('START MESH SCAN')}</span>}
               </button>
             </div>
 
@@ -496,7 +496,7 @@ export default function WaveMesh() {
                     <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800 mb-3">
                       <div className="flex justify-between text-[10px] text-gray-500 mb-1"><span>0km</span><span>10km</span><span>25km</span><span>50km</span></div>
                       <div className="bg-gray-200 dark:bg-gray-600 rounded-full h-3 overflow-hidden"><motion.div className={`h-full rounded-full bg-gradient-to-r ${getTierColors().gradient}`} animate={{ width: `${getRangePercentage()}%` }} transition={{ duration: 1 }} /></div>
-                      <p className="text-[10px] text-gray-400 mt-2 text-center">{rangeInfo.usersNeeded > 0 ? `${rangeInfo.peerCount} peers · ${rangeInfo.usersNeeded} more for 50km global mesh` : '🎉 50km GLOBAL MESH ACTIVE!'}</p>
+                      <p className="text-[10px] text-gray-400 mt-2 text-center">{rangeInfo.usersNeeded > 0 ? `${rangeInfo.peerCount} peers · ${rangeInfo.usersNeeded} more for 50km global mesh` : '50km GLOBAL MESH ACTIVE!'}</p>
                     </div>
                   )}
                   <p className="text-[10px] text-gray-400 text-center">{t('Each Sasl user extends the mesh by ~200m. The more users, the farther the mesh reaches!')}</p>
@@ -627,8 +627,8 @@ export default function WaveMesh() {
               <h3 className="font-bold text-xl text-center mb-4">📡 Sasl WaveMesh Connect</h3>
               {qrCode && <div className="flex justify-center mb-4"><div className="bg-white p-4 rounded-2xl shadow-inner"><QRCodeSVG value={qrCode} size={200} level="M" /></div></div>}
               {qrCode && <div className="flex items-center gap-2 mb-4"><code className="flex-1 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-xl text-xs break-all select-all">{qrCode.substring(0, 50)}...</code><button onClick={() => { navigator.clipboard.writeText(qrCode); toast.success('Copied!'); }} className="p-2 bg-purple-500 text-white rounded-xl"><Copy size={14} /></button></div>}
-              <div className="flex gap-2 mb-4"><input value={pasteInput} onChange={e => setPasteInput(e.target.value)} placeholder="Paste peer's code..." className="flex-1 px-4 py-2.5 rounded-xl border text-sm dark:bg-gray-700 dark:border-gray-600" /><button onClick={pasteCode} className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold">Connect</button></div>
-              <button onClick={() => setShowQR(false)} className="w-full py-2.5 bg-gray-200 dark:bg-gray-700 rounded-xl font-semibold text-sm">Close</button>
+              <div className="flex gap-2 mb-4"><input value={pasteInput} onChange={e => setPasteInput(e.target.value)} placeholder={t('Paste peer\'s code...')} className="flex-1 px-4 py-2.5 rounded-xl border text-sm dark:bg-gray-700 dark:border-gray-600" /><button onClick={pasteCode} className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold">{t('Connect')}</button></div>
+              <button onClick={() => setShowQR(false)} className="w-full py-2.5 bg-gray-200 dark:bg-gray-700 rounded-xl font-semibold text-sm">{t('Close')}</button>
             </div>
           </motion.div>
         )}

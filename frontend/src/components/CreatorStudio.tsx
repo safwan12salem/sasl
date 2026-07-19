@@ -153,10 +153,10 @@ export default function CreatorStudio() {
       {/* ========== TABS ========== */}
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-6 overflow-x-auto">
         {[
-          { key: 'dashboard' as const, label: '📊 Dashboard', icon: <BarChart3 size={16} /> },
-          { key: 'campaigns' as const, label: '💼 Brand Deals', icon: <DollarSign size={16} /> },
-          { key: 'my-content' as const, label: '📝 My Content', icon: <Image size={16} /> },
-          { key: 'profile' as const, label: '⭐ Profile', icon: <Star size={16} /> },
+                   { key: 'dashboard' as const, label: t('📊 Dashboard'), icon:<BarChart3 size={16} /> },
+          { key: 'campaigns' as const, label: t('💼 Brand Deals'), icon: <DollarSign size={16} /> },
+          { key: 'my-content' as const, label: t('📝 My Content'), icon: <Image size={16} /> },
+          { key: 'profile' as const, label: t('⭐ Profile'), icon: <Star size={16} /> },
         ].map(tb => (
           <button key={tb.key} onClick={() => setTab(tb.key)}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs md:text-sm font-semibold transition whitespace-nowrap ${
