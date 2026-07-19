@@ -73,9 +73,10 @@ export default function GigChat({ roomId, onClose }: Props) {
     setMessages(prev => prev.filter(m => m.id !== msgId));
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    toast.success('Uploading...');
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -83,14 +84,29 @@ export default function GigChat({ roomId, onClose }: Props) {
       const res = await fetch('https://api.cloudinary.com/v1_1/dwem1chqc/upload', { method: 'POST', body: formData });
       const data = await res.json();
       if (data.secure_url) {
-        const isImage = file.type.startsWith('image/');
-        const msg = isImage ? `📎 ${data.secure_url}` : `📁 ${file.name}: ${data.secure_url}`;
-        try { await api.post(`/gigs/chat/${roomId}/`, { text: msg, file_url: data.secure_url, file_name: file.name, message_type: isImage ? 'image' : 'file' }); } catch {}
-        setMessages(prev => [...prev, { id: Date.now().toString(), text: msg, file_url: data.secure_url, sender_name: user?.username }]);
+        const newMsg = { 
+          id: Date.now().toString(), 
+          text: `📎 ${data.secure_url}`, 
+          file_url: data.secure_url, 
+          file_name: file.name, 
+          sender_name: user?.username,
+          sender: { username: user?.username }
+        };
+        setMessages(prev => [...prev, newMsg]);
+        try { await api.post(`/gigs/chat/${roomId}/`, { 
+          text: `📎 ${data.secure_url}`, 
+          file_url: data.secure_url, 
+          file_name: file.name, 
+          message_type: file.type.startsWith('image/') ? 'image' : 'file' 
+        }); } catch {}
+        toast.success('Image sent!');
+      } else {
+        toast.error(data.error?.message || 'Upload failed');
       }
-    } catch { toast.error('Upload failed'); }
+    } catch (err: any) {
+      toast.error(err.message || 'Upload failed');
+    }
   };
-
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">
