@@ -76,7 +76,7 @@ export default function CreatorStudio() {
   const createCampaign = async () => {
     if (!campaignBrand || !campaignTitle || !campaignBudget) return toast.error(t('Fill all fields'));
     try {
-      await api.post('/creatorstudio/campaigns/create/', {
+           await api.post('/creatorstudio/campaigns/', {
         brand_name: campaignBrand, title: campaignTitle, description: campaignDesc,
         budget: parseFloat(campaignBudget), content_type: campaignType, deadline: campaignDeadline,
       });
