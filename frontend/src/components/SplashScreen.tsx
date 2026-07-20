@@ -8,144 +8,196 @@ interface SplashScreenProps {
 
 const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   const [visible, setVisible] = useState(true);
+  const [phase, setPhase] = useState<'bubble' | 'explode' | 'logo'>('bubble');
   const [startTime] = useState(Date.now());
 
   useEffect(() => {
-    const elapsed = Date.now() - startTime;
-    const remaining = Math.max(2500 - elapsed, 0);
-
-    const timer = setTimeout(() => {
+    // Phase 1: Show bubble (0-1.5s)
+    const bubbleTimer = setTimeout(() => setPhase('explode'), 1500);
+    // Phase 2: Explode (1.5-2.5s)
+    const explodeTimer = setTimeout(() => setPhase('logo'), 2500);
+    // Phase 3: Finish (3s)
+    const finishTimer = setTimeout(() => {
       setVisible(false);
       setTimeout(onFinish, 500);
-    }, remaining);
+    }, 3500);
 
-    return () => clearTimeout(timer);
-  }, [onFinish, startTime]);
+    return () => {
+      clearTimeout(bubbleTimer);
+      clearTimeout(explodeTimer);
+      clearTimeout(finishTimer);
+    };
+  }, [onFinish]);
 
   useEffect(() => {
     document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = '';
-    };
+    return () => { document.body.style.overflow = ''; };
   }, []);
+
+  // Generate particles for explosion
+  const particles = [...Array(20)].map((_, i) => ({
+    id: i,
+    x: (Math.random() - 0.5) * 400,
+    y: (Math.random() - 0.5) * 400,
+    scale: Math.random() * 0.5 + 0.5,
+    rotation: Math.random() * 360,
+    color: i % 3 === 0 ? '#00A86B' : i % 3 === 1 ? '#FF7F11' : '#FFFFFF',
+    size: Math.random() * 12 + 4,
+  }));
 
   return (
     <AnimatePresence>
       {visible && (
         <motion.div
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center overflow-hidden bg-gray-950"
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
         >
           {/* Animated background */}
-          <div className="absolute inset-0 bg-gray-950">
-            <div className="absolute inset-0 bg-gradient-to-br from-sasl-green/20 via-gray-950 to-sasl-orange/20" />
-            
-            {/* Floating orbs */}
-            {[...Array(8)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute rounded-full blur-2xl"
-                style={{
-                  width: `${Math.random() * 300 + 100}px`,
-                  height: `${Math.random() * 300 + 100}px`,
-                  background: i % 2 === 0 
-                    ? 'rgba(0,168,107,0.15)' 
-                    : 'rgba(255,127,17,0.12)',
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                }}
-                animate={{
-                  x: [0, Math.random() * 100 - 50, 0],
-                  y: [0, Math.random() * -100 - 50, 0],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: Math.random() * 8 + 6,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              />
-            ))}
+          <div className="absolute inset-0 bg-gradient-to-br from-sasl-green/10 via-gray-950 to-sasl-orange/10" />
 
-            {/* Mesh connection lines */}
-            <svg className="absolute inset-0 w-full h-full opacity-20">
-              {[...Array(6)].map((_, i) => (
-                <motion.line
-                  key={i}
-                  x1={`${Math.random() * 100}%`}
-                  y1={`${Math.random() * 100}%`}
-                  x2={`${Math.random() * 100}%`}
-                  y2={`${Math.random() * 100}%`}
-                  stroke={i % 2 === 0 ? '#00A86B' : '#FF7F11'}
-                  strokeWidth="0.5"
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 0.4 }}
-                  transition={{ duration: 2, delay: i * 0.3 }}
+          {/* Phase 1: Message Bubble */}
+          <AnimatePresence>
+            {phase === 'bubble' && (
+              <motion.div
+                className="relative z-10 flex flex-col items-center"
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.5, transition: { duration: 0.3 } }}
+              >
+                {/* Chat bubble */}
+                <motion.div
+                  className="bg-gradient-to-br from-sasl-green to-emerald-600 text-white px-8 py-5 rounded-3xl rounded-bl-md shadow-2xl shadow-sasl-green/30 max-w-xs"
+                  animate={{ y: [0, -8, 0] }}
+                  transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <motion.p
+                    className="text-2xl font-bold text-center"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    No WiFi?
+                  </motion.p>
+                  <motion.p
+                    className="text-lg text-center text-white/80 mt-1"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.7 }}
+                  >
+                    No Problem.
+                  </motion.p>
+                </motion.div>
+
+                {/* Typing dots */}
+                <motion.div
+                  className="flex gap-1.5 mt-3"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.0 }}
+                >
+                  {[0, 1, 2].map(i => (
+                    <motion.div
+                      key={i}
+                      className="w-2 h-2 rounded-full bg-sasl-green/60"
+                      animate={{ y: [0, -6, 0], opacity: [0.4, 1, 0.4] }}
+                      transition={{ duration: 0.6, delay: i * 0.15, repeat: Infinity }}
+                    />
+                  ))}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Phase 2: Explosion */}
+          <AnimatePresence>
+            {phase === 'explode' && (
+              <motion.div className="relative z-10" initial={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                {/* Particles flying out */}
+                {particles.map(p => (
+                  <motion.div
+                    key={p.id}
+                    className="absolute rounded-full"
+                    style={{
+                      width: p.size,
+                      height: p.size,
+                      backgroundColor: p.color,
+                      left: '50%',
+                      top: '50%',
+                    }}
+                    initial={{ x: 0, y: 0, opacity: 1, scale: 0 }}
+                    animate={{
+                      x: p.x,
+                      y: p.y,
+                      opacity: [1, 1, 0],
+                      scale: [0, p.scale, 0],
+                      rotate: p.rotation,
+                    }}
+                    transition={{ duration: 1.2, ease: 'easeOut' }}
+                  />
+                ))}
+
+                {/* Center flash */}
+                <motion.div
+                  className="absolute w-32 h-32 rounded-full bg-white/30 blur-xl"
+                  style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
+                  initial={{ scale: 0, opacity: 1 }}
+                  animate={{ scale: 3, opacity: 0 }}
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
                 />
-              ))}
-            </svg>
-          </div>
 
-          {/* Content */}
-          <div className="relative z-10 flex flex-col items-center">
-            {/* Pulsing ring behind logo */}
-            <motion.div
-              className="absolute w-40 h-40 rounded-full"
-              style={{
-                background: 'conic-gradient(from 0deg, #00A86B, #FF7F11, #00A86B)',
-                filter: 'blur(30px)',
-                opacity: 0.3,
-              }}
-              animate={{ rotate: 360, scale: [1, 1.2, 1] }}
-              transition={{ rotate: { duration: 4, repeat: Infinity, ease: 'linear' }, scale: { duration: 2, repeat: Infinity } }}
-            />
+                {/* "Offline" text in center of explosion */}
+                <motion.p
+                  className="text-white/60 text-sm tracking-widest absolute"
+                  style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
+                  initial={{ opacity: 1 }}
+                  animate={{ opacity: 0 }}
+                  transition={{ duration: 0.8 }}
+                >
+                  OFFLINE
+                </motion.p>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-            <motion.div
-              initial={{ scale: 0, rotate: -15 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
-            >
-              <Logo className="text-7xl md:text-8xl relative z-10" />
-            </motion.div>
-
-            <motion.p
-              className="text-white/80 mt-6 text-xl md:text-2xl font-light tracking-wider text-center px-4"
-              initial={{ y: 30, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.6 }}
-            >
-              Social Asynchronous Sharing Layer
-            </motion.p>
-
-            <motion.div
-              className="mt-10 w-56 h-1 bg-white/10 rounded-full overflow-hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
+          {/* Phase 3: Logo Reveal */}
+          <AnimatePresence>
+            {phase === 'logo' && (
               <motion.div
-                className="h-full rounded-full"
-                style={{
-                  background: 'linear-gradient(90deg, #00A86B, #FF7F11, #00A86B)',
-                  backgroundSize: '200% 100%',
-                }}
-                initial={{ width: '0%' }}
-                animate={{ width: '100%' }}
-                transition={{ duration: 2.0, delay: 0.5, ease: 'easeInOut' }}
-              />
-            </motion.div>
+                className="relative z-10 flex flex-col items-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <motion.div
+                  initial={{ scale: 0, rotate: -10 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ type: 'spring', stiffness: 200, damping: 12 }}
+                >
+                  <Logo className="text-7xl md:text-8xl" />
+                </motion.div>
 
-            <motion.p
-              className="text-white/30 mt-4 text-sm tracking-widest uppercase"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.5, duration: 0.5 }}
-            >
-              Offline-First Social Network
-            </motion.p>
-          </div>
+                <motion.p
+                  className="text-white/80 mt-6 text-xl md:text-2xl font-light tracking-wider text-center px-4"
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                >
+                  Social Asynchronous Sharing Layer
+                </motion.p>
+
+                <motion.p
+                  className="text-sasl-green/60 mt-3 text-sm tracking-widest uppercase"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  🌊 Offline-First Social Network
+                </motion.p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>
