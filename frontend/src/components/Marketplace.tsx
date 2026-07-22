@@ -135,15 +135,13 @@ export default function Marketplace() {
   };
 
   useEffect(() => { fetchProducts(); fetchCategories(); }, [fetchProducts]);
-
-  const buy = async (productId: string) => {
+  const requestBuy = async (productId: string) => {
     if (!user) return toast.error('Please login first');
     if (!isOnline) return toast.error('Buying works online only');
     try {
-      await api.post(`/marketplace/products/${productId}/purchase/`, { quantity: 1 });
-      toast.success('🎉 Purchased successfully!');
-      fetchProducts();
-    } catch (err: any) { toast.error(err.response?.data?.error || 'Purchase failed'); }
+      await api.post(`/marketplace/products/${productId}/request_purchase/`, { quantity: 1 });
+      toast.success('📩 Purchase request sent to seller!');
+    } catch (err: any) { toast.error(err.response?.data?.error || 'Request failed'); }
   };
 
   const toggleWishlist = async (productId: string) => {
@@ -503,7 +501,7 @@ const resetSellForm = () => {
                   </button>
                 )}
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => { setPaymentAmount(parseFloat(selectedProduct.price)); setShowPayment(true); }} disabled={selectedProduct.stock === 0} className="btn-primary flex-1 flex items-center justify-center gap-2"><ShoppingCart size={18} /> {t('buy_now')}</button>
+                  <button onClick={() => requestBuy(selectedProduct.id)} disabled={selectedProduct.stock === 0} className="btn-primary flex-1 flex items-center justify-center gap-2"><ShoppingCart size={18} /> {t('Request to Buy')}</button>
                   <button onClick={() => toggleWishlist(selectedProduct.id)} className="btn-ghost"><Heart size={20} className={selectedProduct.is_wishlisted ? 'fill-red-500 text-red-500' : ''} /></button>
                 </div>
                 <div className="flex gap-2 mt-3 pt-3 border-t">

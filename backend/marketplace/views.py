@@ -131,7 +131,61 @@ class ProductViewSet(viewsets.ModelViewSet):
         )
         
         return Response({'status': 'purchased', 'order_id': str(order.id), 'message': 'Funds held in escrow until delivery confirmation'})
+    
 
+    @action(detail=True, methods=['post'])
+    def request_purchase(self, request, pk=None):
+        """Buyer requests to buy — seller must approve."""
+        product = self.get_object()
+        if product.seller == request.user:
+            return Response({'error': 'Cannot buy your own product'}, status=400)
+        
+        # Create order with pending status
+        order = Order.objects.create(
+            buyer=request.user,
+            seller=product.seller,
+            product=product,
+            amount=product.price,
+            status='pending_approval'
+        )
+        create_notification(
+            recipient=product.seller,
+            actor=request.user,
+            notification_type='purchase_request',
+            message=f'{request.user.username} wants to buy "{product.title}" for ${product.price}'
+        )
+        return Response({'status': 'requested', 'order_id': order.id})
+
+    @action(detail=True, methods=['post'])
+    def approve_purchase(self, request, pk=None):
+        """Seller approves purchase — payment processed."""
+        product = self.get_object()
+        if product.seller != request.user:
+            return Response({'error': 'Only seller can approve'}, status=403)
+        
+        order_id = request.data.get('order_id')
+        order = Order.objects.get(id=order_id, product=product, status='pending_approval')
+        
+        total = order.amount
+        valid, error_response = validate_marketplace_purchase(
+            order.buyer, product.seller, total, product.title
+        )
+        if not valid:
+            order.status = 'failed'
+            order.save()
+            return error_response
+        
+        success = process_marketplace_purchase(order.buyer, product.seller, total, product.title)
+        if not success:
+            order.status = 'failed'
+            order.save()
+            return Response({'error': 'Insufficient wallet balance'}, status=402)
+
+        order.status = 'completed'
+        order.save()
+        product.stock -= 1
+        product.save()
+        return Response({'status': 'approved'})
     @action(detail=True, methods=['post'])
     def confirm_delivery(self, request, pk=None):
         """Buyer confirms delivery — releases escrow to seller."""
