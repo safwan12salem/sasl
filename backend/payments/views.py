@@ -4,6 +4,7 @@ Complete payment processing endpoints
 """
 import stripe
 import logging
+from decimal import Decimal
 from rest_framework.permissions import IsAuthenticated
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -135,7 +136,7 @@ class PaymentViewSet(viewsets.GenericViewSet):
             logger.info(f"Session status: {session.payment_status}, amount: {session.amount_total}")
             
             if session.payment_status == 'paid':
-                amount = session.amount_total / 100
+                amount = Decimal(str(session.amount_total)) / 100
                 
                 # Get user_id from metadata safely
                 user_id = None
