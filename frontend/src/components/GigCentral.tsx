@@ -480,10 +480,31 @@ export default function GigCentral() {
                             <MessageCircle size={14} /> {t('Chat')}
                           </button>
                         )}
-                        {gig.creator_name !== user?.username && gig.status === 'open' && (
-                          <button onClick={(e) => { e.stopPropagation(); setPaymentAmount(parseFloat(gig.budget)); setShowPayment(true); }}
+                                               {gig.creator_name !== user?.username && gig.status === 'open' && (
+                          <button onClick={async (e) => { e.stopPropagation();
+                            try { 
+                              await api.post(`/gigs/gigs/${gig.id}/propose/`, { 
+                                message: 'I would like to work on this gig.',
+                                proposed_budget: gig.budget 
+                              }); 
+                              toast.success(t('Proposal submitted!')); 
+                              fetchGigs(); 
+                            } catch { toast.error(t('Failed to submit proposal')); }
+                          }}
+                            className="ml-auto px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition flex items-center gap-1">
+                            <Send size={14} /> {t('Submit Proposal')}
+                          </button>
+                        )}
+                                                {gig.creator_name === user?.username && gig.status === 'pending' && gig.taker_name && (
+                          <button onClick={async (e) => { e.stopPropagation();
+                            try { 
+                              await api.post(`/gigs/gigs/${gig.id}/accept_proposal/`); 
+                              toast.success(t('Proposal accepted! Funds in escrow.')); 
+                              fetchGigs(); 
+                            } catch { toast.error(t('Failed to accept')); }
+                          }}
                             className="ml-auto px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition flex items-center gap-1">
-                            <Zap size={14} /> {t('Take Gig')}
+                            <CheckCircle size={14} /> {t('Accept Proposal')}
                           </button>
                         )}
                         {gig.taker_name === user?.username && gig.status === 'in_progress' && (

@@ -65,27 +65,56 @@ class GigViewSet(viewsets.ModelViewSet):
         return qs.order_by('-created_at')
 
     @action(detail=True, methods=['post'])
-    def take(self, request, pk=None):
+    def propose(self, request, pk=None):
+        """Worker submits a proposal to the employer"""
         gig = self.get_object()
         if gig.status != 'open':
             return Response({'error': 'Gig is not open'}, status=400)
         if gig.creator == request.user:
-            return Response({'error': 'Cannot take your own gig'}, status=400)
+            return Response({'error': 'Cannot apply to your own gig'}, status=400)
         
-        with transaction.atomic():
-            gig.taker = request.user
-            gig.status = 'in_progress'
-            gig.save()
-            
-            create_notification(
-                recipient=gig.creator,
-                actor=request.user,
-                notification_type='gig_taken',
-                message=f'{request.user.username} took your gig "{gig.title}"'
-            )
+        message = request.data.get('message', 'I would like to work on this gig.')
+        proposed_budget = request.data.get('proposed_budget', str(gig.budget))
         
-        return Response(GigSerializer(gig, context={'request': request}).data)
-
+        gig.taker = request.user
+        gig.status = 'pending'
+        gig.proposal_message = message
+        gig.proposed_budget = proposed_budget
+        gig.save()
+        
+        create_notification(
+            recipient=gig.creator,
+            actor=request.user,
+            notification_type='gig_proposal',
+            message=f'{request.user.username} submitted a proposal for "{gig.title}": {message}'
+        )
+        return Response({'status': 'proposed'})
+    
+    @action(detail=True, methods=['post'])
+    def accept_proposal(self, request, pk=None):
+        """Employer accepts worker's proposal — payment goes to escrow"""
+        gig = self.get_object()
+        if gig.creator != request.user:
+            return Response({'error': 'Only the employer can accept proposals'}, status=403)
+        if gig.status != 'pending':
+            return Response({'error': 'No pending proposal'}, status=400)
+        
+        # Move funds to escrow
+        from monetization.services import process_gig_escrow
+        success = process_gig_escrow(request.user, gig.taker, gig.budget, gig.title)
+        if not success:
+            return Response({'error': 'Payment failed — insufficient funds'}, status=402)
+        
+        gig.status = 'in_progress'
+        gig.save()
+        
+        create_notification(
+            recipient=gig.taker,
+            actor=request.user,
+            notification_type='gig_accepted',
+            message=f'{request.user.username} accepted your proposal for "{gig.title}"! Funds held in escrow.'
+        )
+        return Response({'status': 'accepted', 'message': 'Proposal accepted! Funds held in escrow until completion.'})
     def complete(self, request, pk=None):
         gig = self.get_object()
         if gig.status != 'in_progress' or gig.taker != request.user:

@@ -116,6 +116,7 @@ const STATUS_COLORS: Record<string, string> = {
   // Tutor profiles
   const [tutors, setTutors] = useState<TutorProfile[]>([]);
   const [showTutors, setShowTutors] = useState(false);
+    
 
   // Video call
   const [inCall, setInCall] = useState<string | null>(null);
@@ -770,7 +771,7 @@ const STATUS_COLORS: Record<string, string> = {
                       <span className="flex items-center gap-1 text-xs text-amber-500"><Zap size={14} /> {session.duration_minutes}min</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                                <div className="flex items-center gap-2 flex-shrink-0">
                                         <button onClick={(e) => { 
                       e.stopPropagation(); 
                       // Tutor joins free, students pay

@@ -65,7 +65,25 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
             qs = qs.filter(Q(tutor=self.request.user) | Q(student=self.request.user))
         
         return qs
-
+    @action(detail=True, methods=['post'])
+    def request_booking(self, request, pk=None):
+        session = self.get_object()
+        if session.student:
+            return Response({'error': 'Session already has a student'}, status=400)
+        if session.tutor == request.user:
+            return Response({'error': 'Cannot book your own session'}, status=400)
+        
+        session.student = request.user
+        session.status = 'pending_confirmation'
+        session.save()
+        
+        create_notification(
+            recipient=session.tutor,
+            actor=request.user,
+            notification_type='booking_request',
+            message=f'{request.user.username} requested to book your session "{session.subject}"'
+        )
+        return Response({'status': 'requested'})
     def perform_create(self, serializer):
         serializer.save(
             tutor=self.request.user,

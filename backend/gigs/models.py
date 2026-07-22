@@ -5,6 +5,7 @@ import uuid
 
 class Gig(models.Model):
     STATUS_CHOICES = (
+        ('pending', 'Pending Approval'),
         ('open', 'Open'),
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
@@ -30,6 +31,8 @@ class Gig(models.Model):
     budget = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=3, default='USD')
     status = models.CharField(max_length=20, default='open', choices=STATUS_CHOICES)
+    proposal_message = models.TextField(blank=True, default='')
+    proposed_budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     category = models.CharField(max_length=20, default='other', choices=CATEGORY_CHOICES)
     skills_required = models.CharField(max_length=500, blank=True, default='')
     deadline = models.DateField(null=True, blank=True)
