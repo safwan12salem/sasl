@@ -15,6 +15,10 @@ import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
 import VoiceMessageRecorder from './VoiceMessageRecorder';
 import { Image as ImageIcon } from 'lucide-react';
+import { db } from '../services/offlineDB';
+import { useMesh } from '../contexts/MeshContext';
+
+
 
 interface Group {
   id: string;
@@ -47,6 +51,7 @@ interface Message {
 
 export default function GroupChat() {
   const { user } = useAuth();
+    const { isOnline } = useMesh();
   const { t } = useTranslation();
   const [groups, setGroups] = useState<Group[]>([]);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
@@ -69,6 +74,8 @@ export default function GroupChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showSidebar, setShowSidebar] = useState(true);
+    
+
 
 const handleEditMessage = async (messageId: string, oldText: string) => {
   const newText = prompt('Edit message:', oldText);
@@ -106,6 +113,21 @@ const handleDeleteMessage = async (messageId: string) => {
     return () => clearInterval(interval);
   }, [activeGroup]);
 
+  // Sync offline messages when coming online
+  useEffect(() => {
+    if (isOnline && activeGroup) {
+      db.messages.where('roomId').equals(activeGroup).toArray().then(async (offlineMsgs) => {
+        for (const msg of offlineMsgs) {
+          try {
+            await api.post(`/groupchat/groups/${activeGroup}/send_message/`, { text: msg.text });
+            await db.messages.delete(msg.id!);
+          } catch {}
+        }
+        fetchMessages(activeGroup, true);
+      });
+    }
+  }, [isOnline, activeGroup]);
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -124,15 +146,22 @@ const handleDeleteMessage = async (messageId: string) => {
     }
   }, [activeGroup]);
 
-  const fetchMessages = async (groupId: string, silent = false) => {
-    if (!silent) setLoading(true);
+    const fetchMessages = async (groupId: string, silent = false) => {
     try {
       const res = await api.get(`/groupchat/groups/${groupId}/messages/`);
-      setMessages(res.data.results || res.data || []);
-    } catch (err) {
+      const data = res.data.results || res.data || [];
+      setMessages(data);
+      // Cache to offlineDB
+      data.forEach((m: any) => {
+        db.messages.put({ roomId: groupId, sender: m.sender_name || m.sender?.username, text: m.text || m.content || '', timestamp: new Date(m.created_at).getTime(), type: m.message_type || 'text', fileUrl: m.image || m.file_url });
+      });
+    } catch {
+      // Offline: load from local DB
+      const offlineMsgs = await db.messages.where('roomId').equals(groupId).sortBy('timestamp');
+      if (offlineMsgs.length > 0) {
+               setMessages(offlineMsgs.map(m => ({ id: m.id?.toString() || `offline-${Date.now()}`, text: m.text, sender_name: m.sender, sender: { username: m.sender || 'User' }, image: m.fileUrl, is_system_message: false, created_at: new Date(m.timestamp).toISOString() } as Message)));
+      }
       if (!silent) toast.error(t('failed_to_load_messages'));
-    } finally {
-      if (!silent) setLoading(false);
     }
   };
 
@@ -166,6 +195,16 @@ const handleDeleteMessage = async (messageId: string) => {
   const sendMessage = async () => {
     if (!input.trim() && !selectedImage) return;
     if (!activeGroup) return;
+        if (!isOnline) {
+      // Save offline
+      await db.messages.put({ roomId: activeGroup, sender: user?.username || 'Me', text: input, timestamp: Date.now(), type: selectedImage ? 'image' : 'text' });
+               setMessages(prev => [...prev, { id: `offline-${Date.now()}`, text: input, sender_name: user?.username || 'Me', sender: { username: user?.username || 'Me' }, is_system_message: false, created_at: new Date().toISOString() } as Message]);
+      setInput('');
+      setSelectedImage(null);
+      setImagePreview(null);
+      toast.success('Saved offline — will sync when online');
+      return;
+    }
     setSending(true);
 
     try {

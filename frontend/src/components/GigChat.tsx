@@ -4,6 +4,9 @@ import { Send, ImageIcon, Edit3, Trash2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
+import { db } from '../services/offlineDB';
+import { useMesh } from '../contexts/MeshContext';
+
 
 interface Props {
   roomId: string;
@@ -19,18 +22,30 @@ export default function GigChat({ roomId, onClose }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const token = localStorage.getItem('sasl_token');
   const { t } = useTranslation();
-  const { user } = useAuth();
+   const { user } = useAuth();
+  const { isOnline } = useMesh();
 
-  useEffect(() => {
-      const fetchHistory = async () => {
-    try {
-      const res = await api.get(`/gigs/chat/${roomId}/`);
-      const dataArray = Array.isArray(res.data) ? res.data : (res.data?.results || []);
-      setMessages(dataArray);
-    } catch {}
-  };
+  
+          useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        const res = await api.get(`/gigs/chat/${roomId}/`);
+        const dataArray = Array.isArray(res.data) ? res.data : (res.data?.results || []);
+        setMessages(dataArray);
+        dataArray.forEach((m: any) => {
+          db.messages.put({ roomId, sender: m.sender_name, text: m.text || m.content, timestamp: new Date(m.created_at).getTime(), type: m.message_type || 'text', fileUrl: m.file_url });
+        });
+      } catch {
+        const offlineMsgs = await db.messages.where('roomId').equals(roomId).sortBy('timestamp');
+        if (offlineMsgs.length > 0) {
+          setMessages(offlineMsgs.map(m => ({ id: m.id?.toString(), text: m.text, sender_name: m.sender, sender: { username: m.sender }, file_url: m.fileUrl })));
+        }
+      }
+    };
     if (roomId) fetchHistory();
   }, [roomId, user]);
+
+
 
   useEffect(() => {
     const isLocal = window.location.hostname === 'localhost';
@@ -53,18 +68,47 @@ export default function GigChat({ roomId, onClose }: Props) {
     return () => { ws.close(); wsRef.current = null; };
   }, [roomId, token]);
 
-  const send = async () => {
+    // Sync offline messages when coming online
+  useEffect(() => {
+    if (isOnline && roomId) {
+      db.messages.where('roomId').equals(roomId).toArray().then(async (offlineMsgs) => {
+        for (const msg of offlineMsgs) {
+          try {
+            await api.post(`/gigs/chat/${roomId}/`, { text: msg.text });
+            await db.messages.delete(msg.id!);
+          } catch {}
+        }
+        try {
+          const res = await api.get(`/gigs/chat/${roomId}/`);
+          setMessages(Array.isArray(res.data) ? res.data : (res.data?.results || []));
+        } catch {}
+      });
+    }
+  }, [isOnline, roomId]);
+
+
+  
+    const send = async () => {
     if (!input.trim()) return;
+    const msgId = Date.now().toString();
+    const newMsg = { id: msgId, text: input, sender_name: user?.username, sender: { username: user?.username }, timestamp: new Date().toISOString() };
+    
     if (editingId) {
-      try { await api.patch(`/gigs/chat/${roomId}/`, { message_id: editingId, text: input }); } catch {}
       setMessages(prev => prev.map(m => m.id === editingId ? { ...m, text: input, is_edited: true } : m));
       setEditingId(null);
     } else {
+      setMessages(prev => [...prev, newMsg]);
+    }
+    
+    if (isOnline) {
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify({ type: 'chat', text: input }));
       }
       try { await api.post(`/gigs/chat/${roomId}/`, { text: input }); } catch {}
-      setMessages(prev => [...prev, { id: Date.now().toString(), text: input, sender_name: user?.username, sender: { username: user?.username } }]);
+    } else {
+      // Offline: save to local DB
+      await db.messages.put({ roomId, sender: user?.username || 'Me', text: input, timestamp: Date.now(), type: 'text' });
+      toast.success('Saved offline — will sync when online');
     }
     setInput('');
   };
