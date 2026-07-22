@@ -146,12 +146,17 @@ const handleDeleteMessage = async (messageId: string) => {
     }
   }, [activeGroup]);
 
-    const fetchMessages = async (groupId: string, silent = false) => {
+      const fetchMessages = async (groupId: string, silent = false) => {
     try {
       const res = await api.get(`/groupchat/groups/${groupId}/messages/`);
       const data = res.data.results || res.data || [];
-      setMessages(data);
-              await db.messages.where('roomId').equals(groupId).delete();
+      // Deduplicate by ID before setting
+      setMessages(prev => {
+        const existingIds = new Set(prev.map(m => m.id));
+        const newMsgs = data.filter((m: any) => !existingIds.has(m.id?.toString()));
+        return [...prev.filter(m => !m.id?.toString().startsWith('offline-')), ...newMsgs];
+      });
+      await db.messages.where('roomId').equals(groupId).delete();
       // Cache to offlineDB
       data.forEach((m: any) => {
         db.messages.put({ roomId: groupId, sender: m.sender_name || m.sender?.username, text: m.text || m.content || '', timestamp: new Date(m.created_at).getTime(), type: m.message_type || 'text', fileUrl: m.image || m.file_url });
@@ -160,12 +165,11 @@ const handleDeleteMessage = async (messageId: string) => {
       // Offline: load from local DB
       const offlineMsgs = await db.messages.where('roomId').equals(groupId).sortBy('timestamp');
       if (offlineMsgs.length > 0) {
-               setMessages(offlineMsgs.map(m => ({ id: m.id?.toString() || `offline-${Date.now()}`, text: m.text, sender_name: m.sender, sender: { username: m.sender || 'User' }, image: m.fileUrl, is_system_message: false, created_at: new Date(m.timestamp).toISOString() } as Message)));
+        setMessages(offlineMsgs.map(m => ({ id: m.id?.toString() || `offline-${Date.now()}`, text: m.text, sender_name: m.sender, sender: { username: m.sender || 'User' }, image: m.fileUrl, is_system_message: false, created_at: new Date(m.timestamp).toISOString() } as Message)));
       }
       if (!silent) toast.error(t('failed_to_load_messages'));
     }
   };
-
   const createGroup = async () => {
     if (!groupName.trim()) {
       toast.error(t('enter_group_name'));

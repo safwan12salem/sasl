@@ -74,7 +74,10 @@ class Story(models.Model):
         if not self.expires_at:
             self.expires_at = timezone.now() + timezone.timedelta(hours=24)
         super().save(*args, **kwargs)
-
+    
+    
+    class Meta:
+        ordering = ['-created_at']
 
 
 # Poll models
