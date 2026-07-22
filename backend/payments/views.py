@@ -157,12 +157,11 @@ class PaymentViewSet(viewsets.GenericViewSet):
                 wallet.save()
 
                 Transaction.objects.create(
-                    user=request.user,
-                    amount=amount,
-                    transaction_type='topup',
-                    description='Wallet top-up via Stripe Checkout',
-                    status='completed'
-                )
+                        user=request.user,
+                        amount=amount,
+                        transaction_type='topup',
+                        description='Wallet top-up via Stripe Checkout'
+                    )
                 return Response({'status': 'success', 'new_balance': str(wallet.balance)})
             return Response({'error': f'Payment status: {session.payment_status}'}, status=400)
         except Exception as e:
