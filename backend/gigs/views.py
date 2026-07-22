@@ -300,7 +300,16 @@ class GigViewSet(viewsets.ModelViewSet):
           return Response(GigChatMessageSerializer(msg).data, status=201) 
       
 
-
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        gig = self.get_object()
+        if gig.creator != request.user:
+            return Response({'error': 'Only the creator can cancel'}, status=403)
+        if gig.status not in ['open', 'pending']:
+            return Response({'error': 'Can only cancel open or pending gigs'}, status=400)
+        gig.status = 'cancelled'
+        gig.save()
+        return Response({'status': 'cancelled'})
 
 class GigChatViewSet(viewsets.ViewSet):
     """Dedicated gig chat - isolated from WaveMesh"""

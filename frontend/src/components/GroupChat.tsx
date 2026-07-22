@@ -151,6 +151,7 @@ const handleDeleteMessage = async (messageId: string) => {
       const res = await api.get(`/groupchat/groups/${groupId}/messages/`);
       const data = res.data.results || res.data || [];
       setMessages(data);
+              await db.messages.where('roomId').equals(groupId).delete();
       // Cache to offlineDB
       data.forEach((m: any) => {
         db.messages.put({ roomId: groupId, sender: m.sender_name || m.sender?.username, text: m.text || m.content || '', timestamp: new Date(m.created_at).getTime(), type: m.message_type || 'text', fileUrl: m.image || m.file_url });

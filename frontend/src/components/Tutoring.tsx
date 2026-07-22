@@ -13,7 +13,8 @@ import {
   ClipboardList, Award, FileText, Download, Upload, PenTool,
   GraduationCap, ChevronDown, ChevronUp, X, CheckCircle, Globe,
   DollarSign, BarChart3, Bookmark, Share2, Zap,
-  Trophy
+  Trophy,
+  Send
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TutoringChat from './TutoringChat';
@@ -771,44 +772,39 @@ const STATUS_COLORS: Record<string, string> = {
                       <span className="flex items-center gap-1 text-xs text-amber-500"><Zap size={14} /> {session.duration_minutes}min</span>
                     </div>
                   </div>
-                                <div className="flex items-center gap-2 flex-shrink-0">
-                                        <button onClick={(e) => { 
-                      e.stopPropagation(); 
-                      // Tutor joins free, students pay
-                      if (session.tutor?.username === user?.username) {
-                        startVideoCall(session.id);
-                      } else {
-                        setPaymentAmount(parseFloat(session.price)); 
-                        setPendingJoinSession(session.id); 
-                        setShowPayment(true);
-                      }
-                    }}
-                      className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 flex items-center gap-1">
-                      <Play size={14} /> {t('Join Class')}
-                    </button>
-                    {user?.is_teacher && session.tutor.username === user.username && session.status === 'scheduled' && (
-                      <button onClick={(e) => { e.stopPropagation(); confirmSession(session.id); }}
-                        className="bg-green-500 text-white px-3 py-2 rounded-full text-sm hover:bg-green-600">
-                        {t('Confirm')}
+                                                 <div className="flex items-center gap-2 flex-shrink-0">
+                    {session.tutor?.username === user?.username ? (
+                      <>
+                        {session.status === 'scheduled' && (
+                          <button onClick={(e) => { e.stopPropagation(); confirmSession(session.id); }}
+                            className="bg-green-500 text-white px-3 py-2 rounded-full text-sm hover:bg-green-600">
+                            {t('Confirm')}
+                          </button>
+                        )}
+                        <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
+                          className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 flex items-center gap-1">
+                          <Play size={14} /> {t('Join Class')}
+                        </button>
+                      </>
+                    ) : session.student?.username === user?.username ? (
+                      <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
+                        className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 flex items-center gap-1">
+                        <Play size={14} /> {t('Join Class')}
                       </button>
-                    )}
-                    {user?.is_teacher && session.tutor.username === user.username && session.status === 'ongoing' && (
-                      <button onClick={(e) => { e.stopPropagation(); completeSession(session.id); }}
-                        className="text-green-600 hover:underline text-sm font-semibold">
-                        {t('Complete')} →
-                      </button>
-                    )}
-                    <button onClick={(e) => { e.stopPropagation(); setExpandedSession(expandedSession === session.id ? null : session.id); }}
-                      className="p-2 rounded-full hover:bg-gray-100">
-                      {expandedSession === session.id ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                    </button>
-
-                    {session.status !== 'cancelled' && session.status !== 'completed' && (
-                      <button onClick={() => cancelSession(session.id)} className="text-red-500 text-xs hover:underline">
-                        {t('cancel_session')}
+                    ) : (
+                      <button onClick={async (e) => { e.stopPropagation();
+                        try { 
+                          await api.post(`/tutoring/sessions/${session.id}/request_booking/`); 
+                          toast.success(t('Booking requested!')); 
+                          fetchSessions(); 
+                        } catch { toast.error(t('Failed to request')); }
+                      }}
+                        className="bg-purple-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-purple-600 flex items-center gap-1">
+                        <Send size={14} /> {t('Request to Book')}
                       </button>
                     )}
                   </div>
+                     
                 </div>
               </div>
 

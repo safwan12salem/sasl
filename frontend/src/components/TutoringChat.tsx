@@ -33,6 +33,7 @@ export default function GigChat({ roomId, onClose }: Props) {
         const res = await api.get(`/tutoring/chat/${roomId}/`);
         const dataArray = Array.isArray(res.data) ? res.data : (res.data?.results || []);
         setMessages(dataArray);
+                await db.messages.where('roomId').equals(roomId).delete();
         dataArray.forEach((m: any) => {
           db.messages.put({ roomId, sender: m.sender_name, text: m.text || m.content, timestamp: new Date(m.created_at).getTime(), type: m.message_type || 'text', fileUrl: m.file_url });
         });
@@ -83,6 +84,7 @@ export default function GigChat({ roomId, onClose }: Props) {
         try {
           const res = await api.get(`/tutoring/chat/${roomId}/`);
           setMessages(Array.isArray(res.data) ? res.data : (res.data?.results || []));
+          await db.messages.where('roomId').equals(roomId).delete();
         } catch {}
       });
     }
@@ -173,7 +175,7 @@ export default function GigChat({ roomId, onClose }: Props) {
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full p-1.5 transition"><X size={18} /></button>
         </div>
-        <div className="h-72 bg-gray-50 rounded-lg m-3 p-3 overflow-y-auto space-y-2">
+        <div className="h-72 bg-gray-50 rounded-lg m-3 p-3 overflow-y-auto overflow-x-hidden space-y-2">
           {messages.length === 0 && <p className="text-gray-400 text-sm text-center mt-20">{connected ? t('Start the conversation!') : t('Connecting...')}</p>}
           {messages.map((m, i) => {
             const isMe = m.sender_name === user?.username || m.sender?.username === user?.username;
