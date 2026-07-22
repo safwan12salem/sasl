@@ -109,6 +109,8 @@ export default function GigCentral() {
   const [newBudget, setNewBudget] = useState('');
   const [newCategory, setNewCategory] = useState('design');
   const [newDeadline, setNewDeadline] = useState('');
+    const [creating, setCreating] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [milestones, setMilestones] = useState<{ title: string; amount: string }[]>([{ title: '', amount: '' }]);
 
   const [showReview, setShowReview] = useState<string | null>(null);
@@ -165,22 +167,34 @@ export default function GigCentral() {
   const fetchBadges = async () => { try { const res = await api.get('/gigs/gigs/my_badges/'); setSkillBadges(res.data || []); } catch {} };
   useEffect(() => { fetchPortfolio(); fetchBadges(); }, []);
 
-  const createGig = async () => {
+     const createGig = async () => {
     if (!newTitle || !newBudget) return toast.error(t('Title & budget required'));
-    const token = localStorage.getItem('sasl_token');
-    const baseURL = process.env.REACT_APP_API_URL || 'https://sasl-api-i34r.onrender.com';
+    setCreating(true);
     try {
-      const res = await fetch(`${baseURL}/api/gigs/gigs/`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTitle, description: newDesc, budget: parseFloat(newBudget), category: newCategory, deadline: newDeadline || null, milestones: milestones.filter(m => m.title && m.amount) }),
+      const res = await api.post('/gigs/gigs/', { 
+        title: newTitle, 
+        description: newDesc, 
+        budget: parseFloat(newBudget), 
+        category: newCategory, 
+        deadline: newDeadline || null, 
+        milestones: milestones.filter(m => m.title && m.amount) 
       });
-      if (!res.ok) throw new Error('Failed');
-      toast.success(t('🎉 Gig posted successfully!'));
-      setShowForm(false); resetForm(); fetchGigs();
-    } catch { toast.error(t('Failed to post gig')); }
+      setGigs(prev => [res.data, ...prev]);
+      setNewTitle('');
+      setNewDesc('');
+      setNewBudget('');
+      setNewCategory('other');
+      setNewDeadline('');
+      setMilestones([]);
+      setShowCreateForm(false);
+      toast.success(t('gig_created'));
+    } catch (err: any) {
+      const msg = err.response?.data?.detail || err.response?.data?.error || t('failed_to_create_gig');
+      toast.error(msg);
+    } finally {
+      setCreating(false);
+    }
   };
-
   const requestGig = async (gigId: string) => {
     try {
       await api.post(`/gigs/gigs/${gigId}/apply/`, { message: proposalMessage || 'I would like to work on this gig.', proposed_budget: proposalBudget || undefined });

@@ -108,7 +108,10 @@ const handleDeleteMessage = async (messageId: string) => {
   useEffect(() => {
     fetchGroups();
     const interval = setInterval(() => {
-      if (activeGroup) fetchMessages(activeGroup, true);
+            if (activeGroup) {
+        setMessages([]); // Clear old room's messages
+        fetchMessages(activeGroup, true);
+      }
     }, 5000);
     return () => clearInterval(interval);
   }, [activeGroup]);
@@ -310,10 +313,22 @@ useEffect(() => {
       {/* Sidebar */}
                   <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex lg:w-80 border-r border-gray-200 dark:border-gray-700 flex-col absolute lg:relative z-20 bg-white dark:bg-gray-900 h-full w-[85%] max-w-[300px]`}>
                      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between lg:hidden">
-          <h2 className="font-bold">{t('groups')}</h2>
-<button onClick={() => setShowCreate(prev => !prev)} onTouchEnd={(e) => { e.preventDefault(); setShowCreate(prev => !prev); }} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-green-600" title={t('new_group')}>
-  <Plus size={18} />
-</button>
+                    <h2 className="font-bold">{t('groups')}</h2>
+          <div className="flex items-center gap-1">
+            <button onClick={() => setShowCreate(prev => !prev)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-green-600" title={t('new_group')}>
+              <Plus size={18} />
+            </button>
+            <button onClick={() => setShowSidebar(false)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg lg:hidden">
+              <X size={18} />
+            </button>
+          </div>
+                  {/* Desktop header — always visible on lg+ */}
+        <div className="hidden lg:flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 className="font-bold text-lg">{t('groups')}</h2>
+          <button onClick={() => setShowCreate(prev => !prev)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-green-600 transition" title={t('new_group')}>
+            <Plus size={20} />
+          </button>
+        </div>
         <button onClick={() => setShowSidebar(false)} onTouchEnd={(e) => { e.preventDefault(); setShowSidebar(false); }} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
             <X size={18} />
           </button>
