@@ -400,7 +400,7 @@ const resetSellForm = () => {
                 {p.image_url ? <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400"><Package size={24} /></div>}
               </div>
               <div className="flex-1"><h3 className="font-semibold">{p.title}</h3><p className="text-sm text-gray-500">by {p.seller_name} · {p.stock} {t('in_stock')}</p></div>
-              <div className="text-right"><p className="text-xl font-bold text-green-600">${p.price}</p><button onClick={(e) => { e.stopPropagation(); setPaymentAmount(parseFloat(p.price)); setShowPayment(true); }} disabled={p.stock === 0} className="btn-primary text-xs mt-1">{t('buy_now')}</button></div>
+              <div className="text-right"><p className="text-xl font-bold text-green-600">${p.price}</p><button onClick={(e) => { e.stopPropagation(); requestBuy(p.id); }} disabled={p.stock === 0} className="btn-primary text-xs mt-1">{t(' Request to Buy')}</button></div>
             </motion.div>
           ))}
         </div>
