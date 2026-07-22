@@ -105,15 +105,12 @@ const handleDeleteMessage = async (messageId: string) => {
     toast.error('Failed to delete message');
   }
 };
-  useEffect(() => {
+   useEffect(() => {
     fetchGroups();
-    const interval = setInterval(() => {
-            if (activeGroup) {
-        setMessages([]); // Clear old room's messages
-        fetchMessages(activeGroup, true);
-      }
-    }, 5000);
-    return () => clearInterval(interval);
+    if (activeGroup) {
+      setMessages([]); // Clear old room's messages
+      fetchMessages(activeGroup, true);
+    }
   }, [activeGroup]);
 
   // Sync offline messages when coming online

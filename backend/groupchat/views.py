@@ -33,6 +33,9 @@ class GroupChatViewSet(viewsets.ModelViewSet):
         # Auto-join public groups on first message fetch
         if not group.is_private and request.user not in group.members.all():
             group.members.add(request.user)
+        # Allow creator to rejoin their own group automatically
+        if request.user == group.creator and request.user not in group.members.all():
+            group.members.add(request.user)
         if request.user not in group.members.all():
             return Response({'error': 'Not a member'}, status=403)
         msgs = group.messages.all().order_by('created_at')[:100]
