@@ -99,9 +99,35 @@ class WaveMeshCore {
         this.onRoomCreated?.({ peerId: peer.deviceId, username: name });
         // Forward relay messages to newly connected peer
         echoRelay.forwardToPeer(peer.deviceId);
+                this.propagateRelayMessages(peer.deviceId);  // VIRUS RELAY: send stored messages via BLE
         this.log(`✅ Connected to ${name}`);
       });
       
+            // VIRUS RELAY RECEIVER: Accept relay messages, store, forward again
+      plugin.addListener('relayMessageReceived', (envelope: any) => {
+        try {
+          const data = JSON.parse(envelope.data || envelope);
+          if (data.type === 'relay_hop') {
+            // Check if this message is for us
+            if (data.to === this.identity?.id || data.to === this.identity?.username) {
+              // DELIVERED! Show in UI
+              this.onMessageReceived?.({ 
+                id: data.msgId, 
+                from: data.from, 
+                text: data.text, 
+                type: 'text', 
+                timestamp: Date.now(),
+                relayPath: data.relayPath 
+              });
+            } else {
+              // We're a middleman — store silently, forward when next peer connects
+              echoRelay.storeRelayEnvelope(data);
+              // DON'T show in UI — user sees nothing
+            }
+          }
+        } catch {}
+      });
+
       plugin.addListener('messageReceived', (msg: any) => {
           this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: msg.from, text: msg.text, type: 'text', timestamp: Date.now() });
           // Forward to relay mesh
@@ -308,6 +334,48 @@ class WaveMeshCore {
       }
     }
   }
+
+
+  
+
+  /**
+   * VIRUS RELAY: Forward undelivered Echo Relay messages to a connected peer via BLE
+   * Every Sasl user is a bridge. Messages hop through the mesh silently.
+   * Middlemen store encrypted envelopes — they see nothing.
+   * Only the destination phone delivers to UI.
+   */
+  private async propagateRelayMessages(deviceId: string): Promise<void> {
+    const undelivered = echoRelay.getUndeliveredMessages();
+    for (const msg of undelivered) {
+      if (msg.relayPath.includes(deviceId)) continue; // Loop prevention
+      
+      const envelope = JSON.stringify({
+        type: 'relay_hop',
+        msgId: msg.id,
+        from: msg.from,
+        to: msg.to,
+        text: msg.text,
+        hopCount: msg.hopCount + 1,
+        relayPath: [...msg.relayPath, deviceId],
+        ttl: msg.ttl - 1,
+      });
+      
+      try {
+        const { BleClient } = await import('@capacitor-community/bluetooth-le');
+        await BleClient.connect(deviceId);
+        const encoded = new TextEncoder().encode(envelope);
+        await BleClient.writeWithoutResponse(
+          deviceId,
+          '4fafc201-1fb5-459e-8fcc-c5c9c331914b',
+          're1ay000-36e1-4688-b7f5-ea07361b26a8',
+          new DataView(encoded.buffer)
+        );
+        echoRelay.markRelayed(msg.id, deviceId);
+        this.log(`🦠 Hop: ${msg.id.substring(0,8)} → ${deviceId}`);
+      } catch {}
+    }
+  }
+
 
   async sendControlCommand(command: string): Promise<void> {
     if (!this.identity) return;

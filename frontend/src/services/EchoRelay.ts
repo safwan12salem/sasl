@@ -123,6 +123,49 @@ export class EchoRelay {
     };
   }
 
+
+  /**
+   * Get all undelivered messages for relay propagation
+   */
+  getUndeliveredMessages(): RelayMessage[] {
+    return this.messages.filter(m => !m.delivered && m.ttl > 0);
+  }
+
+  /**
+   * Mark a message as relayed through a peer (don't send again)
+   */
+  markRelayed(msgId: string, peerId: string): void {
+    const msg = this.messages.find(m => m.id === msgId);
+    if (msg && !msg.relayPath.includes(peerId)) {
+      msg.relayPath.push(peerId);
+      msg.ttl--;
+      msg.hopCount++;
+    }
+  }
+
+  /**
+   * Store a relay envelope received from another phone
+   */
+  async storeRelayEnvelope(envelope: any): Promise<void> {
+    const msg: RelayMessage = {
+      id: envelope.msgId,
+      from: envelope.from,
+      to: envelope.to,
+      text: envelope.text,
+      timestamp: Date.now(),
+      ttl: envelope.ttl,
+      hopCount: envelope.hopCount,
+      relayPath: envelope.relayPath,
+      delivered: false,
+    };
+    // Don't re-store if we already have it
+    if (this.processedIds.has(msg.id)) return;
+    this.processedIds.add(msg.id);
+    this.messages.push(msg);
+    await this.saveMessage(msg);
+  }
+
+
   getMaxRange(): { meters: number; label: string } {
     const stats = this.getStats();
     const chainLength = stats.totalMessages > 0 ? Math.min(stats.pendingDelivery * 200, 50000) : 2000;
