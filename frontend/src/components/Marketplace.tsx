@@ -73,6 +73,7 @@ export default function Marketplace() {
   const [maxPrice, setMaxPrice] = useState('');
   const [inStockOnly, setInStockOnly] = useState(false);
     const [sentRequests, setSentRequests] = useState<Set<string>>(new Set());
+      const [pendingOrders, setPendingOrders] = useState<any[]>([]);
   const [showSellForm, setShowSellForm] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
@@ -136,6 +137,16 @@ export default function Marketplace() {
 
   useEffect(() => { fetchProducts(); fetchCategories(); }, [fetchProducts]);
   
+
+    useEffect(() => {
+    if (selectedProduct && user?.username === selectedProduct.seller_name) {
+      api.get(`/marketplace/orders/?product_id=${selectedProduct.id}&status=pending`)
+        .then(res => setPendingOrders(res.data.results || res.data || []))
+        .catch(() => setPendingOrders([]));
+    } else {
+      setPendingOrders([]);
+    }
+  }, [selectedProduct, user]);
 
     const requestBuy = async (productId: string) => {
     if (!user) return toast.error('Please login first');
@@ -419,6 +430,7 @@ const resetSellForm = () => {
 
       {/* Product Detail Modal */}
       <AnimatePresence>
+         
         {selectedProduct && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setSelectedProduct(null)}>
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }} className="glass-card max-w-lg w-full max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
@@ -511,10 +523,44 @@ const resetSellForm = () => {
                     🗑️ Delete Product
                   </button>
                 )}
-                <div className="flex gap-2 mt-4">
-                  <button onClick={() => requestBuy(selectedProduct.id)} disabled={selectedProduct.stock === 0} className="btn-primary flex-1 flex items-center justify-center gap-2"><ShoppingCart size={18} /> Request to Buy</button>
-                  <button onClick={() => toggleWishlist(selectedProduct.id)} className="btn-ghost"><Heart size={20} className={selectedProduct.is_wishlisted ? 'fill-red-500 text-red-500' : ''} /></button>
-                </div>
+                                {/* Seller: Show pending orders */}
+                {user?.username === selectedProduct.seller_name && pendingOrders.length > 0 && (
+                  <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                    <h4 className="font-semibold text-amber-800 text-sm mb-2">📦 Pending Orders ({pendingOrders.length})</h4>
+                    {pendingOrders.map((order: any) => (
+                      <div key={order.id} className="flex items-center justify-between py-2 border-b border-amber-100 last:border-0">
+                        <div>
+                          <p className="text-sm font-medium">{order.buyer_name || order.buyer_username || 'Buyer'}</p>
+                          <p className="text-xs text-gray-500">Qty: {order.quantity} · ${order.total_price}</p>
+                        </div>
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            try {
+                              await api.post(`/marketplace/products/${selectedProduct.id}/approve_purchase/`, { order_id: order.id });
+                              toast.success('✅ Purchase approved! Payment received.');
+                              setPendingOrders(prev => prev.filter(o => o.id !== order.id));
+                              fetchProducts();
+                            } catch (err: any) { toast.error(err.response?.data?.error || 'Approval failed'); }
+                          }}
+                          className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600"
+                        >
+                          Approve
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                             {/* Buyer: Show Request to Buy button (hide for seller) */}
+                {user?.username !== selectedProduct.seller_name && (
+                  <div className="flex gap-2 mt-4">
+                    <button onClick={() => requestBuy(selectedProduct.id)} disabled={selectedProduct.stock === 0 || sentRequests.has(selectedProduct.id)} className="btn-primary flex-1 flex items-center justify-center gap-2">
+                      <ShoppingCart size={18} /> {sentRequests.has(selectedProduct.id) ? '✓ Sent' : 'Request to Buy'}
+                    </button>
+                    <button onClick={() => toggleWishlist(selectedProduct.id)} className="btn-ghost"><Heart size={20} className={selectedProduct.is_wishlisted ? 'fill-red-500 text-red-500' : ''} /></button>
+                  </div>
+                )}
                 <div className="flex gap-2 mt-3 pt-3 border-t">
             <button
   onClick={() => setChatRoom(selectedProduct.id)}
