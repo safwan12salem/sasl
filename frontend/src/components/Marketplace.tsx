@@ -381,11 +381,11 @@ const resetSellForm = () => {
               <div className="p-4">
                 <h3 className="font-semibold text-sm line-clamp-1">{p.title}</h3>
                 <div className="flex items-center gap-1 mt-1">{p.average_rating ? renderStars(p.average_rating) : null}{p.review_count ? <span className="text-xs text-gray-400">({p.review_count})</span> : null}</div>
-                <p className="text-xs text-gray-500 mt-1">by {p.seller_name}</p>
+                <p className="text-xs text-gray-500 mt-1">{t('by')} {p.seller_name}</p>
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-xl font-bold text-green-600"><DollarSign size={16} />{p.price}</span>
-                  <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); setPaymentAmount(parseFloat(p.price)); setShowPayment(true); }} disabled={p.stock === 0} className="flex items-center gap-1 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition disabled:opacity-50">
-                    <ShoppingCart size={14} /> {t('buy')}
+                                    <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); requestBuy(p.id); }} disabled={p.stock === 0} className="flex items-center gap-1 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition disabled:opacity-50">
+                    <ShoppingCart size={14} />{t('Request to Buy')}
                   </motion.button>
                 </div>
               </div>
