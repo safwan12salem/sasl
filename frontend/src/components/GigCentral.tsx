@@ -135,7 +135,7 @@ export default function GigCentral() {
   const [negotiateGig, setNegotiateGig] = useState<string | null>(null);
   const [proposalMessage, setProposalMessage] = useState('');
   const [proposalBudget, setProposalBudget] = useState('');
-
+  const [skillsInput, setSkillsInput] = useState('');
   const [likedGigs, setLikedGigs] = useState<Set<string>>(new Set());
   const [showPayment, setShowPayment] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
@@ -197,8 +197,8 @@ export default function GigCentral() {
   };
   const requestGig = async (gigId: string) => {
     try {
-      await api.post(`/gigs/gigs/${gigId}/apply/`, { message: proposalMessage || 'I would like to work on this gig.', proposed_budget: proposalBudget || undefined });
-      toast.success(t('Proposal sent! 📨')); setNegotiateGig(null); setProposalMessage(''); setProposalBudget(''); fetchGigs();
+          await api.post(`/gigs/gigs/${gigId}/propose/`, { message: proposalMessage, proposed_budget: proposalBudget || undefined, skills: skillsInput });
+           toast.success(t('Proposal sent! 📨')); setNegotiateGig(null); setProposalMessage(''); setProposalBudget(''); setSkillsInput(''); fetchGigs();
     } catch (err: any) { toast.error(err.response?.data?.error || t('Failed to send proposal')); }
   };
 
@@ -645,6 +645,7 @@ export default function GigCentral() {
               <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><Send size={18} className="text-green-500" /> {t('Send Proposal')}</h3>
               <textarea className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none mb-3" placeholder={t("Introduce yourself...")} value={proposalMessage} onChange={e => setProposalMessage(e.target.value)} rows={3} />
               <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none mb-4" type="number" placeholder={t('Your proposed budget (optional)')} value={proposalBudget} onChange={e => setProposalBudget(e.target.value)} />
+                            <input className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none mb-4" type="text" placeholder={t('Skills (e.g. React, Python, Design)')} value={skillsInput} onChange={e => setSkillsInput(e.target.value)} />
               <div className="flex gap-2">
                 <button onClick={() => requestGig(negotiateGig)} className="flex-1 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold">{t('Send Proposal')}</button>
                 <button onClick={() => setNegotiateGig(null)} className="px-6 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl font-medium">{t('Cancel')}</button>

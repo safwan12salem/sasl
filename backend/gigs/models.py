@@ -143,7 +143,27 @@ class Portfolio(models.Model):
 
 
 
+class GigProposal(models.Model):
+    """Multiple workers can submit proposals for a gig"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    gig = models.ForeignKey('Gig', on_delete=models.CASCADE, related_name='proposals')
+    worker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='gig_proposals')
+    message = models.TextField()
+    proposed_budget = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    skills = models.TextField(blank=True, default='')
+    status = models.CharField(max_length=20, default='pending', choices=(
+        ('pending', 'Pending Review'),
+        ('accepted', 'Accepted'),
+        ('declined', 'Declined'),
+    ))
+    created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ('gig', 'worker')
+
+    def __str__(self):
+        return f"Proposal from {self.worker.username} for {self.gig.title}"
 
 
 

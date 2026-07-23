@@ -10,7 +10,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
 from django.db.models import Q, Avg, Count
-from .models import Gig, Milestone, GigReview, Dispute, SkillBadge, Portfolio, GigChatMessage
+from .models import Gig, Milestone, GigReview, Dispute, SkillBadge, Portfolio, GigChatMessage,GigProposal
 from .serializers import (
     GigSerializer, MilestoneSerializer, GigReviewSerializer,
     DisputeSerializer, SkillBadgeSerializer, PortfolioSerializer, GigChatMessageSerializer
@@ -64,57 +64,75 @@ class GigViewSet(viewsets.ModelViewSet):
         
         return qs.order_by('-created_at')
 
+
     @action(detail=True, methods=['post'])
     def propose(self, request, pk=None):
-        """Worker submits a proposal to the employer"""
+        """Worker submits a proposal with cover letter and qualifications"""
         gig = self.get_object()
         if gig.status != 'open':
             return Response({'error': 'Gig is not open'}, status=400)
         if gig.creator == request.user:
             return Response({'error': 'Cannot apply to your own gig'}, status=400)
         
-        message = request.data.get('message', 'I would like to work on this gig.')
-        proposed_budget = request.data.get('proposed_budget', str(gig.budget))
+        message = request.data.get('message', '')
+        if not message or len(message) < 10:
+            return Response({'error': 'Please write a proposal letter (min 10 characters)'}, status=400)
         
-        gig.taker = request.user
+        proposed_budget = request.data.get('proposed_budget', str(gig.budget))
+        skills = request.data.get('skills', '')
+        
+        # Create a proposal (not directly set taker)
+        proposal = GigProposal.objects.create(
+            gig=gig,
+            worker=request.user,
+            message=message,
+            proposed_budget=proposed_budget,
+            skills=skills
+        )
         gig.status = 'pending'
-        gig.proposal_message = message
-        gig.proposed_budget = proposed_budget
         gig.save()
         
         create_notification(
             recipient=gig.creator,
             actor=request.user,
             notification_type='gig_proposal',
-            message=f'{request.user.username} submitted a proposal for "{gig.title}": {message}'
+            message=f'{request.user.username} submitted a proposal for "{gig.title}"'
         )
-        return Response({'status': 'proposed'})
+        return Response({'status': 'proposed', 'proposal_id': proposal.id})
     
     @action(detail=True, methods=['post'])
     def accept_proposal(self, request, pk=None):
-        """Employer accepts worker's proposal — payment goes to escrow"""
+        """Employer accepts a specific worker's proposal — payment goes to escrow"""
         gig = self.get_object()
         if gig.creator != request.user:
             return Response({'error': 'Only the employer can accept proposals'}, status=403)
-        if gig.status != 'pending':
-            return Response({'error': 'No pending proposal'}, status=400)
+        
+        proposal_id = request.data.get('proposal_id')
+        proposal = GigProposal.objects.get(id=proposal_id, gig=gig, status='pending')
         
         # Move funds to escrow
         from monetization.services import process_gig_escrow
-        success = process_gig_escrow(request.user, gig.taker, gig.budget, gig.title)
+        success = process_gig_escrow(request.user, proposal.worker, proposal.proposed_budget, gig.title)
         if not success:
             return Response({'error': 'Payment failed — insufficient funds'}, status=402)
         
+        proposal.status = 'accepted'
+        proposal.save()
+        gig.taker = proposal.worker
         gig.status = 'in_progress'
         gig.save()
         
+        # Decline all other proposals
+        GigProposal.objects.filter(gig=gig, status='pending').exclude(id=proposal.id).update(status='declined')
+        
         create_notification(
-            recipient=gig.taker,
+            recipient=proposal.worker,
             actor=request.user,
             notification_type='gig_accepted',
             message=f'{request.user.username} accepted your proposal for "{gig.title}"! Funds held in escrow.'
         )
-        return Response({'status': 'accepted', 'message': 'Proposal accepted! Funds held in escrow until completion.'})
+        return Response({'status': 'accepted', 'message': 'Proposal accepted! Funds held in escrow.'})
+    @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
         gig = self.get_object()
         if gig.status != 'in_progress' or gig.taker != request.user:
@@ -252,6 +270,25 @@ class GigViewSet(viewsets.ModelViewSet):
         badges = SkillBadge.objects.filter(user=request.user)
         return Response(SkillBadgeSerializer(badges, many=True).data)
 
+
+    @action(detail=True, methods=['get'])
+    def proposals(self, request, pk=None):
+        """Employer views all proposals for their gig"""
+        gig = self.get_object()
+        if gig.creator != request.user:
+            return Response({'error': 'Only the employer can view proposals'}, status=403)
+        proposals = GigProposal.objects.filter(gig=gig).select_related('worker')
+        data = [{
+            'id': p.id,
+            'worker_name': p.worker.username,
+            'worker_avatar': p.worker.avatar_url if hasattr(p.worker, 'avatar_url') else None,
+            'message': p.message,
+            'proposed_budget': str(p.proposed_budget),
+            'skills': p.skills,
+            'status': p.status,
+            'created_at': p.created_at.isoformat(),
+        } for p in proposals]
+        return Response(data) 
     @action(detail=False, methods=['get'])
     def portfolio(self, request):
         username = request.query_params.get('username')
