@@ -102,31 +102,23 @@ class GigViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def accept_proposal(self, request, pk=None):
-        """Employer accepts a specific worker's proposal — payment goes to escrow"""
+        """Employer accepts worker — payment goes to escrow"""
         gig = self.get_object()
         if gig.creator != request.user:
             return Response({'error': 'Only the employer can accept proposals'}, status=403)
+        if not gig.taker:
+            return Response({'error': 'No worker has applied yet'}, status=400)
         
-        proposal_id = request.data.get('proposal_id')
-        proposal = GigProposal.objects.get(id=proposal_id, gig=gig, status='pending')
-        
-        # Move funds to escrow
         from monetization.services import process_gig_escrow
-        success = process_gig_escrow(request.user, proposal.worker, proposal.proposed_budget, gig.title)
+        success = process_gig_escrow(request.user, gig.taker, gig.budget, gig.title)
         if not success:
             return Response({'error': 'Payment failed — insufficient funds'}, status=402)
         
-        proposal.status = 'accepted'
-        proposal.save()
-        gig.taker = proposal.worker
         gig.status = 'in_progress'
         gig.save()
         
-        # Decline all other proposals
-        GigProposal.objects.filter(gig=gig, status='pending').exclude(id=proposal.id).update(status='declined')
-        
         create_notification(
-            recipient=proposal.worker,
+            recipient=gig.taker,
             actor=request.user,
             notification_type='gig_accepted',
             message=f'{request.user.username} accepted your proposal for "{gig.title}"! Funds held in escrow.'
