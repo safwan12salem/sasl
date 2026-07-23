@@ -180,7 +180,7 @@ class GigViewSet(viewsets.ModelViewSet):
             defaults={'level': 'beginner'}
         )
 
-        award_badge(request.user, 'First Gig Completed', 'Completed your first gig on Sasl')
+        
 
         with transaction.atomic():
             gig.status = 'completed'

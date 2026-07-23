@@ -195,12 +195,16 @@ export default function GigCentral() {
       setCreating(false);
     }
   };
-  const requestGig = async (gigId: string) => {
+        const requestGig = async (gigId: string) => {
+    if (!proposalMessage || proposalMessage.trim().length < 10) {
+      return toast.error('Please write a cover letter (min 10 characters)');
+    }
     try {
-          await api.post(`/gigs/gigs/${gigId}/propose/`, { message: proposalMessage, proposed_budget: proposalBudget || undefined, skills: skillsInput });
-           toast.success(t('Proposal sent! 📨')); setNegotiateGig(null); setProposalMessage(''); setProposalBudget(''); setSkillsInput(''); fetchGigs();
+      await api.post(`/gigs/gigs/${gigId}/propose/`, { message: proposalMessage.trim(), proposed_budget: proposalBudget || undefined, skills: skillsInput || '' });
+      toast.success(t('Proposal sent! 📨')); setNegotiateGig(null); setProposalMessage(''); setProposalBudget(''); setSkillsInput(''); fetchGigs();
     } catch (err: any) { toast.error(err.response?.data?.error || t('Failed to send proposal')); }
   };
+    
 
   const completeGig = async (id: string) => {
     try { await api.post(`/gigs/gigs/${id}/complete/`); toast.success(t('🎉 Gig completed & payment released!')); fetchGigs(); }
@@ -495,18 +499,9 @@ export default function GigCentral() {
                           </button>
                         )}
                                                {gig.creator_name !== user?.username && gig.status === 'open' && (
-                          <button onClick={async (e) => { e.stopPropagation();
-                            try { 
-                              await api.post(`/gigs/gigs/${gig.id}/propose/`, { 
-                                message: 'I would like to work on this gig.',
-                                proposed_budget: gig.budget 
-                              }); 
-                              toast.success(t('Proposal submitted!')); 
-                              fetchGigs(); 
-                            } catch { toast.error(t('Failed to submit proposal')); }
-                          }}
+                                                    <button onClick={(e) => { e.stopPropagation(); setNegotiateGig(gig.id); }}
                             className="ml-auto px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl text-sm font-semibold shadow-md hover:shadow-lg transition flex items-center gap-1">
-                            <Send size={14} /> {t('Submit Proposal')}
+                            <Send size={14} /> Submit Proposal
                           </button>
                         )}
                                                 {gig.creator_name === user?.username && gig.status === 'pending' && gig.taker_name && (
