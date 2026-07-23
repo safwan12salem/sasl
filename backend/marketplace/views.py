@@ -143,10 +143,10 @@ class ProductViewSet(viewsets.ModelViewSet):
         # Create order with pending status
         order = Order.objects.create(
             buyer=request.user,
-            seller=product.seller,
             product=product,
-            amount=product.price,
-            status='pending_approval'
+            quantity=1,
+            total_price=product.price,
+            status='pending'
         )
         create_notification(
             recipient=product.seller,
@@ -164,26 +164,26 @@ class ProductViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Only seller can approve'}, status=403)
         
         order_id = request.data.get('order_id')
-        order = Order.objects.get(id=order_id, product=product, status='pending_approval')
+        order = Order.objects.get(id=order_id, product=product, status='pending')
         
-        total = order.amount
+        total = order.total_price
         valid, error_response = validate_marketplace_purchase(
-            order.buyer, product.seller, total, product.title
+            order.buyer, product.seller, float(total), product.title
         )
         if not valid:
-            order.status = 'failed'
+            order.status = 'cancelled'
             order.save()
             return error_response
         
-        success = process_marketplace_purchase(order.buyer, product.seller, total, product.title)
+        success = process_marketplace_purchase(order.buyer, product.seller, float(total), product.title)
         if not success:
-            order.status = 'failed'
+            order.status = 'cancelled'
             order.save()
             return Response({'error': 'Insufficient wallet balance'}, status=402)
 
-        order.status = 'completed'
+        order.status = 'paid'
         order.save()
-        product.stock -= 1
+        product.stock -= order.quantity
         product.save()
         return Response({'status': 'approved'})
     @action(detail=True, methods=['post'])
