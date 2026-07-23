@@ -89,9 +89,9 @@ class GigViewSet(viewsets.ModelViewSet):
             proposed_budget=proposed_budget,
             skills=skills
         )
+        gig.taker = request.user
         gig.status = 'pending'
         gig.save()
-        
         create_notification(
             recipient=gig.creator,
             actor=request.user,
