@@ -37,6 +37,8 @@ interface Gig {
   created_at: string;
   deadline?: string;
   applicants_count?: number;
+    proposal_message?: string;
+  proposed_budget?: string;
   views?: number;
 }
 
