@@ -8,7 +8,7 @@ import { useMesh } from '../hooks/useMesh';
 import { db } from '../services/offlineDB';
 import toast from 'react-hot-toast';
 import {
-  ShoppingCart, Loader2, Package, AlertCircle, PlusCircle, Image as ImageIcon,
+    ShoppingCart, Loader2, Package, AlertCircle, PlusCircle, Image as ImageIcon, CheckCircle2,
   Heart, Search, Filter, Star, X, ChevronDown,
   DollarSign, ShoppingBag, MessageCircle, Grid3X3, List, Sparkles
 } from 'lucide-react';
@@ -72,7 +72,7 @@ export default function Marketplace() {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [inStockOnly, setInStockOnly] = useState(false);
-
+    const [sentRequests, setSentRequests] = useState<Set<string>>(new Set());
   const [showSellForm, setShowSellForm] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
@@ -135,11 +135,14 @@ export default function Marketplace() {
   };
 
   useEffect(() => { fetchProducts(); fetchCategories(); }, [fetchProducts]);
-  const requestBuy = async (productId: string) => {
+  
+
+    const requestBuy = async (productId: string) => {
     if (!user) return toast.error('Please login first');
     if (!isOnline) return toast.error('Buying works online only');
     try {
       await api.post(`/marketplace/products/${productId}/request_purchase/`, { quantity: 1 });
+      setSentRequests(prev => new Set(prev).add(productId));
       toast.success('📩 Purchase request sent to seller!');
     } catch (err: any) { toast.error(err.response?.data?.error || 'Request failed'); }
   };
@@ -384,9 +387,17 @@ const resetSellForm = () => {
                 <p className="text-xs text-gray-500 mt-1">by {p.seller_name}</p>
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-xl font-bold text-green-600"><DollarSign size={16} />{p.price}</span>
-                                    <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); requestBuy(p.id); }} disabled={p.stock === 0} className="flex items-center gap-1 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition disabled:opacity-50">
-                    <ShoppingCart size={14} />Request to Buy
-                  </motion.button>
+                                                     {p.seller_name === user?.username ? (
+                    <span className="text-xs text-gray-400 italic">Your product</span>
+                  ) : sentRequests.has(p.id) ? (
+                    <span className="flex items-center gap-1 bg-gray-400 text-white px-3 py-1.5 rounded-full text-xs font-semibold">
+                      <CheckCircle2 size={14} /> Sent
+                    </span>
+                  ) : (
+                    <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); requestBuy(p.id); }} disabled={p.stock === 0} className="flex items-center gap-1 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition disabled:opacity-50">
+                      <ShoppingCart size={14} />Request to Buy
+                    </motion.button>
+                  )}
                 </div>
               </div>
             </motion.div>
