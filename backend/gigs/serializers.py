@@ -64,6 +64,8 @@ class GigSerializer(serializers.ModelSerializer):
     taker_name = serializers.ReadOnlyField(source='taker.username')
     creator_avatar = serializers.SerializerMethodField()
     taker_avatar = serializers.SerializerMethodField()
+    proposal_message = serializers.ReadOnlyField()
+    proposed_budget = serializers.ReadOnlyField()
     milestones = MilestoneSerializer(many=True, read_only=True)
     reviews = GigReviewSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
@@ -75,7 +77,7 @@ class GigSerializer(serializers.ModelSerializer):
             'id', 'creator', 'creator_name', 'creator_avatar',
             'title', 'description', 'budget', 'currency',
             'status', 'category', 'skills_required',
-            'taker', 'taker_name', 'taker_avatar',
+            'taker', 'taker_name', 'taker_avatar','proposal_message', 'proposed_budget',
             'milestones', 'reviews', 'average_rating', 'review_count',
             'created_at', 'updated_at', 'deadline'
         ]

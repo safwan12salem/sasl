@@ -452,8 +452,19 @@ export default function GigCentral() {
                           <h3 className="font-bold text-lg leading-snug">{gig.title}</h3>
                           <p className="text-sm text-gray-500 flex items-center gap-2 flex-wrap mt-0.5">
                             <span>@{gig.creator_name}</span>
-                            {gig.taker_name && (
-                              <span className="flex items-center gap-1 text-purple-600 font-medium"><UserCheck size={14} /> @{gig.taker_name}</span>
+                                                    {gig.taker_name && (
+                              <div className="mt-2">
+                                <span className="flex items-center gap-1 text-purple-600 font-medium"><UserCheck size={14} /> @{gig.taker_name}</span>
+                                {gig.proposal_message && (
+                                  <div className="mt-2 p-3 bg-purple-50 rounded-xl text-sm text-gray-700 border border-purple-100">
+                                    <p className="font-semibold text-purple-800 text-xs mb-1">📝 Cover Letter:</p>
+                                    <p>{gig.proposal_message}</p>
+                                    {gig.proposed_budget && (
+                                      <p className="text-xs text-gray-500 mt-1">💰 Proposed: ${gig.proposed_budget}</p>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </p>
                         </div>
