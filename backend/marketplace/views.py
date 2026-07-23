@@ -140,6 +140,10 @@ class ProductViewSet(viewsets.ModelViewSet):
         if product.seller == request.user:
             return Response({'error': 'Cannot buy your own product'}, status=400)
         
+
+        existing = Order.objects.filter(buyer=request.user, product=product, status='pending').exists()
+        if existing:
+            return Response({'error': 'You already have a pending request for this product'}, status=400)
         # Create order with pending status
         order = Order.objects.create(
             buyer=request.user,
@@ -167,25 +171,24 @@ class ProductViewSet(viewsets.ModelViewSet):
         order = Order.objects.get(id=order_id, product=product, status='pending')
         
         total = order.total_price
-        valid, error_response = validate_marketplace_purchase(
-            order.buyer, product.seller, float(total), product.title
-        )
-        if not valid:
-            order.status = 'cancelled'
-            order.save()
-            return error_response
-        
+        # Hold funds from buyer (escrow)
         success = process_marketplace_purchase(order.buyer, product.seller, float(total), product.title)
         if not success:
             order.status = 'cancelled'
             order.save()
-            return Response({'error': 'Insufficient wallet balance'}, status=402)
+            return Response({'error': 'Insufficient buyer balance'}, status=402)
 
+        # Release escrow to seller immediately (seller approved = delivery confirmed)
+        from monetization.services import release_marketplace_escrow
+        release_marketplace_escrow(str(order.id))
+        
         order.status = 'paid'
         order.save()
         product.stock -= order.quantity
         product.save()
         return Response({'status': 'approved'})
+
+    
     @action(detail=True, methods=['post'])
     def confirm_delivery(self, request, pk=None):
         """Buyer confirms delivery — releases escrow to seller."""
