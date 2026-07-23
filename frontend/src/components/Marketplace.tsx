@@ -187,7 +187,7 @@ const resetSellForm = () => {
       toast.success('Product listed!');
       resetSellForm(); 
       fetchProducts();
-      setTimeout(() => { window.location.reload(); }, 3000);
+     
     } catch (err: any) { toast.error(err.response?.data?.detail || 'Failed to list product'); }
   };
 
