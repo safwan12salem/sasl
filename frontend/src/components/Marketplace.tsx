@@ -381,11 +381,11 @@ const resetSellForm = () => {
               <div className="p-4">
                 <h3 className="font-semibold text-sm line-clamp-1">{p.title}</h3>
                 <div className="flex items-center gap-1 mt-1">{p.average_rating ? renderStars(p.average_rating) : null}{p.review_count ? <span className="text-xs text-gray-400">({p.review_count})</span> : null}</div>
-                <p className="text-xs text-gray-500 mt-1">{t('by')} {p.seller_name}</p>
+                <p className="text-xs text-gray-500 mt-1">by {p.seller_name}</p>
                 <div className="flex items-center justify-between mt-3">
                   <span className="text-xl font-bold text-green-600"><DollarSign size={16} />{p.price}</span>
                                     <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); requestBuy(p.id); }} disabled={p.stock === 0} className="flex items-center gap-1 bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition disabled:opacity-50">
-                    <ShoppingCart size={14} />{t('Request to Buy')}
+                    <ShoppingCart size={14} />Request to Buy
                   </motion.button>
                 </div>
               </div>
@@ -400,7 +400,7 @@ const resetSellForm = () => {
                 {p.image_url ? <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400"><Package size={24} /></div>}
               </div>
               <div className="flex-1"><h3 className="font-semibold">{p.title}</h3><p className="text-sm text-gray-500">by {p.seller_name} · {p.stock} {t('in_stock')}</p></div>
-              <div className="text-right"><p className="text-xl font-bold text-green-600">${p.price}</p><button onClick={(e) => { e.stopPropagation(); requestBuy(p.id); }} disabled={p.stock === 0} className="btn-primary text-xs mt-1">{t(' Request to Buy')}</button></div>
+              <div className="text-right"><p className="text-xl font-bold text-green-600">${p.price}</p><button onClick={(e) => { e.stopPropagation(); requestBuy(p.id); }} disabled={p.stock === 0} className="btn-primary text-xs mt-1"> Request to Buy</button></div>
             </motion.div>
           ))}
         </div>
@@ -501,7 +501,7 @@ const resetSellForm = () => {
                   </button>
                 )}
                 <div className="flex gap-2 mt-4">
-                  <button onClick={() => requestBuy(selectedProduct.id)} disabled={selectedProduct.stock === 0} className="btn-primary flex-1 flex items-center justify-center gap-2"><ShoppingCart size={18} /> {t('Request to Buy')}</button>
+                  <button onClick={() => requestBuy(selectedProduct.id)} disabled={selectedProduct.stock === 0} className="btn-primary flex-1 flex items-center justify-center gap-2"><ShoppingCart size={18} /> Request to Buy</button>
                   <button onClick={() => toggleWishlist(selectedProduct.id)} className="btn-ghost"><Heart size={20} className={selectedProduct.is_wishlisted ? 'fill-red-500 text-red-500' : ''} /></button>
                 </div>
                 <div className="flex gap-2 mt-3 pt-3 border-t">
