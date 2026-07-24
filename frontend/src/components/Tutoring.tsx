@@ -121,6 +121,8 @@ const STATUS_COLORS: Record<string, string> = {
 
   // Video call
   const [inCall, setInCall] = useState<string | null>(null);
+    const [timer, setTimer] = useState<number>(0);
+  const [timerActive, setTimerActive] = useState(false);
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
@@ -223,6 +225,24 @@ const STATUS_COLORS: Record<string, string> = {
     }
   }, []);
 
+
+
+  useEffect(() => {
+    if (timerActive && timer > 0) {
+      const interval = setInterval(() => {
+        setTimer(prev => {
+          if (prev <= 1) {
+            setTimerActive(false);
+            toast.success('⏰ Class time is up!');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [timerActive, timer]);
+
   // ============================================================
   // ACTIONS
   // ============================================================
@@ -300,38 +320,59 @@ const STATUS_COLORS: Record<string, string> = {
   // ============================================================
   // VIDEO CALL
   // ============================================================
-  const startVideoCall = (sessionId: string) => {
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
-        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-                const isLocal = window.location.hostname === 'localhost';
-        const wsUrl = isLocal
-          ? `ws://localhost:8000/ws/video/${sessionId}/?token=${token}`
-          : `wss://sasl-api-i34r.onrender.com/ws/video/${sessionId}/?token=${token}`;
-        const ws = new WebSocket(wsUrl);
-        wsRef.current = ws;
-        const rtc = new WebRTCConnection((msg) => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); });
-        rtcRef.current = rtc;
+    const startVideoCall = async (sessionId: string) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+      
+      const isLocal = window.location.hostname === 'localhost';
+      const wsUrl = isLocal
+        ? `ws://localhost:8000/ws/video/${sessionId}/?token=${token}`
+        : `wss://sasl-api-i34r.onrender.com/ws/video/${sessionId}/?token=${token}`;
+      const ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
+      
+      const rtc = new WebRTCConnection((msg) => { 
+        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); 
+      });
+      rtcRef.current = rtc;
+      await rtc.startLocalStream(localVideoRef.current!);
 
-        ws.onopen = () => {
-          if (localVideoRef.current) rtc.startLocalStream(localVideoRef.current);
-          ws.onmessage = async (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === 'answer') await rtc.handleAnswer(data.answer);
-            else if (data.type === 'offer' && remoteVideoRef.current) await rtc.handleOffer(data.offer, remoteVideoRef.current);
-            else if (data.type === 'candidate') await rtc.addIceCandidate(data.candidate);
-          };
-          if (remoteVideoRef.current) rtc.createOffer(remoteVideoRef.current);
-        };
-        setInCall(sessionId);
-      })
-      .catch(() => toast.error(t('Camera access denied')));
+      ws.onopen = () => {
+        // First person to join creates offer, second handles it
+        const isFirst = !remoteVideoRef.current?.srcObject;
+        if (isFirst && remoteVideoRef.current) {
+          rtc.createOffer(remoteVideoRef.current);
+        }
+      };
+
+      ws.onmessage = async (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'offer' && remoteVideoRef.current) {
+          await rtc.handleOffer(data.offer, remoteVideoRef.current);
+        } else if (data.type === 'answer') {
+          await rtc.handleAnswer(data.answer);
+        } else if (data.type === 'candidate') {
+          await rtc.addIceCandidate(data.candidate);
+        }
+      };
+      
+      setInCall(sessionId);
+            const currentSession = sessions.find(s => s.id === sessionId);
+      if (currentSession?.duration_minutes) {
+        setTimer(currentSession.duration_minutes * 60);
+        setTimerActive(true);
+      }
+    } catch { toast.error(t('Camera access denied')); }
   };
+
 
   const endCall = () => {
     rtcRef.current?.disconnect();
     wsRef.current?.close();
     setInCall(null);
+     setTimer(0);
+    setTimerActive(false);
   };
 
   // ============================================================
@@ -431,6 +472,11 @@ const STATUS_COLORS: Record<string, string> = {
                 <h3 className="font-bold flex items-center gap-2">
                   <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" /> {t('Live Class')}
                 </h3>
+                                {timer > 0 && (
+                  <span className={`font-mono font-bold text-lg ${timer <= 60 ? 'text-red-500 animate-pulse' : 'text-green-600'}`}>
+                    {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
+                  </span>
+                )}
                 <div className="flex items-center gap-2">
                   <button onClick={() => { setShowWhiteboard(!showWhiteboard); if (!showWhiteboard && inCall) fetchWhiteboard(inCall); }}
                     className="btn-ghost text-sm flex items-center gap-1">
@@ -785,18 +831,7 @@ const STATUS_COLORS: Record<string, string> = {
                           className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 flex items-center gap-1">
                           <Play size={14} /> {t('Join Class')}
                         </button>
-                                                {session.status === 'ongoing' && (
-                          <button onClick={(e) => { e.stopPropagation(); completeSession(session.id); }}
-                            className="bg-amber-500 text-white px-3 py-2 rounded-full text-sm hover:bg-amber-600">
-                            ✅ Complete
-                          </button>
-                        )}
-                                                {session.status === 'ongoing' && (
-                          <button onClick={(e) => { e.stopPropagation(); completeSession(session.id); }}
-                            className="bg-amber-500 text-white px-3 py-2 rounded-full text-sm hover:bg-amber-600">
-                            ✅ Complete
-                          </button>
-                        )}
+                        
                       </>
                                         ) : session.student?.username === user?.username ? (
                       session.status === 'ongoing' ? (
