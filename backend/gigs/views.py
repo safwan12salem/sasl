@@ -314,6 +314,7 @@ class GigViewSet(viewsets.ModelViewSet):
         items = Portfolio.objects.filter(user=user)
         return Response(PortfolioSerializer(items, many=True).data)
 
+
     @action(detail=False, methods=['get'])
     def discover_workers(self, request):
         """Employers browse workers with portfolios"""
@@ -331,6 +332,7 @@ class GigViewSet(viewsets.ModelViewSet):
             'completed_gigs': w.completed_gigs,
             'skills': [item.title for item in w.portfolio.all()[:5]],
             'bio': w.portfolio.first().description if w.portfolio.exists() else '',
+            'portfolio_images': [item.image.url if item.image else None for item in w.portfolio.all()[:3] if item.image],
         } for w in workers]
         return Response(data)
     

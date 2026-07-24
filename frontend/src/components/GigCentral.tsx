@@ -175,6 +175,22 @@ export default function GigCentral() {
     try { const res = await api.get('/gigs/gigs/discover_workers/'); setWorkers(res.data || []); } catch {}
   };
 
+
+      const startNegotiation = async (workerId: string, workerName: string) => {
+    try {
+      const res = await api.post('/gigs/gigs/', {
+        title: `Chat with @${workerName}`,
+        description: 'Direct negotiation',
+        budget: '0',
+        category: 'other',
+        status: 'open'
+      });
+      setChatRoom(res.data.id);
+      toast.success(`Chat opened with @${workerName}`);
+    } catch { toast.error('Failed to start chat'); }
+  };
+
+  
   const fetchBadges = async () => { try { const res = await api.get('/gigs/gigs/my_badges/'); setSkillBadges(res.data || []); } catch {} };
   useEffect(() => { fetchPortfolio(); fetchBadges(); }, []);
 
