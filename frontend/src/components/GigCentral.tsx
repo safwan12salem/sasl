@@ -37,8 +37,9 @@ interface Gig {
   created_at: string;
   deadline?: string;
   applicants_count?: number;
-    proposal_message?: string;
+  proposal_message?: string;
   proposed_budget?: string;
+  proposals?: any[];
   views?: number;
 }
 
@@ -454,18 +455,52 @@ export default function GigCentral() {
                           <h3 className="font-bold text-lg leading-snug">{gig.title}</h3>
                           <p className="text-sm text-gray-500 flex items-center gap-2 flex-wrap mt-0.5">
                             <span>@{gig.creator_name}</span>
-                                                    {gig.taker_name && (
-                              <div className="mt-2">
-                                <span className="flex items-center gap-1 text-purple-600 font-medium"><UserCheck size={14} /> @{gig.taker_name}</span>
-                                {gig.proposal_message && (
-                                  <div className="mt-2 p-3 bg-purple-50 rounded-xl text-sm text-gray-700 border border-purple-100">
-                                    <p className="font-semibold text-purple-800 text-xs mb-1">📝 Cover Letter:</p>
-                                    <p>{gig.proposal_message}</p>
-                                    {gig.proposed_budget && (
-                                      <p className="text-xs text-gray-500 mt-1">💰 Proposed: ${gig.proposed_budget}</p>
-                                    )}
+                                                                     {/* Show ALL pending proposals */}
+                            {gig.proposals && gig.proposals.length > 0 && (
+                              <div className="mt-3 space-y-2">
+                                <p className="text-xs font-semibold text-gray-500">📋 {gig.proposals.length} Applicant{gig.proposals.length > 1 ? 's' : ''}:</p>
+                                {gig.proposals.map((p: any) => (
+                                  <div key={p.id} className="p-3 bg-purple-50 rounded-xl border border-purple-100">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="flex items-center gap-1 text-purple-700 font-medium text-sm">
+                                        <UserCheck size={14} /> @{p.worker_name}
+                                      </span>
+                                      <div className="flex gap-1">
+                                        <button
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            try {
+                                              await api.post(`/gigs/gigs/${gig.id}/accept_proposal/`, { proposal_id: p.id });
+                                              toast.success('Proposal accepted! Funds in escrow.');
+                                              fetchGigs();
+                                            } catch (err: any) { toast.error(err.response?.data?.error || 'Failed'); }
+                                          }}
+                                          className="px-2 py-1 bg-green-500 text-white rounded-lg text-xs font-semibold hover:bg-green-600"
+                                        >
+                                          Accept
+                                        </button>
+                                        <button
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            try {
+                                              await api.post(`/gigs/gigs/${gig.id}/decline_proposal/`, { proposal_id: p.id });
+                                              toast.success('Proposal declined');
+                                              fetchGigs();
+                                            } catch { toast.error('Failed'); }
+                                          }}
+                                          className="px-2 py-1 bg-red-100 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-200"
+                                        >
+                                          Decline
+                                        </button>
+                                      </div>
+                                    </div>
+                                    <p className="text-sm text-gray-700">{p.message}</p>
+                                    <div className="flex gap-3 mt-1 text-xs text-gray-500">
+                                      <span>💰 ${p.proposed_budget}</span>
+                                      {p.skills && <span>🛠 {p.skills}</span>}
+                                    </div>
                                   </div>
-                                )}
+                                ))}
                               </div>
                             )}
                           </p>
