@@ -34,6 +34,7 @@ interface Session {
   max_students?: number;
   students_enrolled?: number;
   duration_minutes?: number;
+    background_image?: string;
   is_offline?: boolean;
   materials?: Material[];
   average_rating?: number;
@@ -306,12 +307,15 @@ const STATUS_COLORS: Record<string, string> = {
   };
 
 
-  const startVideoCall = async (sessionId: string) => {
+    const startVideoCall = async (sessionId: string) => {
     try {
-      // Request camera with explicit constraints
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { width: 640, height: 480, facingMode: 'user' }, 
         audio: true 
+      }).catch(async () => {
+        // Camera busy — try audio only
+        toast.error('Camera busy. Joining with audio only.');
+        return await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
       });
       
       if (localVideoRef.current) {
@@ -326,39 +330,35 @@ const STATUS_COLORS: Record<string, string> = {
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
       
-      // Use the tested WebRTCConnection class
       const rtc = new WebRTCConnection((msg) => { 
         if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); 
       });
       rtcRef.current = rtc;
       
       ws.onopen = () => {
-        if (localVideoRef.current) rtc.startLocalStream(localVideoRef.current);
+        if (localVideoRef.current && stream.getVideoTracks().length > 0) {
+          rtc.startLocalStream(localVideoRef.current);
+        }
         ws.onmessage = async (event) => {
           const data = JSON.parse(event.data);
           if (data.type === 'answer') await rtc.handleAnswer(data.answer);
           else if (data.type === 'offer' && remoteVideoRef.current) await rtc.handleOffer(data.offer, remoteVideoRef.current);
           else if (data.type === 'candidate') await rtc.addIceCandidate(data.candidate);
         };
-        if (remoteVideoRef.current) rtc.createOffer(remoteVideoRef.current);
+        if (remoteVideoRef.current && stream.getVideoTracks().length > 0) {
+          rtc.createOffer(remoteVideoRef.current);
+        }
       };
       
       setInCall(sessionId);
       
-      // Start timer
       const currentSession = sessions.find(s => s.id === sessionId);
       if (currentSession?.duration_minutes) {
         setTimer(currentSession.duration_minutes * 60);
         setTimerActive(true);
       }
     } catch (err: any) {
-      if (err.name === 'NotAllowedError') {
-        toast.error('Camera blocked. Click the camera icon in your browser address bar to allow access.');
-      } else if (err.name === 'NotFoundError') {
-        toast.error('No camera found on this device.');
-      } else {
-        toast.error('Camera error: ' + (err.message || 'Unknown'));
-      }
+      toast.error('Cannot access media: ' + (err.message || 'Unknown error'));
     }
   };
 
@@ -381,7 +381,7 @@ const STATUS_COLORS: Record<string, string> = {
     }
   };
 
-  
+
   // ============================================================
   // WHITEBOARD
   // ============================================================
@@ -471,118 +471,91 @@ const STATUS_COLORS: Record<string, string> = {
     <div className="p-4 md:p-6 max-w-5xl mx-auto">
       {/* Video Call Overlay */}
       <AnimatePresence>
-        {inCall && (
+                {inCall && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-6xl w-full max-h-[95vh] overflow-y-auto">
-              <div className="flex justify-between items-center p-4 border-b">
-                <h3 className="font-bold flex items-center gap-2">
-                  <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" /> {t('Live Class')}
-                </h3>
-                                {timer > 0 && (
-                  <span className={`font-mono font-bold text-lg ${timer <= 60 ? 'text-red-500 animate-pulse' : 'text-green-600'}`}>
-                    {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
-                  </span>
-                )}
-                <div className="flex items-center gap-2">
-                  <button onClick={() => { setShowWhiteboard(!showWhiteboard); if (!showWhiteboard && inCall) fetchWhiteboard(inCall); }}
-                    className="btn-ghost text-sm flex items-center gap-1">
-                    <PenTool size={14} /> {t('Whiteboard')}
-                  </button>
-                 <button
-  onClick={(e) => {
-    e.stopPropagation();
-    const currentSession = sessions.find(s => s.id === inCall);
-    if (!currentSession) {
-      setShowChat(true);
-      return;
-    }
-    const otherUser = currentSession.tutor.username === user?.username 
-      ? currentSession.student?.username 
-      : currentSession.tutor.username;
-    api.post('/mesh/create-chat/', {
-      other_user: otherUser,
-      context_type: 'tutoring',
-      context_id: currentSession.id,
-    }).then(res => {
-      setShowChat(true);
-    }).catch(() => {
-      setShowChat(true);
-    });
-  }}
-  className="btn-ghost text-sm flex items-center gap-1"
->
-  <MessageCircle size={14} /> {t('Chat')}
-</button>
-                  <button onClick={() => setShowMaterials(!showMaterials)} className="btn-ghost text-sm flex items-center gap-1">
-                    <FileText size={14} /> {t('Materials')}
-                  </button>
-                  <button onClick={endCall} className="bg-red-500 text-white px-3 py-1.5 rounded-full text-sm flex items-center gap-1">
-                    <VideoOff size={14} /> {t('End')}
-                  </button>
+            className="fixed inset-0 bg-gray-900 z-50 flex flex-col">
+            {/* TOP BAR */}
+            <div className="flex items-center justify-between px-4 py-2 bg-gray-800 text-white">
+              <h3 className="font-bold flex items-center gap-2">
+                <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" /> Live Class
+              </h3>
+              {timer > 0 && (
+                <span className={`font-mono font-bold text-xl ${timer <= 60 ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
+                  {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
+                </span>
+              )}
+              <div className="flex items-center gap-2">
+                <button onClick={() => { setShowWhiteboard(!showWhiteboard); if (!showWhiteboard && inCall) fetchWhiteboard(inCall); }}
+                  className="px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-sm flex items-center gap-1">
+                  <PenTool size={14} /> Whiteboard
+                </button>
+                <button onClick={() => setShowChat(!showChat)}
+                  className="px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-sm flex items-center gap-1">
+                  <MessageCircle size={14} /> Chat
+                </button>
+                <button onClick={() => setShowMaterials(!showMaterials)}
+                  className="px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-sm flex items-center gap-1">
+                  <FileText size={14} /> Materials
+                </button>
+                <button onClick={endCall} className="px-4 py-1.5 rounded-full bg-red-600 hover:bg-red-500 text-sm flex items-center gap-1">
+                  <VideoOff size={14} /> End
+                </button>
+              </div>
+            </div>
+            
+            {/* MAIN AREA */}
+            <div className="flex-1 flex">
+              {/* VIDEOS */}
+              <div className={`${showChat || showWhiteboard || showMaterials ? 'flex-[3]' : 'flex-1'} p-2 flex flex-col gap-2`}>
+                <div className="flex-1 grid grid-cols-2 gap-2">
+                  <div className="relative rounded-xl overflow-hidden bg-gray-800 flex items-center justify-center">
+                    <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                    <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">You</span>
+                  </div>
+                  <div className="relative rounded-xl overflow-hidden bg-gray-800 flex items-center justify-center">
+                    <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                    <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">Remote</span>
+                  </div>
                 </div>
               </div>
-              <div className="flex">
-                <div className={`${showChat || showWhiteboard || showMaterials ? 'w-2/3' : 'w-full'} p-4`}>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
-                                           <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-                      <span className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">You</span>
+              
+              {/* SIDE PANEL */}
+              {(showChat || showWhiteboard || showMaterials) && (
+                <div className="w-80 border-l border-gray-700 bg-gray-800 flex flex-col">
+                  {showWhiteboard && (
+                    <div className="p-3">
+                      <h4 className="font-bold text-white text-sm mb-2">Whiteboard</h4>
+                      <div className="flex gap-1 mb-2">
+                        <input type="color" value={penColor} onChange={e => setPenColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
+                        <select value={penSize} onChange={e => setPenSize(Number(e.target.value))} className="text-xs border rounded px-1 bg-gray-700 text-white">
+                          {[1,2,3,5,8].map(s => <option key={s} value={s}>{s}px</option>)}
+                        </select>
+                        <button onClick={clearWhiteboard} className="text-xs px-2 py-1 bg-gray-600 rounded text-white">Clear</button>
+                        <button onClick={saveWhiteboard} className="text-xs px-2 py-1 bg-green-600 rounded text-white">Save</button>
+                      </div>
+                      <canvas ref={canvasRef} width={300} height={250}
+                        className="border border-gray-600 rounded w-full bg-white cursor-crosshair"
+                        onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
+                      />
                     </div>
-                    <div className="relative rounded-xl overflow-hidden bg-black aspect-video">
-                                           <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                      <span className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
-                        {expandedSession ? sessions.find(s => s.id === inCall)?.tutor?.username || 'Remote' : 'Remote'}
-                      </span>
+                  )}
+                  {showChat && (
+                    <div className="flex-1 overflow-hidden">
+                      <TutoringChat roomId={inCall!} onClose={() => setShowChat(false)} />
                     </div>
-                  </div>
+                  )}
+                  {showMaterials && (
+                    <div className="p-3 text-white">
+                      <h4 className="font-bold text-sm mb-2">Materials</h4>
+                      <p className="text-gray-400 text-sm">Materials panel</p>
+                    </div>
+                  )}
                 </div>
-                {showWhiteboard && (
-                  <div className="w-1/3 border-l p-3">
-                    <h4 className="font-bold text-sm mb-2">{t('Whiteboard')}</h4>
-                    <div className="flex gap-1 mb-2">
-                      <input type="color" value={penColor} onChange={e => setPenColor(e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
-                      <select value={penSize} onChange={e => setPenSize(Number(e.target.value))} className="text-xs border rounded px-1">
-                        {[1,2,3,5,8].map(s => <option key={s} value={s}>{s}px</option>)}
-                      </select>
-                      <button onClick={clearWhiteboard} className="text-xs btn-ghost">{t('Clear')}</button>
-                      <button onClick={saveWhiteboard} className="text-xs btn-primary">{t('Save')}</button>
-                    </div>
-                    <canvas ref={canvasRef} width={400} height={300}
-                      className="border rounded w-full bg-white cursor-crosshair"
-                      onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
-                    />
-                  </div>
-                )}
-                {showChat && (
-  <div className="w-1/3 border-l">
-    <TutoringChat roomId={inCall!} onClose={() => setShowChat(false)} />
-  </div>
-)}
-                {showMaterials && (
-                  <div className="w-1/3 border-l p-3 overflow-y-auto max-h-[60vh]">
-                    <h4 className="font-bold text-sm mb-3">{t('Session Materials')}</h4>
-                    {sessions.find(s => s.id === inCall)?.materials?.map(m => (
-                      <div key={m.id} className="bg-gray-50 p-2 rounded-lg mb-2">
-                        <p className="text-sm font-semibold">{m.title}</p>
-                        {m.description && <p className="text-xs text-gray-500">{m.description}</p>}
-                        {m.file_url && <a href={m.file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-500 hover:underline flex items-center gap-1 mt-1"><Download size={12} /> {t('Download')}</a>}
-                      </div>
-                    ))}
-                    {user?.is_teacher && (
-                      <div className="border-t pt-3 mt-3 space-y-2">
-                        <input className="input-field text-sm" placeholder={t('Material title')} value={materialTitle} onChange={e => setMaterialTitle(e.target.value)} />
-                        <input className="input-field text-sm" placeholder={t('Description')} value={materialDesc} onChange={e => setMaterialDesc(e.target.value)} />
-                        <input type="file" className="text-sm" onChange={e => setUploadFile(e.target.files?.[0] || null)} />
-                        <button onClick={() => uploadMaterial(inCall!)} className="btn-primary text-sm w-full">{t('Upload')}</button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              )}
             </div>
           </motion.div>
         )}
+             
       </AnimatePresence>
 
       {/* Header */}
@@ -772,9 +745,14 @@ const STATUS_COLORS: Record<string, string> = {
         <div className="space-y-3">
           {sessions.map(session => (
             <motion.div key={session.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className={`glass rounded-2xl overflow-hidden transition hover:shadow-lg ${
+                            className={`glass rounded-2xl overflow-hidden transition hover:shadow-lg ${
                 expandedSession === session.id ? 'ring-2 ring-blue-300' : ''
-              }`}>
+              }`}
+              style={session.background_image ? {
+                backgroundImage: `url(${session.background_image})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              } : undefined}>
               <div className="p-5 cursor-pointer" onClick={() => setExpandedSession(expandedSession === session.id ? null : session.id)}>
                 <div className="flex flex-col md:flex-row justify-between gap-3">
                   <div className="flex-1">

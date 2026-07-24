@@ -48,7 +48,7 @@ class TutoringSessionSerializer(serializers.ModelSerializer):
             'id', 'tutor', 'student', 'subject', 'description',
             'is_offline', 'is_group_class', 'max_students',
             'price', 'scheduled_at', 'duration_minutes',
-            'status', 'materials', 'students_enrolled', 'created_at'
+            'status', 'materials', 'students_enrolled', 'created_at', 'background_image'
         ]
         read_only_fields = ['tutor', 'student', 'status']
     

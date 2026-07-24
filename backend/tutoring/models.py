@@ -36,6 +36,7 @@ class TutoringSession(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     scheduled_at = models.DateTimeField()
     duration_minutes = models.PositiveIntegerField(default=60)
+    background_image = models.URLField(blank=True, null=True, help_text="URL for session background image")
     status = models.CharField(max_length=20, default='scheduled', choices=STATUS_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
 
