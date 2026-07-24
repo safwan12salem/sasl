@@ -190,7 +190,7 @@ export default function GigCentral() {
     } catch { toast.error('Failed to start chat'); }
   };
 
-  
+
   const fetchBadges = async () => { try { const res = await api.get('/gigs/gigs/my_badges/'); setSkillBadges(res.data || []); } catch {} };
   useEffect(() => { fetchPortfolio(); fetchBadges(); }, []);
 
@@ -453,13 +453,20 @@ export default function GigCentral() {
               {workers.map((w: any) => (
                 <div key={w.id} className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition">
                   <div className="flex items-center gap-3 mb-3">
-                    {w.avatar ? <img src={w.avatar} className="w-12 h-12 rounded-full object-cover" /> : <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-lg">{w.username[0]?.toUpperCase()}</div>}
+                    {w.avatar ? <img src={w.avatar} className="w-12 h-12 rounded-full object-cover" alt="same" /> : <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-lg">{w.username[0]?.toUpperCase()}</div>}
                     <div>
                       <p className="font-bold">@{w.username}</p>
                       <p className="text-xs text-gray-500">{w.completed_gigs} gigs completed</p>
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-2 line-clamp-2">{w.bio}</p>
+                                    {w.portfolio_images && w.portfolio_images.length > 0 && (
+                    <div className="flex gap-1 mb-2 overflow-x-auto">
+                      {w.portfolio_images.filter(Boolean).map((img: string, i: number) => (
+                        <img key={i} src={img} className="w-16 h-16 rounded-lg object-cover border border-gray-200 flex-shrink-0" alt="go" />
+                      ))}
+                    </div>
+                  )}
                   <div className="flex flex-wrap gap-1 mb-3">
                     {w.skills?.map((s: string, i: number) => (
                       <span key={i} className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-full text-xs font-medium">{s}</span>
