@@ -214,13 +214,14 @@ const STATUS_COLORS: Record<string, string> = {
     }
   };
 
-  useEffect(() => { fetchSessions(); fetchTutors(); fetchCertificates(); }, [fetchSessions]);
-
-   // Auto-refresh sessions every 5 seconds so student sees status changes
-  useEffect(() => {
-    const interval = setInterval(() => fetchSessions(), 5000);
+  
+  useEffect(() => { 
+    fetchSessions(); fetchTutors(); fetchCertificates();
+    // Poll every 8 seconds for real-time updates (student sees confirm, etc.)
+    const interval = setInterval(() => fetchSessions(), 8000);
     return () => clearInterval(interval);
   }, [fetchSessions]);
+
 
   // Restore whiteboard from localStorage on mount
   useEffect(() => {
