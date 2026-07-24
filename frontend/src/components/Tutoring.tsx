@@ -317,9 +317,6 @@ const STATUS_COLORS: Record<string, string> = {
     }
   };
 
-  // ============================================================
-  // VIDEO CALL
-  // ============================================================
     const startVideoCall = async (sessionId: string) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -336,45 +333,77 @@ const STATUS_COLORS: Record<string, string> = {
         if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); 
       });
       rtcRef.current = rtc;
-      await rtc.startLocalStream(localVideoRef.current!);
-
-      ws.onopen = () => {
-        // First person to join creates offer, second handles it
-        const isFirst = !remoteVideoRef.current?.srcObject;
-        if (isFirst && remoteVideoRef.current) {
-          rtc.createOffer(remoteVideoRef.current);
-        }
-      };
-
-      ws.onmessage = async (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === 'offer' && remoteVideoRef.current) {
-          await rtc.handleOffer(data.offer, remoteVideoRef.current);
-        } else if (data.type === 'answer') {
-          await rtc.handleAnswer(data.answer);
-        } else if (data.type === 'candidate') {
-          await rtc.addIceCandidate(data.candidate);
+      
+      // Add local tracks to peer connection
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      });
+      stream.getTracks().forEach(track => pc.addTrack(track, stream));
+      
+      // Handle remote stream
+      pc.ontrack = (event) => {
+        if (remoteVideoRef.current && event.streams[0]) {
+          remoteVideoRef.current.srcObject = event.streams[0];
         }
       };
       
+      // Send ICE candidates
+      pc.onicecandidate = (event) => {
+        if (event.candidate && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+        }
+      };
+      
+      ws.onmessage = async (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'offer') {
+          await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          ws.send(JSON.stringify({ type: 'answer', answer: answer }));
+        } else if (data.type === 'answer') {
+          await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+        } else if (data.type === 'candidate') {
+          try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch {}
+        }
+      };
+      
+      ws.onopen = async () => {
+        // Only create offer if we're the first one (no remote description yet)
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        ws.send(JSON.stringify({ type: 'offer', offer: offer }));
+      };
+      
       setInCall(sessionId);
-            const currentSession = sessions.find(s => s.id === sessionId);
+      
+      // Start timer
+      const currentSession = sessions.find(s => s.id === sessionId);
       if (currentSession?.duration_minutes) {
         setTimer(currentSession.duration_minutes * 60);
         setTimerActive(true);
       }
-    } catch { toast.error(t('Camera access denied')); }
+    } catch (err: any) {
+      toast.error('Camera/mic access denied. Please allow permissions in browser settings.');
+      console.error('Video call error:', err);
+    }
   };
 
 
-  const endCall = () => {
+
+
+    const endCall = () => {
     rtcRef.current?.disconnect();
     wsRef.current?.close();
     setInCall(null);
-     setTimer(0);
+    setTimer(0);
     setTimerActive(false);
+    // Stop all tracks
+    if (localVideoRef.current?.srcObject) {
+      const stream = localVideoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(t => t.stop());
+    }
   };
-
   // ============================================================
   // WHITEBOARD
   // ============================================================
