@@ -126,6 +126,7 @@ const STATUS_COLORS: Record<string, string> = {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
+    const pcRef = useRef<RTCPeerConnection | null>(null);
   const rtcRef = useRef<WebRTCConnection | null>(null);
   const token = localStorage.getItem('sasl_token');
 
@@ -215,7 +216,11 @@ const STATUS_COLORS: Record<string, string> = {
 
   useEffect(() => { fetchSessions(); fetchTutors(); fetchCertificates(); }, [fetchSessions]);
 
-
+   // Auto-refresh sessions every 5 seconds so student sees status changes
+  useEffect(() => {
+    const interval = setInterval(() => fetchSessions(), 5000);
+    return () => clearInterval(interval);
+  }, [fetchSessions]);
 
   // Restore whiteboard from localStorage on mount
   useEffect(() => {
@@ -328,25 +333,31 @@ const STATUS_COLORS: Record<string, string> = {
         : `wss://sasl-api-i34r.onrender.com/ws/video/${sessionId}/?token=${token}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
+            
       
-      const rtc = new WebRTCConnection((msg) => { 
-        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); 
-      });
-      rtcRef.current = rtc;
       
       // Add local tracks to peer connection
       const pc = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
       });
+      pcRef.current = pc;  
+
       stream.getTracks().forEach(track => pc.addTrack(track, stream));
       
+      
       // Handle remote stream
+      
+      
+      
       pc.ontrack = (event) => {
+        console.log('📹 Remote track received:', event);
         if (remoteVideoRef.current && event.streams[0]) {
           remoteVideoRef.current.srcObject = event.streams[0];
+          remoteVideoRef.current.play().catch(() => {});
         }
       };
-      
+
+
       // Send ICE candidates
       pc.onicecandidate = (event) => {
         if (event.candidate && ws.readyState === WebSocket.OPEN) {
@@ -368,11 +379,14 @@ const STATUS_COLORS: Record<string, string> = {
         }
       };
       
-      ws.onopen = async () => {
-        // Only create offer if we're the first one (no remote description yet)
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        ws.send(JSON.stringify({ type: 'offer', offer: offer }));
+            ws.onopen = async () => {
+        // Random delay to prevent both peers creating offers simultaneously
+        const delay = Math.random() * 2000;
+        setTimeout(async () => {
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          ws.send(JSON.stringify({ type: 'offer', offer: offer }));
+        }, delay);
       };
       
       setInCall(sessionId);
@@ -394,7 +408,9 @@ const STATUS_COLORS: Record<string, string> = {
 
     const endCall = () => {
     rtcRef.current?.disconnect();
+        pcRef.current?.close();
     wsRef.current?.close();
+         
     setInCall(null);
     setTimer(0);
     setTimerActive(false);
