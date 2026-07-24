@@ -305,10 +305,19 @@ const STATUS_COLORS: Record<string, string> = {
     }
   };
 
-    const startVideoCall = async (sessionId: string) => {
+
+  const startVideoCall = async (sessionId: string) => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+      // Request camera with explicit constraints
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { width: 640, height: 480, facingMode: 'user' }, 
+        audio: true 
+      });
+      
+      if (localVideoRef.current) {
+        localVideoRef.current.srcObject = stream;
+        localVideoRef.current.muted = true;
+      }
       
       const isLocal = window.location.hostname === 'localhost';
       const wsUrl = isLocal
@@ -316,60 +325,22 @@ const STATUS_COLORS: Record<string, string> = {
         : `wss://sasl-api-i34r.onrender.com/ws/video/${sessionId}/?token=${token}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
-            
       
-      
-      // Add local tracks to peer connection
-      const pc = new RTCPeerConnection({
-        iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+      // Use the tested WebRTCConnection class
+      const rtc = new WebRTCConnection((msg) => { 
+        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); 
       });
-      pcRef.current = pc;  
-
-      stream.getTracks().forEach(track => pc.addTrack(track, stream));
+      rtcRef.current = rtc;
       
-      
-      // Handle remote stream
-      
-      
-      
-      pc.ontrack = (event) => {
-        console.log('📹 Remote track received:', event);
-        if (remoteVideoRef.current && event.streams[0]) {
-          remoteVideoRef.current.srcObject = event.streams[0];
-          remoteVideoRef.current.play().catch(() => {});
-        }
-      };
-
-
-      // Send ICE candidates
-      pc.onicecandidate = (event) => {
-        if (event.candidate && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
-        }
-      };
-      
-      ws.onmessage = async (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === 'offer') {
-          await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-          const answer = await pc.createAnswer();
-          await pc.setLocalDescription(answer);
-          ws.send(JSON.stringify({ type: 'answer', answer: answer }));
-        } else if (data.type === 'answer') {
-          await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-        } else if (data.type === 'candidate') {
-          try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch {}
-        }
-      };
-      
-            ws.onopen = async () => {
-        // Random delay to prevent both peers creating offers simultaneously
-        const delay = Math.random() * 2000;
-        setTimeout(async () => {
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-          ws.send(JSON.stringify({ type: 'offer', offer: offer }));
-        }, delay);
+      ws.onopen = () => {
+        if (localVideoRef.current) rtc.startLocalStream(localVideoRef.current);
+        ws.onmessage = async (event) => {
+          const data = JSON.parse(event.data);
+          if (data.type === 'answer') await rtc.handleAnswer(data.answer);
+          else if (data.type === 'offer' && remoteVideoRef.current) await rtc.handleOffer(data.offer, remoteVideoRef.current);
+          else if (data.type === 'candidate') await rtc.addIceCandidate(data.candidate);
+        };
+        if (remoteVideoRef.current) rtc.createOffer(remoteVideoRef.current);
       };
       
       setInCall(sessionId);
@@ -381,19 +352,19 @@ const STATUS_COLORS: Record<string, string> = {
         setTimerActive(true);
       }
     } catch (err: any) {
-      toast.error('Camera/mic access denied. Please allow permissions in browser settings.');
-      console.error('Video call error:', err);
+      if (err.name === 'NotAllowedError') {
+        toast.error('Camera blocked. Click the camera icon in your browser address bar to allow access.');
+      } else if (err.name === 'NotFoundError') {
+        toast.error('No camera found on this device.');
+      } else {
+        toast.error('Camera error: ' + (err.message || 'Unknown'));
+      }
     }
   };
 
-
-
-
-    const endCall = () => {
+      const endCall = () => {
     rtcRef.current?.disconnect();
-        pcRef.current?.close();
     wsRef.current?.close();
-         
     setInCall(null);
     setTimer(0);
     setTimerActive(false);
@@ -401,8 +372,16 @@ const STATUS_COLORS: Record<string, string> = {
     if (localVideoRef.current?.srcObject) {
       const stream = localVideoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(t => t.stop());
+      localVideoRef.current.srcObject = null;
+    }
+    if (remoteVideoRef.current?.srcObject) {
+      const stream = remoteVideoRef.current.srcObject as MediaStream;
+      stream.getTracks().forEach(t => t.stop());
+      remoteVideoRef.current.srcObject = null;
     }
   };
+
+  
   // ============================================================
   // WHITEBOARD
   // ============================================================
