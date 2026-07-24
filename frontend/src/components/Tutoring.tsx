@@ -159,10 +159,8 @@ const STATUS_COLORS: Record<string, string> = {
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [pendingJoinSession, setPendingJoinSession] = useState<string | null>(null);
 
-  // ============================================================
-  // FETCH
-  // ============================================================
-  const fetchSessions = useCallback(async () => {
+
+  const fetchSessions = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -170,31 +168,17 @@ const STATUS_COLORS: Record<string, string> = {
       if (activeTab === 'mine') params.set('mine', 'true');
       else if (activeTab !== 'upcoming') params.set('status', activeTab);
       if (searchQuery) params.set('search', searchQuery);
-
       const res = await api.get(`/tutoring/sessions/?${params.toString()}`);
       const data = res.data.results || [];
       setSessions(data);
-
-      // Calculate stats
-      const completed = data.filter((s: Session) => s.status === t('completed'));
-      setStats({
-        totalSessions: data.length,
-        completedSessions: completed.length,
-        totalEarned: completed
-          .filter((s: Session) => s.tutor?.username === user?.username)
-          .reduce((sum: number, s: Session) => sum + parseFloat(s.price || '0'), 0)
-          .toFixed(2),
-        totalLearned: completed
-          .filter((s: Session) => s.student?.username === user?.username)
-          .reduce((sum: number, s: Session) => sum + parseFloat(s.price || '0'), 0)
-          .toFixed(2),
-      });
     } catch (err) {
       setError(t('Failed to load sessions.'));
     } finally {
       setLoading(false);
     }
-  }, [activeTab, searchQuery, user]);
+  };
+
+
 
   const fetchTutors = async () => {
     try {
@@ -214,15 +198,13 @@ const STATUS_COLORS: Record<string, string> = {
     }
   };
 
-  
   useEffect(() => { 
-    fetchSessions(); fetchTutors(); fetchCertificates();
-    // Poll every 8 seconds for real-time updates (student sees confirm, etc.)
-    const interval = setInterval(() => fetchSessions(), 8000);
-    return () => clearInterval(interval);
-  }, [fetchSessions]);
+    fetchSessions(); 
+    fetchTutors(); 
+    fetchCertificates(); 
+  }, [activeTab, searchQuery]);
 
-
+     
   // Restore whiteboard from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('sasl_whiteboard');
