@@ -100,7 +100,7 @@ export default function GigCentral() {
   const [gigs, setGigs] = useState<Gig[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'open' | 'in_progress' | 'completed' | 'mine'>('open');
+    const [activeTab, setActiveTab] = useState<'open' | 'in_progress' | 'completed' | 'mine' | 'workers'>('open');
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [expandedGig, setExpandedGig] = useState<string | null>(null);
@@ -124,6 +124,7 @@ export default function GigCentral() {
   const [disputeReason, setDisputeReason] = useState('');
 
   const [portfolio, setPortfolio] = useState<Portfolio[]>([]);
+    const [workers, setWorkers] = useState<any[]>([]);
   const [showPortfolioForm, setShowPortfolioForm] = useState(false);
   const [pfTitle, setPfTitle] = useState('');
   const [pfDesc, setPfDesc] = useState('');
@@ -165,8 +166,15 @@ export default function GigCentral() {
   }, [activeTab, searchQuery]);
 
   useEffect(() => { fetchGigs(); }, [fetchGigs]);
+  useEffect(() => { if (activeTab === 'workers') fetchWorkers(); }, [activeTab]);
+
 
   const fetchPortfolio = async () => { try { const res = await api.get('/gigs/gigs/portfolio/'); setPortfolio(res.data || []); } catch {} };
+
+  const fetchWorkers = async () => {
+    try { const res = await api.get('/gigs/gigs/discover_workers/'); setWorkers(res.data || []); } catch {}
+  };
+
   const fetchBadges = async () => { try { const res = await api.get('/gigs/gigs/my_badges/'); setSkillBadges(res.data || []); } catch {} };
   useEffect(() => { fetchPortfolio(); fetchBadges(); }, []);
 
@@ -250,6 +258,7 @@ export default function GigCentral() {
     { key: 'in_progress' as const, icon: <Clock size={15} />, label: t('In Progress'), count: gigs.filter(g => g.status === 'in_progress').length },
     { key: 'completed' as const, icon: <CheckCircle size={15} />, label: t('Completed'), count: gigs.filter(g => g.status === 'completed').length },
     { key: 'mine' as const, icon: <Briefcase size={15} />, label: t('My Gigs'), count: 0 },
+        { key: 'workers' as const, icon: <Users size={15} />, label: t('Workers'), count: workers.length },
   ];
 
   const categories = ['design', 'development', 'writing', 'marketing', 'video', 'music', 'business', 'other'];
@@ -416,6 +425,57 @@ export default function GigCentral() {
           <AlertCircle className="mx-auto mb-3 text-red-500" size={48} />
           <p className="text-lg text-gray-600">{error}</p>
           <button onClick={fetchGigs} className="mt-4 px-6 py-2.5 bg-green-500 text-white rounded-xl font-semibold">{t('Retry')}</button>
+        </div>
+
+              ) : activeTab === 'workers' ? (
+        <div className="space-y-4">
+          <h3 className="font-bold text-lg mb-3">🧑‍💻 Discover Workers ({workers.length})</h3>
+          {workers.length === 0 ? (
+            <div className="text-center py-16"><Users size={48} className="mx-auto mb-3 text-gray-300" /><p className="text-gray-500">No workers yet</p></div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {workers.map((w: any) => (
+                <div key={w.id} className="bg-white dark:bg-gray-800 rounded-2xl p-5 shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition">
+                  <div className="flex items-center gap-3 mb-3">
+                    {w.avatar ? <img src={w.avatar} className="w-12 h-12 rounded-full object-cover" /> : <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-lg">{w.username[0]?.toUpperCase()}</div>}
+                    <div>
+                      <p className="font-bold">@{w.username}</p>
+                      <p className="text-xs text-gray-500">{w.completed_gigs} gigs completed</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-2 line-clamp-2">{w.bio}</p>
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {w.skills?.map((s: string, i: number) => (
+                      <span key={i} className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-full text-xs font-medium">{s}</span>
+                    ))}
+                  </div>
+                 <div className="flex gap-2">
+  <button onClick={() => startNegotiation(w.id, w.username)} 
+    className="flex-1 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1">
+    <MessageCircle size={14} /> Negotiate
+  </button>
+  <button onClick={async () => {
+    try {
+      await api.post('/gigs/gigs/', {
+        title: `Hire @${w.username}`,
+        description: `Direct hire for ${w.username}`,
+        budget: '0',
+        category: 'other',
+        status: 'pending'
+      });
+      toast.success('Gig created! Ask worker to submit proposal.');
+      setActiveTab('mine');
+      fetchGigs();
+    } catch { toast.error('Failed'); }
+  }}
+    className="flex-1 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1">
+    <Briefcase size={14} /> Hire
+  </button>
+</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       ) : gigs.length === 0 ? (
         <div className="text-center py-16">

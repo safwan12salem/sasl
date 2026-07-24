@@ -314,6 +314,26 @@ class GigViewSet(viewsets.ModelViewSet):
         items = Portfolio.objects.filter(user=user)
         return Response(PortfolioSerializer(items, many=True).data)
 
+    @action(detail=False, methods=['get'])
+    def discover_workers(self, request):
+        """Employers browse workers with portfolios"""
+        from django.db.models import Count, Q
+        workers = User.objects.filter(portfolio__isnull=False).distinct().annotate(
+            portfolio_count=Count('portfolio'),
+            completed_gigs=Count('gigs_taken', filter=Q(gigs_taken__status='completed'))
+        ).prefetch_related('portfolio')[:50]
+        
+        data = [{
+            'id': w.id,
+            'username': w.username,
+            'avatar': w.avatar.url if hasattr(w, 'avatar') and w.avatar else None,
+            'portfolio_count': w.portfolio_count,
+            'completed_gigs': w.completed_gigs,
+            'skills': [item.title for item in w.portfolio.all()[:5]],
+            'bio': w.portfolio.first().description if w.portfolio.exists() else '',
+        } for w in workers]
+        return Response(data)
+    
     @action(detail=False, methods=['post'])
     def add_portfolio(self, request):
       serializer = PortfolioSerializer(data=request.data, context={'request': request})
