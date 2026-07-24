@@ -66,6 +66,7 @@ class GigSerializer(serializers.ModelSerializer):
     taker_avatar = serializers.SerializerMethodField()
     proposal_message = serializers.ReadOnlyField()
     proposed_budget = serializers.ReadOnlyField()
+    proposals = serializers.SerializerMethodField()
     milestones = MilestoneSerializer(many=True, read_only=True)
     reviews = GigReviewSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
@@ -77,12 +78,24 @@ class GigSerializer(serializers.ModelSerializer):
             'id', 'creator', 'creator_name', 'creator_avatar',
             'title', 'description', 'budget', 'currency',
             'status', 'category', 'skills_required',
-            'taker', 'taker_name', 'taker_avatar','proposal_message', 'proposed_budget',
+            'taker', 'taker_name', 'taker_avatar','proposal_message', 'proposed_budget','proposals',
             'milestones', 'reviews', 'average_rating', 'review_count',
             'created_at', 'updated_at', 'deadline'
         ]
         read_only_fields = ['creator', 'status', 'taker']
 
+    def get_proposals(self, obj):
+        from .models import GigProposal
+        qs = GigProposal.objects.filter(gig=obj, status='pending').select_related('worker')
+        return [{
+            'id': p.id,
+            'worker_name': p.worker.username,
+            'worker_avatar': getattr(p.worker, 'avatar_url', None) or (p.worker.avatar.url if p.worker.avatar else None),
+            'message': p.message,
+            'proposed_budget': str(p.proposed_budget),
+            'skills': p.skills,
+            'created_at': p.created_at.isoformat(),
+        } for p in qs]
     def get_creator_avatar(self, obj):
         if obj.creator.avatar and (request := self.context.get('request')):
             return obj.creator.avatar.url if obj.creator.avatar else None
@@ -101,7 +114,7 @@ class GigSerializer(serializers.ModelSerializer):
         return obj.reviews.count()
     
 
-
+    
 
 class GigChatMessageSerializer(serializers.ModelSerializer):
     sender_name = serializers.ReadOnlyField(source='sender.username')

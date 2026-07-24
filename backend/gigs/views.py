@@ -102,28 +102,54 @@ class GigViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def accept_proposal(self, request, pk=None):
-        """Employer accepts worker — payment goes to escrow"""
+        """Employer accepts a specific proposal — payment goes to escrow"""
         gig = self.get_object()
         if gig.creator != request.user:
             return Response({'error': 'Only the employer can accept proposals'}, status=403)
-        if not gig.taker:
+        
+        proposal_id = request.data.get('proposal_id')
+        if proposal_id:
+            proposal = GigProposal.objects.get(id=proposal_id, gig=gig, status='pending')
+            worker = proposal.worker
+            budget = proposal.proposed_budget
+        elif gig.taker:
+            worker = gig.taker
+            budget = gig.budget
+        else:
             return Response({'error': 'No worker has applied yet'}, status=400)
         
         from monetization.services import process_gig_escrow
-        success = process_gig_escrow(request.user, gig.taker, gig.budget, gig.title)
+        success = process_gig_escrow(request.user, worker, budget, gig.title)
         if not success:
             return Response({'error': 'Payment failed — insufficient funds'}, status=402)
         
+        if proposal_id:
+            proposal.status = 'accepted'
+            proposal.save()
+            GigProposal.objects.filter(gig=gig, status='pending').exclude(id=proposal.id).update(status='declined')
+        
+        gig.taker = worker
         gig.status = 'in_progress'
         gig.save()
         
         create_notification(
-            recipient=gig.taker,
+            recipient=worker,
             actor=request.user,
             notification_type='gig_accepted',
             message=f'{request.user.username} accepted your proposal for "{gig.title}"! Funds held in escrow.'
         )
-        return Response({'status': 'accepted', 'message': 'Proposal accepted! Funds held in escrow.'})
+        return Response({'status': 'accepted'})
+    @action(detail=True, methods=['post'])
+    def decline_proposal(self, request, pk=None):
+        """Employer declines a specific proposal"""
+        gig = self.get_object()
+        if gig.creator != request.user:
+            return Response({'error': 'Only the employer can decline'}, status=403)
+        proposal_id = request.data.get('proposal_id')
+        proposal = GigProposal.objects.get(id=proposal_id, gig=gig, status='pending')
+        proposal.status = 'declined'
+        proposal.save()
+        return Response({'status': 'declined'})
     @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
         gig = self.get_object()
