@@ -785,6 +785,18 @@ const STATUS_COLORS: Record<string, string> = {
                           className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 flex items-center gap-1">
                           <Play size={14} /> {t('Join Class')}
                         </button>
+                                                {session.status === 'ongoing' && (
+                          <button onClick={(e) => { e.stopPropagation(); completeSession(session.id); }}
+                            className="bg-amber-500 text-white px-3 py-2 rounded-full text-sm hover:bg-amber-600">
+                            ✅ Complete
+                          </button>
+                        )}
+                                                {session.status === 'ongoing' && (
+                          <button onClick={(e) => { e.stopPropagation(); completeSession(session.id); }}
+                            className="bg-amber-500 text-white px-3 py-2 rounded-full text-sm hover:bg-amber-600">
+                            ✅ Complete
+                          </button>
+                        )}
                       </>
                                         ) : session.student?.username === user?.username ? (
                       session.status === 'ongoing' ? (
