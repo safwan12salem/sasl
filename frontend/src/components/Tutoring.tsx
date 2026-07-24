@@ -775,7 +775,7 @@ const STATUS_COLORS: Record<string, string> = {
                                                  <div className="flex items-center gap-2 flex-shrink-0">
                     {session.tutor?.username === user?.username ? (
                       <>
-                        {session.status === 'scheduled' && (
+                   {session.status === 'pending_confirmation' && (
                           <button onClick={(e) => { e.stopPropagation(); confirmSession(session.id); }}
                             className="bg-green-500 text-white px-3 py-2 rounded-full text-sm hover:bg-green-600">
                             {t('Confirm')}
@@ -786,11 +786,15 @@ const STATUS_COLORS: Record<string, string> = {
                           <Play size={14} /> {t('Join Class')}
                         </button>
                       </>
-                    ) : session.student?.username === user?.username ? (
-                      <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
-                        className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 flex items-center gap-1">
-                        <Play size={14} /> {t('Join Class')}
-                      </button>
+                                        ) : session.student?.username === user?.username ? (
+                      session.status === 'ongoing' ? (
+                        <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
+                          className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 flex items-center gap-1">
+                          <Play size={14} /> {t('Join Class')}
+                        </button>
+                      ) : (
+                        <span className="text-xs text-gray-400">⏳ Waiting for tutor confirmation</span>
+                      )
                     ) : (
                       <button onClick={async (e) => { e.stopPropagation();
                         try { 
