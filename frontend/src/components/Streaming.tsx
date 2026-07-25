@@ -730,10 +730,9 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
               </div>
               <div className="flex items-center gap-2">
                 {inCall.role === 'viewer' && (
-                  <button onClick={() => {
+                                   <button onClick={() => {
                     const streamId = inCall.streamId;
-                    setPaymentAmount(amount[streamId] || 1);
-                    setShowPayment(true);
+                    donate(streamId);
                   }} className="bg-yellow-500 text-white px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 hover:bg-yellow-600">
                     <Gift size={14} /> {t('Donate')}
                   </button>
