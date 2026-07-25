@@ -18,7 +18,7 @@ export default function CreatorStudio() {
   const [myContents, setMyContents] = useState<any[]>([]);
   const [earnings, setEarnings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'dashboard' | 'campaigns' | 'my-content' | 'profile'>('dashboard');
+    const [tab, setTab] = useState<'dashboard' | 'campaigns' | 'my-content' | 'profile' | 'ads'>('dashboard');
   const [niche, setNiche] = useState('');
   const [pricePost, setPricePost] = useState('25');
   const [priceVideo, setPriceVideo] = useState('50');

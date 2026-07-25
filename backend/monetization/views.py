@@ -58,7 +58,71 @@ class AdViewSet(viewsets.GenericViewSet):
         if reward is False:
             return Response({'error': 'Could not reward (campaign exhausted or wallet frozen)'}, status=400)
         return Response({'reward': reward})
+    
+    
+    @action(detail=False, methods=['post'])
+    def create_campaign(self, request):
+        """Advertiser creates a campaign — 60% platform fee, 40% to viewer rewards"""
+        title = request.data.get('title')
+        content = request.data.get('content', '')
+        link = request.data.get('link', '')
+        budget = request.data.get('budget')
+        cpc = request.data.get('cpc', 0.01)
+        image = request.data.get('image', '')
+        
+        if not title or not budget or float(budget) <= 0:
+            return Response({'error': 'Title and budget required'}, status=400)
+        
+        budget = Decimal(str(budget))
+        wallet = request.user.wallet
+        if wallet.balance < budget:
+            return Response({'error': 'Insufficient wallet balance'}, status=402)
+        
+        # 60% platform fee, 40% goes to campaign budget for viewer rewards
+        platform_fee = budget * Decimal('0.60')
+        campaign_budget = budget * Decimal('0.40')
+        
+        wallet.balance -= budget
+        wallet.save()
+        
+        campaign = AdCampaign.objects.create(
+            title=title,
+            content=content,
+            link=link,
+            budget=campaign_budget,
+            cpc=Decimal(str(cpc)),
+            image=image,
+            advertiser=request.user,
+            active=True,
+            spent=Decimal('0')
+        )
+        
+        Transaction.objects.create(
+            user=request.user,
+            amount=-budget,
+            transaction_type='ad_campaign',
+            description=f'Ad campaign: {title} (60% platform, 40% rewards)'
+        )
+        
+        return Response({'status': 'created', 'campaign_id': campaign.id})
 
+    @action(detail=False, methods=['get'])
+    def my_campaigns(self, request):
+        """Advertiser views their own campaigns"""
+        campaigns = AdCampaign.objects.filter(advertiser=request.user).order_by('-created_at')
+        return Response([{
+            'id': c.id,
+            'title': c.title,
+            'content': c.content,
+            'link': c.link,
+            'budget': str(c.budget),
+            'cpc': str(c.cpc),
+            'spent': str(c.spent),
+            'image': c.image,
+            'active': c.active,
+            'created_at': c.created_at.isoformat(),
+        } for c in campaigns])
+     
 class TransactionViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     serializer_class = TransactionSerializer
     permission_classes = [permissions.IsAuthenticated]

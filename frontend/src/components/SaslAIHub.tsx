@@ -53,7 +53,7 @@ export default function SaslAIHub() {
   useEffect(() => {
     setIsPremium((user as any)?.is_premium || false);
   }, [user]);
-  const remaining = Math.max(0, FREE_LIMIT - usage.count);
+    const remaining = isPremium ? Infinity : Math.max(0, FREE_LIMIT - usage.count);
 
   useEffect(() => {
     if (chatRef.current) {
