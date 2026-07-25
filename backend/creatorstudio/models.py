@@ -63,6 +63,7 @@ class BrandCampaign(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField()
     requirements = models.TextField(blank=True, help_text="Specific requirements for creators")
+    image = models.URLField(blank=True, null=True, help_text="Campaign banner image URL")
     budget = models.DecimalField(max_digits=10, decimal_places=2)
     content_type = models.CharField(max_length=20, choices=CONTENT_TYPES)
     min_audience = models.IntegerField(default=0, help_text="Minimum audience size required")

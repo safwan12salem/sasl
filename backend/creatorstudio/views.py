@@ -26,7 +26,7 @@ class CreatorProfileViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def my_earnings(self, request):
-        profile = request.user.creatorprofile
+        profile, _ = CreatorProfile.objects.get_or_create(user=request.user)
         contents = SponsoredContent.objects.filter(creator=request.user, status='approved')
         total = sum(float(c.creator_earnings) for c in contents)
         return Response({

@@ -118,7 +118,7 @@ class AdViewSet(viewsets.GenericViewSet):
             'budget': str(c.budget),
             'cpc': str(c.cpc),
             'spent': str(c.spent),
-            'image': c.image,
+            'image': c.image.url if c.image else None,
             'active': c.active,
             'created_at': c.created_at.isoformat(),
         } for c in campaigns])
