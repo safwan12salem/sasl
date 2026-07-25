@@ -19,6 +19,18 @@ export default function CreatorStudio() {
   const [earnings, setEarnings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
     const [tab, setTab] = useState<'dashboard' | 'campaigns' | 'my-content' | 'profile' | 'ads'>('dashboard');
+      // Restore tab from localStorage
+  useEffect(() => {
+    const savedTab = localStorage.getItem('creatorstudio_tab');
+    if (savedTab) setTab(savedTab as any);
+  }, []);
+  
+  // Save tab to localStorage on change
+  useEffect(() => {
+    localStorage.setItem('creatorstudio_tab', tab);
+  }, [tab]);
+
+
   const [niche, setNiche] = useState('');
   const [pricePost, setPricePost] = useState('25');
   const [priceVideo, setPriceVideo] = useState('50');
@@ -361,6 +373,17 @@ export default function CreatorStudio() {
                         className="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg transition flex items-center gap-1">
                         <Send size={14} /> {t('Apply')}
                       </motion.button>
+                                                  
+                      {c.brand_name === user?.username && (
+                        <button onClick={async (e) => { e.stopPropagation();
+                          if (window.confirm('Delete this campaign?')) {
+                            try { await api.delete(`/creatorstudio/campaigns/${c.id}/`); toast.success('Deleted'); loadData(); }
+                            catch { toast.error('Failed'); }
+                          }
+                        }} className="text-red-400 hover:text-red-600 text-sm" title="Delete campaign">
+                          🗑️
+                        </button>
+                      )}
                     </div>
                     {/* Progress bar if campaign has applicant count */}
                     {c.applicant_count !== undefined && (

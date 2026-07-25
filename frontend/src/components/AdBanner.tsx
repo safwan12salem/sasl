@@ -53,9 +53,17 @@ const AdBanner: React.FC = () => {
           <p className="font-semibold text-sm">{ad.title}</p>
           <p className="text-xs text-gray-500">{ad.content}</p>
         </div>
-        <button onClick={claimReward} disabled={rewarded} className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold ${rewarded ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}>
-          <Eye size={14} /> {rewarded ? 'Rewarded' : 'Earn $0.001'}
-        </button>
+                <div className="flex gap-2">
+          {ad.link && (
+            <a href={ad.link} target="_blank" rel="noopener noreferrer" onClick={() => claimReward()}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500 text-white hover:bg-green-600">
+              Learn More
+            </a>
+          )}
+          <button onClick={claimReward} disabled={rewarded} className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold ${rewarded ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}>
+            <Eye size={14} /> {rewarded ? 'Rewarded' : 'Earn $0.001'}
+          </button>
+        </div>
       </div>
     </div>
   );

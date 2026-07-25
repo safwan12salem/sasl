@@ -286,7 +286,7 @@ def run_ad_auction(user):
 def reward_ad_watch(user, campaign_id):
     """Reward user for ad view and deduct from campaign."""
     try:
-        campaign = AdCampaign.objects.select_for_update().get(id=campaign_id, active=True)
+        campaign = AdCampaign.objects.get(id=campaign_id, active=True)
     except AdCampaign.DoesNotExist:
         return False
 
@@ -294,7 +294,7 @@ def reward_ad_watch(user, campaign_id):
     reward = Decimal(str(settings.SASL_AD_REWARD_PER_VIEW)) * multiplier
 
     with transaction.atomic():
-        wallet = Wallet.objects.select_for_update().get(user=user)
+        wallet = Wallet.objects.get(user=user)
         if wallet.frozen:
             return False
         if campaign.spent + reward > campaign.budget:

@@ -36,11 +36,21 @@ class CreatorProfileViewSet(viewsets.ModelViewSet):
             'recent_earnings': SponsoredContentSerializer(contents[:10], many=True).data
         })
 
+
 class BrandCampaignViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
-    queryset = BrandCampaign.objects.filter(deadline__gte=timezone.now())
+    queryset = BrandCampaign.objects.all()
     serializer_class = BrandCampaignSerializer
     
+    def perform_create(self, serializer):
+        serializer.save()
+    
+    def destroy(self, request, *args, **kwargs):
+        campaign = self.get_object()
+        if campaign.brand_name != request.user.username:  # Only creator can delete
+            return Response({'error': 'Not authorized'}, status=403)
+        return super().destroy(request, *args, **kwargs)
+
 
     def perform_create(self, serializer):
       serializer.save()
