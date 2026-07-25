@@ -113,6 +113,7 @@ const STATUS_COLORS: Record<string, string> = {
   const [description, setDescription] = useState('');
   const [isGroupClass, setIsGroupClass] = useState(false);
   const [duration, setDuration] = useState('60');
+    const [bgImage, setBgImage] = useState('');
   const [isOffline, setIsOffline] = useState(true);
 
   // Tutor profiles
@@ -247,6 +248,7 @@ const STATUS_COLORS: Record<string, string> = {
         duration_minutes: parseInt(duration),
         max_students: parseInt(maxStudents),
         is_group_class: isGroupClass,
+        background_image: bgImage || null,
       });
       toast.success(`${isGroupClass ? 'Group class' : 'Session'} created! 🎉`);
       resetForm();
@@ -448,6 +450,7 @@ const STATUS_COLORS: Record<string, string> = {
     setSubject(''); setPrice(''); setScheduledAt('');
     setDescription(''); setIsGroupClass(false);
     setMaxStudents('10'); setDuration('60'); setIsOffline(true);
+    setBgImage('');
   };
 
   const renderStars = (rating: number) => {
@@ -678,6 +681,8 @@ const STATUS_COLORS: Record<string, string> = {
               <input className="input-field" type="number" placeholder={t('Price ($) *')} value={price} onChange={e => setPrice(e.target.value)} />
             </div>
             <textarea className="input-field" placeholder={t('Description...')} value={description} onChange={e => setDescription(e.target.value)} rows={2} />
+                          <textarea className="input-field" placeholder={t('Description...')} value={description} onChange={e => setDescription(e.target.value)} rows={2} />
+            <input className="input-field" type="url" placeholder="Background image URL (optional)" value={bgImage} onChange={e => setBgImage(e.target.value)} />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <input className="input-field" type="datetime-local" value={scheduledAt} onChange={e => setScheduledAt(e.target.value)} />
               <select className="input-field" value={duration} onChange={e => setDuration(e.target.value)}>
