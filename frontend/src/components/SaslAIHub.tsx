@@ -53,7 +53,7 @@ export default function SaslAIHub() {
   useEffect(() => {
     setIsPremium((user as any)?.is_premium || false);
   }, [user]);
-    const remaining = isPremium ? Infinity : Math.max(0, FREE_LIMIT - usage.count);
+      const remaining = isPremium ? FREE_LIMIT : Math.max(0, FREE_LIMIT - usage.count);
 
   useEffect(() => {
     if (chatRef.current) {
@@ -151,15 +151,14 @@ export default function SaslAIHub() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {!isPremium && (
+                      {!isPremium && (
             <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
               remaining <= 5 ? 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400 animate-pulse' 
               : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
             }`}>
-              <Clock size={12} />
-              {remaining}/{FREE_LIMIT}
+              <><Clock size={12} /><span>{remaining}/{FREE_LIMIT}</span></>
             </div>
-          )}
+          )}         
           {isPremium && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-full text-xs">
               <Crown size={12} className="text-yellow-500" />
@@ -344,7 +343,7 @@ export default function SaslAIHub() {
           </div>
           {!isPremium && remaining <= 5 && (
             <span className="text-[10px] text-red-500 font-medium">
-              {remaining} queries left today
+              <>{remaining} queries left today</>
             </span>
           )}
         </div>
