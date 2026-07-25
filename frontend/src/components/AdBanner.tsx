@@ -17,6 +17,7 @@ const AdBanner: React.FC = () => {
   const [ad, setAd] = useState<Ad | null>(null);
   const [loading, setLoading] = useState(!!token);
   const [rewarded, setRewarded] = useState(false);
+    const [engaged, setEngaged] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -30,8 +31,8 @@ const AdBanner: React.FC = () => {
       .finally(() => setLoading(false));
   }, [token]);
 
-  const claimReward = async () => {
-    if (!ad || rewarded) return;
+   const claimReward = async () => {
+    if (!ad || rewarded || !engaged) return;
     try {
       await api.post('/monetization/ads/reward_view/', { campaign_id: ad.id });
       setRewarded(true);
@@ -40,6 +41,8 @@ const AdBanner: React.FC = () => {
       toast.error(err.response?.data?.error || 'Reward failed');
     }
   };
+
+
 
   if (loading) return <div className="h-16 flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
   if (!ad || collapsed) return null;
@@ -55,14 +58,15 @@ const AdBanner: React.FC = () => {
         </div>
                 <div className="flex gap-2">
           {ad.link && (
-            <a href={ad.link} target="_blank" rel="noopener noreferrer" onClick={() => claimReward()}
+            <a href={ad.link} target="_blank" rel="noopener noreferrer" onClick={() => setEngaged(true)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500 text-white hover:bg-green-600">
               Learn More
             </a>
           )}
-          <button onClick={claimReward} disabled={rewarded} className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold ${rewarded ? 'bg-gray-200 text-gray-500' : 'bg-blue-500 text-white hover:bg-blue-600'}`}>
-            <Eye size={14} /> {rewarded ? 'Rewarded' : 'Earn $0.001'}
+                    <button onClick={claimReward} disabled={rewarded || !engaged} className={`...`}>
+            <Eye size={14} /> {rewarded ? 'Rewarded' : engaged ? 'Earn $0.001' : 'View first →'}
           </button>
+
         </div>
       </div>
     </div>

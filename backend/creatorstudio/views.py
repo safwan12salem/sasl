@@ -83,6 +83,24 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
             'message': 'Application submitted! Brand will review and accept.'
         })
 
+
+    @action(detail=True, methods=['get'])
+    def applicants(self, request, pk=None):
+        """Brand views all applicants for their campaign"""
+        campaign = self.get_object()
+        if campaign.brand_name != request.user.username:
+            return Response({'error': 'Not authorized'}, status=403)
+        contents = SponsoredContent.objects.filter(campaign=campaign).select_related('creator')
+        return Response([{
+            'id': c.id,
+            'creator_name': c.creator.username,
+            'creator_avatar': c.creator.avatar.url if hasattr(c.creator, 'avatar') and c.creator.avatar else None,
+            'caption': c.caption,
+            'status': c.status,
+            'creator_earnings': str(c.creator_earnings),
+            'created_at': c.created_at.isoformat(),
+        } for c in contents]) 
+    
     @action(detail=True, methods=['post'])
     def accept_creator(self, request, pk=None):
         """Brand accepts a creator — funds escrow"""
