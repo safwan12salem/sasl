@@ -154,16 +154,7 @@ export default function Wallet() {
             <CreditCard size={18} /> {t('Top Up')}
           </motion.button>
         </div>
-        <motion.button whileTap={{ scale: 0.95 }} onClick={async () => {
-            try {
-              const res = await api.post('/users/upgrade-premium/');
-              if (res.data.url) { window.location.href = res.data.url; }
-              else { toast.success(res.data.message || 'Premium activated!'); setWallet((prev: any) => prev ? { ...prev } : prev); }
-            } catch (err: any) { toast.error(err.response?.data?.error || 'Upgrade failed'); }
-          }}
-          className="w-full mt-2 flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white py-3 rounded-full font-semibold hover:shadow-lg transition">
-          <Crown size={18} /> {t('Upgrade Premium')} — $4.99/mo
-        </motion.button>
+        
       </motion.div>
                      
 
