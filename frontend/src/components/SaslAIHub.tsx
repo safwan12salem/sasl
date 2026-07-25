@@ -48,7 +48,11 @@ export default function SaslAIHub() {
   const chatRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const isPremium = (user as any)?.is_premium || false;
+    const [isPremium, setIsPremium] = useState((user as any)?.is_premium || false);
+  
+  useEffect(() => {
+    setIsPremium((user as any)?.is_premium || false);
+  }, [user]);
   const remaining = Math.max(0, FREE_LIMIT - usage.count);
 
   useEffect(() => {
