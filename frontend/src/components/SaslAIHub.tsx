@@ -32,7 +32,7 @@ const SUGGESTED_QUESTIONS = [
 
 export default function SaslAIHub() {
   const { t } = useTranslation();
-  const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
@@ -279,16 +279,11 @@ export default function SaslAIHub() {
                         <button 
                 onClick={async () => {
                   try {
-                                     const res = await api.post('/users/upgrade-premium/');
+                                                    const res = await api.post('/users/upgrade-premium/');
                     if (res.data.url) { window.location.href = res.data.url; }
                     else { 
                       toast.success('Premium activated! 🎉');
-                      // Refresh user data to update isPremium
-                      const profileRes = await api.get('/users/profile/');
-                      if (profileRes.data) {
-                        localStorage.setItem('sasl_user', JSON.stringify(profileRes.data));
-                        window.location.reload();
-                      }
+                      await refreshUser();
                     }
                   } catch (err: any) { 
                     toast.error(err.response?.data?.error || 'Insufficient balance. Top up wallet first.'); 
