@@ -13,8 +13,7 @@ import {
   ClipboardList, Award, FileText, Download, Upload, PenTool,
   GraduationCap, ChevronDown, ChevronUp, X, CheckCircle, Globe,
   DollarSign, BarChart3, Bookmark, Share2, Zap,
-  Trophy,
-  Send
+  Trophy,Send,Image
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import TutoringChat from './TutoringChat';
@@ -113,7 +112,7 @@ const STATUS_COLORS: Record<string, string> = {
   const [description, setDescription] = useState('');
   const [isGroupClass, setIsGroupClass] = useState(false);
   const [duration, setDuration] = useState('60');
-    const [bgImage, setBgImage] = useState('');
+    const [bgImage, setBgImage] = useState<File | null>(null);
         const [bgImageUrl, setBgImageUrl] = useState('');
   const [isOffline, setIsOffline] = useState(true);
 
@@ -686,7 +685,7 @@ const STATUS_COLORS: Record<string, string> = {
                        
                         <div>
               <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-500 hover:text-gray-700">
-                <ImageIcon size={16} />
+                <Image size={16} />
                 {bgImage ? bgImage.name : 'Session background image (optional)'}
                 <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                   const file = e.target.files?.[0];
