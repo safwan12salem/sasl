@@ -391,6 +391,7 @@ export default function CreatorStudio() {
                 <motion.div key={c.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
                   whileHover={{ y: -4 }} className="glass-card rounded-2xl overflow-hidden border border-purple-100 dark:border-purple-900/30 hover:shadow-xl transition-shadow">
                   <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2" />
+                                    {c.image && <img src={c.image} alt={c.title} className="w-full h-32 object-cover" />}
                   <div className="p-5">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
@@ -415,17 +416,28 @@ export default function CreatorStudio() {
                         <Send size={14} /> {t('Apply')}
                       </motion.button>
                                                   
-                      {c.brand_name === user?.username && (
-                        <button onClick={async (e) => { e.stopPropagation();
-                          if (window.confirm('Delete this campaign?')) {
-                            try { await api.delete(`/creatorstudio/campaigns/${c.id}/`); toast.success('Deleted'); loadData(); }
-                            catch { toast.error('Failed'); }
-                          }
-                        }} className="text-red-400 hover:text-red-600 text-sm" title="Delete campaign">
-                          🗑️
-                        </button>
+                                          {c.brand_name === user?.username && (
+                        <div className="flex gap-2 items-center">
+                          <button onClick={async (e) => { e.stopPropagation();
+                            try {
+                              const res = await api.get(`/creatorstudio/campaigns/${c.id}/applicants/`);
+                              toast.success(`${res.data.length} applicant(s)`);
+                              setMyContents(res.data);
+                            } catch { toast.error('Failed to load applicants'); }
+                          }} className="text-xs text-blue-600 hover:underline">
+                            👥 Applicants
+                          </button>
+                          <button onClick={async (e) => { e.stopPropagation();
+                            if (window.confirm('Delete this campaign?')) {
+                              try { await api.delete(`/creatorstudio/campaigns/${c.id}/`); toast.success('Deleted'); loadData(); }
+                              catch { toast.error('Failed'); }
+                            }
+                          }} className="text-red-400 hover:text-red-600 text-sm" title="Delete campaign">
+                            🗑️
+                          </button>
+                        </div>
                       )}
-                    </div>
+                    </div>  
                     {/* Progress bar if campaign has applicant count */}
                     {c.applicant_count !== undefined && (
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
