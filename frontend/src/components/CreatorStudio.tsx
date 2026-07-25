@@ -3,7 +3,7 @@ import api from '../services/api';
 import toast from 'react-hot-toast';
 import { 
   Sparkles, DollarSign, TrendingUp, Video, Image, Send, Loader2, Users, Star, PlusCircle,
-  Zap, Crown, BarChart3, Clock, CheckCircle, XCircle, Target, Award, Gift,
+  Zap, Crown, BarChart3, Clock, CheckCircle, XCircle, Target, Award, Gift, Megaphone,
   ChevronUp, ChevronDown, Filter, Calendar, Eye, Heart, MessageCircle, Share2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,8 +28,23 @@ export default function CreatorStudio() {
   const [campaignDesc, setCampaignDesc] = useState('');
   const [campaignBudget, setCampaignBudget] = useState('');
   const [campaignType, setCampaignType] = useState('post');
+    const [campaignImage, setCampaignImage] = useState<File | null>(null);
+  const [campaignImageUrl, setCampaignImageUrl] = useState('');
   const [campaignDeadline, setCampaignDeadline] = useState('');
   const [sortBy, setSortBy] = useState<'budget' | 'deadline'>('budget');
+    const [applyModal, setApplyModal] = useState<string | null>(null); // campaign id
+  const [proposalMsg, setProposalMsg] = useState('');
+  const [proposalPortfolio, setProposalPortfolio] = useState('');
+  // Ad Campaign States
+  const [adTitle, setAdTitle] = useState('');
+  const [adDesc, setAdDesc] = useState('');
+  const [adLink, setAdLink] = useState('');
+  const [adBudget, setAdBudget] = useState('');
+  const [adCPC, setAdCPC] = useState('0.01');
+  const [adImage, setAdImage] = useState<File | null>(null);
+  const [adImageUrl, setAdImageUrl] = useState('');
+  const [adCampaigns, setAdCampaigns] = useState<any[]>([]);
+
 
   useEffect(() => { loadData(); }, []);
 
@@ -48,6 +63,11 @@ export default function CreatorStudio() {
       setNiche(p.data.niche || '');
       setPricePost(p.data.price_per_post || '25');
       setPriceVideo(p.data.price_per_video || '50');
+            // Fetch ad campaigns
+      try {
+        const adRes = await api.get('/monetization/ads/my_campaigns/');
+        setAdCampaigns(adRes.data || []);
+      } catch {}
     } catch (err) {
       toast.error(t('Failed to load Creator Studio'));
     } finally {
@@ -63,22 +83,51 @@ export default function CreatorStudio() {
     } catch { toast.error(t('Update failed')); }
   };
 
-  const applyCampaign = async (campaignId: string) => {
+
+  const createAdCampaign = async () => {
+    if (!adTitle || !adBudget || !adLink) return toast.error('Title, budget, and link are required');
     try {
-      await api.post(`/creatorstudio/campaigns/${campaignId}/apply/`, {});
+      await api.post('/monetization/ads/create_campaign/', {
+        title: adTitle,
+        content: adDesc,
+        link: adLink,
+        budget: parseFloat(adBudget),
+        cpc: parseFloat(adCPC) || 0.01,
+        image: adImageUrl,
+      });
+      toast.success('🎉 Ad campaign launched! 60% platform fee, 40% goes to viewer rewards.');
+      setAdTitle(''); setAdDesc(''); setAdLink(''); setAdBudget(''); setAdImage(null); setAdImageUrl('');
+      // Reload ad campaigns
+      const adRes = await api.get('/monetization/ads/my_campaigns/');
+      setAdCampaigns(adRes.data || []);
+    } catch (err: any) { toast.error(err.response?.data?.error || 'Failed to create campaign'); }
+  };
+
+    const applyCampaign = async (campaignId: string) => {
+    if (!proposalMsg.trim()) return toast.error('Write a proposal message');
+    try {
+      await api.post(`/creatorstudio/campaigns/${campaignId}/apply/`, {
+        caption: proposalMsg,
+        portfolio_link: proposalPortfolio,
+      });
       toast.success(t('Applied successfully! 🎉'));
+      setApplyModal(null);
+      setProposalMsg('');
+      setProposalPortfolio('');
       loadData();
     } catch (err: any) {
       toast.error(err.response?.data?.error || t('Failed to apply'));
     }
   };
 
+
   const createCampaign = async () => {
     if (!campaignBrand || !campaignTitle || !campaignBudget) return toast.error(t('Fill all fields'));
     try {
            await api.post('/creatorstudio/campaigns/', {
         brand_name: campaignBrand, title: campaignTitle, description: campaignDesc,
-        budget: parseFloat(campaignBudget), content_type: campaignType, deadline: campaignDeadline,
+                budget: parseFloat(campaignBudget), content_type: campaignType, deadline: campaignDeadline,
+        image: campaignImageUrl || '',
       });
       toast.success(t('Campaign created!'));
       setShowCreateCampaign(false);
@@ -157,6 +206,7 @@ export default function CreatorStudio() {
           { key: 'campaigns' as const, label: t('💼 Brand Deals'), icon: <DollarSign size={16} /> },
           { key: 'my-content' as const, label: t('📝 My Content'), icon: <Image size={16} /> },
           { key: 'profile' as const, label: t('⭐ Profile'), icon: <Star size={16} /> },
+          { key: 'ads' as const, label: t('📢 Advertise'), icon: <Megaphone size={16} /> },    
         ].map(tb => (
           <button key={tb.key} onClick={() => setTab(tb.key)}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs md:text-sm font-semibold transition whitespace-nowrap ${
@@ -244,6 +294,23 @@ export default function CreatorStudio() {
                     <input className="input-field text-sm" placeholder={t('Campaign Title')} value={campaignTitle} onChange={e => setCampaignTitle(e.target.value)} />
                   </div>
                   <textarea className="input-field text-sm" placeholder={t('Description')} value={campaignDesc} onChange={e => setCampaignDesc(e.target.value)} rows={2} />
+                                      <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-500 hover:text-gray-700">
+                    <Image size={16} />
+                    {campaignImage ? campaignImage.name : t('Campaign image (optional)')}
+                    <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setCampaignImage(file);
+                      const formData = new FormData();
+                      formData.append('file', file);
+                      formData.append('upload_preset', 'sasl_upload');
+                      try {
+                        const res = await fetch('https://api.cloudinary.com/v1_1/dwem1chqc/upload', { method: 'POST', body: formData });
+                        const data = await res.json();
+                        if (data.secure_url) setCampaignImageUrl(data.secure_url);
+                      } catch {}
+                    }} />
+                  </label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     <input className="input-field text-sm" type="number" placeholder={t('Budget ($)')} value={campaignBudget} onChange={e => setCampaignBudget(e.target.value)} />
                     <select className="input-field text-sm" value={campaignType} onChange={e => setCampaignType(e.target.value)}>
@@ -290,7 +357,7 @@ export default function CreatorStudio() {
                           <Calendar size={10} /> {new Date(c.deadline).toLocaleDateString()}
                         </p>
                       </div>
-                      <motion.button whileTap={{ scale: 0.9 }} onClick={() => applyCampaign(c.id)}
+                      <motion.button whileTap={{scale: 0.9}} onClick={() => setApplyModal(c.id)}
                         className="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg transition flex items-center gap-1">
                         <Send size={14} /> {t('Apply')}
                       </motion.button>
@@ -405,6 +472,122 @@ export default function CreatorStudio() {
           </div>
         </div>
       )}
+
+      
+
+      {/* ========== ADS TAB ========== */}
+      {tab === 'ads' && (
+        <div className="max-w-2xl mx-auto space-y-6">
+          {/* Create Ad Campaign */}
+          <div className="glass-card p-6 rounded-2xl">
+            <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+              <Megaphone size={20} className="text-purple-500" /> Create Ad Campaign
+            </h3>
+            <div className="space-y-3">
+              <input className="input-field" placeholder="Ad Title *" value={adTitle} onChange={e => setAdTitle(e.target.value)} />
+              <textarea className="input-field" placeholder="Ad Description *" value={adDesc} onChange={e => setAdDesc(e.target.value)} rows={2} />
+              <input className="input-field" type="url" placeholder="Target URL (where users go when they click)" value={adLink} onChange={e => setAdLink(e.target.value)} />
+              <div className="grid grid-cols-2 gap-3">
+                <input className="input-field" type="number" placeholder="Budget ($) *" value={adBudget} onChange={e => setAdBudget(e.target.value)} />
+                <input className="input-field" type="number" placeholder="CPC in $" step="0.001" value={adCPC} onChange={e => setAdCPC(e.target.value)} />
+              </div>
+              <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-500 hover:text-gray-700">
+                <Image size={16} />
+                {adImage ? adImage.name : 'Upload Ad Creative (image or video)'}
+                <input type="file" accept="image/*,video/*" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setAdImage(file);
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  formData.append('upload_preset', 'sasl_upload');
+                  try {
+                    const res = await fetch('https://api.cloudinary.com/v1_1/dwem1chqc/upload', { method: 'POST', body: formData });
+                    const data = await res.json();
+                    if (data.secure_url) setAdImageUrl(data.secure_url);
+                  } catch {}
+                }} />
+              </label>
+              <button onClick={createAdCampaign} className="btn-primary w-full py-3">
+                🚀 Launch Campaign ({adBudget ? `$${adBudget}` : '$0'})
+              </button>
+            </div>
+          </div>
+
+          {/* Active Campaigns */}
+          <div className="glass-card p-6 rounded-2xl">
+            <h3 className="font-bold text-lg mb-4">📊 Your Ad Campaigns</h3>
+            {adCampaigns.length === 0 ? (
+              <p className="text-gray-400 text-sm">No campaigns yet. Create your first ad above.</p>
+            ) : (
+              <div className="space-y-3">
+                {adCampaigns.map((c: any) => (
+                  <div key={c.id} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-semibold">{c.title}</p>
+                        <p className="text-xs text-gray-500">Budget: ${c.budget} · CPC: ${c.cpc} · Spent: ${c.spent || 0}</p>
+                      </div>
+                      <span className={`px-2 py-1 rounded-full text-xs ${c.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                        {c.active ? 'Active' : 'Ended'}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                      <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${Math.min(((c.spent || 0) / c.budget) * 100, 100)}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+       {/* Apply Proposal Modal */}
+      <AnimatePresence>
+        {applyModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setApplyModal(null)}>
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+              className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+              <h3 className="font-bold text-lg mb-4">📝 Submit Proposal</h3>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm">
+                  <Users size={16} className="text-purple-500" />
+                  <span>Audience: {profile?.audience_size || 0}</span>
+                  <span className="text-gray-400">·</span>
+                  <span>Engagement: {engagementRate}%</span>
+                </div>
+                
+                <textarea className="input-field text-sm" placeholder="Why are you the best fit for this campaign? *" 
+                  value={proposalMsg} onChange={e => setProposalMsg(e.target.value)} rows={4} />
+                
+                <input className="input-field text-sm" placeholder="Portfolio link (optional)" 
+                  value={proposalPortfolio} onChange={e => setProposalPortfolio(e.target.value)} />
+                
+                {profile?.past_campaigns > 0 && (
+                  <p className="text-xs text-green-600">✅ {profile.past_campaigns} campaigns completed</p>
+                )}
+              </div>
+              
+              <div className="flex gap-2 mt-4">
+                <button onClick={() => applyCampaign(applyModal)} 
+                  className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-xl font-semibold">
+                  Submit Proposal
+                </button>
+                <button onClick={() => setApplyModal(null)} 
+                  className="px-6 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl font-medium">
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
+   
+
+ 
