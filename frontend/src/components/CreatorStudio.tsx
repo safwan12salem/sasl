@@ -9,9 +9,13 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
+import { useMesh } from '../hooks/useMesh';
+import { db } from '../services/offlineDB';
+
 
 export default function CreatorStudio() {
   const { user } = useAuth();
+    const { isOnline } = useMesh();
   const { t } = useTranslation();
   const [profile, setProfile] = useState<any>(null);
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -60,6 +64,30 @@ export default function CreatorStudio() {
 
   useEffect(() => { loadData(); }, []);
 
+  // Sync offline campaigns/ads when coming online
+  useEffect(() => {
+    if (isOnline) {
+      db.offlineActions.where('type').equals('create_campaign').toArray().then(async (items) => {
+        for (const item of items) {
+          try {
+            await api.post('/creatorstudio/campaigns/', item.data);
+            await db.offlineActions.delete(item.id!);
+          } catch {}
+        }
+        loadData();
+      });
+      db.offlineActions.where('type').equals('create_ad').toArray().then(async (items) => {
+        for (const item of items) {
+          try {
+            await api.post('/monetization/ads/create_campaign/', item.data);
+            await db.offlineActions.delete(item.id!);
+          } catch {}
+        }
+      });
+    }
+  }, [isOnline]);
+
+
   const loadData = async () => {
     try {
       const [p, c, m, e] = await Promise.all([
@@ -97,7 +125,13 @@ export default function CreatorStudio() {
 
 
   const createAdCampaign = async () => {
-    if (!adTitle || !adBudget || !adLink) return toast.error('Title, budget, and link are required');
+        if (!adTitle || !adBudget || !adLink) return toast.error('Title, budget, and link are required');
+    if (!isOnline) {
+            await db.offlineActions.put({ type: 'create_ad', data: { title: adTitle, content: adDesc, link: adLink, budget: parseFloat(adBudget), cpc: parseFloat(adCPC) || 0.01, image: adImageUrl }, created_at: Date.now() });
+      toast.success('Ad saved offline — will publish when online');
+      setAdTitle(''); setAdDesc(''); setAdLink(''); setAdBudget(''); setAdImage(null); setAdImageUrl('');
+      return;
+    }
     try {
       await api.post('/monetization/ads/create_campaign/', {
         title: adTitle,
@@ -134,7 +168,14 @@ export default function CreatorStudio() {
 
 
   const createCampaign = async () => {
-    if (!campaignBrand || !campaignTitle || !campaignBudget) return toast.error(t('Fill all fields'));
+       if (!campaignBrand || !campaignTitle || !campaignBudget) return toast.error(t('Fill all fields'));
+    if (!isOnline) {
+            await db.offlineActions.put({ type: 'create_campaign', data: { brand_name: campaignBrand, title: campaignTitle, description: campaignDesc, budget: parseFloat(campaignBudget), content_type: campaignType, deadline: campaignDeadline, image: campaignImageUrl || '' }, created_at: Date.now() });
+            toast.success('Saved offline — will publish when online');
+      setCampaignBrand(''); setCampaignTitle(''); setCampaignDesc('');
+      setCampaignBudget(''); setCampaignDeadline(''); setShowCreateCampaign(false);
+      return;
+    }
     try {
            await api.post('/creatorstudio/campaigns/', {
         brand_name: campaignBrand, title: campaignTitle, description: campaignDesc,

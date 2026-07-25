@@ -34,13 +34,15 @@ class SaslDB extends Dexie {
   posts!: Table<OfflinePost>;
   products!: Table<OfflineProduct>;
   messages!: Table<OfflineMessage>;
+  offlineActions!: Table<{ id?: number; type: string; data: any; created_at: number }>;
 
   constructor() {
     super('sasl');
-    this.version(3).stores({
+    this.version(4).stores({
       posts: 'id, created_at',
       products: 'id',
       messages: '++id, roomId, timestamp',
+      offlineActions: '++id, type, created_at',
     });
   }
 }
