@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
-import { Eye, X, Loader2 } from 'lucide-react';
+import { Eye, X, Loader2, ExternalLink } from 'lucide-react';
 
 interface Ad {
   id: string;
   title: string;
   content: string;
   image?: string;
-  link: string;
+  link?: string;
 }
 
 const AdBanner: React.FC = () => {
@@ -17,7 +17,7 @@ const AdBanner: React.FC = () => {
   const [ad, setAd] = useState<Ad | null>(null);
   const [loading, setLoading] = useState(!!token);
   const [rewarded, setRewarded] = useState(false);
-    const [engaged, setEngaged] = useState(false);
+  const [engaged, setEngaged] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -25,13 +25,28 @@ const AdBanner: React.FC = () => {
       setLoading(false);
       return;
     }
+    setLoading(true);
     api.get('/monetization/ads/serve_ad/')
-      .then(res => setAd(res.data.ad_available ? res.data.ad : null))
-      .catch(() => {}) // silently fail
+      .then(res => {
+        if (res.data?.ad_available && res.data?.ad) {
+          console.log('📢 Ad loaded:', res.data.ad); // Debug - remove in production
+          setAd(res.data.ad);
+        } else {
+          setAd(null);
+        }
+      })
+      .catch(() => setAd(null))
       .finally(() => setLoading(false));
   }, [token]);
 
-   const claimReward = async () => {
+  const handleEngage = () => {
+    setEngaged(true);
+    if (ad?.link) {
+      window.open(ad.link, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const claimReward = async () => {
     if (!ad || rewarded || !engaged) return;
     try {
       await api.post('/monetization/ads/reward_view/', { campaign_id: ad.id });
@@ -42,31 +57,70 @@ const AdBanner: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="h-16 flex items-center justify-center">
+        <Loader2 className="animate-spin text-gray-400" size={20} />
+      </div>
+    );
+  }
 
-
-  if (loading) return <div className="h-16 flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
   if (!ad || collapsed) return null;
 
   return (
-    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-3 mb-4 relative shadow-sm">
-      <button onClick={() => setCollapsed(true)} className="absolute top-1 right-1 text-gray-400 hover:text-gray-600"><X size={16} /></button>
+    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-3 mb-4 relative shadow-sm hover:shadow-md transition-shadow">
+      {/* Close button */}
+      <button 
+        onClick={() => setCollapsed(true)} 
+        className="absolute top-1 right-1 text-gray-400 hover:text-gray-600 p-1"
+        aria-label="Close ad"
+      >
+        <X size={16} />
+      </button>
+
       <div className="flex items-center gap-3">
-        {ad.image && <img src={ad.image} alt="ad" className="w-12 h-12 rounded object-cover" />}
-        <div className="flex-1">
-          <p className="font-semibold text-sm">{ad.title}</p>
-          <p className="text-xs text-gray-500">{ad.content}</p>
+        {/* Ad image */}
+        {ad.image && (
+          <img 
+            src={ad.image} 
+            alt={ad.title || 'Advertisement'} 
+            className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+          />
+        )}
+
+        {/* Ad content */}
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm truncate">{ad.title}</p>
+          <p className="text-xs text-gray-500 truncate">{ad.content}</p>
         </div>
-                <div className="flex gap-2">
-          {ad.link && (
-            <a href={ad.link} target="_blank" rel="noopener noreferrer" onClick={() => setEngaged(true)}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500 text-white hover:bg-green-600">
-              Learn More
-            </a>
-          )}
-                    <button onClick={claimReward} disabled={rewarded || !engaged} className={`...`}>
-            <Eye size={14} /> {rewarded ? 'Rewarded' : engaged ? 'Earn $0.001' : 'View first →'}
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Learn More button */}
+          <button
+            onClick={handleEngage}
+            className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold bg-green-500 text-white hover:bg-green-600 transition-colors"
+          >
+            <ExternalLink size={12} />
+            Learn More
           </button>
 
+          {/* Earn reward button */}
+          <button
+            onClick={claimReward}
+            disabled={!engaged || rewarded}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
+              rewarded 
+                ? 'bg-gray-200 text-gray-500 cursor-default' 
+                : engaged 
+                  ? 'bg-blue-500 text-white hover:bg-blue-600' 
+                  : 'bg-gray-300 text-gray-400 cursor-not-allowed'
+            }`}
+            title={!engaged ? 'Click Learn More first' : rewarded ? 'Already rewarded' : 'Claim your reward'}
+          >
+            <Eye size={12} />
+            {rewarded ? '✓ Rewarded' : engaged ? 'Earn $0.001' : 'View first'}
+          </button>
         </div>
       </div>
     </div>
