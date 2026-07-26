@@ -39,13 +39,18 @@ const AdBanner: React.FC = () => {
       .finally(() => setLoading(false));
   }, [token]);
 
-  const handleEngage = () => {
+    const handleEngage = () => {
     setEngaged(true);
     if (ad?.link) {
-      window.open(ad.link, '_blank', 'noopener,noreferrer');
+      let url = ad.link;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
+      }
+      window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
 
+  
   const claimReward = async () => {
     if (!ad || rewarded || !engaged) return;
     try {
