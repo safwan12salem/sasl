@@ -12,7 +12,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { useMesh } from '../hooks/useMesh';
 import { db } from '../services/offlineDB';
 
-
 export default function CreatorStudio() {
   const { user } = useAuth();
     const { isOnline } = useMesh();
@@ -22,6 +21,7 @@ export default function CreatorStudio() {
   const [myContents, setMyContents] = useState<any[]>([]);
   const [earnings, setEarnings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [brandApplicants, setBrandApplicants] = useState<any[]>([]);
     const [tab, setTab] = useState<'dashboard' | 'campaigns' | 'my-content' | 'profile' | 'ads'>('dashboard');
       // Restore tab from localStorage
   useEffect(() => {
@@ -88,7 +88,7 @@ export default function CreatorStudio() {
   }, [isOnline]);
 
 
-  
+
   useEffect(() => {
     if (tab === 'campaigns' && user && campaigns.length > 0) {
       const loadBrandApplicants = async () => {
@@ -458,8 +458,8 @@ export default function CreatorStudio() {
                             try {
                               const res = await api.get(`/creatorstudio/campaigns/${c.id}/applicants/`);
                               if (res.data && res.data.length > 0) {
-                                setMyContents(res.data);
-                                setTab('my-content');
+                              setBrandApplicants(res.data);
+                              setTab('my-content');
                               }
                               toast.success(`${res.data?.length || 0} applicant(s)`);
                             } catch { toast.error('Failed to load applicants'); }
@@ -493,9 +493,73 @@ export default function CreatorStudio() {
       )}
 
       {/* ========== MY CONTENT TAB ========== */}
-      {tab === 'my-content' && (
+             {tab === 'my-content' && (
         <div className="space-y-3">
-          {myContents.length === 0 ? (
+          {/* BRAND'S APPLICANTS */}
+          {brandApplicants.length > 0 && (
+            <>
+              <h3 className="font-bold text-sm text-purple-600 flex items-center gap-2">
+                <Users size={16} /> Applicants ({brandApplicants.length})
+              </h3>
+              {brandApplicants.map((c: any, i: number) => (
+                <motion.div key={c.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+                  className="glass-card p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-l-4 border-purple-500">
+                  {/* Same card content as myContents */}
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2.5 rounded-xl ${
+                      c.status === 'approved' ? 'bg-green-100 text-green-600' :
+                      c.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
+                    }`}>
+                      {c.status === 'approved' ? <CheckCircle size={20} /> : c.status === 'pending' ? <Clock size={20} /> : <XCircle size={20} />}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">{c.creator_name}</p>
+                      <p className="text-xs text-gray-500">{c.caption || 'No message'} · <span className="capitalize">{c.status}</span></p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {c.status === 'pending' && (
+                      <div className="flex gap-1">
+                        <button onClick={async (e) => { e.stopPropagation();
+                          try {
+                            await api.post(`/creatorstudio/campaigns/${c.campaign}/accept_creator/`, { content_id: c.id });
+                            toast.success('Creator accepted!');
+                            loadData(); setBrandApplicants([]);
+                          } catch { toast.error('Failed'); }
+                        }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs">✅ Accept</button>
+                        <button onClick={async (e) => { e.stopPropagation();
+                          try {
+                            await api.post(`/creatorstudio/campaigns/${c.campaign}/decline_creator/`, { content_id: c.id });
+                            toast.success('Declined'); loadData(); setBrandApplicants([]);
+                          } catch { toast.error('Failed'); }
+                        }} className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs">❌ Decline</button>
+                      </div>
+                    )}
+                    {c.status === 'submitted' && (
+                      <div className="flex items-center gap-2">
+                        {c.submission_url && (
+                          <a href={c.submission_url?.startsWith('http') ? c.submission_url : `https://${c.submission_url}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 underline">📎 View</a>
+                        )}
+                        <button onClick={async (e) => { e.stopPropagation();
+                          try {
+                            await api.post(`/creatorstudio/campaigns/${c.campaign}/approve_work/`, { content_id: c.id });
+                            toast.success('✅ Paid!'); loadData(); setBrandApplicants([]);
+                          } catch { toast.error('Failed'); }
+                        }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs">✅ Pay</button>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              ))}
+              <hr className="my-4" />
+            </>
+          )}
+          
+          {/* CREATOR'S OWN APPLICATIONS */}
+          <h3 className="font-bold text-sm text-blue-600 flex items-center gap-2">
+            <Image size={16} /> My Applications
+          </h3>
+          {myContents.length === 0 && brandApplicants.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
               <Image size={64} className="mx-auto mb-4 opacity-20" />
               <p className="text-lg font-semibold">{t('No content yet')}</p>
