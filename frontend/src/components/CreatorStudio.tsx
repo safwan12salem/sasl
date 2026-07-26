@@ -514,7 +514,7 @@ export default function CreatorStudio() {
                       </button>
                     </div>
                   )}
-                                    {c.status === 'approved' && (
+                                                   {c.status === 'approved' && c.creator_name === user?.username && (
                     <button onClick={async (e) => {
                       e.stopPropagation();
                       const url = prompt('Enter your content URL (post/video link):');
@@ -529,7 +529,7 @@ export default function CreatorStudio() {
                       📤 Submit Work
                     </button>
                   )}
-                                    {c.status === 'submitted' && c.brand_user === user?.id && (
+                                  {c.status === 'submitted' && (
                     <button onClick={async (e) => {
                       e.stopPropagation();
                       try {
