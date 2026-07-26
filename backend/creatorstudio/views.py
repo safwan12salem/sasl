@@ -103,7 +103,7 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
             'caption': c.caption,
             'status': c.status,
             'creator_earnings': str(c.creator_earnings),
-            'created_at': c.created_at.isoformat(),
+            
         } for c in contents]) 
     
     @action(detail=True, methods=['post'])

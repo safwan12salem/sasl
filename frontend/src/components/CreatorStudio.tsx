@@ -489,6 +489,33 @@ export default function CreatorStudio() {
                     <p className="text-xs text-gray-500">{t('Earned')}</p>
                     <p className="font-bold text-green-600">${c.creator_earnings || '0.00'}</p>
                   </div>
+                                    {c.status === 'approved' && (
+                    <button onClick={async (e) => {
+                      e.stopPropagation();
+                      const url = prompt('Enter your content URL (post/video link):');
+                      if (url) {
+                        try {
+                          await api.post(`/creatorstudio/campaigns/${c.campaign}/submit_work/`, { content_id: c.id, url });
+                          toast.success('Work submitted for review!');
+                          loadData();
+                        } catch { toast.error('Failed to submit work'); }
+                      }
+                    }} className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold hover:bg-blue-600">
+                      📤 Submit Work
+                    </button>
+                  )}
+                                    {c.status === 'submitted' && c.brand_user === user?.id && (
+                    <button onClick={async (e) => {
+                      e.stopPropagation();
+                      try {
+                        await api.post(`/creatorstudio/campaigns/${c.campaign}/approve_work/`, { content_id: c.id });
+                        toast.success('Work approved! Creator paid!');
+                        loadData();
+                      } catch { toast.error('Failed to approve'); }
+                    }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold hover:bg-green-600">
+                      ✅ Approve & Pay
+                    </button>
+                  )}
                   <div className="flex items-center gap-3 text-xs text-gray-400">
                     <span className="flex items-center gap-1"><Eye size={12} /> {c.views || 0}</span>
                     <span className="flex items-center gap-1"><Heart size={12} /> {c.likes || 0}</span>
