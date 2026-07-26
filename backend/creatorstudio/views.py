@@ -98,6 +98,7 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
         contents = SponsoredContent.objects.filter(campaign=campaign).select_related('creator')
         return Response([{
             'id': c.id,
+            'campaign': str(campaign.id),
             'creator_name': c.creator.username,
             'creator_avatar': c.creator.avatar.url if hasattr(c.creator, 'avatar') and c.creator.avatar else None,
             'caption': c.caption,
