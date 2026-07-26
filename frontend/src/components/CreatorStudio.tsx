@@ -432,7 +432,7 @@ export default function CreatorStudio() {
                               toast.success(`${res.data?.length || 0} applicant(s)`);
                             } catch { toast.error('Failed to load applicants'); }
                           }} className="flex-1 py-2 bg-blue-500 text-white rounded-xl text-xs font-semibold hover:bg-blue-600">
-                            👥 Applicants ({c.applicant_count || 0})
+                            👥 Applicants ({c.applied_count || 0})
                           </button>
                           <button onClick={async (e) => { e.stopPropagation();
                             if (window.confirm('Delete this campaign?')) {
@@ -446,10 +446,10 @@ export default function CreatorStudio() {
                       )}
                     </div>  
                     {/* Progress bar if campaign has applicant count */}
-                    {c.applicant_count !== undefined && (
+                    {c.applied_count !== undefined && (
                       <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
                         <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full" 
-                          style={{ width: `${Math.min((c.applicant_count / (c.max_creators || 10)) * 100, 100)}%` }} />
+                          style={{ width: `${Math.min((c.applied_count / (c.max_creators || 10)) * 100, 100)}%` }} />
                       </div>
                     )}
                   </div>
