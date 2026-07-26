@@ -88,23 +88,37 @@ export default function CreatorStudio() {
   }, [isOnline]);
 
 
+  
   useEffect(() => {
-    if (tab === 'campaigns' && user) {
-      // Auto-load applicants for brand's campaigns
-      campaigns.forEach(async (c) => {
-        if (c.brand_user === user.id || c.brand_name === user.username) {
-          try {
-            const res = await api.get(`/creatorstudio/campaigns/${c.id}/applicants/`);
-            if (res.data?.length > 0) {
-              setMyContents(prev => [...prev.filter(x => x.campaign !== c.id), ...res.data]);
-            }
-          } catch {}
+    if (tab === 'campaigns' && user && campaigns.length > 0) {
+      const loadBrandApplicants = async () => {
+        const allApplicants: any[] = [];
+        for (const c of campaigns) {
+          // Check if this campaign belongs to current user
+          const isOwner = c.brand_user === user.id || c.brand_name === user?.username;
+          if (isOwner) {
+            try {
+              const res = await api.get(`/creatorstudio/campaigns/${c.id}/applicants/`);
+              if (res.data?.length > 0) {
+                for (const applicant of res.data) {
+                  allApplicants.push(applicant);
+                }
+              }
+            } catch {}
+          }
         }
-      });
+        if (allApplicants.length > 0) {
+          // Merge with existing myContents, avoid duplicates
+          setMyContents(prev => {
+            const existingIds = new Set(prev.map(x => x.id));
+            const newOnes = allApplicants.filter(a => !existingIds.has(a.id));
+            return [...prev, ...newOnes];
+          });
+        }
+      };
+      loadBrandApplicants();
     }
   }, [tab, campaigns, user]);
-
-
 
   const loadData = async () => {
     try {

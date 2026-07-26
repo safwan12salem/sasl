@@ -188,7 +188,7 @@ export default function Layout() {
       </aside>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col relative bg-transparent w-full">
+            <div className="flex-1 flex flex-col relative bg-transparent w-full overflow-x-hidden">
         {/* Sticky top header */}
         <header className="sticky top-0 z-10 flex justify-between items-center px-3 lg:px-6 py-3 glass border-b border-white/10">
   <div className="flex items-center gap-2">
