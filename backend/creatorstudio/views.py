@@ -43,14 +43,16 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
     serializer_class = BrandCampaignSerializer
     
     def perform_create(self, serializer):
-        serializer.save(brand_user=self.request.user)
-    
+        brand_name = self.request.data.get('brand_name', '')
+        serializer.save(brand_user=self.request.user, brand_name=brand_name or self.request.user.username)
+
     def destroy(self, request, *args, **kwargs):
         campaign = self.get_object()
-        if campaign.brand_name != request.user.username:  # Only creator can delete
+        if campaign.brand_user and campaign.brand_user != request.user:
+            return Response({'error': 'Not authorized'}, status=403)
+        if not campaign.brand_user and campaign.brand_name != request.user.username:
             return Response({'error': 'Not authorized'}, status=403)
         return super().destroy(request, *args, **kwargs)
-
 
     def perform_create(self, serializer):
       serializer.save()
@@ -88,7 +90,10 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
     def applicants(self, request, pk=None):
         """Brand views all applicants for their campaign"""
         campaign = self.get_object()
-        if campaign.brand_name != request.user.username:
+        if campaign.brand_user and campaign.brand_user != request.user:
+            return Response({'error': 'Not authorized'}, status=403)
+        # Fallback for old campaigns without brand_user
+        if not campaign.brand_user and campaign.brand_name != request.user.username:
             return Response({'error': 'Not authorized'}, status=403)
         contents = SponsoredContent.objects.filter(campaign=campaign).select_related('creator')
         return Response([{
