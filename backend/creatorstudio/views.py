@@ -61,31 +61,26 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def apply(self, request, pk=None):
         campaign = self.get_object()
-        profile, _ = CreatorProfile.objects.get_or_create(user=request.user)
         
         if SponsoredContent.objects.filter(creator=request.user, campaign=campaign).exists():
             return Response({'error': 'Already applied'}, status=400)
         
         creator_share = float(campaign.budget) * 0.90
-        platform_fee = float(campaign.budget) * 0.10
-
+        
         campaign.applied_count = (campaign.applied_count or 0) + 1
         campaign.save()
         
         content = SponsoredContent.objects.create(
             creator=request.user,
             campaign=campaign,
+            content_type=campaign.content_type,
             caption=request.data.get('caption', f'Sponsored content for {campaign.brand_name}'),
             creator_earnings=creator_share,
             platform_fee_pct=10.0,
             status='pending'
         )
         
-        return Response({
-            'status': 'applied',
-            'content_id': content.id,
-            'message': 'Application submitted! Brand will review and accept.'
-        })
+        return Response({'status': 'applied', 'content_id': content.id})
     @action(detail=True, methods=['get'])
     def applicants(self, request, pk=None):
         """Brand views all applicants for their campaign"""
@@ -166,7 +161,7 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
         creator_profile.total_earned += Decimal(str(content.creator_earnings))
         creator_profile.completed_deals += 1
         creator_profile.save()
-        
+
         return Response({'status': 'completed', 'message': 'Payment released to creator!'})
     @action(detail=False, methods=['get'])
     def my_contents(self, request):

@@ -515,10 +515,10 @@ export default function CreatorStudio() {
                       </button>
                     </div>
                   )}
-                                                   {c.status === 'approved' && c.creator_name === user?.username && (
+              {c.status === 'approved' && c.creator_name === user?.username && (
                     <button onClick={async (e) => {
                       e.stopPropagation();
-                                           const url = prompt('Enter your content URL (or type "upload" to upload a file):');
+                      const url = prompt('Enter your content URL (or type "upload" to upload a file):');
                       if (url) {
                         try {
                           if (url === 'upload') {
@@ -555,10 +555,10 @@ export default function CreatorStudio() {
                     </button>
                   )}
                               
-                                    {c.status === 'submitted' && (
+             {c.status === 'submitted' && c.creator_name !== user?.username && (                       
                     <div className="flex items-center gap-2">
                       {c.submission_url && (
-                        <a href={c.submission_url} target="_blank" rel="noopener noreferrer" 
+                      <a href={c.submission_url?.startsWith('http') ? c.submission_url : `https://${c.submission_url}`} target="_blank" rel="noopener noreferrer" 
                           className="text-xs text-blue-600 underline hover:text-blue-800">
                           📎 View Work
                         </a>
