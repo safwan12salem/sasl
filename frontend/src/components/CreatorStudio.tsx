@@ -88,6 +88,24 @@ export default function CreatorStudio() {
   }, [isOnline]);
 
 
+  useEffect(() => {
+    if (tab === 'campaigns' && user) {
+      // Auto-load applicants for brand's campaigns
+      campaigns.forEach(async (c) => {
+        if (c.brand_user === user.id || c.brand_name === user.username) {
+          try {
+            const res = await api.get(`/creatorstudio/campaigns/${c.id}/applicants/`);
+            if (res.data?.length > 0) {
+              setMyContents(prev => [...prev.filter(x => x.campaign !== c.id), ...res.data]);
+            }
+          } catch {}
+        }
+      });
+    }
+  }, [tab, campaigns, user]);
+
+
+
   const loadData = async () => {
     try {
       const [p, c, m, e] = await Promise.all([

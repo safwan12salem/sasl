@@ -27,12 +27,14 @@ class CreatorProfileViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my_earnings(self, request):
         profile, _ = CreatorProfile.objects.get_or_create(user=request.user)
-        contents = SponsoredContent.objects.filter(creator=request.user, status='approved')
+        contents = SponsoredContent.objects.filter(creator=request.user, status='completed')
+        
         total = sum(float(c.creator_earnings) for c in contents)
         return Response({
             'total_earned': str(profile.total_earned),
             'pending_count': SponsoredContent.objects.filter(creator=request.user, status='pending').count(),
             'approved_count': contents.count(),
+            'completed_count': SponsoredContent.objects.filter(creator=request.user, status='completed').count(),
             'recent_earnings': SponsoredContentSerializer(contents[:10], many=True).data
         })
 

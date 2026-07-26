@@ -66,7 +66,7 @@ export default function Layout() {
 
      
 
-            <aside className={`w-72 p-4 flex flex-col shadow-2xl z-40 border-r transition-all duration-300 ${
+            <aside className={`w-72 p-4 flex flex-col shadow-2xl z-40 border-r transition-all duration-300  overflow-x-hidden ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } lg:translate-x-0 fixed lg:relative h-full ${
         isDark 
@@ -213,7 +213,7 @@ export default function Layout() {
         </header>
 
         {/* Scrollable main */}
-        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-mesh-pattern">
+                <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 bg-mesh-pattern">
           <PageTransition>
             <Outlet />
           </PageTransition>
