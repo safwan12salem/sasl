@@ -258,8 +258,9 @@ export default function CreatorStudio() {
                    { key: 'dashboard' as const, label: t('📊 Dashboard'), icon:<BarChart3 size={16} /> },
           { key: 'campaigns' as const, label: t('💼 Brand Deals'), icon: <DollarSign size={16} /> },
           { key: 'my-content' as const, label: t('📝 My Content'), icon: <Image size={16} /> },
-          { key: 'profile' as const, label: t('⭐ Profile'), icon: <Star size={16} /> },
           { key: 'ads' as const, label: t('📢 Advertise'), icon: <Megaphone size={16} /> },    
+          { key: 'profile' as const, label: t('⭐ Profile'), icon: <Star size={16} /> },
+          
         ].map(tb => (
           <button key={tb.key} onClick={() => setTab(tb.key)}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs md:text-sm font-semibold transition whitespace-nowrap ${
