@@ -517,10 +517,34 @@ export default function CreatorStudio() {
                                                    {c.status === 'approved' && c.creator_name === user?.username && (
                     <button onClick={async (e) => {
                       e.stopPropagation();
-                      const url = prompt('Enter your content URL (post/video link):');
+                                           const url = prompt('Enter your content URL (or type "upload" to upload a file):');
                       if (url) {
                         try {
-                          await api.post(`/creatorstudio/campaigns/${c.campaign}/submit_work/`, { content_id: c.id, url });
+                          if (url === 'upload') {
+                            // File upload flow
+                            const fileInput = document.createElement('input');
+                            fileInput.type = 'file';
+                            fileInput.accept = 'image/*,video/*';
+                            fileInput.onchange = async (e: any) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const formData = new FormData();
+                              formData.append('file', file);
+                              formData.append('upload_preset', 'sasl_upload');
+                              const res = await fetch('https://api.cloudinary.com/v1_1/dwem1chqc/upload', { method: 'POST', body: formData });
+                              const data = await res.json();
+                              if (data.secure_url) {
+                                await api.post(`/creatorstudio/campaigns/${c.campaign}/submit_work/`, { content_id: c.id, url: data.secure_url });
+                                toast.success('Work submitted for review!');
+                                loadData();
+                              }
+                            };
+                            fileInput.click();
+                          } else {
+                            await api.post(`/creatorstudio/campaigns/${c.campaign}/submit_work/`, { content_id: c.id, url });
+                            toast.success('Work submitted for review!');
+                            loadData();
+                          }
                           toast.success('Work submitted for review!');
                           loadData();
                         } catch { toast.error('Failed to submit work'); }
@@ -529,17 +553,26 @@ export default function CreatorStudio() {
                       📤 Submit Work
                     </button>
                   )}
-                                  {c.status === 'submitted' && (
-                    <button onClick={async (e) => {
-                      e.stopPropagation();
-                      try {
-                        await api.post(`/creatorstudio/campaigns/${c.campaign}/approve_work/`, { content_id: c.id });
-                        toast.success('Work approved! Creator paid!');
-                        loadData();
-                      } catch { toast.error('Failed to approve'); }
-                    }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold hover:bg-green-600">
-                      ✅ Approve & Pay
-                    </button>
+                              
+                                    {c.status === 'submitted' && (
+                    <div className="flex items-center gap-2">
+                      {c.submission_url && (
+                        <a href={c.submission_url} target="_blank" rel="noopener noreferrer" 
+                          className="text-xs text-blue-600 underline hover:text-blue-800">
+                          📎 View Work
+                        </a>
+                      )}
+                      <button onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await api.post(`/creatorstudio/campaigns/${c.campaign}/approve_work/`, { content_id: c.id });
+                          toast.success('✅ Work approved! Creator paid (90%)!');
+                          loadData();
+                        } catch { toast.error('Failed to approve'); }
+                      }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold hover:bg-green-600">
+                        ✅ Approve & Pay
+                      </button>
+                    </div>
                   )}
                   <div className="flex items-center gap-3 text-xs text-gray-400">
                     <span className="flex items-center gap-1"><Eye size={12} /> {c.views || 0}</span>
