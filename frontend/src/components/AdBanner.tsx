@@ -39,8 +39,11 @@ const AdBanner: React.FC = () => {
       .finally(() => setLoading(false));
   }, [token]);
 
-    const handleEngage = () => {
+       const [canEarn, setCanEarn] = useState(false);
+
+  const handleEngage = () => {
     setEngaged(true);
+    setTimeout(() => setCanEarn(true), 20000);
     if (ad?.link) {
       let url = ad.link;
       if (!url.startsWith('http://') && !url.startsWith('https://')) {
@@ -49,7 +52,6 @@ const AdBanner: React.FC = () => {
       window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
-
   
   const claimReward = async () => {
     if (!ad || rewarded || !engaged) return;
