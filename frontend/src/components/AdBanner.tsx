@@ -112,21 +112,21 @@ const AdBanner: React.FC = () => {
             Learn More
           </button>
 
-          {/* Earn reward button */}
+                  {/* Earn reward button */}
           <button
             onClick={claimReward}
-            disabled={!engaged || rewarded}
+            disabled={!canEarn || rewarded}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
               rewarded 
                 ? 'bg-gray-200 text-gray-500 cursor-default' 
-                : engaged 
+                : canEarn 
                   ? 'bg-blue-500 text-white hover:bg-blue-600' 
                   : 'bg-gray-300 text-gray-400 cursor-not-allowed'
             }`}
-            title={!engaged ? 'Click Learn More first' : rewarded ? 'Already rewarded' : 'Claim your reward'}
+            title={!canEarn ? 'Wait 20 seconds after viewing' : rewarded ? 'Already rewarded' : 'Claim your reward'}
           >
             <Eye size={12} />
-            {rewarded ? '✓ Rewarded' : engaged ? 'Earn $0.001' : 'View first'}
+            {rewarded ? '✓ Rewarded' : canEarn ? 'Earn $0.001' : 'Wait 20s'}
           </button>
         </div>
       </div>
