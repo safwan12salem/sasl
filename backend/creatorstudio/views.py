@@ -123,6 +123,17 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
         content.save()
         return Response({'status': 'accepted', 'message': 'Creator accepted! Funds in escrow.'})
 
+
+    @action(detail=True, methods=['post'])
+    def decline_creator(self, request, pk=None):
+        """Brand declines a creator"""
+        campaign = self.get_object()
+        content_id = request.data.get('content_id')
+        content = SponsoredContent.objects.get(id=content_id, campaign=campaign, status='pending')
+        content.status = 'rejected'
+        content.brand_feedback = request.data.get('feedback', '')
+        content.save()
+        return Response({'status': 'declined'})
     @action(detail=True, methods=['post'])
     def submit_work(self, request, pk=None):
         """Creator submits completed work"""

@@ -489,6 +489,31 @@ export default function CreatorStudio() {
                     <p className="text-xs text-gray-500">{t('Earned')}</p>
                     <p className="font-bold text-green-600">${c.creator_earnings || '0.00'}</p>
                   </div>
+
+                                    {c.status === 'pending' && (
+                    <div className="flex gap-1">
+                      <button onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await api.post(`/creatorstudio/campaigns/${c.campaign}/accept_creator/`, { content_id: c.id });
+                          toast.success('Creator accepted! Funds in escrow.');
+                          loadData();
+                        } catch { toast.error('Failed to accept'); }
+                      }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold hover:bg-green-600">
+                        ✅ Accept
+                      </button>
+                      <button onClick={async (e) => {
+                        e.stopPropagation();
+                        try {
+                          await api.post(`/creatorstudio/campaigns/${c.campaign}/decline_creator/`, { content_id: c.id });
+                          toast.success('Creator declined');
+                          loadData();
+                        } catch { toast.error('Failed'); }
+                      }} className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs font-semibold hover:bg-red-200">
+                        ❌ Decline
+                      </button>
+                    </div>
+                  )}
                                     {c.status === 'approved' && (
                     <button onClick={async (e) => {
                       e.stopPropagation();
