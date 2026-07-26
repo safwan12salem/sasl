@@ -411,31 +411,37 @@ export default function CreatorStudio() {
                           <Calendar size={10} /> {new Date(c.deadline).toLocaleDateString()}
                         </p>
                       </div>
-                      <motion.button whileTap={{scale: 0.9}} onClick={() => setApplyModal(c.id)}
-                        className="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg transition flex items-center gap-1">
-                        <Send size={14} /> {t('Apply')}
-                      </motion.button>
-                                                  
-                                          {c.brand_name === user?.username && (
-                        <div className="flex gap-2 items-center">
+                                         </div>
+                    <div className="flex items-center gap-2 mt-3">
+                      {c.brand_name !== user?.username && (
+                        <motion.button whileTap={{scale: 0.9}} onClick={() => setApplyModal(c.id)}
+                          className="bg-gradient-to-r from-purple-600 to-pink-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-lg transition flex items-center gap-1 flex-1">
+                          <Send size={14} /> {t('Apply')}
+                        </motion.button>
+                      )}
+                      {c.brand_name === user?.username && (
+                        <>
                           <button onClick={async (e) => { e.stopPropagation();
                             try {
                               const res = await api.get(`/creatorstudio/campaigns/${c.id}/applicants/`);
-                              toast.success(`${res.data.length} applicant(s)`);
-                              setMyContents(res.data);
+                              if (res.data && res.data.length > 0) {
+                                setMyContents(res.data);
+                                setTab('my-content');
+                              }
+                              toast.success(`${res.data?.length || 0} applicant(s)`);
                             } catch { toast.error('Failed to load applicants'); }
-                          }} className="text-xs text-blue-600 hover:underline">
-                            👥 Applicants
+                          }} className="flex-1 py-2 bg-blue-500 text-white rounded-xl text-xs font-semibold hover:bg-blue-600">
+                            👥 Applicants ({c.applicant_count || 0})
                           </button>
                           <button onClick={async (e) => { e.stopPropagation();
                             if (window.confirm('Delete this campaign?')) {
                               try { await api.delete(`/creatorstudio/campaigns/${c.id}/`); toast.success('Deleted'); loadData(); }
                               catch { toast.error('Failed'); }
                             }
-                          }} className="text-red-400 hover:text-red-600 text-sm" title="Delete campaign">
+                          }} className="px-3 py-2 bg-red-100 text-red-600 rounded-xl text-xs font-semibold hover:bg-red-200">
                             🗑️
                           </button>
-                        </div>
+                        </>
                       )}
                     </div>  
                     {/* Progress bar if campaign has applicant count */}
