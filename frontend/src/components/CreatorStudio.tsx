@@ -419,7 +419,7 @@ export default function CreatorStudio() {
                           <Send size={14} /> {t('Apply')}
                         </motion.button>
                       )}
-                      {c.brand_name === user?.username && (
+                     {c.brand_user === user?.id && (
                         <>
                           <button onClick={async (e) => { e.stopPropagation();
                             try {

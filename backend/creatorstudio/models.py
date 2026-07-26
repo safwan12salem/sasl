@@ -59,6 +59,7 @@ class BrandCampaign(models.Model):
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     brand_name = models.CharField(max_length=100)
+    brand_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True, related_name='brand_campaigns')
     brand_logo = models.URLField(blank=True, null=True)
     title = models.CharField(max_length=200)
     description = models.TextField()

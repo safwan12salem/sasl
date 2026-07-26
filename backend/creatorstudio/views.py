@@ -43,7 +43,7 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
     serializer_class = BrandCampaignSerializer
     
     def perform_create(self, serializer):
-        serializer.save()
+        serializer.save(brand_user=self.request.user)
     
     def destroy(self, request, *args, **kwargs):
         campaign = self.get_object()
