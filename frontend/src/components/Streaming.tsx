@@ -18,7 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { WebRTCConnection } from '../services/webrtc';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
-
+import AdBanner from './AdBanner';
 interface Stream {
   id: string;
   streamer: { username: string; avatar_url?: string };
@@ -519,6 +519,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
   // ============================================================
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto">
+            <AdBanner />
       {/* ========== VIRAL: Stream Notifications Dropdown ========== */}
       <AnimatePresence>
         {showNotifications && streamNotifications.length > 0 && (

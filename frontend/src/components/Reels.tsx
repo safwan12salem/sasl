@@ -3,6 +3,8 @@
  * TikTok-style vertical swipe feed with elegant modern UI
  * Likes, comments, replies, tips, sound tracks, speed control, upload
  */
+
+import AdBanner from './AdBanner';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -227,7 +229,7 @@ export default function Reels() {
 
   return (
     <div ref={containerRef} className="h-screen overflow-y-scroll snap-y snap-mandatory bg-black relative scroll-smooth">
-      
+      <AdBanner />
       {/* TOP BAR */}
       <div className="fixed top-0 left-0 right-0 z-40 px-4 pt-12 pb-2 bg-gradient-to-b from-black/60 to-transparent">
         <div className="flex items-center justify-between">

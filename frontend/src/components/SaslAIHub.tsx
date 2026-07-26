@@ -3,6 +3,7 @@
  * GPT-4o powered. Answers ANY question with brilliance.
  * Free: 20/day | Premium: Unlimited
  */
+import AdBanner from './AdBanner';
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -131,6 +132,7 @@ export default function SaslAIHub() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] max-w-4xl mx-auto">
+      <AdBanner /> 
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-gray-800">
         <div className="flex items-center gap-3">

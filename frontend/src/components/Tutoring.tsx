@@ -19,6 +19,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import TutoringChat from './TutoringChat';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
+import AdBanner from './AdBanner';
+
+
 
 interface Session {
   id: string;
@@ -473,6 +476,7 @@ const STATUS_COLORS: Record<string, string> = {
   
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto">
+            <AdBanner />
       {/* Video Call Overlay */}
       <AnimatePresence>
                 {inCall && (

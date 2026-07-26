@@ -16,7 +16,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MarketplaceChat from './MarketplaceChat';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
-
+import AdBanner from './AdBanner';
 
 interface Product {
   id: string;
@@ -222,6 +222,7 @@ const resetSellForm = () => {
 
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto">
+            <AdBanner />
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <div>

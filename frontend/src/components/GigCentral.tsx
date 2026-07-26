@@ -17,7 +17,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import GigChat from './GigChat';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
-
+import AdBanner from './AdBanner';
 
 interface Gig {
   id: string;
@@ -285,6 +285,7 @@ export default function GigCentral() {
 
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto">
+            <AdBanner />
       {/* HEADER */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <div>

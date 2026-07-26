@@ -5,6 +5,7 @@
  * Sasl Snap — Legendary Edition
  * Better than Snapchat: Streak rewards, tips, challenges, group streaks, drafts
  */
+import AdBanner from './AdBanner';
 import React, { useRef, useState, useEffect } from 'react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -14,6 +15,7 @@ import {
   Trophy, UserPlus, FileText, DollarSign, TrendingUp, Flame, Clock
 } from 'lucide-react';
 import SoundUploader from './SoundUploader';
+import { Sound } from '../services/soundLibrary';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 
@@ -90,7 +92,7 @@ export default function SnapSender() {
 
   // Group creation modal
     const [showSoundPicker, setShowSoundPicker] = useState(false);
-  const [selectedSound, setSelectedSound] = useState<any | null>(null);
+  const [selectedSound, setSelectedSound] = useState<Sound | null>(null);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [groupName, setGroupName] = useState('');
   const [groupMembers, setGroupMembers] = useState('');
@@ -201,7 +203,7 @@ export default function SnapSender() {
     if (!storyFile) return toast.error(t('Select an image or video'));
     const formData = new FormData(); formData.append('media', storyFile);
     if (storySound) formData.append('sound_track', storySound);
-    if (selectedSound?.url) formData.append('sound_url', selectedSound.url);
+        if (selectedSound?.audio_url) formData.append('sound_url', selectedSound.audio_url);
     try {
       await api.post('/snaps/snaps/post_story/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       toast.success(t('Story posted! 📖'));
@@ -244,6 +246,7 @@ export default function SnapSender() {
 
   return (
     <div className="max-w-md mx-auto p-4">
+      <AdBanner />
       <h2 className="text-3xl font-bold gradient-text mb-4 flex items-center gap-2">
         <Camera className="text-yellow-500" /> {t('Snap')}
       </h2>

@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { Wallet as WalletIcon, TrendingUp, ArrowDownCircle, Loader2, AlertCircle, DollarSign, Heart, ShoppingCart, Star, Video, BookOpen, CreditCard, Crown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-
+import AdBanner from './AdBanner';
 interface Transaction { id: string; amount: number; transaction_type: string; description: string; created_at: string; }
 interface CategoryTotal { category: string; total: number; count: number; icon: JSX.Element; color: string; }
 
@@ -136,6 +136,7 @@ export default function Wallet() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
+            <AdBanner />
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
         <h2 className="text-3xl font-bold gradient-text mb-6 flex items-center gap-2"><WalletIcon /> {t('Wallet')}</h2>
       </motion.div>

@@ -1,6 +1,7 @@
 /**
  * Sasl - Live Audio – Clubhouse-style rooms with reactions, speaker requests, trending topics
  */
+import AdBanner from './AdBanner';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -174,6 +175,7 @@ export default function LiveAudio() {
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto">
+      <AdBanner />
       {/* Floating Reactions */}
       <div className="fixed bottom-24 left-0 right-0 pointer-events-none z-40 flex justify-center">
         <AnimatePresence>
