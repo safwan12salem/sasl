@@ -104,7 +104,7 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
             'caption': c.caption,
             'status': c.status,
             'creator_earnings': str(c.creator_earnings),
-            'submission_url': c.submission_url or '',
+            
             
         } for c in contents]) 
     

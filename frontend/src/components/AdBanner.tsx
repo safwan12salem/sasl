@@ -20,7 +20,7 @@ const AdBanner: React.FC = () => {
   const [engaged, setEngaged] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
 
-  useEffect(() => {
+    useEffect(() => {
     if (!token) {
       setLoading(false);
       return;
@@ -29,7 +29,7 @@ const AdBanner: React.FC = () => {
     api.get('/monetization/ads/serve_ad/')
       .then(res => {
         if (res.data?.ad_available && res.data?.ad) {
-          console.log('📢 Ad loaded:', res.data.ad); // Debug - remove in production
+          console.log('📢 AD:', res.data.ad.link); // Debug link
           setAd(res.data.ad);
         } else {
           setAd(null);

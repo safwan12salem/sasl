@@ -115,6 +115,7 @@ class SponsoredContent(models.Model):
     submitted_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
+    submission_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.creator.username} - {self.campaign.brand_name if self.campaign else 'Direct'}"
