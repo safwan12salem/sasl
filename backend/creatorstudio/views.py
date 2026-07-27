@@ -105,15 +105,18 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
             
             
         } for c in contents]) 
-    
     @action(detail=True, methods=['post'])
     def accept_creator(self, request, pk=None):
-        """Brand accepts a creator — funds escrow"""
         campaign = self.get_object()
         content_id = request.data.get('content_id')
-        content = SponsoredContent.objects.get(id=content_id, campaign=campaign, status='pending')
+        try:
+            content = SponsoredContent.objects.get(id=content_id, campaign=campaign)
+        except SponsoredContent.DoesNotExist:
+            return Response({'error': 'Application not found'}, status=404)
         
-        # Deduct from brand's wallet into escrow
+        if content.status != 'pending':
+            return Response({'error': 'Already processed'}, status=400)
+        
         from .monetization import fund_campaign
         funded = fund_campaign(request.user, campaign)
         if not funded:
@@ -121,12 +124,7 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
         
         content.status = 'approved'
         content.save()
-        
-        return Response({
-            'status': 'accepted', 
-            'message': 'Creator accepted! Funds in escrow. Chat room opened for discussion.',
-            'chat_room_id': str(campaign.id)
-        })
+        return Response({'status': 'accepted'}) 
 
     @action(detail=True, methods=['post'])
     def decline_creator(self, request, pk=None):
