@@ -145,7 +145,11 @@ export default function CreatorStudio() {
       ]);
       setProfile(p.data);
       setCampaigns(c.data.results || c.data || []);
-      setMyContents(m.data || []);
+            setMyContents(prev => {
+        const existingIds = new Set(prev.map(x => x.id));
+        const newOnes = (m.data || []).filter((x: any) => !existingIds.has(x.id));
+        return [...prev, ...newOnes];
+      });
       setEarnings(e.data);
       setNiche(p.data.niche || '');
       setPricePost(p.data.price_per_post || '25');
