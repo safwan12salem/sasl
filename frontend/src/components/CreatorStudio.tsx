@@ -202,6 +202,15 @@ export default function CreatorStudio() {
     }
   };
 
+  const openChat = async (campaignId: string) => {
+    setChatCampaign(campaignId);
+    setShowChat(true);
+    try {
+      const res = await api.get(`/creatorstudio/campaigns/${campaignId}/get_chat/`);
+      setChatMessages(res.data || []);
+    } catch {}
+  };
+
    const sendChatMessage = async () => {
     if (!chatInput.trim() || !chatCampaign) return;
     try {
@@ -211,7 +220,7 @@ export default function CreatorStudio() {
     } catch { toast.error('Failed to send'); }
   };
 
-  
+
   const createCampaign = async () => {
        if (!campaignBrand || !campaignTitle || !campaignBudget) return toast.error(t('Fill all fields'));
     if (!isOnline) {
@@ -550,8 +559,7 @@ export default function CreatorStudio() {
                     )}
               {c.status === 'approved' && (
                       <button onClick={async (e) => { e.stopPropagation();
-                        setChatCampaign(c.campaign || c.id);
-                        setShowChat(true);
+                        openChat(c.campaign || c.id);
                       }} className="px-3 py-1 bg-purple-500 text-white rounded-full text-xs">💬 Chat</button>
               )}
                     
@@ -634,7 +642,12 @@ export default function CreatorStudio() {
                   {c.status === 'pending' && c.creator_name === user?.username && (
                     <span className="text-xs text-yellow-600">⏳ Waiting for brand review</span>
                   )}
-                  
+                                      <button onClick={(e) => { e.stopPropagation(); openChat(c.campaign); }}
+                      className="px-3 py-1 bg-purple-500 text-white rounded-full text-xs font-semibold hover:bg-purple-600 ml-1">
+                      💬 Chat
+                    </button>
+
+
                   {/* APPROVED — Creator submits work */}
                   {c.status === 'approved' && c.creator_name === user?.username && (
                     <button onClick={async (e) => { e.stopPropagation();
