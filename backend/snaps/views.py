@@ -43,24 +43,25 @@ class SnapViewSet(viewsets.ModelViewSet):
         scheduled_for = self.request.data.get('scheduled_for')
         
         if is_draft:
-            # Save as draft — no receiver needed
             serializer.save(sender=self.request.user, is_draft=True)
-            return Response({'status': 'draft_saved'}, status=201)
+            return
         
         if not receiver_username:
-            return Response({'error': 'receiver_username required'}, status=400)
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'error': 'receiver_username required'})
         
         try:
             receiver = User.objects.get(username=receiver_username)
         except User.DoesNotExist:
-            return Response({'error': 'Receiver not found'}, status=404)
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'error': 'Receiver not found'})
         
         snap = serializer.save(sender=self.request.user, receiver=receiver)
         
         if scheduled_for:
             snap.scheduled_for = scheduled_for
             snap.save()
-            return Response({'status': 'scheduled'}, status=201)
+            return
         
         # Update streak
         self._update_streak(self.request.user, receiver)
@@ -71,7 +72,6 @@ class SnapViewSet(viewsets.ModelViewSet):
             notification_type='snap',
             message=f'{self.request.user.username} sent you a snap!'
         )
-    
     def _update_streak(self, user_a, user_b):
         """Update streak and award rewards"""
         today = timezone.now().date()

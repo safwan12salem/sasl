@@ -9,12 +9,11 @@ import toast from 'react-hot-toast';
 import {
   Mic, MicOff, Users, Hand, Plus, Phone, Loader2, AlertCircle,
   Volume2, Smile, TrendingUp, Radio, Zap, Crown,
-  UserPlus, Globe, Lock, Sparkles
+  UserPlus, Globe, Lock, Sparkles, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
-
 
 interface AudioRoom {
   id: string;
@@ -112,6 +111,8 @@ export default function LiveAudio() {
       stream.getAudioTracks()[0].enabled = !isMuted;
       await api.post(`/liveaudio/rooms/${roomId}/join/`);
       setInRoom(roomId);
+      // Connect WebRTC for real audio (August backend: WebSocket signaling)
+
       const foundRoom = rooms.find(r => r.id === roomId);
       if (foundRoom) {
         setListenerCount(foundRoom.current_listeners + 1);
@@ -132,6 +133,7 @@ export default function LiveAudio() {
     setSpeakers([]);
     setListenerCount(0);
     fetchRooms();
+  
   };
 
   const toggleMute = () => {
@@ -171,6 +173,23 @@ export default function LiveAudio() {
 
   const endRoom = async (roomId: string) => {
     try { await api.post(`/liveaudio/rooms/${roomId}/end_room/`); toast.success(t('room_ended')); fetchRooms(); } catch {}
+  };
+
+  const removeSpeaker = async (username: string) => {
+    if (!inRoom) return;
+    try {
+      await api.post(`/liveaudio/rooms/${inRoom}/remove_speaker/`, { username });
+      toast.success(t('speaker_removed'));
+      setSpeakers(prev => prev.filter(s => s.user.username !== username));
+    } catch { toast.error(t('failed_to_remove_speaker')); }
+  };
+
+  const tipHost = async (roomId: string) => {
+    const amount = prompt('Enter tip amount ($):', '5');
+    if (amount && parseFloat(amount) > 0) {
+      setPaymentAmount(parseFloat(amount));
+      setShowPayment(true);
+    }
   };
 
   return (
@@ -268,6 +287,12 @@ export default function LiveAudio() {
                         </div>
                       </div>
                       <p className="text-white/70 text-xs text-center mt-1">@{s.user.username}</p>
+{rooms.find(r => r.id === inRoom)?.host.username === user?.username && s.user.username !== user?.username && (
+  <button onClick={() => removeSpeaker(s.user.username)} 
+    className="absolute -top-1 -right-1 bg-red-500 rounded-full p-0.5 text-white hover:bg-red-600 transition">
+    <X size={10} />
+  </button>
+)}
                       {s.is_muted && (
                         <div className="absolute top-0 right-0 bg-red-500 rounded-full p-1">
                           <MicOff size={10} className="text-white" />
@@ -435,6 +460,23 @@ export default function LiveAudio() {
           </button>
         ))}
       </div>
+{/* Tab Switcher */}
+<div className="flex gap-2 mb-4">
+  <button onClick={() => { setActiveTopic(''); fetchRooms(); }} 
+    className={`px-4 py-2 rounded-full text-sm font-semibold transition ${!activeTopic ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>
+    🔴 Live
+  </button>
+  <button onClick={async () => {
+    try { const res = await api.get('/liveaudio/rooms/my_rooms/'); setRooms(res.data || []); } catch {}
+  }} className="px-4 py-2 rounded-full text-sm font-semibold bg-gray-100 hover:bg-gray-200 transition">
+    📻 My Rooms
+  </button>
+  <button onClick={async () => {
+    try { const res = await api.get('/liveaudio/rooms/trending/'); setRooms(res.data || []); } catch {}
+  }} className="px-4 py-2 rounded-full text-sm font-semibold bg-gray-100 hover:bg-gray-200 transition">
+    🔥 Trending
+  </button>
+</div>
 
       {/* Rooms List */}
       {loading ? (
@@ -490,6 +532,10 @@ export default function LiveAudio() {
                       if (room.price) { setPaymentAmount(parseFloat(room.price)); setShowPayment(true); }
                       else { joinRoom(room.id); }
                     }} className="btn-primary text-xs px-3 py-1 min-w-[50px] text-center">{room.price ? `$${room.price}` : t('join')}</motion.button>
+                    <button onClick={(e) => { e.stopPropagation(); tipHost(room.id); }} 
+  className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-semibold hover:bg-yellow-200 transition">
+  💰 Tip
+</button>
                   </div>
                   {room.host.username === user?.username && (
                     <button onClick={() => endRoom(room.id)} className="text-red-500 text-xs hover:underline px-2 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition self-end">{t('end')}</button>
