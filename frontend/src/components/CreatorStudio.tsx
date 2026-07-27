@@ -26,6 +26,7 @@ export default function CreatorStudio() {
   const [earnings, setEarnings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [brandApplicants, setBrandApplicants] = useState<any[]>([]);
+    const [chatInterval, setChatInterval] = useState<any>(null);
     const [tab, setTab] = useState<'dashboard' | 'campaigns' | 'my-content' | 'profile' | 'ads'>('dashboard');
       // Restore tab from localStorage
   useEffect(() => {
@@ -202,13 +203,20 @@ export default function CreatorStudio() {
     }
   };
 
-  const openChat = async (campaignId: string) => {
+    const openChat = async (campaignId: string) => {
     setChatCampaign(campaignId);
     setShowChat(true);
-    try {
-      const res = await api.get(`/creatorstudio/campaigns/${campaignId}/get_chat/`);
-      setChatMessages(res.data || []);
-    } catch {}
+    const loadMessages = async () => {
+      try {
+        const res = await api.get(`/creatorstudio/campaigns/${campaignId}/get_chat/`);
+        setChatMessages(res.data || []);
+      } catch {}
+    };
+    await loadMessages();
+    // Poll every 3 seconds
+    const interval = setInterval(loadMessages, 3000);
+    // Store interval ID to clear on close
+    setChatInterval(interval as any);
   };
 
    const sendChatMessage = async () => {
@@ -218,6 +226,13 @@ export default function CreatorStudio() {
       setChatMessages(prev => [...prev, { message: chatInput, sender: user?.username }]);
       setChatInput('');
     } catch { toast.error('Failed to send'); }
+  };
+
+  const closeChat = () => {
+    setShowChat(false);
+    if (chatInterval) clearInterval(chatInterval);
+    setChatInterval(null);
+    setChatMessages([]);
   };
 
 
@@ -887,7 +902,7 @@ export default function CreatorStudio() {
         <div className="fixed bottom-4 right-4 w-80 h-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border flex flex-col z-50">
           <div className="p-3 border-b flex justify-between items-center">
             <span className="font-bold text-sm">💬 Campaign Chat</span>
-            <button onClick={() => setShowChat(false)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+          <button onClick={closeChat} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {chatMessages.map((m, i) => (
