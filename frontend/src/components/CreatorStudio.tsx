@@ -249,6 +249,13 @@ export default function CreatorStudio() {
     setChatMessages([]);
   };
 
+  const refreshApplicants = async (campaignId: string) => {
+    try {
+      const res = await api.get(`/creatorstudio/campaigns/${campaignId}/applicants/`);
+      setBrandApplicants(res.data || []);
+    } catch {}
+  };
+
 
   const createCampaign = async () => {
        if (!campaignBrand || !campaignTitle || !campaignBudget) return toast.error(t('Fill all fields'));
@@ -575,7 +582,7 @@ export default function CreatorStudio() {
                           try {
                             await api.post(`/creatorstudio/campaigns/${c.campaign}/accept_creator/`, { content_id: c.id });
                             toast.success('Creator accepted!');
-                            loadData(); 
+                            refreshApplicants(c.campaign)
                           } catch { toast.error('Failed'); }
                         }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs">✅ Accept</button>
                         <button onClick={async (e) => { e.stopPropagation();
@@ -601,7 +608,7 @@ export default function CreatorStudio() {
                         <button onClick={async (e) => { e.stopPropagation();
                           try {
                             await api.post(`/creatorstudio/campaigns/${c.campaign}/approve_work/`, { content_id: c.id });
-                            toast.success('✅ Paid!'); loadData(); 
+                            toast.success('✅ Paid!'); refreshApplicants(c.campaign)
                           } catch { toast.error('Failed'); }
                         }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs">✅ Pay</button>
                       </div>
@@ -652,7 +659,7 @@ export default function CreatorStudio() {
                         try {
                           await api.post(`/creatorstudio/campaigns/${c.campaign}/accept_creator/`, { content_id: c.id });
                           toast.success('Creator accepted! Funds in escrow.');
-                          loadData();
+                          loadData()
                         } catch { toast.error('Failed to accept'); }
                       }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold hover:bg-green-600">
                         ✅ Accept
@@ -661,7 +668,7 @@ export default function CreatorStudio() {
                         try {
                           await api.post(`/creatorstudio/campaigns/${c.campaign}/decline_creator/`, { content_id: c.id });
                           toast.success('Creator declined');
-                          loadData();
+                          loadData()
                         } catch { toast.error('Failed'); }
                       }} className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs font-semibold hover:bg-red-200">
                         ❌ Decline
@@ -685,7 +692,7 @@ export default function CreatorStudio() {
                         try {
                           await api.post(`/creatorstudio/campaigns/${c.campaign}/submit_work/`, { content_id: c.id, url });
                           toast.success('Work submitted for review!');
-                          loadData();
+                          loadData()
                         } catch { toast.error('Failed to submit work'); }
                       }
                     }} className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold hover:bg-blue-600">
