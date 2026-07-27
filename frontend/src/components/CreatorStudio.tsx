@@ -135,19 +135,6 @@ export default function CreatorStudio() {
   }, [tab, campaigns, user]);
 
 
-  // Auto-refresh myContents for creator when on My Content tab
-  useEffect(() => {
-    if (tab === 'my-content') {
-      const interval = setInterval(async () => {
-        try {
-          const res = await api.get('/creatorstudio/campaigns/my_contents/');
-          setMyContents(res.data || []);
-        } catch {}
-      }, 5000); // Poll every 5 seconds
-      return () => clearInterval(interval);
-    }
-  }, [tab]);
-
   const loadData = async () => {
     try {
       const [p, c, m, e] = await Promise.all([
