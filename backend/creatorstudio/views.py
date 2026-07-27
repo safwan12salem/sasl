@@ -5,7 +5,7 @@ from django.utils import timezone
 from .models import CreatorProfile, BrandCampaign, SponsoredContent
 from .serializers import CreatorProfileSerializer, BrandCampaignSerializer, SponsoredContentSerializer
 from decimal import Decimal
-
+from .models import CreatorProfile, BrandCampaign, SponsoredContent, CreatorChat
 
 class CreatorProfileViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
@@ -121,8 +121,12 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
         
         content.status = 'approved'
         content.save()
-        return Response({'status': 'accepted', 'message': 'Creator accepted! Funds in escrow.'})
-
+        
+        return Response({
+            'status': 'accepted', 
+            'message': 'Creator accepted! Funds in escrow. Chat room opened for discussion.',
+            'chat_room_id': str(campaign.id)
+        })
 
     @action(detail=True, methods=['post'])
     def decline_creator(self, request, pk=None):
@@ -145,6 +149,29 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
         content.save()
         return Response({'status': 'submitted', 'message': 'Work submitted for review!'})
 
+
+    @action(detail=True, methods=['post'])
+    def send_chat(self, request, pk=None):
+        campaign = self.get_object()
+        content_id = request.data.get('content_id')
+        text = request.data.get('text', '')
+        content = SponsoredContent.objects.get(id=content_id, campaign=campaign)
+        msg = CreatorChat.objects.create(
+            campaign=campaign,
+            brand=campaign.brand_user or request.user,
+            creator=content.creator,
+            sender=request.user,
+            message=text
+        )
+        return Response({'id': str(msg.id), 'message': msg.message, 'sender': request.user.username})
+
+    @action(detail=True, methods=['get'])
+    def get_chat(self, request, pk=None):
+        campaign = self.get_object()
+        msgs = CreatorChat.objects.filter(campaign=campaign).order_by('created_at')
+        return Response([{'id': str(m.id), 'message': m.message, 'sender': m.sender.username} for m in msgs])
+
+    
     @action(detail=True, methods=['post'])
     def approve_work(self, request, pk=None):
         """Brand approves work — releases payment to creator"""
@@ -164,6 +191,7 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
         creator_profile.total_earned += Decimal(str(content.creator_earnings))
         creator_profile.completed_deals += 1
         creator_profile.save()
+        CreatorChat.objects.filter(campaign=campaign).delete()
 
         return Response({'status': 'completed', 'message': 'Payment released to creator!'})
     @action(detail=False, methods=['get'])

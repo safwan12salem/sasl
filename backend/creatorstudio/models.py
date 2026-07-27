@@ -122,3 +122,21 @@ class SponsoredContent(models.Model):
 
     class Meta:
         ordering = ['-submitted_at']
+
+
+
+
+
+class CreatorChat(models.Model):
+    """Temporary chat between brand and creator for a campaign"""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    campaign = models.ForeignKey(BrandCampaign, on_delete=models.CASCADE)
+    brand = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='brand_chats')
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='creator_chats')
+    message = models.TextField()
+    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='sent_messages')
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+    
+    class Meta:
+        ordering = ['created_at']
