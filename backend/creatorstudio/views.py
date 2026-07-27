@@ -213,7 +213,7 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
         CreatorChat.objects.filter(campaign=campaign).delete()
 
         return Response({'status': 'completed', 'message': 'Payment released to creator!'})
-
+    @action(detail=False, methods=['get'])
     def my_contents(self, request):
         from django.db.models import Q
         contents = SponsoredContent.objects.filter(
