@@ -92,7 +92,16 @@ export default function CreatorStudio() {
     }
   }, [isOnline]);
 
-
+  // Merge brandApplicants into myContents for unified view
+  useEffect(() => {
+    if (brandApplicants.length > 0) {
+      setMyContents(prev => {
+        const existingIds = new Set(prev.map(x => x.id));
+        const newOnes = brandApplicants.filter(a => !existingIds.has(a.id));
+        return [...prev, ...newOnes];
+      });
+    }
+  }, [brandApplicants]);
 
   useEffect(() => {
     if (tab === 'campaigns' && user && campaigns.length > 0) {
@@ -124,6 +133,20 @@ export default function CreatorStudio() {
       loadBrandApplicants();
     }
   }, [tab, campaigns, user]);
+
+
+  // Auto-refresh myContents for creator when on My Content tab
+  useEffect(() => {
+    if (tab === 'my-content') {
+      const interval = setInterval(async () => {
+        try {
+          const res = await api.get('/creatorstudio/campaigns/my_contents/');
+          setMyContents(res.data || []);
+        } catch {}
+      }, 5000); // Poll every 5 seconds
+      return () => clearInterval(interval);
+    }
+  }, [tab]);
 
   const loadData = async () => {
     try {
