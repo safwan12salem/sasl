@@ -211,10 +211,14 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
         CreatorChat.objects.filter(campaign=campaign).delete()
 
         return Response({'status': 'completed', 'message': 'Payment released to creator!'})
-    @action(detail=False, methods=['get'])
+
     def my_contents(self, request):
-        contents = SponsoredContent.objects.filter(creator=request.user).order_by('-submitted_at')
+        from django.db.models import Q
+        contents = SponsoredContent.objects.filter(
+            Q(creator=request.user) | Q(campaign__brand_user=request.user)
+        ).order_by('-submitted_at').distinct()
         return Response(SponsoredContentSerializer(contents, many=True).data)
+
 
     @action(detail=False, methods=['post'])
     def submit_content(self, request):
