@@ -500,9 +500,17 @@ export default function SnapSender() {
                     <span>{ch.entries_count || 0} {t('entries')}</span>
                     <span>{t('Ends')}: {new Date(ch.ends_at).toLocaleDateString()}</span>
                   </div>
-                  <button className="w-full mt-2 py-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg text-xs font-semibold">
-                    {t('Enter Challenge')}
-                  </button>
+                  <button onClick={async () => {
+  const snapId = prompt('Enter your snap ID to submit:');
+  if (snapId) {
+    try {
+      await api.post('/snaps/snaps/enter_challenge/', { challenge_id: ch.id, snap_id: snapId });
+      toast.success('🎉 Entered challenge!');
+    } catch (err: any) { toast.error(err.response?.data?.error || 'Failed to enter'); }
+  }
+}} className="w-full mt-2 py-1.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-lg text-xs font-semibold hover:from-yellow-600 hover:to-orange-600">
+  {t('Enter Challenge')}
+</button>
                 </div>
               ))}
             </div>
@@ -602,7 +610,30 @@ export default function SnapSender() {
               <p className="absolute top-4 left-4 text-white font-bold">{viewingSnap.sender_name}</p>
               <p className="absolute top-4 right-4 text-white text-sm">{snapTimer}s</p>
               {viewingSnap.caption && <p className="absolute bottom-20 left-4 right-4 text-white text-lg">{viewingSnap.caption}</p>}
-              <button onClick={() => setViewingSnap(null)} className="absolute top-4 right-16 text-white"><X size={24} /></button>
+              <div className="absolute bottom-4 left-4 right-4 flex items-center gap-3">
+  {/* Tip button */}
+  <button onClick={async (e) => { e.stopPropagation();
+    const amount = prompt('Enter tip amount ($):', '1');
+    if (amount && parseFloat(amount) > 0) {
+      try {
+        await api.post(`/snaps/snaps/${viewingSnap.id}/tip/`, { amount: parseFloat(amount) });
+        toast.success(`💰 Tipped $${amount}!`);
+      } catch { toast.error('Tip failed'); }
+    }
+  }} className="flex items-center gap-1 bg-yellow-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-yellow-600">
+    <DollarSign size={16} /> Tip
+  </button>
+  {/* Screenshot button */}
+  <button onClick={async (e) => { e.stopPropagation();
+    try {
+      await api.post(`/snaps/snaps/${viewingSnap.id}/screenshot/`);
+      toast.success('📸 Screenshot tracked!');
+    } catch {}
+  }} className="flex items-center gap-1 bg-gray-700 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-gray-600">
+    <Camera size={16} /> Screenshot
+  </button>
+</div>
+<button onClick={() => setViewingSnap(null)} className="absolute top-4 right-4 text-white"><X size={24} /></button>
             </div>
           </motion.div>
         )}
