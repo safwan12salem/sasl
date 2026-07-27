@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { 
   Sparkles, DollarSign, TrendingUp, Video, Image, Send, Loader2, Users, Star, PlusCircle,
   Zap, Crown, BarChart3, Clock, CheckCircle, XCircle, Target, Award, Gift, Megaphone,
-  ChevronUp, ChevronDown, Filter, Calendar, Eye, Heart, MessageCircle, Share2
+  ChevronUp, ChevronDown, Filter, Calendar, Eye, Heart, MessageCircle, Share2,X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +19,10 @@ export default function CreatorStudio() {
   const [profile, setProfile] = useState<any>(null);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [myContents, setMyContents] = useState<any[]>([]);
+    const [showChat, setShowChat] = useState(false);
+  const [chatCampaign, setChatCampaign] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [chatInput, setChatInput] = useState('');
   const [earnings, setEarnings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [brandApplicants, setBrandApplicants] = useState<any[]>([]);
@@ -198,6 +202,14 @@ export default function CreatorStudio() {
     }
   };
 
+  const sendChatMessage = async () => {
+    if (!chatInput.trim() || !chatCampaign) return;
+    try {
+      await api.post(`/creatorstudio/campaigns/${chatCampaign}/send_chat/`, { text: chatInput });
+      setChatMessages(prev => [...prev, { message: chatInput, sender: user?.username }]);
+      setChatInput('');
+    } catch { toast.error('Failed to send'); }
+  };
 
   const createCampaign = async () => {
        if (!campaignBrand || !campaignTitle || !campaignBudget) return toast.error(t('Fill all fields'));
@@ -535,6 +547,14 @@ export default function CreatorStudio() {
                         }} className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs">❌ Decline</button>
                       </div>
                     )}
+              {c.status === 'approved' && (
+                      <button onClick={async (e) => { e.stopPropagation();
+                        setChatCampaign(c.campaign || c.id);
+                        setShowChat(true);
+                      }} className="px-3 py-1 bg-purple-500 text-white rounded-full text-xs">💬 Chat</button>
+              )}
+                    
+
                     {c.status === 'submitted' && (
                       <div className="flex items-center gap-2">
                         {c.submission_url && (
@@ -838,6 +858,27 @@ export default function CreatorStudio() {
           </motion.div>
         )}
       </AnimatePresence>
+            {/* Chat Modal */}
+      {showChat && chatCampaign && (
+        <div className="fixed bottom-4 right-4 w-80 h-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border flex flex-col z-50">
+          <div className="p-3 border-b flex justify-between items-center">
+            <span className="font-bold text-sm">💬 Campaign Chat</span>
+            <button onClick={() => setShowChat(false)} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 space-y-2">
+            {chatMessages.map((m, i) => (
+              <div key={i} className={`text-sm ${m.sender === user?.username ? 'text-right' : ''}`}>
+                <span className={`inline-block px-3 py-1 rounded-xl ${m.sender === user?.username ? 'bg-purple-500 text-white' : 'bg-gray-100'}`}>{m.message}</span>
+              </div>
+            ))}
+          </div>
+          <div className="p-2 border-t flex gap-2">
+            <input className="flex-1 px-3 py-1.5 rounded-full bg-gray-100 text-sm" placeholder="Message..." value={chatInput} onChange={e => setChatInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { sendChatMessage(); } }} />
+            <button onClick={sendChatMessage} className="px-3 py-1.5 bg-purple-500 text-white rounded-full text-sm">Send</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
