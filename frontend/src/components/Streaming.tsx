@@ -519,7 +519,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
   // ============================================================
   return (
     <div className="p-4 md:p-6 max-w-6xl mx-auto">
-            <AdBanner />
+           
       {/* ========== VIRAL: Stream Notifications Dropdown ========== */}
       <AnimatePresence>
         {showNotifications && streamNotifications.length > 0 && (

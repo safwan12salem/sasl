@@ -476,7 +476,7 @@ const STATUS_COLORS: Record<string, string> = {
   
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto">
-            <AdBanner />
+           
       {/* Video Call Overlay */}
       <AnimatePresence>
                 {inCall && (

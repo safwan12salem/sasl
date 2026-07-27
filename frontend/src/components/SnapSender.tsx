@@ -246,7 +246,7 @@ export default function SnapSender() {
 
   return (
     <div className="max-w-md mx-auto p-4">
-      <AdBanner />
+   
       <h2 className="text-3xl font-bold gradient-text mb-4 flex items-center gap-2">
         <Camera className="text-yellow-500" /> {t('Snap')}
       </h2>

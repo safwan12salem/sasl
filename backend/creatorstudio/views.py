@@ -153,18 +153,37 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def send_chat(self, request, pk=None):
         campaign = self.get_object()
-        content_id = request.data.get('content_id')
         text = request.data.get('text', '')
-        content = SponsoredContent.objects.get(id=content_id, campaign=campaign)
+        # Get first approved content for this campaign
+        content = SponsoredContent.objects.filter(campaign=campaign, status__in=['approved', 'submitted']).first()
+        
         msg = CreatorChat.objects.create(
             campaign=campaign,
             brand=campaign.brand_user or request.user,
-            creator=content.creator,
+            creator=content.creator if content else request.user,
             sender=request.user,
             message=text
         )
         return Response({'id': str(msg.id), 'message': msg.message, 'sender': request.user.username})
-
+    @action(detail=True, methods=['post'])
+    def reject_work(self, request, pk=None):
+        """Brand rejects work — creator can resubmit"""
+        campaign = self.get_object()
+        content_id = request.data.get('content_id')
+        feedback = request.data.get('feedback', 'Please make adjustments.')
+        content = SponsoredContent.objects.get(id=content_id, campaign=campaign, status='submitted')
+        content.status = 'approved'  # Back to approved so creator can resubmit
+        content.brand_feedback = feedback
+        content.save()
+        CreatorChat.objects.create(
+            campaign=campaign,
+            brand=request.user,
+            creator=content.creator,
+            sender=request.user,
+            message=f'❌ Changes requested: {feedback}'
+        )
+        return Response({'status': 'rejected', 'message': 'Work returned for adjustments.'})
+    
     @action(detail=True, methods=['get'])
     def get_chat(self, request, pk=None):
         campaign = self.get_object()

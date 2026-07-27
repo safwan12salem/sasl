@@ -202,7 +202,7 @@ export default function CreatorStudio() {
     }
   };
 
-  const sendChatMessage = async () => {
+   const sendChatMessage = async () => {
     if (!chatInput.trim() || !chatCampaign) return;
     try {
       await api.post(`/creatorstudio/campaigns/${chatCampaign}/send_chat/`, { text: chatInput });
@@ -211,6 +211,7 @@ export default function CreatorStudio() {
     } catch { toast.error('Failed to send'); }
   };
 
+  
   const createCampaign = async () => {
        if (!campaignBrand || !campaignTitle || !campaignBudget) return toast.error(t('Fill all fields'));
     if (!isOnline) {
@@ -671,6 +672,16 @@ export default function CreatorStudio() {
                       }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold hover:bg-green-600">
                         ✅ Approve & Pay
                       </button>
+                                            <button onClick={async (e) => { e.stopPropagation();
+                        const feedback = prompt('What needs to be changed?');
+                        if (feedback) {
+                          try {
+                            await api.post(`/creatorstudio/campaigns/${c.campaign}/reject_work/`, { content_id: c.id, feedback });
+                            toast.success('Changes requested');
+                            loadData(); setBrandApplicants([]);
+                          } catch { toast.error('Failed'); }
+                        }
+                      }} className="px-3 py-1 bg-orange-500 text-white rounded-full text-xs">❌ Changes</button>
                     </div>
                   )}
                   {c.status === 'submitted' && c.creator_name === user?.username && (
