@@ -135,7 +135,7 @@ export default function CreatorStudio() {
   }, [tab, campaigns, user]);
 
 
-  const loadData = async () => {
+    const loadData = async () => {
     try {
       const [p, c, m, e] = await Promise.all([
         api.get('/creatorstudio/profiles/my_profile/'),
@@ -145,20 +145,11 @@ export default function CreatorStudio() {
       ]);
       setProfile(p.data);
       setCampaigns(c.data.results || c.data || []);
-               const apiContents = m.data || [];
-      const merged = [...apiContents];
-      // Add brandApplicants that aren't in API response
-      for (const a of brandApplicants) {
-        if (!merged.find(x => x.id === a.id)) {
-          merged.push(a);
-        }
-      }
-      setMyContents(merged);
+      setMyContents(m.data || []);
       setEarnings(e.data);
       setNiche(p.data.niche || '');
       setPricePost(p.data.price_per_post || '25');
       setPriceVideo(p.data.price_per_video || '50');
-            // Fetch ad campaigns
       try {
         const adRes = await api.get('/monetization/ads/my_campaigns/');
         setAdCampaigns(adRes.data || []);
@@ -169,6 +160,8 @@ export default function CreatorStudio() {
       setLoading(false);
     }
   };
+
+
 
   const updateProfile = async () => {
     try {
@@ -520,7 +513,7 @@ export default function CreatorStudio() {
                             try {
                               const res = await api.get(`/creatorstudio/campaigns/${c.id}/applicants/`);
                               if (res.data && res.data.length > 0) {
-                              setBrandApplicants(res.data);
+                              
                               setTab('my-content');
                               }
                               toast.success(`${res.data?.length || 0} applicant(s)`);
