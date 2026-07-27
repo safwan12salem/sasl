@@ -145,11 +145,15 @@ export default function CreatorStudio() {
       ]);
       setProfile(p.data);
       setCampaigns(c.data.results || c.data || []);
-            setMyContents(prev => {
-        const existingIds = new Set(prev.map(x => x.id));
-        const newOnes = (m.data || []).filter((x: any) => !existingIds.has(x.id));
-        return [...prev, ...newOnes];
-      });
+               const apiContents = m.data || [];
+      const merged = [...apiContents];
+      // Add brandApplicants that aren't in API response
+      for (const a of brandApplicants) {
+        if (!merged.find(x => x.id === a.id)) {
+          merged.push(a);
+        }
+      }
+      setMyContents(merged);
       setEarnings(e.data);
       setNiche(p.data.niche || '');
       setPricePost(p.data.price_per_post || '25');
@@ -583,6 +587,8 @@ export default function CreatorStudio() {
                             await api.post(`/creatorstudio/campaigns/${c.campaign}/accept_creator/`, { content_id: c.id });
                             toast.success('Creator accepted!');
                             refreshApplicants(c.campaign)
+                                                        // Update local state immediately
+                            setMyContents(prev => prev.map(x => x.id === c.id ? {...x, status: 'approved'} : x));
                           } catch { toast.error('Failed'); }
                         }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs">✅ Accept</button>
                         <button onClick={async (e) => { e.stopPropagation();
