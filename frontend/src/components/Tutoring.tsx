@@ -40,6 +40,7 @@ interface Session {
   is_offline?: boolean;
   materials?: Material[];
   average_rating?: number;
+   views?: number;
 }
 
 interface Material {
@@ -782,7 +783,13 @@ const STATUS_COLORS: Record<string, string> = {
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               } : undefined}>
-              <div className="p-5 cursor-pointer" onClick={() => setExpandedSession(expandedSession === session.id ? null : session.id)}>
+              <div className="p-5 cursor-pointer" onClick={() => {
+  const isOpening = expandedSession !== session.id;
+  setExpandedSession(isOpening ? session.id : null);
+  if (isOpening) {
+    setSessions(prev => prev.map(s => s.id === session.id ? { ...s, views: (s.views || 0) + 1 } : s));
+  }
+}}>
                 <div className="flex flex-col md:flex-row justify-between gap-3">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">

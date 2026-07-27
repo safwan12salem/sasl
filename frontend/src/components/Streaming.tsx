@@ -167,6 +167,13 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
   useEffect(() => { fetchStreams(); fetchSchedules(); }, []);
 
+    // Restore subscriptions from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('sasl_stream_subscriptions');
+    if (saved) {
+      try { setSubscribedStreamers(new Set(JSON.parse(saved))); } catch {}
+    }
+  }, []);
   // ============================================================
   // VIRAL: Schedule countdown timer
   // ============================================================
@@ -333,7 +340,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
   // ============================================================
   // VIRAL: Toggle streamer subscription
   // ============================================================
-  const toggleSubscribe = (streamerUsername: string) => {
+ const toggleSubscribe = (streamerUsername: string) => {
     setSubscribedStreamers(prev => {
       const newSet = new Set(prev);
       if (newSet.has(streamerUsername)) {
@@ -343,6 +350,8 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
         newSet.add(streamerUsername);
         toast.success(t('Subscribed to {{name}}! 🔔', { name: streamerUsername }));
       }
+      // Persist to localStorage
+      localStorage.setItem('sasl_stream_subscriptions', JSON.stringify([...newSet]));
       return newSet;
     });
   };
@@ -875,7 +884,11 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
             <motion.div key={s.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: idx * 0.05 }}
               className="glass rounded-2xl overflow-hidden hover:shadow-xl transition group">
               {/* Thumbnail */}
-              <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 relative overflow-hidden">
+              <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 relative overflow-hidden cursor-pointer" 
+     onClick={() => {
+       setStreams(prev => prev.map(st => st.id === s.id ? { ...st, viewers_count: st.viewers_count + 1 } : st));
+       toast.success(`📺 Joined ${s.streamer.username}'s stream!`);
+     }}>
                 {s.thumbnail_url ? (
                   <img src={s.thumbnail_url} alt={s.title} className="w-full h-full object-cover group-hover:scale-105 transition" />
                 ) : (

@@ -519,7 +519,13 @@ export default function GigCentral() {
                 }`}>
                 
                 {/* MAIN CARD */}
-                <div className="p-5 cursor-pointer" onClick={() => toggleExpand(gig.id)}>
+             <div className="p-5 cursor-pointer" onClick={() => {
+  const wasExpanded = expandedGig === gig.id;
+  toggleExpand(gig.id);
+  if (!wasExpanded) {
+    setGigs(prev => prev.map(g => g.id === gig.id ? { ...g, views: (g.views || 0) + 1 } : g));
+  }
+}}>
                   <div className="flex items-start gap-4">
                     {/* Creator Avatar */}
                     <div className="flex-shrink-0">
