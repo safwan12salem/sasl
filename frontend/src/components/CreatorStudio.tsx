@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { 
   Sparkles, DollarSign, TrendingUp, Video, Image, Send, Loader2, Users, Star, PlusCircle,
   Zap, Crown, BarChart3, Clock, CheckCircle, XCircle, Target, Award, Gift, Megaphone,
-  ChevronUp, ChevronDown, Filter, Calendar, Eye, Heart, MessageCircle, Share2,X
+  ChevronUp, ChevronDown, Filter, Calendar, Eye, Heart, MessageCircle, Share2, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -14,31 +14,30 @@ import { db } from '../services/offlineDB';
 
 export default function CreatorStudio() {
   const { user } = useAuth();
-    const { isOnline } = useMesh();
+  const { isOnline } = useMesh();
   const { t } = useTranslation();
   const [profile, setProfile] = useState<any>(null);
   const [campaigns, setCampaigns] = useState<any[]>([]);
   const [myContents, setMyContents] = useState<any[]>([]);
-    const [showChat, setShowChat] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const [chatCampaign, setChatCampaign] = useState<string | null>(null);
   const [chatMessages, setChatMessages] = useState<any[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [earnings, setEarnings] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [brandApplicants, setBrandApplicants] = useState<any[]>([]);
-    const [chatInterval, setChatInterval] = useState<any>(null);
-    const [tab, setTab] = useState<'dashboard' | 'campaigns' | 'my-content' | 'profile' | 'ads'>('dashboard');
-      // Restore tab from localStorage
+  const [chatInterval, setChatInterval] = useState<any>(null);
+  const [tab, setTab] = useState<'dashboard' | 'campaigns' | 'my-content' | 'profile' | 'ads'>('dashboard');
+
+  // Restore tab from localStorage
   useEffect(() => {
     const savedTab = localStorage.getItem('creatorstudio_tab');
     if (savedTab) setTab(savedTab as any);
   }, []);
-  
+
   // Save tab to localStorage on change
   useEffect(() => {
     localStorage.setItem('creatorstudio_tab', tab);
   }, [tab]);
-
 
   const [niche, setNiche] = useState('');
   const [pricePost, setPricePost] = useState('25');
@@ -49,13 +48,14 @@ export default function CreatorStudio() {
   const [campaignDesc, setCampaignDesc] = useState('');
   const [campaignBudget, setCampaignBudget] = useState('');
   const [campaignType, setCampaignType] = useState('post');
-    const [campaignImage, setCampaignImage] = useState<File | null>(null);
+  const [campaignImage, setCampaignImage] = useState<File | null>(null);
   const [campaignImageUrl, setCampaignImageUrl] = useState('');
   const [campaignDeadline, setCampaignDeadline] = useState('');
   const [sortBy, setSortBy] = useState<'budget' | 'deadline'>('budget');
-    const [applyModal, setApplyModal] = useState<string | null>(null); // campaign id
+  const [applyModal, setApplyModal] = useState<string | null>(null);
   const [proposalMsg, setProposalMsg] = useState('');
   const [proposalPortfolio, setProposalPortfolio] = useState('');
+
   // Ad Campaign States
   const [adTitle, setAdTitle] = useState('');
   const [adDesc, setAdDesc] = useState('');
@@ -65,7 +65,6 @@ export default function CreatorStudio() {
   const [adImage, setAdImage] = useState<File | null>(null);
   const [adImageUrl, setAdImageUrl] = useState('');
   const [adCampaigns, setAdCampaigns] = useState<any[]>([]);
-
 
   useEffect(() => { loadData(); }, []);
 
@@ -92,50 +91,7 @@ export default function CreatorStudio() {
     }
   }, [isOnline]);
 
-  // Merge brandApplicants into myContents for unified view
-  useEffect(() => {
-    if (brandApplicants.length > 0) {
-      setMyContents(prev => {
-        const existingIds = new Set(prev.map(x => x.id));
-        const newOnes = brandApplicants.filter(a => !existingIds.has(a.id));
-        return [...prev, ...newOnes];
-      });
-    }
-  }, [brandApplicants]);
-
-  useEffect(() => {
-    if (tab === 'campaigns' && user && campaigns.length > 0) {
-      const loadBrandApplicants = async () => {
-        const allApplicants: any[] = [];
-        for (const c of campaigns) {
-          // Check if this campaign belongs to current user
-          const isOwner = c.brand_user === user.id || c.brand_name === user?.username;
-          if (isOwner) {
-            try {
-              const res = await api.get(`/creatorstudio/campaigns/${c.id}/applicants/`);
-              if (res.data?.length > 0) {
-                for (const applicant of res.data) {
-                  allApplicants.push(applicant);
-                }
-              }
-            } catch {}
-          }
-        }
-        if (allApplicants.length > 0) {
-          // Merge with existing myContents, avoid duplicates
-          setMyContents(prev => {
-            const existingIds = new Set(prev.map(x => x.id));
-            const newOnes = allApplicants.filter(a => !existingIds.has(a.id));
-            return [...prev, ...newOnes];
-          });
-        }
-      };
-      loadBrandApplicants();
-    }
-  }, [tab, campaigns, user]);
-
-
-    const loadData = async () => {
+  const loadData = async () => {
     try {
       const [p, c, m, e] = await Promise.all([
         api.get('/creatorstudio/profiles/my_profile/'),
@@ -150,6 +106,25 @@ export default function CreatorStudio() {
       setNiche(p.data.niche || '');
       setPricePost(p.data.price_per_post || '25');
       setPriceVideo(p.data.price_per_video || '50');
+
+      // Load applicants for brand-owned campaigns and merge into myContents
+      const campaignsData = c.data.results || c.data || [];
+      for (const camp of campaignsData) {
+        const isOwner = camp.brand_user === user?.id || camp.brand_name === user?.username;
+        if (isOwner) {
+          try {
+            const res = await api.get(`/creatorstudio/campaigns/${camp.id}/applicants/`);
+            if (res.data?.length > 0) {
+              setMyContents(prev => {
+                const existingIds = new Set(prev.map((x: any) => x.id));
+                const newOnes = res.data.filter((a: any) => !existingIds.has(a.id));
+                return [...prev, ...newOnes];
+              });
+            }
+          } catch {}
+        }
+      }
+
       try {
         const adRes = await api.get('/monetization/ads/my_campaigns/');
         setAdCampaigns(adRes.data || []);
@@ -161,8 +136,6 @@ export default function CreatorStudio() {
     }
   };
 
-
-
   const updateProfile = async () => {
     try {
       await api.patch('/creatorstudio/profiles/my_profile/', { niche, price_per_post: pricePost, price_per_video: priceVideo });
@@ -171,38 +144,31 @@ export default function CreatorStudio() {
     } catch { toast.error(t('Update failed')); }
   };
 
-
   const createAdCampaign = async () => {
-        if (!adTitle || !adBudget || !adLink) return toast.error('Title, budget, and link are required');
+    if (!adTitle || !adBudget || !adLink) return toast.error('Title, budget, and link are required');
     if (!isOnline) {
-            await db.offlineActions.put({ type: 'create_ad', data: { title: adTitle, content: adDesc, link: adLink, budget: parseFloat(adBudget), cpc: parseFloat(adCPC) || 0.01, image: adImageUrl }, created_at: Date.now() });
+      await db.offlineActions.put({ type: 'create_ad', data: { title: adTitle, content: adDesc, link: adLink, budget: parseFloat(adBudget), cpc: parseFloat(adCPC) || 0.01, image: adImageUrl }, created_at: Date.now() });
       toast.success('Ad saved offline — will publish when online');
       setAdTitle(''); setAdDesc(''); setAdLink(''); setAdBudget(''); setAdImage(null); setAdImageUrl('');
       return;
     }
     try {
       await api.post('/monetization/ads/create_campaign/', {
-        title: adTitle,
-        content: adDesc,
-        link: adLink,
-        budget: parseFloat(adBudget),
-        cpc: parseFloat(adCPC) || 0.01,
-        image: adImageUrl,
+        title: adTitle, content: adDesc, link: adLink,
+        budget: parseFloat(adBudget), cpc: parseFloat(adCPC) || 0.01, image: adImageUrl,
       });
       toast.success('🎉 Ad campaign launched! 60% platform fee, 40% goes to viewer rewards.');
       setAdTitle(''); setAdDesc(''); setAdLink(''); setAdBudget(''); setAdImage(null); setAdImageUrl('');
-      // Reload ad campaigns
       const adRes = await api.get('/monetization/ads/my_campaigns/');
       setAdCampaigns(adRes.data || []);
     } catch (err: any) { toast.error(err.response?.data?.error || 'Failed to create campaign'); }
   };
 
-    const applyCampaign = async (campaignId: string) => {
+  const applyCampaign = async (campaignId: string) => {
     if (!proposalMsg.trim()) return toast.error('Write a proposal message');
     try {
       await api.post(`/creatorstudio/campaigns/${campaignId}/apply/`, {
-        caption: proposalMsg,
-        portfolio_link: proposalPortfolio,
+        caption: proposalMsg, portfolio_link: proposalPortfolio,
       });
       toast.success(t('Applied successfully! 🎉'));
       setApplyModal(null);
@@ -214,7 +180,7 @@ export default function CreatorStudio() {
     }
   };
 
-    const openChat = async (campaignId: string) => {
+  const openChat = async (campaignId: string) => {
     setChatCampaign(campaignId);
     setShowChat(true);
     const loadMessages = async () => {
@@ -224,13 +190,11 @@ export default function CreatorStudio() {
       } catch {}
     };
     await loadMessages();
-    // Poll every 3 seconds
     const interval = setInterval(loadMessages, 3000);
-    // Store interval ID to clear on close
     setChatInterval(interval as any);
   };
 
-   const sendChatMessage = async () => {
+  const sendChatMessage = async () => {
     if (!chatInput.trim() || !chatCampaign) return;
     try {
       await api.post(`/creatorstudio/campaigns/${chatCampaign}/send_chat/`, { text: chatInput });
@@ -246,27 +210,19 @@ export default function CreatorStudio() {
     setChatMessages([]);
   };
 
-  const refreshApplicants = async (campaignId: string) => {
-    try {
-      const res = await api.get(`/creatorstudio/campaigns/${campaignId}/applicants/`);
-      setBrandApplicants(res.data || []);
-    } catch {}
-  };
-
-
   const createCampaign = async () => {
-       if (!campaignBrand || !campaignTitle || !campaignBudget) return toast.error(t('Fill all fields'));
+    if (!campaignBrand || !campaignTitle || !campaignBudget) return toast.error(t('Fill all fields'));
     if (!isOnline) {
-            await db.offlineActions.put({ type: 'create_campaign', data: { brand_name: campaignBrand, title: campaignTitle, description: campaignDesc, budget: parseFloat(campaignBudget), content_type: campaignType, deadline: campaignDeadline, image: campaignImageUrl || '' }, created_at: Date.now() });
-            toast.success('Saved offline — will publish when online');
+      await db.offlineActions.put({ type: 'create_campaign', data: { brand_name: campaignBrand, title: campaignTitle, description: campaignDesc, budget: parseFloat(campaignBudget), content_type: campaignType, deadline: campaignDeadline, image: campaignImageUrl || '' }, created_at: Date.now() });
+      toast.success('Saved offline — will publish when online');
       setCampaignBrand(''); setCampaignTitle(''); setCampaignDesc('');
       setCampaignBudget(''); setCampaignDeadline(''); setShowCreateCampaign(false);
       return;
     }
     try {
-           await api.post('/creatorstudio/campaigns/', {
+      await api.post('/creatorstudio/campaigns/', {
         brand_name: campaignBrand, title: campaignTitle, description: campaignDesc,
-                budget: parseFloat(campaignBudget), content_type: campaignType, deadline: campaignDeadline,
+        budget: parseFloat(campaignBudget), content_type: campaignType, deadline: campaignDeadline,
         image: campaignImageUrl || '',
       });
       toast.success(t('Campaign created!'));
@@ -342,12 +298,11 @@ export default function CreatorStudio() {
       {/* ========== TABS ========== */}
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-6 overflow-x-auto">
         {[
-                   { key: 'dashboard' as const, label: t('📊 Dashboard'), icon:<BarChart3 size={16} /> },
+          { key: 'dashboard' as const, label: t('📊 Dashboard'), icon: <BarChart3 size={16} /> },
           { key: 'campaigns' as const, label: t('💼 Brand Deals'), icon: <DollarSign size={16} /> },
           { key: 'my-content' as const, label: t('📝 My Content'), icon: <Image size={16} /> },
-          { key: 'ads' as const, label: t('📢 Advertise'), icon: <Megaphone size={16} /> },    
+          { key: 'ads' as const, label: t('📢 Advertise'), icon: <Megaphone size={16} /> },
           { key: 'profile' as const, label: t('⭐ Profile'), icon: <Star size={16} /> },
-          
         ].map(tb => (
           <button key={tb.key} onClick={() => setTab(tb.key)}
             className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-lg text-xs md:text-sm font-semibold transition whitespace-nowrap ${
@@ -361,7 +316,6 @@ export default function CreatorStudio() {
       {/* ========== DASHBOARD TAB ========== */}
       {tab === 'dashboard' && (
         <div className="space-y-6">
-          {/* Quick Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="glass-card p-5 rounded-2xl">
               <h3 className="font-bold mb-3 flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> {t('Recent Earnings')}</h3>
@@ -435,7 +389,7 @@ export default function CreatorStudio() {
                     <input className="input-field text-sm" placeholder={t('Campaign Title')} value={campaignTitle} onChange={e => setCampaignTitle(e.target.value)} />
                   </div>
                   <textarea className="input-field text-sm" placeholder={t('Description')} value={campaignDesc} onChange={e => setCampaignDesc(e.target.value)} rows={2} />
-                                      <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-500 hover:text-gray-700">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-500 hover:text-gray-700">
                     <Image size={16} />
                     {campaignImage ? campaignImage.name : t('Campaign image (optional)')}
                     <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
@@ -479,7 +433,7 @@ export default function CreatorStudio() {
                 <motion.div key={c.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
                   whileHover={{ y: -4 }} className="glass-card rounded-2xl overflow-hidden border border-purple-100 dark:border-purple-900/30 hover:shadow-xl transition-shadow">
                   <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-2" />
-                                    {c.image && <img src={c.image} alt={c.title} className="w-full h-32 object-cover" />}
+                  {c.image && <img src={c.image} alt={c.title} className="w-full h-32 object-cover" />}
                   <div className="p-5">
                     <div className="flex items-center gap-3 mb-3">
                       <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-lg shadow-lg">
@@ -499,7 +453,7 @@ export default function CreatorStudio() {
                           <Calendar size={10} /> {new Date(c.deadline).toLocaleDateString()}
                         </p>
                       </div>
-                                         </div>
+                    </div>
                     <div className="flex items-center gap-2 mt-3">
                       {c.brand_name !== user?.username && (
                         <motion.button whileTap={{scale: 0.9}} onClick={() => setApplyModal(c.id)}
@@ -507,16 +461,12 @@ export default function CreatorStudio() {
                           <Send size={14} /> {t('Apply')}
                         </motion.button>
                       )}
-                    {(c.brand_user === user?.id || c.brand_name === user?.username) && (
+                      {(c.brand_user === user?.id || c.brand_name === user?.username) && (
                         <>
                           <button onClick={async (e) => { e.stopPropagation();
                             try {
                               const res = await api.get(`/creatorstudio/campaigns/${c.id}/applicants/`);
-                              if (res.data && res.data.length > 0) {
-                              
-                              setTab('my-content');
-                              }
-                              toast.success(`${res.data?.length || 0} applicant(s)`);
+                              toast.success(`${res.data?.length || 0} applicant(s) — view in My Content`);
                             } catch { toast.error('Failed to load applicants'); }
                           }} className="flex-1 py-2 bg-blue-500 text-white rounded-xl text-xs font-semibold hover:bg-blue-600">
                             👥 Applicants ({c.applied_count || 0})
@@ -531,14 +481,7 @@ export default function CreatorStudio() {
                           </button>
                         </>
                       )}
-                    </div>  
-                    {/* Progress bar if campaign has applicant count */}
-                    {c.applied_count !== undefined && (
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
-                        <div className="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full" 
-                          style={{ width: `${Math.min((c.applied_count / (c.max_creators || 10)) * 100, 100)}%` }} />
-                      </div>
-                    )}
+                    </div>
                   </div>
                 </motion.div>
               ))
@@ -548,82 +491,12 @@ export default function CreatorStudio() {
       )}
 
       {/* ========== MY CONTENT TAB ========== */}
-             {tab === 'my-content' && (
+      {tab === 'my-content' && (
         <div className="space-y-3">
-          {/* BRAND'S APPLICANTS */}
-          {brandApplicants.length > 0 && (
-            <>
-              <h3 className="font-bold text-sm text-purple-600 flex items-center gap-2">
-                <Users size={16} /> Applicants ({brandApplicants.length})
-              </h3>
-              {brandApplicants.map((c: any, i: number) => (
-                <motion.div key={c.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                  className="glass-card p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-l-4 border-purple-500">
-                  {/* Same card content as myContents */}
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2.5 rounded-xl ${
-                      c.status === 'approved' ? 'bg-green-100 text-green-600' :
-                      c.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
-                    }`}>
-                      {c.status === 'approved' ? <CheckCircle size={20} /> : c.status === 'pending' ? <Clock size={20} /> : <XCircle size={20} />}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm">{c.creator_name}</p>
-                      <p className="text-xs text-gray-500">{c.caption || 'No message'} · <span className="capitalize">{c.status}</span></p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {c.status === 'pending' && (
-                      <div className="flex gap-1">
-                        <button onClick={async (e) => { e.stopPropagation();
-                          try {
-                            await api.post(`/creatorstudio/campaigns/${c.campaign}/accept_creator/`, { content_id: c.id });
-                            toast.success('Creator accepted!');
-                            refreshApplicants(c.campaign)
-                                                        // Update local state immediately
-                            setMyContents(prev => prev.map(x => x.id === c.id ? {...x, status: 'approved'} : x));
-                          } catch { toast.error('Failed'); }
-                        }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs">✅ Accept</button>
-                        <button onClick={async (e) => { e.stopPropagation();
-                          try {
-                            await api.post(`/creatorstudio/campaigns/${c.campaign}/decline_creator/`, { content_id: c.id });
-                            toast.success('Declined'); loadData(); 
-                          } catch { toast.error('Failed'); }
-                        }} className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs">❌ Decline</button>
-                      </div>
-                    )}
-              {c.status === 'approved' && (
-                      <button onClick={async (e) => { e.stopPropagation();
-                        openChat(c.campaign || c.id);
-                      }} className="px-3 py-1 bg-purple-500 text-white rounded-full text-xs">💬 Chat</button>
-              )}
-                    
-
-                    {c.status === 'submitted' && (
-                      <div className="flex items-center gap-2">
-                        {c.submission_url && (
-                          <a href={c.submission_url?.startsWith('http') ? c.submission_url : `https://${c.submission_url}`} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 underline">📎 View</a>
-                        )}
-                        <button onClick={async (e) => { e.stopPropagation();
-                          try {
-                            await api.post(`/creatorstudio/campaigns/${c.campaign}/approve_work/`, { content_id: c.id });
-                            toast.success('✅ Paid!'); refreshApplicants(c.campaign)
-                          } catch { toast.error('Failed'); }
-                        }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs">✅ Pay</button>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-              <hr className="my-4" />
-            </>
-          )}
-          
-          {/* CREATOR'S OWN APPLICATIONS */}
           <h3 className="font-bold text-sm text-blue-600 flex items-center gap-2">
-            <Image size={16} /> My Applications
+            <Image size={16} /> My Content
           </h3>
-          {myContents.length === 0 && brandApplicants.length === 0 ? (
+          {myContents.length === 0 ? (
             <div className="text-center py-16 text-gray-400">
               <Image size={64} className="mx-auto mb-4 opacity-20" />
               <p className="text-lg font-semibold">{t('No content yet')}</p>
@@ -636,13 +509,18 @@ export default function CreatorStudio() {
                 <div className="flex items-center gap-3">
                   <div className={`p-2.5 rounded-xl ${
                     c.status === 'approved' ? 'bg-green-100 text-green-600' :
+                    c.status === 'submitted' ? 'bg-blue-100 text-blue-600' :
+                    c.status === 'completed' ? 'bg-emerald-100 text-emerald-600' :
                     c.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
                   }`}>
-                    {c.status === 'approved' ? <CheckCircle size={20} /> : c.status === 'pending' ? <Clock size={20} /> : <XCircle size={20} />}
+                    {c.status === 'approved' ? <CheckCircle size={20} /> : 
+                     c.status === 'submitted' ? <Send size={20} /> :
+                     c.status === 'completed' ? <Award size={20} /> :
+                     c.status === 'pending' ? <Clock size={20} /> : <XCircle size={20} />}
                   </div>
                   <div>
-                    <p className="font-semibold text-sm">{c.caption || c.campaign_title || t('Content')}</p>
-                    <p className="text-xs text-gray-500">{c.content_type} · <span className="capitalize">{c.status}</span></p>
+                    <p className="font-semibold text-sm">{c.creator_name || c.caption || c.campaign_title || t('Content')}</p>
+                    <p className="text-xs text-gray-500">{c.content_type || 'campaign'} · <span className="capitalize">{c.status}</span></p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4">
@@ -651,14 +529,14 @@ export default function CreatorStudio() {
                     <p className="font-bold text-green-600">${c.creator_earnings || '0.00'}</p>
                   </div>
 
-                                      {/* PENDING — Brand accepts/declines */}
+                  {/* PENDING — Brand sees Accept/Decline */}
                   {c.status === 'pending' && c.creator_name !== user?.username && (
                     <div className="flex gap-1">
                       <button onClick={async (e) => { e.stopPropagation();
                         try {
                           await api.post(`/creatorstudio/campaigns/${c.campaign}/accept_creator/`, { content_id: c.id });
                           toast.success('Creator accepted! Funds in escrow.');
-                          loadData()
+                          loadData();
                         } catch { toast.error('Failed to accept'); }
                       }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold hover:bg-green-600">
                         ✅ Accept
@@ -667,46 +545,57 @@ export default function CreatorStudio() {
                         try {
                           await api.post(`/creatorstudio/campaigns/${c.campaign}/decline_creator/`, { content_id: c.id });
                           toast.success('Creator declined');
-                          loadData()
+                          loadData();
                         } catch { toast.error('Failed'); }
                       }} className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs font-semibold hover:bg-red-200">
                         ❌ Decline
                       </button>
                     </div>
                   )}
+
+                  {/* PENDING — Creator waiting */}
                   {c.status === 'pending' && c.creator_name === user?.username && (
                     <span className="text-xs text-yellow-600">⏳ Waiting for brand review</span>
                   )}
-                                      <button onClick={(e) => { e.stopPropagation(); openChat(c.campaign); }}
-                      className="px-3 py-1 bg-purple-500 text-white rounded-full text-xs font-semibold hover:bg-purple-600 ml-1">
-                      💬 Chat
-                    </button>
-
 
                   {/* APPROVED — Creator submits work */}
                   {c.status === 'approved' && c.creator_name === user?.username && (
-                    <button onClick={async (e) => { e.stopPropagation();
-                      const url = prompt('Enter your content URL:');
-                      if (url) {
-                        try {
-                          await api.post(`/creatorstudio/campaigns/${c.campaign}/submit_work/`, { content_id: c.id, url });
-                          toast.success('Work submitted for review!');
-                          loadData()
-                        } catch { toast.error('Failed to submit work'); }
-                      }
-                    }} className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold hover:bg-blue-600">
-                      📤 Submit Work
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button onClick={async (e) => { e.stopPropagation();
+                        const url = prompt('Enter your content URL:');
+                        if (url) {
+                          try {
+                            await api.post(`/creatorstudio/campaigns/${c.campaign}/submit_work/`, { content_id: c.id, url });
+                            toast.success('Work submitted for review!');
+                            loadData();
+                          } catch { toast.error('Failed to submit work'); }
+                        }
+                      }} className="px-3 py-1 bg-blue-500 text-white rounded-full text-xs font-semibold hover:bg-blue-600">
+                        📤 Submit Work
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); openChat(c.campaign); }}
+                          className="px-3 py-1 bg-purple-500 text-white rounded-full text-xs font-semibold hover:bg-purple-600">
+                          💬 Chat
+                      </button>
+                    </div>
                   )}
+
+                  {/* APPROVED — Brand waiting */}
                   {c.status === 'approved' && c.creator_name !== user?.username && (
-                    <span className="text-xs text-blue-600">⏳ Waiting for creator to submit work</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-blue-600">⏳ Waiting for creator to submit work</span>
+                      <button onClick={(e) => { e.stopPropagation(); openChat(c.campaign); }}
+                          className="px-3 py-1 bg-purple-500 text-white rounded-full text-xs font-semibold hover:bg-purple-600">
+                          💬 Chat
+                      </button>
+                    </div>
                   )}
-                  
-                  {/* SUBMITTED — Brand reviews and pays */}
+
+                  {/* SUBMITTED — Brand reviews */}
                   {c.status === 'submitted' && c.creator_name !== user?.username && (
                     <div className="flex items-center gap-2">
                       {c.submission_url && (
-                        <a href={c.submission_url?.startsWith('http') ? c.submission_url : `https://${c.submission_url}`} target="_blank" rel="noopener noreferrer" 
+                        <a href={c.submission_url?.startsWith('http') ? c.submission_url : `https://${c.submission_url}`} target="_blank" rel="noopener noreferrer"
                           className="text-xs text-blue-600 underline hover:text-blue-800">
                           📎 View Work
                         </a>
@@ -720,7 +609,7 @@ export default function CreatorStudio() {
                       }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs font-semibold hover:bg-green-600">
                         ✅ Approve & Pay
                       </button>
-                                            <button onClick={async (e) => { e.stopPropagation();
+                      <button onClick={async (e) => { e.stopPropagation();
                         const feedback = prompt('What needs to be changed?');
                         if (feedback) {
                           try {
@@ -730,16 +619,30 @@ export default function CreatorStudio() {
                           } catch { toast.error('Failed'); }
                         }
                       }} className="px-3 py-1 bg-orange-500 text-white rounded-full text-xs">❌ Changes</button>
+                      <button onClick={(e) => { e.stopPropagation(); openChat(c.campaign); }}
+                          className="px-3 py-1 bg-purple-500 text-white rounded-full text-xs font-semibold hover:bg-purple-600">
+                          💬 Chat
+                      </button>
                     </div>
                   )}
+
+                  {/* SUBMITTED — Creator waiting */}
                   {c.status === 'submitted' && c.creator_name === user?.username && (
-                    <span className="text-xs text-blue-600">⏳ Waiting for brand approval</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-blue-600">⏳ Waiting for brand approval</span>
+                      <button onClick={(e) => { e.stopPropagation(); openChat(c.campaign); }}
+                          className="px-3 py-1 bg-purple-500 text-white rounded-full text-xs font-semibold hover:bg-purple-600">
+                          💬 Chat
+                      </button>
+                    </div>
                   )}
-                  
+
                   {/* COMPLETED */}
                   {c.status === 'completed' && (
                     <span className="text-xs text-green-600 font-semibold">💰 Paid ${c.creator_earnings}</span>
                   )}
+
+                  {/* Stats row */}
                   <div className="flex items-center gap-3 text-xs text-gray-400">
                     <span className="flex items-center gap-1"><Eye size={12} /> {c.views || 0}</span>
                     <span className="flex items-center gap-1"><Heart size={12} /> {c.likes || 0}</span>
@@ -763,7 +666,6 @@ export default function CreatorStudio() {
               <h3 className="font-bold text-xl">@{user?.username}</h3>
               <p className="text-sm text-gray-500">{niche || t('Set your niche')}</p>
             </div>
-            
             <div className="grid grid-cols-3 gap-3 text-center">
               {[
                 { value: profile?.audience_size || 0, label: t('Audience') },
@@ -776,7 +678,6 @@ export default function CreatorStudio() {
                 </div>
               ))}
             </div>
-
             <div className="space-y-3">
               <div>
                 <label className="text-xs font-semibold text-gray-500">{t('Niche')}</label>
@@ -806,12 +707,9 @@ export default function CreatorStudio() {
         </div>
       )}
 
-      
-
       {/* ========== ADS TAB ========== */}
       {tab === 'ads' && (
         <div className="max-w-2xl mx-auto space-y-6">
-          {/* Create Ad Campaign */}
           <div className="glass-card p-6 rounded-2xl">
             <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
               <Megaphone size={20} className="text-purple-500" /> Create Ad Campaign
@@ -847,7 +745,6 @@ export default function CreatorStudio() {
             </div>
           </div>
 
-          {/* Active Campaigns */}
           <div className="glass-card p-6 rounded-2xl">
             <h3 className="font-bold text-lg mb-4">📊 Your Ad Campaigns</h3>
             {adCampaigns.length === 0 ? (
@@ -875,7 +772,8 @@ export default function CreatorStudio() {
           </div>
         </div>
       )}
-       {/* Apply Proposal Modal */}
+
+      {/* Apply Proposal Modal */}
       <AnimatePresence>
         {applyModal && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -883,7 +781,6 @@ export default function CreatorStudio() {
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
               className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
               <h3 className="font-bold text-lg mb-4">📝 Submit Proposal</h3>
-              
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm">
                   <Users size={16} className="text-purple-500" />
@@ -891,24 +788,20 @@ export default function CreatorStudio() {
                   <span className="text-gray-400">·</span>
                   <span>Engagement: {engagementRate}%</span>
                 </div>
-                
-                <textarea className="input-field text-sm" placeholder="Why are you the best fit for this campaign? *" 
+                <textarea className="input-field text-sm" placeholder="Why are you the best fit for this campaign? *"
                   value={proposalMsg} onChange={e => setProposalMsg(e.target.value)} rows={4} />
-                
-                <input className="input-field text-sm" placeholder="Portfolio link (optional)" 
+                <input className="input-field text-sm" placeholder="Portfolio link (optional)"
                   value={proposalPortfolio} onChange={e => setProposalPortfolio(e.target.value)} />
-                
                 {profile?.past_campaigns > 0 && (
                   <p className="text-xs text-green-600">✅ {profile.past_campaigns} campaigns completed</p>
                 )}
               </div>
-              
               <div className="flex gap-2 mt-4">
-                <button onClick={() => applyCampaign(applyModal)} 
+                <button onClick={() => applyCampaign(applyModal)}
                   className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-xl font-semibold">
                   Submit Proposal
                 </button>
-                <button onClick={() => setApplyModal(null)} 
+                <button onClick={() => setApplyModal(null)}
                   className="px-6 py-3 bg-gray-200 dark:bg-gray-600 rounded-xl font-medium">
                   Cancel
                 </button>
@@ -917,12 +810,13 @@ export default function CreatorStudio() {
           </motion.div>
         )}
       </AnimatePresence>
-            {/* Chat Modal */}
+
+      {/* Chat Modal */}
       {showChat && chatCampaign && (
         <div className="fixed bottom-4 right-4 w-80 h-96 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border flex flex-col z-50">
           <div className="p-3 border-b flex justify-between items-center">
             <span className="font-bold text-sm">💬 Campaign Chat</span>
-          <button onClick={closeChat} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
+            <button onClick={closeChat} className="text-gray-400 hover:text-gray-600"><X size={16} /></button>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {chatMessages.map((m, i) => (
@@ -941,7 +835,3 @@ export default function CreatorStudio() {
     </div>
   );
 }
-
-   
-
- 
