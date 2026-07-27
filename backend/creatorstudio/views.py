@@ -6,6 +6,7 @@ from .models import CreatorProfile, BrandCampaign, SponsoredContent
 from .serializers import CreatorProfileSerializer, BrandCampaignSerializer, SponsoredContentSerializer
 from decimal import Decimal
 from .models import CreatorProfile, BrandCampaign, SponsoredContent, CreatorChat
+from django.db.models import Q
 
 class CreatorProfileViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]

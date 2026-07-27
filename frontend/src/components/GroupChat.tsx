@@ -308,7 +308,7 @@ useEffect(() => {
 
   return (
      <div className="flex h-[calc(100vh-120px)] max-w-5xl mx-auto glass rounded-2xl overflow-hidden shadow-xl m-4 w-full">
-            <AdBanner />
+            
       {/* Sidebar */}
                   <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex lg:w-80 border-r border-gray-200 dark:border-gray-700 flex-col absolute lg:relative z-20 bg-white dark:bg-gray-900 h-full w-[85%] max-w-[300px]`}>
                      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between lg:hidden">
