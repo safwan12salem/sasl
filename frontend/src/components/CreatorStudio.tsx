@@ -561,13 +561,13 @@ export default function CreatorStudio() {
                           try {
                             await api.post(`/creatorstudio/campaigns/${c.campaign}/accept_creator/`, { content_id: c.id });
                             toast.success('Creator accepted!');
-                            loadData(); setBrandApplicants([]);
+                            loadData(); 
                           } catch { toast.error('Failed'); }
                         }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs">✅ Accept</button>
                         <button onClick={async (e) => { e.stopPropagation();
                           try {
                             await api.post(`/creatorstudio/campaigns/${c.campaign}/decline_creator/`, { content_id: c.id });
-                            toast.success('Declined'); loadData(); setBrandApplicants([]);
+                            toast.success('Declined'); loadData(); 
                           } catch { toast.error('Failed'); }
                         }} className="px-3 py-1 bg-red-100 text-red-600 rounded-full text-xs">❌ Decline</button>
                       </div>
@@ -587,7 +587,7 @@ export default function CreatorStudio() {
                         <button onClick={async (e) => { e.stopPropagation();
                           try {
                             await api.post(`/creatorstudio/campaigns/${c.campaign}/approve_work/`, { content_id: c.id });
-                            toast.success('✅ Paid!'); loadData(); setBrandApplicants([]);
+                            toast.success('✅ Paid!'); loadData(); 
                           } catch { toast.error('Failed'); }
                         }} className="px-3 py-1 bg-green-500 text-white rounded-full text-xs">✅ Pay</button>
                       </div>
@@ -706,7 +706,7 @@ export default function CreatorStudio() {
                           try {
                             await api.post(`/creatorstudio/campaigns/${c.campaign}/reject_work/`, { content_id: c.id, feedback });
                             toast.success('Changes requested');
-                            loadData(); setBrandApplicants([]);
+                            loadData();
                           } catch { toast.error('Failed'); }
                         }
                       }} className="px-3 py-1 bg-orange-500 text-white rounded-full text-xs">❌ Changes</button>
