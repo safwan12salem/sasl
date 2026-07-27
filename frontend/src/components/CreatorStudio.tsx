@@ -519,7 +519,14 @@ export default function CreatorStudio() {
                      c.status === 'pending' ? <Clock size={20} /> : <XCircle size={20} />}
                   </div>
                   <div>
-                    <p className="font-semibold text-sm">{c.creator_name || c.caption || c.campaign_title || t('Content')}</p>
+                    <p className="font-semibold text-sm">
+  {c.creator_name || c.caption || c.campaign_title || t('Content')}
+  {c.caption && c.creator_name && (
+    <span className="block text-xs text-gray-500 font-normal truncate max-w-[200px]">
+      💬 "{c.caption}"
+    </span>
+  )}
+</p>
                     <p className="text-xs text-gray-500">{c.content_type || 'campaign'} · <span className="capitalize">{c.status}</span></p>
                   </div>
                 </div>
