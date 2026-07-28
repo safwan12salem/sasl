@@ -213,7 +213,7 @@ export default function Layout() {
         </header>
 
         {/* Scrollable main */}
-                <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 bg-mesh-pattern">
+                <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 bg-mesh-pattern w-full max-w-full">
           <PageTransition>
             <Outlet />
           </PageTransition>
