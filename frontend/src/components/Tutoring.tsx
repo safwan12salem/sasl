@@ -262,6 +262,16 @@ const STATUS_COLORS: Record<string, string> = {
     }
   };
 
+  const requestBooking = async (id: string) => {
+    try {
+      await api.post(`/tutoring/sessions/${id}/request_booking/`);
+      toast.success(t('Booking requested!'));
+      fetchSessions();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || t('Failed to request booking'));
+    }
+  };
+
   const completeSession = async (id: string) => {
     try {
       await api.post(`/tutoring/sessions/${id}/complete/`);
@@ -774,140 +784,119 @@ const STATUS_COLORS: Record<string, string> = {
       ) : (
         <div className="space-y-3">
           {sessions.map(session => (
-            <motion.div key={session.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                            className={`glass rounded-2xl overflow-hidden transition hover:shadow-lg ${
-                expandedSession === session.id ? 'ring-2 ring-blue-300' : ''
-              }`}
-              style={session.background_image ? {
-                backgroundImage: `url(${session.background_image})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              } : undefined}>
-              <div className="p-5 cursor-pointer" onClick={() => {
-  const isOpening = expandedSession !== session.id;
-  setExpandedSession(isOpening ? session.id : null);
-  if (isOpening) {
-    setSessions(prev => prev.map(s => s.id === session.id ? { ...s, views: (s.views || 0) + 1 } : s));
-  }
-}}>
-                <div className="flex flex-col md:flex-row justify-between gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      {session.tutor.avatar_url ? (
-                        <img src={session.tutor.avatar_url} className="w-10 h-10 rounded-full object-cover" alt="" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-                          {session.tutor.username[0]?.toUpperCase()}
-                        </div>
-                      )}
-                      <div>
-                        <h3 className="font-bold text-lg flex items-center gap-2">
-                          {session.subject}
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${STATUS_COLORS[session.status]}`}>
-                            {session.status}
-                          </span>
-                          {session.is_group_class && (
-                            <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full flex items-center gap-1">
-                              <Users size={10} /> {t('Group')}
-                            </span>
-                          )}
-                        </h3>
-                        <p className="text-sm text-gray-500 flex items-center gap-3 flex-wrap">
-                          <span className="flex items-center gap-1"><Calendar size={12} /> {formatDate(session.scheduled_at)}</span>
-                          <span className="flex items-center gap-1"><Clock size={12} /> {session.duration_minutes}min</span>
-                          <span className="flex items-center gap-1 text-green-600 font-bold"><DollarSign size={12} />${session.price}</span>
-                          <span>{t('Tutor')}: @{session.tutor.username}</span>
-                          {session.student && <span>{t('Student')}: @{session.student.username}</span>}
-                        </p>
-                      </div>
-                    </div>
-                    {session.description && <p className="text-sm text-gray-600 line-clamp-2 mt-1">{session.description}</p>}
-                    {session.students_enrolled !== undefined && (
-                      <p className="text-xs text-purple-600 mt-1">{session.students_enrolled}/{session.max_students} students enrolled</p>
-                    )}
-                    <div className="flex items-center gap-2 mt-3 flex-wrap">
-                      <button onClick={(e) => { e.stopPropagation(); setSelectedSubject(''); fetchSessions(); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 transition"><Filter size={14} /> {t('Filter')}</button>
-                      <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-green-100 text-green-700 hover:bg-green-200 transition"><Video size={14} /> {t('Start Class')}</button>
-                      <button onClick={(e) => { e.stopPropagation(); if (inCall) endCall(); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition"><Pause size={14} /> {t('Pause')}</button>
-                      <button onClick={(e) => { e.stopPropagation(); setShowMaterials(true); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-blue-100 text-blue-700 hover:bg-blue-200 transition"><Upload size={14} /> {t('Materials')}</button>
-                      <button onClick={(e) => { e.stopPropagation(); cancelSession(session.id); }} className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition"><X size={14} /> {t('Cancel')}</button>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="flex items-center gap-1 text-xs text-gray-500"><BarChart3 size={14} /> {session.students_enrolled || 0}/{session.max_students || '∞'} enrolled</span>
-                      <button onClick={(e) => { e.stopPropagation(); toast.success('Session saved!'); }} className="flex items-center gap-1 text-xs text-gray-500 hover:text-yellow-500"><Bookmark size={14} />{t(' Save')}</button>
-                      <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`${window.location.origin}/tutoring/${session.id}`); toast.success('Link copied!'); }} className="flex items-center gap-1 text-xs text-gray-500 hover:text-blue-500"><Share2 size={14} /> {t('Share')}</button>
-                      <span className="flex items-center gap-1 text-xs text-amber-500"><Zap size={14} /> {session.duration_minutes}min</span>
-                    </div>
-                  </div>
-                                                 <div className="flex items-center gap-2 flex-shrink-0">
-                    {session.tutor?.username === user?.username ? (
-                      <>
-                   {session.status === 'pending_confirmation' && (
-                          <button onClick={(e) => { e.stopPropagation(); confirmSession(session.id); }}
-                            className="bg-green-500 text-white px-3 py-2 rounded-full text-sm hover:bg-green-600">
-                            {t('Confirm')}
-                          </button>
-                        )}
-                        <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
-                          className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 flex items-center gap-1">
-                          <Play size={14} /> {t('Join Class')}
-                        </button>
-                        
-                      </>
-                                        ) : session.student?.username === user?.username ? (
-                      session.status === 'ongoing' ? (
-                        <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
-                          className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-blue-600 flex items-center gap-1">
-                          <Play size={14} /> {t('Join Class')}
-                        </button>
-                      ) : (
-                        <span className="text-xs text-gray-400">⏳ Waiting for tutor confirmation</span>
-                      )
-                    ) : (
-                      <button onClick={async (e) => { e.stopPropagation();
-                        try { 
-                          await api.post(`/tutoring/sessions/${session.id}/request_booking/`); 
-                          toast.success(t('Booking requested!')); 
-                          fetchSessions(); 
-                        } catch { toast.error(t('Failed to request')); }
-                      }}
-                        className="bg-purple-500 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-purple-600 flex items-center gap-1">
-                        <Send size={14} /> {t('Request to Book')}
-                      </button>
-                    )}
-                  </div>
-                     
-                </div>
-              </div>
+         <motion.div key={session.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+  className={`glass rounded-2xl overflow-hidden transition hover:shadow-lg ${
+    expandedSession === session.id ? 'ring-2 ring-blue-300' : ''
+  }`}
+  style={session.background_image ? {
+    backgroundImage: `url(${session.background_image})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+  } : undefined}>
+  <div className="p-4 sm:p-5 cursor-pointer" onClick={() => {
+    const isOpening = expandedSession !== session.id;
+    setExpandedSession(isOpening ? session.id : null);
+    if (isOpening) {
+      setSessions(prev => prev.map(s => s.id === session.id ? { ...s, views: (s.views || 0) + 1 } : s));
+    }
+  }}>
+    
+    {/* TOP ROW: Avatar + Subject + Status */}
+    <div className="flex items-start gap-3 mb-3">
+      {session.tutor.avatar_url ? (
+        <img src={session.tutor.avatar_url} className="w-11 h-11 rounded-full object-cover flex-shrink-0 ring-2 ring-white/50" alt="" />
+      ) : (
+        <div className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 ring-2 ring-white/50">
+          {session.tutor.username[0]?.toUpperCase()}
+        </div>
+      )}
+      <div className="flex-1 min-w-0">
+        <h3 className="font-bold text-base sm:text-lg flex items-center gap-2 flex-wrap">
+          <span className="truncate">{session.subject}</span>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap ${STATUS_COLORS[session.status]}`}>
+            {session.status}
+          </span>
+          {session.is_group_class && (
+            <span className="text-[10px] bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full flex items-center gap-1 whitespace-nowrap">
+              <Users size={10} /> {t('Group')}
+            </span>
+          )}
+        </h3>
+        <p className="text-xs text-gray-500 mt-0.5">@{session.tutor.username}</p>
+      </div>
+    </div>
 
-              {/* Expanded Materials */}
-              <AnimatePresence>
-                {expandedSession === session.id && session.materials && session.materials.length > 0 && (
-                  <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden border-t">
-                    <div className="p-4 bg-gray-50/50">
-                      <h4 className="font-semibold text-sm mb-2 flex items-center gap-1"><FileText size={14} /> {t('Session Materials')}</h4>
-                      <div className="space-y-2">
-                        {session.materials.map(m => (
-                          <div key={m.id} className="bg-white p-3 rounded-xl flex items-center justify-between">
-                            <div>
-                              <p className="font-semibold text-sm">{m.title}</p>
-                              {m.description && <p className="text-xs text-gray-500">{m.description}</p>}
-                            </div>
-                            {m.file_url && (
-                              <a href={m.file_url} target="_blank" rel="noopener noreferrer"
-                                className="text-blue-500 hover:underline text-sm flex items-center gap-1">
-                                <Download size={14} /> {t('Download')}
-                              </a>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
+    {/* INFO ROW: Date, Time, Price, Enrolled */}
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+      <div className="flex items-center gap-1.5 text-xs text-gray-600 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-2.5 py-1.5">
+        <Calendar size={13} /> {formatDate(session.scheduled_at)}
+      </div>
+      <div className="flex items-center gap-1.5 text-xs text-gray-600 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-2.5 py-1.5">
+        <Clock size={13} /> {session.duration_minutes}min
+      </div>
+      <div className="flex items-center gap-1.5 text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 rounded-lg px-2.5 py-1.5">
+        <DollarSign size={13} /> ${session.price}
+      </div>
+      <div className="flex items-center gap-1.5 text-xs text-purple-600 bg-purple-50 dark:bg-purple-900/20 rounded-lg px-2.5 py-1.5">
+        <Users size={13} /> {session.students_enrolled || 0}/{session.max_students || '∞'}
+      </div>
+    </div>
+
+    {/* DESCRIPTION */}
+    {session.description && (
+      <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3 leading-relaxed">{session.description}</p>
+    )}
+
+    {/* ACTION BUTTONS */}
+    <div className="flex items-center gap-2 flex-wrap">
+      {session.tutor?.username === user?.username ? (
+        <>
+          {session.status === 'pending_confirmation' && (
+            <button onClick={(e) => { e.stopPropagation(); confirmSession(session.id); }}
+              className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition">
+              {t('Confirm')}
+            </button>
+          )}
+          <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
+            className="bg-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-blue-600 transition flex items-center gap-1">
+            <Play size={12} /> {t('Join Class')}
+          </button>
+          {session.status === 'ongoing' && (
+            <button onClick={(e) => { e.stopPropagation(); completeSession(session.id); }}
+              className="bg-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-emerald-600 transition">
+              ✅ {t('Complete')}
+            </button>
+          )}
+        </>
+      ) : (
+        <>
+          {session.status === 'open' && (
+            <button onClick={(e) => { e.stopPropagation(); requestBooking(session.id); }}
+              className="bg-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-blue-600 transition">
+              {t('Request to Book')}
+            </button>
+          )}
+          {session.status === 'ongoing' && session.student?.username === user?.username && (
+            <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
+              className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition flex items-center gap-1">
+              <Play size={12} /> {t('Join Class')}
+            </button>
+          )}
+        </>
+      )}
+      <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`${window.location.origin}/tutoring/${session.id}`); toast.success('Link copied!'); }}
+        className="text-xs text-gray-500 hover:text-blue-500 px-2 py-1">
+        <Share2 size={14} />
+      </button>
+      {session.materials && session.materials.length > 0 && (
+        <button onClick={(e) => { e.stopPropagation(); setShowMaterials(true); }}
+          className="text-xs text-blue-600 hover:text-blue-800 px-2 py-1">
+          📎 {session.materials.length}
+        </button>
+      )}
+    </div>
+  </div>
+</motion.div>
           ))}
         </div>
       )}
