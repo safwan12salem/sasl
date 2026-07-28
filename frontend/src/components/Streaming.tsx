@@ -84,7 +84,7 @@ export default function Streaming() {
   const [activeCategory, setActiveCategory] = useState<string>('');
   const [showSchedule, setShowSchedule] = useState(false);
   const [schedules, setSchedules] = useState<ScheduledStream[]>([]);
-
+  const [trendingClips, setTrendingClips] = useState<any[]>([]);
   // Create stream
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Talk');
@@ -165,8 +165,14 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
     } catch {}
   };
 
-  useEffect(() => { fetchStreams(); fetchSchedules(); }, []);
+  const fetchTrendingClips = async () => {
+    try {
+      const res = await api.get('/streaming/streams/trending_clips/');
+      setTrendingClips(res.data || []);
+    } catch {}
+  };
 
+  useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); }, []);
     // Restore subscriptions from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('sasl_stream_subscriptions');
@@ -933,7 +939,16 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   {s.category && <span className="ml-auto text-xs bg-gray-100 px-2 py-0.5 rounded-full">{s.category}</span>}
                 </div>
                 <h3 className="font-bold text-sm line-clamp-1">{s.title}</h3>
-
+                  
+                  {/* Quick Reactions */}
+<div className="flex gap-1 mt-1">
+  {['❤️', '🔥', '👏', '😂'].map(emoji => (
+    <button key={emoji} onClick={async (e) => { e.stopPropagation();
+      try { await api.post(`/streaming/streams/${s.id}/react/`, { reaction: emoji }); toast.success(emoji); }
+      catch {}
+    }} className="text-sm hover:scale-125 transition-transform">{emoji}</button>
+  ))}
+</div>
                 {/* Top Donors */}
                {s.top_donors && Array.isArray(s.top_donors) && s.top_donors.length > 0 && (
   <div className="flex items-center gap-1 mt-2 text-xs text-yellow-500">
@@ -968,10 +983,28 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   <div className="flex gap-1">
                     <input type="number" min="1" className="w-16 border rounded-full px-2 py-1 text-xs" placeholder="$1"
                       value={amount[s.id] || ''} onChange={e => setAmount(prev => ({ ...prev, [s.id]: Number(e.target.value) }))} />
-                    <button onClick={() => { setPaymentAmount(amount[s.id] || 1); setShowPayment(true); }} className="flex-1 bg-yellow-500 text-white py-1 rounded-full text-xs font-semibold hover:bg-yellow-600 flex items-center justify-center gap-1">
-                      <DollarSign size={12} /> {t('Donate')}
-                    </button>
+                    <button onClick={() => { 
+  const amt = amount[s.id] || 1;
+  if (amt <= 0) return toast.error('Enter an amount');
+  api.post(`/streaming/streams/${s.id}/donate/`, { amount: amt, message: '👏' })
+    .then(() => toast.success(`Donated $${amt}! 🎉`))
+    .catch(() => toast.error('Donation failed'));
+}} className="flex-1 bg-yellow-500 text-white py-1 rounded-full text-xs font-semibold hover:bg-yellow-600 flex items-center justify-center gap-1">
+  <DollarSign size={12} /> {t('Donate')}
+</button>
                   </div>
+                  {/* Create Clip */}
+<button onClick={async (e) => { e.stopPropagation();
+  const clipTitle = prompt('Clip title:', 'My Highlight');
+  if (clipTitle) {
+    try {
+      await api.post(`/streaming/streams/${s.id}/create_clip/`, { title: clipTitle, start_time: 0, end_time: 30, clip_url: '' });
+      toast.success('🎬 Clip created!');
+    } catch { toast.error('Failed to create clip'); }
+  }
+}} className="w-full text-xs bg-purple-100 text-purple-700 py-1 rounded-full font-semibold hover:bg-purple-200 transition mb-1">
+  ✂️ Create Clip
+</button>
 
                   {s.streamer.username === user?.username && (
                     <button onClick={() => endStream(s.id)} className="w-full text-xs text-red-500 hover:underline">{t('End Stream')}</button>
@@ -983,6 +1016,18 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
         </div>
       )}
 
+{/* Trending Clips */}
+<div className="mt-8 mb-6">
+  <h3 className="font-bold text-lg mb-4 flex items-center gap-2">🎬 Trending Clips</h3>
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    {trendingClips.map((clip: any) => (
+      <div key={clip.id} className="glass-card p-3 rounded-xl">
+        <p className="font-semibold text-sm">{clip.title}</p>
+        <p className="text-xs text-gray-500">👁️ {clip.views_count} views</p>
+      </div>
+    ))}
+  </div>
+</div>
       {/* Payment Modal (preserved) */}
       {showPayment && (
         <PaymentModal amount={paymentAmount} type="donation"
