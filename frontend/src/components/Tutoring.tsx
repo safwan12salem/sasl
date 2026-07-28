@@ -575,16 +575,16 @@ const STATUS_COLORS: Record<string, string> = {
           </h2>
           <p className="text-gray-500 text-sm mt-1">{t('Learn from experts, teach your skills, earn money')}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 flex-wrap">
           <button onClick={() => { setShowTutors(!showTutors); fetchTutors(); }} className="btn-ghost text-sm flex items-center gap-1">
             <Users size={16} /> {t('Find Tutors')}
           </button>
           <button onClick={() => setShowCertificates(!showCertificates)} className="btn-ghost text-sm flex items-center gap-1">
             <Award size={16} /> {t('Certificates')}
           </button>
-          <button onClick={() => setShowCreateForm(!showCreateForm)} className="btn-primary flex items-center gap-2">
-            <ClipboardList size={16} /> {showCreateForm ? t('Cancel') : t('Create Session')}
-          </button>
+         <button onClick={() => setShowCreateForm(!showCreateForm)} className="btn-primary flex items-center gap-1.5 text-xs sm:text-sm px-3 sm:px-4 py-2">
+  <ClipboardList size={14} className="sm:size-16" /> <span className="whitespace-nowrap">{showCreateForm ? t('Cancel') : t('Create Session')}</span>
+</button>
         </div>
       </div>
 
