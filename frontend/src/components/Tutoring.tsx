@@ -451,6 +451,44 @@ const STATUS_COLORS: Record<string, string> = {
 
   const stopDrawing = () => setIsDrawing(false);
 
+
+const getTouchPos = (e: React.TouchEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: e.touches[0].clientX - rect.left,
+      y: e.touches[0].clientY - rect.top
+    };
+  };
+
+  const startDrawingTouch = (e: React.TouchEvent) => {
+    e.preventDefault();
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const pos = getTouchPos(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    setIsDrawing(true);
+  };
+
+  const drawTouch = (e: React.TouchEvent) => {
+    e.preventDefault();
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.strokeStyle = penColor;
+    ctx.lineWidth = penSize;
+    ctx.lineCap = 'round';
+    const pos = getTouchPos(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  };
+
   const clearWhiteboard = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -568,9 +606,10 @@ const STATUS_COLORS: Record<string, string> = {
                         <button onClick={saveWhiteboard} className="text-xs px-2 py-1 bg-green-600 rounded text-white">Save</button>
                       </div>
                       <canvas ref={canvasRef} width={300} height={250}
-                        className="border border-gray-600 rounded w-full bg-white cursor-crosshair"
-                        onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
-                      />
+  className="border border-gray-600 rounded w-full bg-white cursor-crosshair touch-none"
+  onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={stopDrawing} onMouseLeave={stopDrawing}
+  onTouchStart={startDrawingTouch} onTouchMove={drawTouch} onTouchEnd={stopDrawing}
+/>
                     </div>
                   )}
                   {showChat && (
@@ -891,7 +930,7 @@ const STATUS_COLORS: Record<string, string> = {
               {t('Request to Book')}
             </button>
           )}
-          {session.status === 'ongoing' && session.student?.username === user?.username && (
+          {session.status === 'ongoing' && session.tutor?.username !== user?.username && (
             <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
               className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition flex items-center gap-1">
               <Play size={12} /> {t('Join Class')}
