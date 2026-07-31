@@ -19,6 +19,15 @@ public class MainActivity extends BridgeActivity {
                 // Enable localStorage in WebView for message persistence
         getBridge().getWebView().getSettings().setDomStorageEnabled(true);
         getBridge().getWebView().getSettings().setDatabaseEnabled(true);
+
+        getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
+// Enable camera/mic in WebView
+getBridge().getWebView().setWebChromeClient(new android.webkit.WebChromeClient() {
+    @Override
+    public void onPermissionRequest(android.webkit.PermissionRequest request) {
+        request.grant(request.getResources());
+    }
+});
         // Request ALL permissions at startup
         String[] permissions;
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
