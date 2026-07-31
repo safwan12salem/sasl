@@ -52,7 +52,7 @@ export default function GigChat({ roomId, onClose }: Props) {
     const isLocal = window.location.hostname === 'localhost';
     const wsUrl = isLocal
       ? `ws://localhost:8000/ws/tutoring/${roomId}/?token=${token}`
-      : `wss://sasl-api-657z.onrender.com/ws/gig/${roomId}/?token=${token}`;
+          : `wss://sasl-api-i34r.onrender.com/ws/tutoring/${roomId}/?token=${token}`;
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
     ws.onopen = () => setConnected(true);
@@ -108,7 +108,7 @@ export default function GigChat({ roomId, onClose }: Props) {
       if (wsRef.current?.readyState === WebSocket.OPEN) {
         wsRef.current.send(JSON.stringify({ type: 'chat', text: input }));
       }
-      try { await api.post(`/tutoring/chat/${roomId}/`, { text: input }); } catch {}
+      
     } else {
       // Offline: save to local DB
       await db.messages.put({ roomId, sender: user?.username || 'Me', text: input, timestamp: Date.now(), type: 'text' });
@@ -202,12 +202,12 @@ export default function GigChat({ roomId, onClose }: Props) {
             );
           })}
         </div>
-        <div className="flex gap-2 p-3 border-t">
-          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
-          <button onClick={() => fileInputRef.current?.click()} className="p-2.5 bg-gray-100 rounded-xl text-gray-500 hover:bg-gray-200 transition"><ImageIcon size={18} /></button>
-          <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} placeholder={editingId ? t('Edit message...') : t('Type a message...')} className="flex-1 px-4 py-2.5 bg-gray-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-green-400 transition" />
-          <button onClick={send} className="bg-green-500 text-white p-2.5 rounded-xl hover:bg-green-600 transition"><Send size={18} /></button>
-        </div>
+        <div className="flex gap-1.5 p-2 border-t items-center">
+  <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
+  <button onClick={() => fileInputRef.current?.click()} className="p-2 bg-gray-100 rounded-xl text-gray-500 hover:bg-gray-200 transition flex-shrink-0"><ImageIcon size={16} /></button>
+  <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send()} placeholder={editingId ? t('Edit...') : t('Message...')} className="flex-1 min-w-0 px-3 py-2 bg-gray-100 rounded-xl text-xs sm:text-sm outline-none focus:ring-2 focus:ring-green-400 transition" />
+  <button onClick={send} className="bg-green-500 text-white p-2 rounded-xl hover:bg-green-600 transition flex-shrink-0"><Send size={16} /></button>
+</div>
       </div>
     </div>
   );
