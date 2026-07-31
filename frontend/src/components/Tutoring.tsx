@@ -323,8 +323,23 @@ const STATUS_COLORS: Record<string, string> = {
   };
 
 
-    const startVideoCall = async (sessionId: string) => {
+   const startVideoCall = async (sessionId: string) => {
     try {
+      // Request camera/mic permissions first (Android requires this)
+      try {
+        const permStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        permStream.getTracks().forEach(t => t.stop()); // Stop the permission check stream
+      } catch (permErr) {
+        toast.error('Camera access denied. Joining with audio only.');
+        const audioStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+        if (localVideoRef.current) {
+          localVideoRef.current.srcObject = audioStream;
+          localVideoRef.current.muted = true;
+        }
+       setInCall(sessionId);
+        return;
+      }
+      
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { width: 640, height: 480, facingMode: 'user' }, 
         audio: true 

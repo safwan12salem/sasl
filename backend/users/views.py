@@ -25,7 +25,7 @@ from rest_framework.permissions import IsAuthenticated
 class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = RegisterSerializer
-
+    permission_classes = [permissions.AllowAny]
     def perform_create(self, serializer):
         email = serializer.validated_data.get('email', '')
         # Block disposable emails
