@@ -325,6 +325,7 @@ const STATUS_COLORS: Record<string, string> = {
 
    const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
     try {
+        console.log('🔴 startVideoCall called with sessionId:', sessionId, 'role:', role);
       // Request camera/mic permissions first (Android requires this)
       try {
         const permStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
