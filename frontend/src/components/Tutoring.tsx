@@ -366,15 +366,28 @@ const STATUS_COLORS: Record<string, string> = {
       });
       rtcRef.current = rtc;
       
-           ws.onopen = () => {
+             ws.onopen = () => {
         if (localVideoRef.current && stream.getVideoTracks().length > 0) {
           rtc.startLocalStream(localVideoRef.current);
         }
+        
+        let isOfferer = false;
+        
         ws.onmessage = async (event) => {
           const data = JSON.parse(event.data);
-          if (data.type === 'answer') await rtc.handleAnswer(data.answer);
+          if (data.type === 'joined') {
+            // Another peer joined — I should create the offer
+            isOfferer = true;
+            setTimeout(() => {
+              if (remoteVideoRef.current && stream.getVideoTracks().length > 0) {
+                rtc.createOffer(remoteVideoRef.current);
+              }
+            }, 1500);
+          }
+          else if (data.type === 'answer') {
+            await rtc.handleAnswer(data.answer);
+          }
           else if (data.type === 'offer') {
-            // Wait for remoteVideoRef to be available
             const waitForVideo = () => {
               if (remoteVideoRef.current) {
                 rtc.handleOffer(data.offer, remoteVideoRef.current);
@@ -384,16 +397,15 @@ const STATUS_COLORS: Record<string, string> = {
             };
             waitForVideo();
           }
-          else if (data.type === 'candidate') await rtc.addIceCandidate(data.candidate);
-        };
-        // Delay offer to ensure remoteVideoRef is ready
-        setTimeout(() => {
-          if (remoteVideoRef.current && stream.getVideoTracks().length > 0) {
-            rtc.createOffer(remoteVideoRef.current);
+          else if (data.type === 'candidate') {
+            await rtc.addIceCandidate(data.candidate);
           }
-        }, 1000);
+        };
+        
+        // Send a ping so the other peer knows someone joined
+        ws.send(JSON.stringify({ type: 'joined' }));
       };
-      
+
       setInCall(sessionId);
       
       const currentSession = sessions.find(s => s.id === sessionId);
