@@ -63,8 +63,15 @@ export class WebRTCConnection {
     return pc;
   }
 
-  async createOffer(remoteVideoElement: HTMLVideoElement) {
+    async createOffer(remoteVideoElement: HTMLVideoElement) {
     this.pc = this.createPeerConnection();
+
+    // Add local stream tracks to peer connection
+    if (this.localStream) {
+      this.localStream.getTracks().forEach(track => {
+        this.pc?.addTrack(track, this.localStream!);
+      });
+    }
 
     this.pc.ontrack = (event) => {
       if (event.streams[0]) {
@@ -84,6 +91,7 @@ export class WebRTCConnection {
     }
   }
 
+
  async handleOffer(offer: RTCSessionDescriptionInit, remoteVideoElement: HTMLVideoElement) {
     if (this.makingOffer) {
       this.ignoreOffer = true;
@@ -102,14 +110,21 @@ export class WebRTCConnection {
 
     try {
       // Close existing connection and create new if needed
-      if (this.pc.signalingState !== 'stable') {
+            if (this.pc.signalingState !== 'stable') {
         this.pc.close();
         this.pc = this.createPeerConnection();
+        // Re-add local tracks
+        if (this.localStream) {
+          this.localStream.getTracks().forEach(track => {
+            this.pc?.addTrack(track, this.localStream!);
+          });
+        }
         this.pc.ontrack = (event) => {
           if (event.streams[0]) remoteVideoElement.srcObject = event.streams[0];
         };
       }
 
+      
       await this.pc.setRemoteDescription(new RTCSessionDescription(offer));
       
       // Process queued candidates
