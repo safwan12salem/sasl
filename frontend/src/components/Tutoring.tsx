@@ -911,10 +911,12 @@ const getTouchPos = (e: React.TouchEvent) => {
               {t('Confirm')}
             </button>
           )}
-          <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
-            className="bg-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-blue-600 transition flex items-center gap-1">
-            <Play size={12} /> {t('Join Class')}
-          </button>
+                   {session.status === 'ongoing' && (
+            <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
+              className="bg-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-blue-600 transition flex items-center gap-1">
+              <Play size={12} /> {t('Join Class')}
+            </button>
+          )}
           {session.status === 'ongoing' && (
             <button onClick={(e) => { e.stopPropagation(); completeSession(session.id); }}
               className="bg-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-emerald-600 transition">
