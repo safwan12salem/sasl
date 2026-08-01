@@ -33,7 +33,11 @@ export class WebRTCConnection {
 
    private createPeerConnection(): RTCPeerConnection {
     const pc = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+      iceServers: [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+],
     });
 
     // Add local tracks
@@ -64,9 +68,10 @@ export class WebRTCConnection {
     }
     this.pc = this.createPeerConnection();
 
-    this.pc.ontrack = (event) => {
+        this.pc.ontrack = (event) => {
       if (event.streams[0]) {
         remoteVideoElement.srcObject = event.streams[0];
+        setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
       }
     };
 
@@ -96,6 +101,7 @@ export class WebRTCConnection {
     this.pc.ontrack = (event) => {
       if (event.streams[0]) {
         remoteVideoElement.srcObject = event.streams[0];
+        setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
       }
     };
 
@@ -103,8 +109,11 @@ export class WebRTCConnection {
       if (this.pc.signalingState !== 'stable') {
         this.pc.close();
         this.pc = this.createPeerConnection();
-        this.pc.ontrack = (event) => {
-          if (event.streams[0]) remoteVideoElement.srcObject = event.streams[0];
+                this.pc.ontrack = (event) => {
+          if (event.streams[0]) {
+            remoteVideoElement.srcObject = event.streams[0];
+            setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
+          }
         };
       }
 

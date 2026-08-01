@@ -198,7 +198,19 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
 
 
 
+    @action(detail=True, methods=['post'])
+    def signal(self, request, pk=None):
+        """Store WebRTC offer/answer for signaling"""
+        session = self.get_object()
+        session.signaling = request.data
+        session.save()
+        return Response({'status': 'stored'})
 
+    @action(detail=True, methods=['get'])
+    def get_signal(self, request, pk=None):
+        """Retrieve WebRTC signaling data"""
+        session = self.get_object()
+        return Response(session.signaling or {})
 
 
 class TutoringChatViewSet(viewsets.ViewSet):
