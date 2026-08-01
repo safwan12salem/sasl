@@ -129,8 +129,10 @@ const STATUS_COLORS: Record<string, string> = {
   const [inCall, setInCall] = useState<string | null>(null);
     const [timer, setTimer] = useState<number>(0);
   const [timerActive, setTimerActive] = useState(false);
+
   const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const remoteVideoRef = useRef<HTMLVideoElement>(null)
+  const pendingStreamRef = useRef<MediaStream | null>(null);;
   const wsRef = useRef<WebSocket | null>(null);
     const pcRef = useRef<RTCPeerConnection | null>(null);
   const rtcRef = useRef<WebRTCConnection | null>(null);
@@ -237,6 +239,16 @@ const STATUS_COLORS: Record<string, string> = {
     }
   }, [timerActive, timer]);
 
+
+  useEffect(() => {
+    if (inCall && pendingStreamRef.current && localVideoRef.current) {
+      console.log('🟢 Applying pending stream to video element');
+      localVideoRef.current.srcObject = pendingStreamRef.current;
+      localVideoRef.current.muted = true;
+      pendingStreamRef.current = null;
+    }
+  }, [inCall]);
+
   // ============================================================
   // ACTIONS
   // ============================================================
@@ -336,7 +348,7 @@ const STATUS_COLORS: Record<string, string> = {
       } catch (permErr) {
         console.log('🔴 Step 1: Permission DENIED', permErr);
         toast.error('Camera access denied. Joining with audio only.');
-        const audioStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
+              const audioStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = audioStream;
           localVideoRef.current.muted = true;
