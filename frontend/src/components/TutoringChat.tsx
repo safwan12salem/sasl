@@ -30,7 +30,7 @@ export default function GigChat({ roomId, onClose }: Props) {
     useEffect(() => {
     const fetchHistory = async () => {
       try {
-        const res = await api.get(`/tutoring/chat/${roomId}/`);
+        const res = await api.get(`/tutoring/chat/?room_id=${roomId}`);
         const dataArray = Array.isArray(res.data) ? res.data : (res.data?.results || []);
         setMessages(dataArray);
                 await db.messages.where('roomId').equals(roomId).delete();
