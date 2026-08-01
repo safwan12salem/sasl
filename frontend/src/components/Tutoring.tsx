@@ -367,9 +367,11 @@ const STATUS_COLORS: Record<string, string> = {
       rtcRef.current = rtc;
       
              ws.onopen = () => {
-        if (localVideoRef.current && stream.getVideoTracks().length > 0) {
-          rtc.startLocalStream(localVideoRef.current);
+               if (stream.getVideoTracks().length > 0) {
+          rtc.setLocalStream(stream);
         }
+
+        
         
         let isOfferer = false;
         

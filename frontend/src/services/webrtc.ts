@@ -23,6 +23,9 @@ export class WebRTCConnection {
     }
   }
 
+    setLocalStream(stream: MediaStream) {
+    this.localStream = stream;
+  }
   stopLocalStream() {
     this.localStream?.getTracks().forEach((t) => t.stop());
     this.localStream = null;
@@ -124,7 +127,7 @@ export class WebRTCConnection {
         };
       }
 
-      
+
       await this.pc.setRemoteDescription(new RTCSessionDescription(offer));
       
       // Process queued candidates
