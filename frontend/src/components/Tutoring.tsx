@@ -364,7 +364,7 @@ const STATUS_COLORS: Record<string, string> = {
         localVideoRef.current.muted = true;
         console.log('🟢 Step 3: Local video set');
       } else {
-        console.log('🔴 Step 3: localVideoRef is NULL');
+                pendingStreamRef.current = stream;
       }
       
       console.log('🟠 Step 4: Create WebSocket');
@@ -609,7 +609,7 @@ const getTouchPos = (e: React.TouchEvent) => {
            
       {/* Video Call Overlay */}
       <AnimatePresence>
-                {inCall && (
+                    {inCall && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-gray-900 z-50 flex flex-col">
             {/* TOP BAR */}
