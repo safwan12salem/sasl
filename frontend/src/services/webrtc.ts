@@ -31,15 +31,21 @@ export class WebRTCConnection {
     this.localStream = null;
   }
 
-  private createPeerConnection(): RTCPeerConnection {
+   private createPeerConnection(): RTCPeerConnection {
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
     });
 
     // Add local tracks
-    this.localStream?.getTracks().forEach((track) => {
-      if (this.localStream) pc.addTrack(track, this.localStream);
-    });
+    if (this.localStream) {
+      this.localStream.getTracks().forEach((track) => {
+        try {
+          pc.addTrack(track, this.localStream!);
+        } catch (e) {
+          // Track already added — skip
+        }
+      });
+    }
 
     // Handle ICE candidates
     pc.onicecandidate = (event) => {
@@ -48,33 +54,15 @@ export class WebRTCConnection {
       }
     };
 
-    // Handle negotiation needed
-    pc.onnegotiationneeded = async () => {
-      try {
-        this.makingOffer = true;
-        await pc.setLocalDescription();
-        if (pc.localDescription) {
-          this.signalSend({ type: 'offer', offer: pc.localDescription.toJSON() });
-        }
-      } catch (err) {
-        console.warn('Negotiation failed:', err);
-      } finally {
-        this.makingOffer = false;
-      }
-    };
-
     return pc;
   }
 
-    async createOffer(remoteVideoElement: HTMLVideoElement) {
-    this.pc = this.createPeerConnection();
-
-    // Add local stream tracks to peer connection
-    if (this.localStream) {
-      this.localStream.getTracks().forEach(track => {
-        this.pc?.addTrack(track, this.localStream!);
-      });
+    
+  async createOffer(remoteVideoElement: HTMLVideoElement) {
+    if (this.pc && this.pc.signalingState !== 'stable' && this.pc.signalingState !== 'closed') {
+      return;
     }
+    this.pc = this.createPeerConnection();
 
     this.pc.ontrack = (event) => {
       if (event.streams[0]) {
@@ -95,7 +83,7 @@ export class WebRTCConnection {
   }
 
 
- async handleOffer(offer: RTCSessionDescriptionInit, remoteVideoElement: HTMLVideoElement) {
+  async handleOffer(offer: RTCSessionDescriptionInit, remoteVideoElement: HTMLVideoElement) {
     if (this.makingOffer) {
       this.ignoreOffer = true;
       return;
@@ -112,25 +100,16 @@ export class WebRTCConnection {
     };
 
     try {
-      // Close existing connection and create new if needed
-            if (this.pc.signalingState !== 'stable') {
+      if (this.pc.signalingState !== 'stable') {
         this.pc.close();
         this.pc = this.createPeerConnection();
-        // Re-add local tracks
-        if (this.localStream) {
-          this.localStream.getTracks().forEach(track => {
-            this.pc?.addTrack(track, this.localStream!);
-          });
-        }
         this.pc.ontrack = (event) => {
           if (event.streams[0]) remoteVideoElement.srcObject = event.streams[0];
         };
       }
 
-
       await this.pc.setRemoteDescription(new RTCSessionDescription(offer));
       
-      // Process queued candidates
       for (const c of this.candidateQueue) {
         try { await this.pc!.addIceCandidate(new RTCIceCandidate(c)); } catch {}
       }
@@ -146,6 +125,7 @@ export class WebRTCConnection {
       console.warn('Handle offer failed:', err);
     }
   }
+
 
   async handleAnswer(answer: RTCSessionDescriptionInit) {
     if (!this.pc) return;
