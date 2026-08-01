@@ -323,64 +323,74 @@ const STATUS_COLORS: Record<string, string> = {
   };
 
 
-   const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
+   
+      
+        const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
+    console.log('🔴 START startVideoCall', sessionId, role);
     try {
-        console.log('🔴 startVideoCall called with sessionId:', sessionId, 'role:', role);
-      // Request camera/mic permissions first (Android requires this)
-            console.log('🟠 Requesting camera permission...');
+      console.log('🟠 Step 1: Permission check');
       try {
         const permStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        console.log('🟢 Camera permission granted');
+        console.log('🟢 Step 1: Permission GRANTED');
         permStream.getTracks().forEach(t => t.stop());
       } catch (permErr) {
-        console.log('🔴 Camera permission denied:', permErr);
+        console.log('🔴 Step 1: Permission DENIED', permErr);
         toast.error('Camera access denied. Joining with audio only.');
         const audioStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
         if (localVideoRef.current) {
           localVideoRef.current.srcObject = audioStream;
           localVideoRef.current.muted = true;
         }
-       setInCall(sessionId);
+        setInCall(sessionId);
         return;
       }
       
-                  console.log('🟠 Getting camera stream...');
+      console.log('🟠 Step 2: Get camera stream');
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { width: 640, height: 480, facingMode: 'user' }, 
         audio: true 
       }).catch(async (err) => {
-        console.log('🔴 Camera stream failed:', err);
+        console.log('🔴 Step 2: Camera stream FAILED', err);
         toast.error('Camera busy. Joining with audio only.');
         return await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
       });
-      console.log('🟢 Camera stream obtained, tracks:', stream.getTracks().length);
+      console.log('🟢 Step 2: Stream obtained, tracks:', stream.getTracks().length);
       
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
         localVideoRef.current.muted = true;
+        console.log('🟢 Step 3: Local video set');
+      } else {
+        console.log('🔴 Step 3: localVideoRef is NULL');
       }
       
-            console.log('🟡 Creating WebSocket...');
+      console.log('🟠 Step 4: Create WebSocket');
       const isLocal = window.location.hostname === 'localhost';
       const wsUrl = isLocal
         ? `ws://localhost:8000/ws/video/${sessionId}/?token=${token}&role=${role}`
         : `wss://sasl-api-i34r.onrender.com/ws/video/${sessionId}/?token=${token}&role=${role}`;
-      console.log('🟡 WebSocket URL:', wsUrl);
+      console.log('🟡 WebSocket URL:', wsUrl.substring(0, 100));
       const ws = new WebSocket(wsUrl);
-      console.log('🟢 WebSocket created');
       wsRef.current = ws;
+      console.log('🟢 Step 4: WebSocket created');
       
+      console.log('🟠 Step 5: Create RTC');
       const rtc = new WebRTCConnection((msg) => { 
         if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); 
       });
       rtcRef.current = rtc;
-      
-                  ws.onmessage = async (event) => {
+      console.log('🟢 Step 5: RTC created');
+
+      console.log('🟠 Step 6: Set ws.onmessage');
+      ws.onmessage = async (event) => {
+        console.log('📩 WS message received:', event.data.substring(0, 50));
         const data = JSON.parse(event.data);
         if (data.type === 'answer') {
+          console.log('📩 Handling answer');
           await rtc.handleAnswer(data.answer);
         }
         else if (data.type === 'offer') {
+          console.log('📩 Handling offer');
           const waitForVideo = () => {
             if (remoteVideoRef.current) {
               rtc.handleOffer(data.offer, remoteVideoRef.current);
@@ -391,34 +401,46 @@ const STATUS_COLORS: Record<string, string> = {
           waitForVideo();
         }
         else if (data.type === 'candidate') {
+          console.log('📩 Handling ICE candidate');
           await rtc.addIceCandidate(data.candidate);
         }
       };
+      console.log('🟢 Step 6: onmessage set');
 
+      console.log('🟠 Step 7: Set ws.onopen');
       ws.onopen = () => {
+        console.log('🟢 Step 7: ws.onopen FIRED');
         if (stream.getVideoTracks().length > 0) {
           rtc.setLocalStream(stream);
+          console.log('🟢 Local stream set on RTC');
         }
         if (role === 'tutor') {
+          console.log('🟡 Tutor creating offer in 1.5s');
           setTimeout(() => {
             if (remoteVideoRef.current && stream.getVideoTracks().length > 0) {
+              console.log('🟡 Creating offer now');
               rtc.createOffer(remoteVideoRef.current);
+            } else {
+              console.log('🔴 Cannot create offer - remoteVideoRef:', !!remoteVideoRef.current, 'tracks:', stream.getVideoTracks().length);
             }
           }, 1500);
+        } else {
+          console.log('🟡 Student waiting for offer');
         }
       };
-         
-        
-       
+      console.log('🟢 Step 7: onopen set');
 
       setInCall(sessionId);
+      console.log('🟢 Step 8: setInCall done');
       
       const currentSession = sessions.find(s => s.id === sessionId);
       if (currentSession?.duration_minutes) {
         setTimer(currentSession.duration_minutes * 60);
         setTimerActive(true);
       }
+      console.log('🟢 Step 9: Timer set');
     } catch (err: any) {
+      console.log('🔴 FATAL ERROR:', err.message, err);
       toast.error('Cannot access media: ' + (err.message || 'Unknown error'));
     }
   };
