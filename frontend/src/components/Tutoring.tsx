@@ -370,7 +370,7 @@ const STATUS_COLORS: Record<string, string> = {
         if (stream.getVideoTracks().length > 0) {
           rtc.setLocalStream(stream);
         }
-        ws.send(JSON.stringify({ type: 'joined' }));
+      
 
         ws.onmessage = async (event) => {
           const data = JSON.parse(event.data);
