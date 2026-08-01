@@ -205,7 +205,10 @@ class TutoringChatViewSet(viewsets.ViewSet):
     """Dedicated tutoring chat - isolated from WaveMesh"""
     permission_classes = [permissions.IsAuthenticated]
     
-    def list(self, request, room_id=None):
+    def list(self, request):
+        room_id = request.query_params.get('room_id')
+        if not room_id:
+            return Response({'error': 'room_id required'}, status=400)
         messages = TutoringChatMessage.objects.filter(
             session_id=room_id
         ).order_by('created_at')[:100]

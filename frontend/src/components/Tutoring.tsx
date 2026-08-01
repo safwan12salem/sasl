@@ -366,19 +366,32 @@ const STATUS_COLORS: Record<string, string> = {
       });
       rtcRef.current = rtc;
       
-      ws.onopen = () => {
+           ws.onopen = () => {
         if (localVideoRef.current && stream.getVideoTracks().length > 0) {
           rtc.startLocalStream(localVideoRef.current);
         }
         ws.onmessage = async (event) => {
           const data = JSON.parse(event.data);
           if (data.type === 'answer') await rtc.handleAnswer(data.answer);
-          else if (data.type === 'offer' && remoteVideoRef.current) await rtc.handleOffer(data.offer, remoteVideoRef.current);
+          else if (data.type === 'offer') {
+            // Wait for remoteVideoRef to be available
+            const waitForVideo = () => {
+              if (remoteVideoRef.current) {
+                rtc.handleOffer(data.offer, remoteVideoRef.current);
+              } else {
+                setTimeout(waitForVideo, 200);
+              }
+            };
+            waitForVideo();
+          }
           else if (data.type === 'candidate') await rtc.addIceCandidate(data.candidate);
         };
-        if (remoteVideoRef.current && stream.getVideoTracks().length > 0) {
-          rtc.createOffer(remoteVideoRef.current);
-        }
+        // Delay offer to ensure remoteVideoRef is ready
+        setTimeout(() => {
+          if (remoteVideoRef.current && stream.getVideoTracks().length > 0) {
+            rtc.createOffer(remoteVideoRef.current);
+          }
+        }, 1000);
       };
       
       setInCall(sessionId);
