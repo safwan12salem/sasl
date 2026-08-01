@@ -344,14 +344,16 @@ const STATUS_COLORS: Record<string, string> = {
         return;
       }
       
+                  console.log('🟠 Getting camera stream...');
       const stream = await navigator.mediaDevices.getUserMedia({ 
         video: { width: 640, height: 480, facingMode: 'user' }, 
         audio: true 
-      }).catch(async () => {
-        // Camera busy — try audio only
+      }).catch(async (err) => {
+        console.log('🔴 Camera stream failed:', err);
         toast.error('Camera busy. Joining with audio only.');
         return await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
       });
+      console.log('🟢 Camera stream obtained, tracks:', stream.getTracks().length);
       
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
