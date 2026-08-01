@@ -38,7 +38,7 @@ class TutoringSession(models.Model):
     duration_minutes = models.PositiveIntegerField(default=60)
     background_image = models.URLField(blank=True, null=True, help_text="URL for session background image")
     status = models.CharField(max_length=20, default='scheduled', choices=STATUS_CHOICES)
-    signaling = models.JSONField(null=True, blank=True, default=dict)  # WebRTC offer/answer/candidates
+   
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
