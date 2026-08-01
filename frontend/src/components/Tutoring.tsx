@@ -360,11 +360,14 @@ const STATUS_COLORS: Record<string, string> = {
         localVideoRef.current.muted = true;
       }
       
+            console.log('🟡 Creating WebSocket...');
       const isLocal = window.location.hostname === 'localhost';
-            const wsUrl = isLocal
+      const wsUrl = isLocal
         ? `ws://localhost:8000/ws/video/${sessionId}/?token=${token}&role=${role}`
         : `wss://sasl-api-i34r.onrender.com/ws/video/${sessionId}/?token=${token}&role=${role}`;
+      console.log('🟡 WebSocket URL:', wsUrl);
       const ws = new WebSocket(wsUrl);
+      console.log('🟢 WebSocket created');
       wsRef.current = ws;
       
       const rtc = new WebRTCConnection((msg) => { 
