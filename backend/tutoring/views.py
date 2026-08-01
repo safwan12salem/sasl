@@ -88,7 +88,7 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         serializer.save(
             tutor=self.request.user,
             student=None,
-            status='scheduled'
+            status='open'
         )
 
     @action(detail=True, methods=['post'])
