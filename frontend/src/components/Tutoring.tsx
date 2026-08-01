@@ -336,16 +336,10 @@ const STATUS_COLORS: Record<string, string> = {
         const permStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         console.log('🟢 Step 1: Permission GRANTED');
         permStream.getTracks().forEach(t => t.stop());
-      } catch (permErr) {
-        console.log('🔴 Step 1: Permission DENIED', permErr);
+          } catch (permErr) {
+        console.log('🔴 Step 1: Permission DENIED, joining audio-only', permErr);
         toast.error('Camera access denied. Joining with audio only.');
-              const audioStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-        if (localVideoRef.current) {
-          localVideoRef.current.srcObject = audioStream;
-          localVideoRef.current.muted = true;
-        }
-        setInCall(sessionId);
-        return;
+        role = 'student'; // Force student role — can't be tutor without camera
       }
       
       console.log('🟠 Step 2: Get camera stream');
