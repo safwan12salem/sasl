@@ -903,7 +903,7 @@ const getTouchPos = (e: React.TouchEvent) => {
 
     {/* ACTION BUTTONS */}
     <div className="flex items-center gap-2 flex-wrap">
-      {((session.tutor?.username || session.tutor) === user?.username) ? (
+      {session.tutor?.username === user?.username ? (
         <>
           {session.status === 'pending_confirmation' && (
             <button onClick={(e) => { e.stopPropagation(); confirmSession(session.id); }}
@@ -932,12 +932,7 @@ const getTouchPos = (e: React.TouchEvent) => {
               {t('Request to Book')}
             </button>
           )}
-         {session.status === 'ongoing' && session.tutor?.username !== user?.username && (
-            <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
-              className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition flex items-center gap-1">
-              <Play size={12} /> {t('Join Class')}
-            </button>
-          )}
+       
         </>
       )}
       <button onClick={(e) => { e.stopPropagation(); navigator.clipboard.writeText(`${window.location.origin}/tutoring/${session.id}`); toast.success('Link copied!'); }}
