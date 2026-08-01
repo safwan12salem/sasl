@@ -323,7 +323,7 @@ const STATUS_COLORS: Record<string, string> = {
   };
 
 
-   const startVideoCall = async (sessionId: string) => {
+   const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
     try {
       // Request camera/mic permissions first (Android requires this)
       try {
@@ -355,9 +355,9 @@ const STATUS_COLORS: Record<string, string> = {
       }
       
       const isLocal = window.location.hostname === 'localhost';
-      const wsUrl = isLocal
-        ? `ws://localhost:8000/ws/video/${sessionId}/?token=${token}`
-        : `wss://sasl-api-i34r.onrender.com/ws/video/${sessionId}/?token=${token}`;
+            const wsUrl = isLocal
+        ? `ws://localhost:8000/ws/video/${sessionId}/?token=${token}&role=${role}`
+        : `wss://sasl-api-i34r.onrender.com/ws/video/${sessionId}/?token=${token}&role=${role}`;
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
       
@@ -366,27 +366,14 @@ const STATUS_COLORS: Record<string, string> = {
       });
       rtcRef.current = rtc;
       
-             ws.onopen = () => {
-               if (stream.getVideoTracks().length > 0) {
+               ws.onopen = () => {
+        if (stream.getVideoTracks().length > 0) {
           rtc.setLocalStream(stream);
         }
 
-        
-        
-        let isOfferer = false;
-        
         ws.onmessage = async (event) => {
           const data = JSON.parse(event.data);
-          if (data.type === 'joined') {
-            // Another peer joined — I should create the offer
-            isOfferer = true;
-            setTimeout(() => {
-              if (remoteVideoRef.current && stream.getVideoTracks().length > 0) {
-                rtc.createOffer(remoteVideoRef.current);
-              }
-            }, 1500);
-          }
-          else if (data.type === 'answer') {
+          if (data.type === 'answer') {
             await rtc.handleAnswer(data.answer);
           }
           else if (data.type === 'offer') {
@@ -403,10 +390,20 @@ const STATUS_COLORS: Record<string, string> = {
             await rtc.addIceCandidate(data.candidate);
           }
         };
+
+        if (role === 'tutor') {
+          setTimeout(() => {
+            if (remoteVideoRef.current && stream.getVideoTracks().length > 0) {
+              rtc.createOffer(remoteVideoRef.current);
+            }
+          }, 1500);
+        }
+      };
+         
         
         // Send a ping so the other peer knows someone joined
         ws.send(JSON.stringify({ type: 'joined' }));
-      };
+      
 
       setInCall(sessionId);
       
@@ -939,7 +936,7 @@ const getTouchPos = (e: React.TouchEvent) => {
             </button>
           )}
                    {session.status === 'ongoing' && (
-            <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
+            <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id, 'tutor'); }}
               className="bg-blue-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-blue-600 transition flex items-center gap-1">
               <Play size={12} /> {t('Join Class')}
             </button>
@@ -960,7 +957,7 @@ const getTouchPos = (e: React.TouchEvent) => {
             </button>
                    )}
           {session.status === 'ongoing' && (
-            <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id); }}
+            <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id, 'student'); }}
               className="bg-green-500 text-white px-3 py-1.5 rounded-full text-xs font-semibold hover:bg-green-600 transition flex items-center gap-1">
               <Play size={12} /> {t('Join Class')}
             </button>
