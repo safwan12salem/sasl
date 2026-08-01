@@ -76,13 +76,13 @@ export default function GigChat({ roomId, onClose }: Props) {
       db.messages.where('roomId').equals(roomId).toArray().then(async (offlineMsgs) => {
         for (const msg of offlineMsgs) {
           try {
-            await api.post(`/tutoring/chat/${roomId}/`, { text: msg.text });
+            await api.post(`/tutoring/chat/?room_id=${roomId}`, { text: msg.text });
             await db.messages.delete(msg.id!);
           } catch {}
         }
         // Reload full history after sync
         try {
-          const res = await api.get(`/tutoring/chat/${roomId}/`);
+          const res = await api.get(`/tutoring/chat/?room_id=${roomId}`);
           setMessages(Array.isArray(res.data) ? res.data : (res.data?.results || []));
           await db.messages.where('roomId').equals(roomId).delete();
         } catch {}
@@ -119,7 +119,7 @@ export default function GigChat({ roomId, onClose }: Props) {
 
 
   const deleteMessage = async (msgId: string) => {
-    try { await api.delete(`/tutoring/chat/${roomId}/`, { data: { message_id: msgId } }); } catch {}
+    try { await api.delete(`/tutoring/chat/?room_id=${roomId}`, { data: { message_id: msgId } }); } catch {}
     setMessages(prev => prev.filter(m => m.id !== msgId));
   };
    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -147,7 +147,7 @@ export default function GigChat({ roomId, onClose }: Props) {
         
         // Save to backend for persistence
         try { 
-          await api.post(`/tutoring/chat/${roomId}/`, { 
+          await api.post(`/tutoring/chat/?room_id=${roomId}`, {
             text: `📎 ${data.secure_url}`, 
             file_url: data.secure_url,
             file_name: file.name,
