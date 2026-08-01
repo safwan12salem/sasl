@@ -366,32 +366,30 @@ const STATUS_COLORS: Record<string, string> = {
       });
       rtcRef.current = rtc;
       
-               ws.onopen = () => {
+                  ws.onmessage = async (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'answer') {
+          await rtc.handleAnswer(data.answer);
+        }
+        else if (data.type === 'offer') {
+          const waitForVideo = () => {
+            if (remoteVideoRef.current) {
+              rtc.handleOffer(data.offer, remoteVideoRef.current);
+            } else {
+              setTimeout(waitForVideo, 200);
+            }
+          };
+          waitForVideo();
+        }
+        else if (data.type === 'candidate') {
+          await rtc.addIceCandidate(data.candidate);
+        }
+      };
+
+      ws.onopen = () => {
         if (stream.getVideoTracks().length > 0) {
           rtc.setLocalStream(stream);
         }
-      
-
-        ws.onmessage = async (event) => {
-          const data = JSON.parse(event.data);
-          if (data.type === 'answer') {
-            await rtc.handleAnswer(data.answer);
-          }
-          else if (data.type === 'offer') {
-            const waitForVideo = () => {
-              if (remoteVideoRef.current) {
-                rtc.handleOffer(data.offer, remoteVideoRef.current);
-              } else {
-                setTimeout(waitForVideo, 200);
-              }
-            };
-            waitForVideo();
-          }
-          else if (data.type === 'candidate') {
-            await rtc.addIceCandidate(data.candidate);
-          }
-        };
-
         if (role === 'tutor') {
           setTimeout(() => {
             if (remoteVideoRef.current && stream.getVideoTracks().length > 0) {
