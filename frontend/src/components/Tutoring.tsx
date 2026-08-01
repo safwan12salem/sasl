@@ -370,6 +370,7 @@ const STATUS_COLORS: Record<string, string> = {
         if (stream.getVideoTracks().length > 0) {
           rtc.setLocalStream(stream);
         }
+        ws.send(JSON.stringify({ type: 'joined' }));
 
         ws.onmessage = async (event) => {
           const data = JSON.parse(event.data);
@@ -401,9 +402,7 @@ const STATUS_COLORS: Record<string, string> = {
       };
          
         
-        // Send a ping so the other peer knows someone joined
-        ws.send(JSON.stringify({ type: 'joined' }));
-      
+       
 
       setInCall(sessionId);
       
