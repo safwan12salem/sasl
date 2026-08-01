@@ -41,7 +41,9 @@ class StreamChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
-        if self.stream_id in rooms:
-            for peer in rooms[self.stream_id]:
+        print(f"📩 RECEIVED from {self.room_name}: {data.get('type')}", flush=True)
+        if self.room_name in rooms:
+            print(f"📤 Sending to {len(rooms[self.room_name])-1} peers", flush=True)
+            for peer in rooms[self.room_name]:
                 if peer != self:
                     await peer.send(text_data=json.dumps(data))
