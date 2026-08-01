@@ -240,15 +240,6 @@ const STATUS_COLORS: Record<string, string> = {
   }, [timerActive, timer]);
 
 
-  useEffect(() => {
-    if (inCall && pendingStreamRef.current && localVideoRef.current) {
-      console.log('🟢 Applying pending stream to video element');
-      localVideoRef.current.srcObject = pendingStreamRef.current;
-      localVideoRef.current.muted = true;
-      pendingStreamRef.current = null;
-    }
-  }, [inCall]);
-
   // ============================================================
   // ACTIONS
   // ============================================================
@@ -442,9 +433,20 @@ const STATUS_COLORS: Record<string, string> = {
       };
       console.log('🟢 Step 7: onopen set');
 
-      setInCall(sessionId);
+            setInCall(sessionId);
       console.log('🟢 Step 8: setInCall done');
       
+      // Wait for React to render the video element, then apply stream
+      setTimeout(() => {
+        if (pendingStreamRef.current && localVideoRef.current) {
+          console.log('🟢 Applying pending stream to video element');
+          localVideoRef.current.srcObject = pendingStreamRef.current;
+          localVideoRef.current.muted = true;
+          pendingStreamRef.current = null;
+        }
+      }, 500);
+
+
       const currentSession = sessions.find(s => s.id === sessionId);
       if (currentSession?.duration_minutes) {
         setTimer(currentSession.duration_minutes * 60);
