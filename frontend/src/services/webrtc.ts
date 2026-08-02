@@ -34,20 +34,25 @@ export class WebRTCConnection {
 
   private createPeerConnection(): RTCPeerConnection {
     const pc = new RTCPeerConnection({
-    iceServers: [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-  {
-    urls: ['turn:openrelay.metered.ca:80?transport=tcp', 'turn:openrelay.metered.ca:443?transport=tcp'],
-    username: 'openrelayproject',
-    credential: 'openrelayproject'
-  },
-  {
-    urls: 'turn:relay.backups.cz:3478?transport=tcp',
-    username: 'webrtc',
-    credential: 'webrtc'
-  },
-]
+      iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      {
+        urls: [ "stun:fr-turn3.xirsys.com" ]
+      },
+      {
+        username: "zAS325DYRQzJuudRVtta9PNUpfM3BUU8TpiG18zUHLIb_GUm--OVl1hB7ITd8s90AAAAAGpvO91zYXNs",
+        credential: "03c44a60-8e70-11f1-8e76-fecd1aef9c76",
+        urls: [
+          "turn:fr-turn3.xirsys.com:80?transport=udp",
+          "turn:fr-turn3.xirsys.com:3478?transport=udp",
+          "turn:fr-turn3.xirsys.com:80?transport=tcp",
+          "turn:fr-turn3.xirsys.com:3478?transport=tcp",
+          "turns:fr-turn3.xirsys.com:443?transport=tcp",
+          "turns:fr-turn3.xirsys.com:5349?transport=tcp"
+        ]
+      }
+    ]
     });
 
     if (this.localStream) {
