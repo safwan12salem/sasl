@@ -133,6 +133,7 @@ const STATUS_COLORS: Record<string, string> = {
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const pendingStreamRef = useRef<MediaStream | null>(null);
+  const callingRef = useRef(false);
   const remoteStreamRef = useRef<MediaStream | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
     const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -337,6 +338,8 @@ useEffect(() => {
    
       
         const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
+          if (callingRef.current) { console.log('⚠️ Already connecting'); return; }
+callingRef.current = true;
             if (inCall) { console.log('⚠️ Already in call, ignoring'); return; }
     console.log('🔴 START startVideoCall', sessionId, role);
     try {
@@ -478,6 +481,7 @@ useEffect(() => {
       const stream = remoteVideoRef.current.srcObject as MediaStream;
       stream.getTracks().forEach(t => t.stop());
       remoteVideoRef.current.srcObject = null;
+      callingRef.current = false;
     }
   };
 
