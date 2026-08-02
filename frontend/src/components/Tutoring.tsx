@@ -131,8 +131,9 @@ const STATUS_COLORS: Record<string, string> = {
   const [timerActive, setTimerActive] = useState(false);
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
-  const remoteVideoRef = useRef<HTMLVideoElement>(null)
-  const pendingStreamRef = useRef<MediaStream | null>(null);;
+  const remoteVideoRef = useRef<HTMLVideoElement>(null);
+  const pendingStreamRef = useRef<MediaStream | null>(null);
+  const remoteStreamRef = useRef<MediaStream | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
     const pcRef = useRef<RTCPeerConnection | null>(null);
   const rtcRef = useRef<WebRTCConnection | null>(null);
@@ -240,6 +241,13 @@ const STATUS_COLORS: Record<string, string> = {
   }, [timerActive, timer]);
 
 
+useEffect(() => {
+  if (remoteStreamRef.current && remoteVideoRef.current) {
+    remoteVideoRef.current.srcObject = remoteStreamRef.current;
+  }
+}, [inCall, remoteStreamRef.current]);
+
+
   // ============================================================
   // ACTIONS
   // ============================================================
@@ -329,6 +337,7 @@ const STATUS_COLORS: Record<string, string> = {
    
       
         const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
+            if (inCall) { console.log('⚠️ Already in call, ignoring'); return; }
     console.log('🔴 START startVideoCall', sessionId, role);
     try {
       console.log('🟠 Step 1: Permission check');
