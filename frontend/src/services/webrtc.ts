@@ -5,6 +5,7 @@ export class WebRTCConnection {
   private makingOffer = false;
   private ignoreOffer = false;
   private candidateQueue: RTCIceCandidateInit[] = [];
+  
   constructor(signalSend: (msg: any) => void) {
     this.signalSend = signalSend;
   }
@@ -12,8 +13,7 @@ export class WebRTCConnection {
   async startLocalStream(videoElement: HTMLVideoElement) {
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
+        video: true, audio: true,
       });
       videoElement.srcObject = this.localStream;
       return this.localStream;
@@ -23,35 +23,30 @@ export class WebRTCConnection {
     }
   }
 
-    setLocalStream(stream: MediaStream) {
+  setLocalStream(stream: MediaStream) {
     this.localStream = stream;
   }
+
   stopLocalStream() {
     this.localStream?.getTracks().forEach((t) => t.stop());
     this.localStream = null;
   }
 
-   private createPeerConnection(): RTCPeerConnection {
+  private createPeerConnection(): RTCPeerConnection {
     const pc = new RTCPeerConnection({
       iceServers: [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' },
-  { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-],
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+      ],
     });
 
-    // Add local tracks
     if (this.localStream) {
       this.localStream.getTracks().forEach((track) => {
-        try {
-          pc.addTrack(track, this.localStream!);
-        } catch (e) {
-          // Track already added — skip
-        }
+        try { pc.addTrack(track, this.localStream!); } catch (e) {}
       });
     }
 
-    // Handle ICE candidates
     pc.onicecandidate = (event) => {
       if (event.candidate) {
         this.signalSend({ type: 'candidate', candidate: event.candidate.toJSON() });
@@ -61,18 +56,16 @@ export class WebRTCConnection {
     return pc;
   }
 
-    
   async createOffer(remoteVideoElement: HTMLVideoElement) {
-    if (this.pc && this.pc.signalingState !== 'stable' && this.pc.signalingState !== 'closed') {
-      return;
-    }
+    if (this.pc && this.pc.signalingState !== 'stable' && this.pc.signalingState !== 'closed') return;
     this.pc = this.createPeerConnection();
 
-        this.pc.ontrack = (event) => {
-      if (event.streams[0]) {
-                remoteVideoElement.srcObject = event.streams[0];
-        remoteVideoElement.play().then(() => console.log('✅ Remote playing')).catch(e => console.log('Play failed:', e));
-        setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
+    this.pc.ontrack = (event) => {
+      if (event.streams[0] && event.track.kind === 'video') {
+        if (remoteVideoElement.srcObject !== event.streams[0]) {
+          remoteVideoElement.srcObject = event.streams[0];
+          remoteVideoElement.play().catch(() => {});
+        }
       }
     };
 
@@ -83,100 +76,66 @@ export class WebRTCConnection {
       if (this.pc.localDescription) {
         this.signalSend({ type: 'offer', offer: this.pc.localDescription.toJSON() });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Create offer failed:', err);
     }
   }
 
-
   async handleOffer(offer: RTCSessionDescriptionInit, remoteVideoElement: HTMLVideoElement) {
-    if (this.makingOffer) {
-      this.ignoreOffer = true;
-      return;
-    }
-
-    if (!this.pc) {
-      this.pc = this.createPeerConnection();
-    }
+    if (this.makingOffer) { this.ignoreOffer = true; return; }
+    if (!this.pc) { this.pc = this.createPeerConnection(); }
 
     this.pc.ontrack = (event) => {
-      if (event.streams[0]) {
-                remoteVideoElement.srcObject = event.streams[0];
-        remoteVideoElement.play().then(() => console.log('✅ Remote playing')).catch(e => console.log('Play failed:', e));
-        setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
+      if (event.streams[0] && event.track.kind === 'video') {
+        if (remoteVideoElement.srcObject !== event.streams[0]) {
+          remoteVideoElement.srcObject = event.streams[0];
+          remoteVideoElement.play().catch(() => {});
+        }
       }
     };
 
     try {
-      if (this.pc.signalingState !== 'stable') {
-        this.pc.close();
-        this.pc = this.createPeerConnection();
-                this.pc.ontrack = (event) => {
-          if (event.streams[0]) {
-                   remoteVideoElement.srcObject = event.streams[0];
-        remoteVideoElement.play().then(() => console.log('✅ Remote playing')).catch(e => console.log('Play failed:', e));
-            setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
-          }
-        };
-      }
-
       await this.pc.setRemoteDescription(new RTCSessionDescription(offer));
-      
       for (const c of this.candidateQueue) {
         try { await this.pc!.addIceCandidate(new RTCIceCandidate(c)); } catch {}
       }
       this.candidateQueue = [];
-
       const answer = await this.pc.createAnswer();
       await this.pc.setLocalDescription(answer);
-      
       if (this.pc.localDescription) {
         this.signalSend({ type: 'answer', answer: this.pc.localDescription.toJSON() });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Handle offer failed:', err);
     }
   }
 
-
   async handleAnswer(answer: RTCSessionDescriptionInit) {
     if (!this.pc) return;
-
     try {
-      // Only accept answer if we have a local offer pending
-      if (this.pc.signalingState !== 'have-local-offer') {
-        console.warn('Cannot handle answer in state:', this.pc.signalingState);
-        return;
-      }
-
+      if (this.pc.signalingState !== 'have-local-offer') return;
       await this.pc.setRemoteDescription(new RTCSessionDescription(answer));
-      // Add this after setRemoteDescription in BOTH handleOffer and handleAnswer:
-// Process queued candidates
-for (const c of this.candidateQueue) {
-    try { await this.pc!.addIceCandidate(new RTCIceCandidate(c)); } catch {}
-}
-this.candidateQueue = [];
-
-    } catch (err) {
+      for (const c of this.candidateQueue) {
+        try { await this.pc!.addIceCandidate(new RTCIceCandidate(c)); } catch {}
+      }
+      this.candidateQueue = [];
+    } catch (err: any) {
       console.warn('Handle answer failed:', err);
     }
   }
 
- async addIceCandidate(candidate: RTCIceCandidateInit) {
+  async addIceCandidate(candidate: RTCIceCandidateInit) {
     if (!this.pc) return;
-
-    // If remote description isn't set yet, queue the candidate
     if (!this.pc.remoteDescription) {
-        this.candidateQueue.push(candidate);
-        return;
+      this.candidateQueue.push(candidate);
+      return;
     }
-
     try {
-        await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
-    } catch (err) {
-        console.warn('Add ICE candidate failed:', err);
+      await this.pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch (err: any) {
+      console.warn('Add ICE candidate failed:', err);
     }
-}
+  }
 
   disconnect() {
     this.pc?.close();
@@ -187,5 +146,3 @@ this.candidateQueue = [];
     this.candidateQueue = [];
   }
 }
-
-
