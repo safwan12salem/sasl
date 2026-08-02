@@ -77,10 +77,11 @@ export class WebRTCConnection {
    this.pc.ontrack = (event) => {
   if (event.streams[0] && event.track.kind === 'video') {
     if (remoteVideoElement.srcObject !== event.streams[0]) {
-      remoteVideoElement.srcObject = event.streams[0];
+            remoteVideoElement.srcObject = event.streams[0];
+      remoteVideoElement.load();
       remoteVideoElement.style.width = '100%';
       remoteVideoElement.style.height = '100%';
-      remoteVideoElement.play().catch(() => {});
+      setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
     }
   }
 };
@@ -104,10 +105,11 @@ export class WebRTCConnection {
         this.pc.ontrack = (event) => {
       if (event.streams[0] && event.track.kind === 'video') {
         if (remoteVideoElement.srcObject !== event.streams[0]) {
-          remoteVideoElement.srcObject = event.streams[0];
+                    remoteVideoElement.srcObject = event.streams[0];
+          remoteVideoElement.load();
           remoteVideoElement.style.width = '100%';
           remoteVideoElement.style.height = '100%';
-          remoteVideoElement.play().catch(() => {});
+          setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
         }
       }
     };
