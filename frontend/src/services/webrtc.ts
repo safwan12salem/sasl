@@ -70,7 +70,8 @@ export class WebRTCConnection {
 
         this.pc.ontrack = (event) => {
       if (event.streams[0]) {
-        remoteVideoElement.srcObject = event.streams[0];
+                remoteVideoElement.srcObject = event.streams[0];
+        remoteVideoElement.play().then(() => console.log('✅ Remote playing')).catch(e => console.log('Play failed:', e));
         setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
       }
     };
@@ -100,7 +101,8 @@ export class WebRTCConnection {
 
     this.pc.ontrack = (event) => {
       if (event.streams[0]) {
-        remoteVideoElement.srcObject = event.streams[0];
+                remoteVideoElement.srcObject = event.streams[0];
+        remoteVideoElement.play().then(() => console.log('✅ Remote playing')).catch(e => console.log('Play failed:', e));
         setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
       }
     };
@@ -111,7 +113,8 @@ export class WebRTCConnection {
         this.pc = this.createPeerConnection();
                 this.pc.ontrack = (event) => {
           if (event.streams[0]) {
-            remoteVideoElement.srcObject = event.streams[0];
+                   remoteVideoElement.srcObject = event.streams[0];
+        remoteVideoElement.play().then(() => console.log('✅ Remote playing')).catch(e => console.log('Play failed:', e));
             setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
           }
         };
