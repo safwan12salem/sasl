@@ -60,14 +60,16 @@ export class WebRTCConnection {
     if (this.pc && this.pc.signalingState !== 'stable' && this.pc.signalingState !== 'closed') return;
     this.pc = this.createPeerConnection();
 
-    this.pc.ontrack = (event) => {
-      if (event.streams[0] && event.track.kind === 'video') {
-        if (remoteVideoElement.srcObject !== event.streams[0]) {
-          remoteVideoElement.srcObject = event.streams[0];
-          remoteVideoElement.play().catch(() => {});
-        }
-      }
-    };
+   this.pc.ontrack = (event) => {
+  if (event.streams[0] && event.track.kind === 'video') {
+    if (remoteVideoElement.srcObject !== event.streams[0]) {
+      remoteVideoElement.srcObject = event.streams[0];
+      remoteVideoElement.style.width = '100%';
+      remoteVideoElement.style.height = '100%';
+      remoteVideoElement.play().catch(() => {});
+    }
+  }
+};
 
     try {
       const offer = await this.pc.createOffer();
@@ -85,10 +87,12 @@ export class WebRTCConnection {
     if (this.makingOffer) { this.ignoreOffer = true; return; }
     if (!this.pc) { this.pc = this.createPeerConnection(); }
 
-    this.pc.ontrack = (event) => {
+        this.pc.ontrack = (event) => {
       if (event.streams[0] && event.track.kind === 'video') {
         if (remoteVideoElement.srcObject !== event.streams[0]) {
           remoteVideoElement.srcObject = event.streams[0];
+          remoteVideoElement.style.width = '100%';
+          remoteVideoElement.style.height = '100%';
           remoteVideoElement.play().catch(() => {});
         }
       }
