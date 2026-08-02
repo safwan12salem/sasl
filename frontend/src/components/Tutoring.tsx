@@ -650,11 +650,11 @@ const getTouchPos = (e: React.TouchEvent) => {
               <div className={`${showChat || showWhiteboard || showMaterials ? 'flex-[3]' : 'flex-1'} p-2 flex flex-col gap-2`}>
                 <div className="flex-1 grid grid-cols-2 gap-2" style={{ minHeight: '200px' }}>
                  <div className="relative rounded-xl overflow-hidden bg-gray-800" style={{ minHeight: '150px' }}>
-                    <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
                     <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">You</span>
                   </div>
                  <div className="relative rounded-xl overflow-hidden bg-gray-800" style={{ minHeight: '150px' }}>
-                   <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" style={{ minHeight: '150px', minWidth: '100%' }} />
+                   <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
                     <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">Remote</span>
                   </div>
                 </div>
