@@ -78,7 +78,18 @@ export class WebRTCConnection {
   if (event.streams[0] && event.track.kind === 'video') {
     if (remoteVideoElement.srcObject !== event.streams[0]) {
             remoteVideoElement.srcObject = event.streams[0];
+
       remoteVideoElement.load();
+      // TEST: raw DOM video element
+var testVideo = document.createElement('video');
+testVideo.srcObject = event.streams[0];
+testVideo.autoplay = true;
+testVideo.playsInline = true;
+testVideo.style.cssText = 'position:fixed;top:50px;left:50px;width:300px;height:200px;z-index:99999;border:3px solid red;background:black;';
+document.body.appendChild(testVideo);
+testVideo.play().catch(() => {});
+
+
       remoteVideoElement.style.width = '100%';
       remoteVideoElement.style.height = '100%';
       setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
@@ -106,7 +117,15 @@ export class WebRTCConnection {
       if (event.streams[0] && event.track.kind === 'video') {
         if (remoteVideoElement.srcObject !== event.streams[0]) {
                     remoteVideoElement.srcObject = event.streams[0];
+                    var testVideo = document.createElement('video');
+testVideo.srcObject = event.streams[0];
+testVideo.autoplay = true;
+testVideo.playsInline = true;
+testVideo.style.cssText = 'position:fixed;top:50px;left:50px;width:300px;height:200px;z-index:99999;border:3px solid red;background:black;';
+document.body.appendChild(testVideo);
+testVideo.play().catch(() => {});
           remoteVideoElement.load();
+
           remoteVideoElement.style.width = '100%';
           remoteVideoElement.style.height = '100%';
           setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
