@@ -34,24 +34,30 @@ export class WebRTCConnection {
 
   private createPeerConnection(): RTCPeerConnection {
     const pc = new RTCPeerConnection({
-      iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' },
+         iceServers: [
       {
-        urls: [ "stun:fr-turn3.xirsys.com" ]
+        urls: "stun:stun.relay.metered.ca:80",
       },
       {
-        username: "zAS325DYRQzJuudRVtta9PNUpfM3BUU8TpiG18zUHLIb_GUm--OVl1hB7ITd8s90AAAAAGpvO91zYXNs",
-        credential: "03c44a60-8e70-11f1-8e76-fecd1aef9c76",
-        urls: [
-          "turn:fr-turn3.xirsys.com:80?transport=udp",
-          "turn:fr-turn3.xirsys.com:3478?transport=udp",
-          "turn:fr-turn3.xirsys.com:80?transport=tcp",
-          "turn:fr-turn3.xirsys.com:3478?transport=tcp",
-          "turns:fr-turn3.xirsys.com:443?transport=tcp",
-          "turns:fr-turn3.xirsys.com:5349?transport=tcp"
-        ]
-      }
+        urls: "turn:global.relay.metered.ca:80",
+        username: "9a949126f260451ca16f969e",
+        credential: "HNHbY2NEDOgMoMfd",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:80?transport=tcp",
+        username: "9a949126f260451ca16f969e",
+        credential: "HNHbY2NEDOgMoMfd",
+      },
+      {
+        urls: "turn:global.relay.metered.ca:443",
+        username: "9a949126f260451ca16f969e",
+        credential: "HNHbY2NEDOgMoMfd",
+      },
+      {
+        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+        username: "9a949126f260451ca16f969e",
+        credential: "HNHbY2NEDOgMoMfd",
+      },
     ]
     });
 
