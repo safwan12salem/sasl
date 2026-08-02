@@ -34,38 +34,14 @@ export class WebRTCConnection {
 
   private createPeerConnection(): RTCPeerConnection {
     const pc = new RTCPeerConnection({
-         iceServers: [
-      {
-        urls: "stun:stun.relay.metered.ca:80",
-      },
-      {
-        urls: "turn:global.relay.metered.ca:80",
-        username: "9a949126f260451ca16f969e",
-        credential: "HNHbY2NEDOgMoMfd",
-      },
-      {
-        urls: "turn:global.relay.metered.ca:80?transport=tcp",
-        username: "9a949126f260451ca16f969e",
-        credential: "HNHbY2NEDOgMoMfd",
-      },
-      {
-        urls: "turn:global.relay.metered.ca:443",
-        username: "9a949126f260451ca16f969e",
-        credential: "HNHbY2NEDOgMoMfd",
-      },
-      {
-        urls: "turns:global.relay.metered.ca:443?transport=tcp",
-        username: "9a949126f260451ca16f969e",
-        credential: "HNHbY2NEDOgMoMfd",
-      },
-    ]
+      iceServers: [
+        { urls: "stun:stun.relay.metered.ca:80" },
+        { urls: "turn:global.relay.metered.ca:80", username: "9a949126f260451ca16f969e", credential: "HNHbY2NEDOgMoMfd" },
+        { urls: "turn:global.relay.metered.ca:80?transport=tcp", username: "9a949126f260451ca16f969e", credential: "HNHbY2NEDOgMoMfd" },
+        { urls: "turn:global.relay.metered.ca:443", username: "9a949126f260451ca16f969e", credential: "HNHbY2NEDOgMoMfd" },
+        { urls: "turns:global.relay.metered.ca:443?transport=tcp", username: "9a949126f260451ca16f969e", credential: "HNHbY2NEDOgMoMfd" },
+      ],
     });
-
-    if (this.localStream) {
-      this.localStream.getTracks().forEach((track) => {
-        try { pc.addTrack(track, this.localStream!); } catch (e) {}
-      });
-    }
 
     pc.onicecandidate = (event) => {
       if (event.candidate) {
@@ -75,6 +51,7 @@ export class WebRTCConnection {
 
     return pc;
   }
+
 
   async createOffer(remoteVideoElement: HTMLVideoElement) {
     if (this.pc && this.pc.signalingState !== 'stable' && this.pc.signalingState !== 'closed') return;
@@ -107,6 +84,12 @@ testVideo.play().catch(() => {});
       const offer = await this.pc.createOffer();
       if (this.pc.signalingState !== 'stable') return;
       await this.pc.setLocalDescription(offer);
+            // Add local tracks AFTER setting local description
+      if (this.localStream) {
+        this.localStream.getTracks().forEach(track => {
+          try { this.pc!.addTrack(track, this.localStream!); } catch (e) {}
+        });
+      }
       if (this.pc.localDescription) {
         this.signalSend({ type: 'offer', offer: this.pc.localDescription.toJSON() });
       }
@@ -141,6 +124,12 @@ testVideo.play().catch(() => {});
 
     try {
       await this.pc.setRemoteDescription(new RTCSessionDescription(offer));
+            // Add local tracks AFTER setting local description
+      if (this.localStream) {
+        this.localStream.getTracks().forEach(track => {
+          try { this.pc!.addTrack(track, this.localStream!); } catch (e) {}
+        });
+      }
       for (const c of this.candidateQueue) {
         try { await this.pc!.addIceCandidate(new RTCIceCandidate(c)); } catch {}
       }
