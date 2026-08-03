@@ -29,7 +29,7 @@ class PostSerializer(serializers.ModelSerializer):
     author = UserProfileSerializer(read_only=True)
     liked_by_me = serializers.SerializerMethodField()
     comments_preview = serializers.SerializerMethodField()
-    media_url = serializers.SerializerMethodField()
+    media_url = serializers.URLField(required=False, allow_blank=True)
     poll = PollSerializer(read_only=True)
 
     class Meta:
@@ -54,10 +54,8 @@ class PostSerializer(serializers.ModelSerializer):
         return RecursiveCommentSerializer(comments, many=True).data
 
     def get_media_url(self, obj):
-        if obj.media and (request := self.context.get('request')):
-            return obj.media.url if obj.media else None
-        return obj.media.url if obj.media else None
-
+      return obj.media_url if obj.media_url else (obj.media.url if obj.media else None)
+    
 class RecursiveCommentSerializer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
     replies = serializers.SerializerMethodField()

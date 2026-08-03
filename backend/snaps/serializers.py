@@ -16,7 +16,7 @@ class SnapSerializer(serializers.ModelSerializer):
         model = Snap
         fields = [
             'id', 'sender', 'sender_name', 'receiver', 'receiver_name',
-            'video', 'video_url', 'image', 'image_url',
+            'video', 'video_url', 'image', 'media_url','image_url',
             'caption', 'duration', 'viewed', 'viewed_at',
             'is_challenge', 'challenge_name', 'is_draft',
             'scheduled_for', 'tip_amount', 'screenshot_count', 'replay_count',
@@ -52,18 +52,14 @@ class SnapStreakSerializer(serializers.ModelSerializer):
 
 class SnapStorySerializer(serializers.ModelSerializer):
     user = UserProfileSerializer(read_only=True)
-    media_url = serializers.SerializerMethodField()
-    
+    media_url = serializers.URLField(required=False, allow_blank=True)
     class Meta:
         model = SnapStory
         fields = ['id', 'user', 'media', 'media_url', 'caption', 'sound_track', 'sound_url', 'views_count', 'tip_total', 'expires_at', 'created_at']
         read_only_fields = ['user', 'views_count', 'tip_total']
     
     def get_media_url(self, obj):
-        if obj.media and (request := self.context.get('request')):
-            return obj.media.url if obj.media else None
-        return obj.media.url if obj.media else None
-
+      return obj.media_url if obj.media_url else (obj.media.url if obj.media else None)
 
 class SnapChallengeSerializer(serializers.ModelSerializer):
     entries_count = serializers.SerializerMethodField()
