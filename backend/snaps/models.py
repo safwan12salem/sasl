@@ -9,7 +9,7 @@ class Snap(models.Model):
     receiver = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='snaps_received')
     video = models.FileField(upload_to='snaps/', blank=True, null=True)
     image = models.ImageField(upload_to='snaps/images/', blank=True, null=True)
-    media_url = models.URLField(blank=True, default='')
+    media_url = models.URLField(max_length=500, blank=True, default='')
     caption = models.CharField(max_length=200, blank=True, default='')
     duration = models.PositiveIntegerField(default=5)  # seconds (1-30)
     viewed = models.BooleanField(default=False)
@@ -57,7 +57,7 @@ class SnapStory(models.Model):
     sound_track = models.CharField(max_length=300, blank=True, default='')
     sound_url = models.URLField(blank=True, default='')
     media = models.FileField(upload_to='snaps/stories/')
-    media_url = models.URLField(blank=True, default='')
+    media_url = models.URLField(max_length=500, blank=True, default='')
     caption = models.CharField(max_length=200, blank=True, default='')
     views_count = models.PositiveIntegerField(default=0)
     # NEW: Story enhancements
