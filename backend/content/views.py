@@ -400,8 +400,10 @@ class ReelViewSet(viewsets.ModelViewSet):
      if video_file and video_file.size > 10 * 1024 * 1024:
         # Large video — upload to YouTube
         import tempfile, os
-        from .youtube_upload import upload_to_youtube
-        
+        try:
+            from .youtube_upload import upload_to_youtube
+        except ImportError:
+            upload_to_youtube = None
         # Save temporarily
         with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as tmp:
             for chunk in video_file.chunks():
@@ -410,8 +412,12 @@ class ReelViewSet(viewsets.ModelViewSet):
         
         try:
             access_token = self.request.headers.get('X-YouTube-Token', '')
-            youtube_url = upload_to_youtube(tmp_path, serializer.validated_data.get('caption', 'Sasl Reel'), access_token=access_token)
-            serializer.save(user=self.request.user, video_url=youtube_url)
+            if upload_to_youtube:
+                youtube_url = upload_to_youtube(tmp_path, serializer.validated_data.get('caption', 'Sasl Reel'), access_token=access_token)
+                serializer.save(user=self.request.user, video_url=youtube_url)
+            else:
+                serializer.save(user=self.request.user)
+        
         finally:
             os.unlink(tmp_path)
      else:
