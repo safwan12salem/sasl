@@ -59,7 +59,7 @@ class GroupChatViewSet(viewsets.ModelViewSet):
           text=text,
           image=image,
           media_url=media_url,
-          message_type='video' if video else ('image' if (image or media_url) else 'text')
+          message_type='video' if (video or (media_url and media_url.endswith(('.mp4', '.webm', '.mov')))) else ('image' if (image or media_url) else 'text')
       )
       if video:
         msg.video = video
