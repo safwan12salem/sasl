@@ -18,7 +18,7 @@ import VoiceMessageRecorder from './VoiceMessageRecorder';
 import { Image as ImageIcon } from 'lucide-react';
 import { db } from '../services/offlineDB';
 import { useMesh } from '../contexts/MeshContext';
-
+import { uploadFile } from '../services/uploadService';
 
 
 interface Group {
@@ -214,12 +214,11 @@ const handleDeleteMessage = async (messageId: string) => {
     setSending(true);
 
     try {
-      if (selectedImage) {
-        const formData = new FormData();
-        formData.append('text', input);
-        formData.append('image', selectedImage);
-        await api.post(`/groupchat/groups/${activeGroup}/send_message/`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
+            if (selectedImage) {
+        const imageUrl = await uploadFile(selectedImage, 'groupchat');
+        await api.post(`/groupchat/groups/${activeGroup}/send_message/`, {
+          text: input,
+          media_url: imageUrl,
         });
         setSelectedImage(null);
         setImagePreview(null);

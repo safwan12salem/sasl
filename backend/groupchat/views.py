@@ -1,3 +1,5 @@
+from email.message import Message
+
 from django.utils import timezone
 from tokenize import group
 from urllib import request
@@ -47,21 +49,23 @@ class GroupChatViewSet(viewsets.ModelViewSet):
           return Response({'error': 'Not a member'}, status=403)
     
       text = request.data.get('text', '')
-      image = request.FILES.get('image')
       video = request.FILES.get('video')
-    
-      message = GroupMessage.objects.create(
+      image = request.FILES.get('image')
+      media_url = request.data.get('media_url', '')
+      
+      msg = Message.objects.create(
           group=group,
           sender=request.user,
           text=text,
           image=image,
-          message_type='video' if video else ('image' if image else 'text')
+          media_url=media_url,
+          message_type='video' if video else ('image' if (image or media_url) else 'text')
       )
       if video:
-        message.video = video
-        message.save()
+        msg.video = video
+        msg.save()
     
-      return Response(GroupMessageSerializer(message).data, status=201)
+      return Response(GroupMessageSerializer(msg).data, status=201)
     @action(detail=True, methods=['post'])
     def add_member(self, request, pk=None):
         group = self.get_object()

@@ -27,6 +27,7 @@ class GroupMessage(models.Model):
     sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     text = models.TextField()
     image = models.FileField(upload_to='group_messages/', blank=True, storage=AutoCloudinaryStorage())
+    media_url = models.URLField(max_length=500, blank=True, default='')
     is_system_message = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     is_edited = models.BooleanField(default=False)
