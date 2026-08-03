@@ -27,7 +27,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'email', 'username', 'display_name', 'bio',
             'avatar', 'avatar_url', 'is_verified', 'is_creator','is_premium',
-            'is_teacher', 'is_seller', 'followers_count',
+            'is_superuser','is_teacher', 'is_seller', 'followers_count',
             'following_count', 'total_earned', 'wallet', 'date_joined','wallet','social_rank',
             'earnings_summary', 'show_earnings', 'show_balance', 'show_transactions',  # Toggles for user
             'date_joined'

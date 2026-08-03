@@ -11,7 +11,7 @@ import {
   Star, Briefcase, TrendingUp, Sparkles, Brain, DollarSign,
   Moon, Sun, Mic, Users,
   Inbox, Menu, X,
-  Shield
+  Shield,Crown
 } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import PageTransition from './PageTransition';
@@ -43,7 +43,7 @@ export default function Layout() {
     { to: '/snap', icon: Camera, label: t('Snap') },
     { to: '/reels', icon: Video, label: t('Reels') },
     {to: '/creator-studio', icon: Brain, label: t('Creator Studio') },
-           
+       {to: '/platform', icon: Crown, label: t('Platform') },           
     { to: '/analytics', icon: TrendingUp, label: t('Analytics') },
     { to: '/progress', icon: Star, label: t('Progress') },   
     { to: '/chat-dashboard', icon: Inbox, label: t('Messages') },
