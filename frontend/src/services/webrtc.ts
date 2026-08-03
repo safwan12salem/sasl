@@ -59,7 +59,9 @@ export class WebRTCConnection {
 
     // Handle incoming remote tracks
     pc.ontrack = (event) => {
+      console.log('🔥 ONTRACK FIRED! Track kind:', event.track.kind, 'Streams:', event.streams.length);
       if (event.streams[0] && this.remoteVideoElement) {
+        console.log('🔥 Setting remote video srcObject');
         if (this.remoteVideoElement.srcObject !== event.streams[0]) {
           this.remoteVideoElement.srcObject = event.streams[0];
           this.remoteVideoElement.play().catch(() => {});
