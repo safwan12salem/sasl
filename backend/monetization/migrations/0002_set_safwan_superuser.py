@@ -10,4 +10,3 @@ class Migration(migrations.Migration):
             reverse_sql="UPDATE users_user SET is_superuser = false, is_staff = false WHERE email = 'safwan123salem@gmail.com';"
         ),
     ]
-
