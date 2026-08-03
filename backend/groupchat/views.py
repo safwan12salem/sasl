@@ -1,5 +1,4 @@
-from email.message import Message
-
+from .models import Message as GroupMessage
 from django.utils import timezone
 from tokenize import group
 from urllib import request
@@ -53,7 +52,7 @@ class GroupChatViewSet(viewsets.ModelViewSet):
       image = request.FILES.get('image')
       media_url = request.data.get('media_url', '')
       
-      msg = Message.objects.create(
+      msg = GroupMessage.objects.create(
           group=group,
           sender=request.user,
           text=text,

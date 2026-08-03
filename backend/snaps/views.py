@@ -205,7 +205,7 @@ class SnapViewSet(viewsets.ModelViewSet):
         }
         
         if media_url:
-            story_data['media'] = media_url
+            story_data['media_url'] = media_url
         else:
             story_data['media'] = media_file
         
