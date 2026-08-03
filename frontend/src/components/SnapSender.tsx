@@ -18,6 +18,7 @@ import SoundUploader from './SoundUploader';
 import { Sound } from '../services/soundLibrary';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import { uploadFile } from '../services/uploadService';
 
 interface Snap {
   id: string;
@@ -155,11 +156,18 @@ export default function SnapSender() {
     if (!blob || !receiver.trim()) return toast.error(t('Capture content and enter a username'));
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append(mediaType === 'video' ? 'video' : 'image', blob, `snap.${mediaType === 'video' ? 'webm' : 'jpg'}`);
-      formData.append('receiver_username', receiver);
-      formData.append('caption', caption);
-      await api.post('/snaps/snaps/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+           // Upload to Supabase first
+      const fileName = `snaps/${Date.now()}_snap.${mediaType === 'video' ? 'webm' : 'jpg'}`;
+      const file = new File([blob], fileName, { type: mediaType === 'video' ? 'video/webm' : 'image/jpeg' });
+      const mediaUrl = await uploadFile(file, 'snaps');
+      
+      // Send URL to backend
+      await api.post('/snaps/snaps/', {
+        media_url: mediaUrl,
+        receiver_username: receiver,
+        caption: caption,
+        media_type: mediaType
+      });
       toast.success(t('Snap sent! 📸'));
       setBlob(null); setReceiver(''); setCaption(''); fetchSnaps();
     } catch (err: any) { toast.error(err.response?.data?.detail || t('Failed to send snap')); }

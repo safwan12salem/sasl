@@ -24,7 +24,7 @@ import { saslBrain } from '../services/saslBrain';
 import EmojiPicker from 'emoji-picker-react';
 import { contentModerator } from '../services/contentModeration';
 import { useTranslation } from 'react-i18next';
-
+import { uploadFile } from '../services/uploadService';
 // ---------- TYPES ----------
 interface Post {
   id: string;
@@ -311,15 +311,21 @@ const Feed: React.FC = () => {
     if (moderation.isSpam || moderation.isHateful) {
       toast.error(t('content_flagged', { reason: moderation.reason })); return;
     }
-    const formData = new FormData();
-    formData.append('text', composing);
-    formData.append('visibility', visibility);
+       let mediaUrl = '';
+    let mediaType = '';
     if (selectedFile) {
-  formData.append('media', selectedFile);
-  const isVideo = selectedFile.type.startsWith('video/') || 
-                  /\.(mp4|webm|mov|avi|mkv|flv|wmv)$/i.test(selectedFile.name);
-  formData.append('media_type', isVideo ? 'video' : 'image');
-}
+      const isVideo = selectedFile.type.startsWith('video/') || 
+                      /\.(mp4|webm|mov|avi|mkv|flv|wmv)$/i.test(selectedFile.name);
+      mediaType = isVideo ? 'video' : 'image';
+      mediaUrl = await uploadFile(selectedFile, 'feed');
+    }
+    
+    await api.post('/content/posts/', {
+      text: composing,
+      visibility: visibility,
+      media_url: mediaUrl,
+      media_type: mediaType
+    });
     if (composingWithPoll) {
       formData.append('poll', JSON.stringify({
         question: composing,

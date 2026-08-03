@@ -41,6 +41,7 @@ class SnapViewSet(viewsets.ModelViewSet):
         receiver_username = self.request.data.get('receiver_username')
         is_draft = self.request.data.get('is_draft', 'false') == 'true'
         scheduled_for = self.request.data.get('scheduled_for')
+        media_url = self.request.data.get('media_url')
         
         if is_draft:
             serializer.save(sender=self.request.user, is_draft=True)
@@ -53,9 +54,13 @@ class SnapViewSet(viewsets.ModelViewSet):
         try:
             receiver = User.objects.get(username=receiver_username)
         except User.DoesNotExist:
-            from rest_framework.exceptions import ValidationError
-            raise ValidationError({'error': 'Receiver not found'})
+            raise ValidationError({'error': 'User not found'})
         
+        # If media_url provided (Supabase), use it directly
+        if media_url:
+            serializer.save(sender=self.request.user, receiver=receiver, image=media_url)
+        else:
+            serializer.save(sender=self.request.user, receiver=receiver)
         snap = serializer.save(sender=self.request.user, receiver=receiver)
         
         if scheduled_for:
@@ -186,18 +191,25 @@ class SnapViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def post_story(self, request):
         media_file = request.FILES.get('media')
-        if not media_file:
-            return Response({'error': 'Media file required'}, status=400)
+        media_url = request.data.get('media_url')
         
-        story = SnapStory.objects.create(
-            user=request.user,
-            media=media_file,
-            caption=request.data.get('caption', ''),
-            expires_at=timezone.now() + timezone.timedelta(hours=24),
-        )
+        if not media_file and not media_url:
+            return Response({'error': 'Media file or URL required'}, status=400)
+        
+        story_data = {
+            'user': request.user,
+            'caption': request.data.get('caption', ''),
+            'expires_at': timezone.now() + timezone.timedelta(hours=24),
+        }
+        
+        if media_url:
+            story_data['media'] = media_url
+        else:
+            story_data['media'] = media_file
+        
+        story = SnapStory.objects.create(**story_data)
         return Response(SnapStorySerializer(story, context={'request': request}).data, status=201)
-
-
+    
     @action(detail=False, methods=['get'])
     def group_streaks(self, request):
         from .models import SnapGroupStreak
