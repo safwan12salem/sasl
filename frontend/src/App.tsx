@@ -41,6 +41,7 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import ReportPage from './components/ReportPage';
 import AppealPage from './components/AppealPage';
 import SupportPage from './components/SupportPage';
+import PlatformDashboard from './components/PlatformDashboard';
 
 // ✅ FIXED: Added loading check
 function PrivateRoute({ children }: { children: JSX.Element }) {
@@ -136,8 +137,10 @@ function AppContent() {
            <Route path="/meshchat" element={<PrivateRoute><WaveMesh /></PrivateRoute>} />
           <Route path="/earnings" element={<PrivateRoute><EarningsDashboard /></PrivateRoute>} />
           <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
+          
           <Route path="/chat-dashboard" element={<PrivateRoute><ChatDashboard /></PrivateRoute>} />
           <Route path="/creator-studio" element={<PrivateRoute><CreatorStudio /></PrivateRoute>} />
+                    <Route path="/platform" element={<PrivateRoute><PlatformDashboard /></PrivateRoute>} />
           <Route path="/live-audio" element={<PrivateRoute><LiveAudio /></PrivateRoute>} />
           <Route path="/ai-hub" element={<PrivateRoute><SaslAIHub /></PrivateRoute>} />
           <Route path="/group-chat" element={<PrivateRoute><GroupChat /></PrivateRoute>} />

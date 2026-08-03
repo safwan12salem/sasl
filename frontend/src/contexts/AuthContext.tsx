@@ -13,6 +13,7 @@ export interface User {
   is_creator?: boolean;
   is_teacher?: boolean;
   is_seller?: boolean;
+  is_superuser?: boolean;
   followers_count?: number;
   following_count?: number;
   total_earned?: number;
