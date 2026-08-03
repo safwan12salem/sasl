@@ -12,6 +12,9 @@ import { useAuth } from '../contexts/AuthContext';
 import { useMesh } from '../hooks/useMesh';
 import { db } from '../services/offlineDB';
 
+import { uploadFile } from '../services/uploadService';
+
+
 export default function CreatorStudio() {
   const { user } = useAuth();
   const { isOnline } = useMesh();
@@ -27,6 +30,7 @@ export default function CreatorStudio() {
   const [loading, setLoading] = useState(true);
   const [chatInterval, setChatInterval] = useState<any>(null);
   const [tab, setTab] = useState<'dashboard' | 'campaigns' | 'my-content' | 'profile' | 'ads'>('dashboard');
+ 
 
   // Restore tab from localStorage
   useEffect(() => {
@@ -396,13 +400,9 @@ export default function CreatorStudio() {
                       const file = e.target.files?.[0];
                       if (!file) return;
                       setCampaignImage(file);
-                      const formData = new FormData();
-                      formData.append('file', file);
-                      formData.append('upload_preset', 'sasl_upload');
                       try {
-                        const res = await fetch('https://api.cloudinary.com/v1_1/dwem1chqc/upload', { method: 'POST', body: formData });
-                        const data = await res.json();
-                        if (data.secure_url) setCampaignImageUrl(data.secure_url);
+                        const url = await uploadFile(file, 'campaigns');
+                        if (url) setCampaignImageUrl(url);
                       } catch {}
                     }} />
                   </label>
@@ -736,13 +736,9 @@ export default function CreatorStudio() {
                   const file = e.target.files?.[0];
                   if (!file) return;
                   setAdImage(file);
-                  const formData = new FormData();
-                  formData.append('file', file);
-                  formData.append('upload_preset', 'sasl_upload');
-                  try {
-                    const res = await fetch('https://api.cloudinary.com/v1_1/dwem1chqc/upload', { method: 'POST', body: formData });
-                    const data = await res.json();
-                    if (data.secure_url) setAdImageUrl(data.secure_url);
+                                       try {
+                        const url = await uploadFile(file, 'campaigns');
+                        if (url) setCampaignImageUrl(url);
                   } catch {}
                 }} />
               </label>
