@@ -108,12 +108,12 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         media_url = self.request.data.get('media_url')
+        
+        # If Supabase URL provided, append it to the post text
+        if media_url and 'text' in self.request.data:
+            self.request.data['text'] = self.request.data['text'] + '\n\n' + media_url
+        
         post = serializer.save(author=self.request.user)
-
-        if media_url:
-            post.media = media_url
-            post.media_type = self.request.data.get('media_type', 'image')
-            post.save()
         # Handle poll from request data
         raw_poll = self.request.data.get('poll')
         if raw_poll:
