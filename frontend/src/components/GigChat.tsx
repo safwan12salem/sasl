@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import toast from 'react-hot-toast';
 import { Send, ImageIcon, Edit3, Trash2, X } from 'lucide-react';
+import { uploadFile } from '../services/uploadService';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -121,34 +122,27 @@ export default function GigChat({ roomId, onClose }: Props) {
     try { await api.delete(`/gigs/chat/${roomId}/`, { data: { message_id: msgId } }); } catch {}
     setMessages(prev => prev.filter(m => m.id !== msgId));
   };
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     toast.success('Uploading...');
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'sasl_upload');
-      const res = await fetch('https://api.cloudinary.com/v1_1/dwem1chqc/image/upload', { 
-        method: 'POST', 
-        body: formData 
-      });
-      const data = await res.json();
-      if (data.secure_url) {
+      const url = await uploadFile(file, 'gig-chat');
+      if (url) {
         const newMsg = { 
           id: Date.now().toString(), 
-          text: `📎 ${data.secure_url}`, 
-          file_url: data.secure_url, 
+          text: `📎 ${url}`, 
+          file_url: url, 
           sender_name: user?.username,
           sender: { username: user?.username }
         };
-                setMessages(prev => [...prev, newMsg]);
-        
+        setMessages(prev => [...prev, newMsg]);
         // Save to backend for persistence
+            // Save to backend for persistence
         try { 
           await api.post(`/gigs/chat/${roomId}/`, { 
-            text: `📎 ${data.secure_url}`, 
-            file_url: data.secure_url,
+            text: `📎 ${url}`, 
+            file_url: url,
             file_name: file.name,
             message_type: 'image'
           });
@@ -158,8 +152,9 @@ export default function GigChat({ roomId, onClose }: Props) {
         
         toast.success('Image sent!');
       } else {
-        toast.error(data.error?.message || 'Upload failed');
+        toast.error('Upload failed');
       }
+      
     } catch (err: any) {
       toast.error(err.message || 'Upload failed');
     }

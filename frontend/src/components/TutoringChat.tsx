@@ -6,6 +6,7 @@ import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 import { db } from '../services/offlineDB';
 import { useMesh } from '../contexts/MeshContext';
+import { uploadFile } from '../services/uploadService';
 
 
 interface Props {
@@ -122,49 +123,41 @@ export default function GigChat({ roomId, onClose }: Props) {
     try { await api.delete(`/tutoring/chat/?room_id=${roomId}`, { data: { message_id: msgId } }); } catch {}
     setMessages(prev => prev.filter(m => m.id !== msgId));
   };
-   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     toast.success('Uploading...');
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', 'sasl_upload');
-      const res = await fetch('https://api.cloudinary.com/v1_1/dwem1chqc/image/upload', { 
-        method: 'POST', 
-        body: formData 
-      });
-      const data = await res.json();
-      if (data.secure_url) {
+      const url = await uploadFile(file, 'tutoring-chat');
+      if (url) {
         const newMsg = { 
           id: Date.now().toString(), 
-          text: `📎 ${data.secure_url}`, 
-          file_url: data.secure_url, 
+          text: `📎 ${url}`, 
+          file_url: url, 
           sender_name: user?.username,
           sender: { username: user?.username }
         };
-                setMessages(prev => [...prev, newMsg]);
-        
-        // Save to backend for persistence
+        setMessages(prev => [...prev, newMsg]);
         try { 
-          await api.post(`/tutoring/chat/?room_id=${roomId}`, {
-            text: `📎 ${data.secure_url}`, 
-            file_url: data.secure_url,
+          await api.post(`/tutoring/chat/${roomId}/`, { 
+            text: `📎 ${url}`, 
+            file_url: url,
             file_name: file.name,
             message_type: 'image'
           });
         } catch (err) {
           console.error('Backend save failed:', err);
         }
-        
         toast.success('Image sent!');
       } else {
-        toast.error(data.error?.message || 'Upload failed');
+        toast.error('Upload failed');
       }
     } catch (err: any) {
       toast.error(err.message || 'Upload failed');
     }
   };
+
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl">

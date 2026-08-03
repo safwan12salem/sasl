@@ -20,8 +20,7 @@ import TutoringChat from './TutoringChat';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 import AdBanner from './AdBanner';
-
-
+import { uploadFile as uploadToCloud } from '../services/uploadService';
 
 interface Session {
   id: string;
@@ -836,13 +835,9 @@ const getTouchPos = (e: React.TouchEvent) => {
                   if (!file) return;
                   setBgImage(file);
                   // Upload to Cloudinary and set URL
-                  const formData = new FormData();
-                  formData.append('file', file);
-                  formData.append('upload_preset', 'sasl_upload');
-                  try {
-                    const res = await fetch('https://api.cloudinary.com/v1_1/dwem1chqc/upload', { method: 'POST', body: formData });
-                    const data = await res.json();
-                    if (data.secure_url) setBgImageUrl(data.secure_url);
+                                    try {
+                    const url = await uploadToCloud(file, 'sessions');
+                    if (url) setBgImageUrl(url);
                   } catch {}
                 }} />
               </label>
