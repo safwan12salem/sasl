@@ -320,12 +320,7 @@ const Feed: React.FC = () => {
       mediaUrl = await uploadFile(selectedFile, 'feed');
     }
     
-    await api.post('/content/posts/', {
-      text: composing,
-      visibility: visibility,
-      media_url: mediaUrl,
-      media_type: mediaType
-    });
+    
        const payload: any = {
       text: composing,
       visibility: visibility,
@@ -339,13 +334,18 @@ const Feed: React.FC = () => {
         expires_in_days: 1
       });
     }
-    try {
+        try {
+      console.log('📤 Sending to API:', JSON.stringify(payload));
       const res = await api.post('/content/posts/', payload);
+      console.log('✅ Post created:', res.data?.id);
       setPosts(prev => [res.data, ...prev]);
       resetComposer();
       window.scrollTo({ top: 0, behavior: 'smooth' });
       toast.success(t('posted'));
-    } catch { toast.error(t('failed_to_post')); setUploadProgress(0); }
+    } catch (err: any) {
+      console.log('🔴 API error:', err.response?.status, err.response?.data);
+      toast.error(t('failed_to_post')); setUploadProgress(0);
+    }
   };
 
   // ============================================================
