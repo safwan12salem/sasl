@@ -393,6 +393,15 @@ callingRef.current = true;
       ws.onmessage = async (event) => {
         console.log('📩 WS message received:', event.data.substring(0, 50));
         const data = JSON.parse(event.data);
+                if (data.type === 'student_joined' && role === 'tutor') {
+          console.log('📩 Student joined, creating offer');
+          setTimeout(() => {
+            if (remoteVideoRef.current && stream.getVideoTracks().length > 0) {
+              rtc.createOffer(remoteVideoRef.current);
+            }
+          }, 500);
+          return;
+        }
         if (data.type === 'answer') {
           console.log('📩 Handling answer');
           await rtc.handleAnswer(data.answer);
@@ -416,27 +425,21 @@ callingRef.current = true;
       console.log('🟢 Step 6: onmessage set');
 
       console.log('🟠 Step 7: Set ws.onopen');
-      ws.onopen = () => {
+           ws.onopen = () => {
         console.log('🟢 Step 7: ws.onopen FIRED');
         if (stream.getVideoTracks().length > 0) {
           rtc.setLocalStream(stream);
           console.log('🟢 Local stream set on RTC');
         }
-        if (role === 'tutor') {
-          console.log('🟡 Tutor creating offer in 1.5s');
-          setTimeout(() => {
-            if (remoteVideoRef.current && stream.getVideoTracks().length > 0) {
-              console.log('🟡 Creating offer now');
-              rtc.createOffer(remoteVideoRef.current);
-            } else {
-              console.log('🔴 Cannot create offer - remoteVideoRef:', !!remoteVideoRef.current, 'tracks:', stream.getVideoTracks().length);
-            }
-          }, 1500);
-        } else {
+        if (role === 'student') {
           console.log('🟡 Student waiting for offer');
+          ws.send(JSON.stringify({ type: 'student_joined' }));
+        } else {
+          console.log('🟡 Tutor waiting for student to join');
         }
       };
       console.log('🟢 Step 7: onopen set');
+      
 
             setInCall(sessionId);
       console.log('🟢 Step 8: setInCall done');
