@@ -8,7 +8,10 @@ export async function uploadFile(file: File, folder: string = 'posts'): Promise<
     const fileName = `${folder}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
     const url = await uploadMedia(fileName, file);
     if (url) return url;
-  } catch {}
+   } catch (e) {
+    console.log('Supabase upload failed, falling back to Cloudinary:', e);
+  }
+
   
   const formData = new FormData();
   formData.append('file', file);
