@@ -25,19 +25,20 @@ export const sendNotification = async (recipientId: string, actorName: string, m
 };
 
 // Upload media file
+// Upload media file
 export const uploadMedia = async (fileName: string, file: File) => {
-  const { error } = await supabase.storage
+  const { data, error } = await supabase.storage
     .from('media')
-    .upload(`posts/${fileName}`, file);
+    .upload(fileName, file, { upsert: true });
   
   if (error) {
-    console.warn('Supabase upload error:', error);
+    console.warn('Supabase upload error:', error.message, error);
     return null;
   }
   
   const { data: urlData } = supabase.storage
     .from('media')
-    .getPublicUrl(`posts/${fileName}`);
+    .getPublicUrl(fileName);
   
   return urlData.publicUrl;
 };
