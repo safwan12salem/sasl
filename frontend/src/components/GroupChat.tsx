@@ -152,15 +152,19 @@ const handleDeleteMessage = async (messageId: string) => {
       const res = await api.get(`/groupchat/groups/${groupId}/messages/`);
       const data = res.data.results || res.data || [];
       // Deduplicate by ID before setting
+            const mappedData = data.map((m: any) => ({
+        ...m,
+        image: m.image || m.media_url || m.file_url
+      }));
       setMessages(prev => {
         const existingIds = new Set(prev.map(m => m.id));
-        const newMsgs = data.filter((m: any) => !existingIds.has(m.id?.toString()));
+        const newMsgs = mappedData.filter((m: any) => !existingIds.has(m.id?.toString()));
         return [...prev.filter(m => !m.id?.toString().startsWith('offline-')), ...newMsgs];
       });
       await db.messages.where('roomId').equals(groupId).delete();
       // Cache to offlineDB
       data.forEach((m: any) => {
-        db.messages.put({ roomId: groupId, sender: m.sender_name || m.sender?.username, text: m.text || m.content || '', timestamp: new Date(m.created_at).getTime(), type: m.message_type || 'text', fileUrl: m.image || m.file_url });
+        db.messages.put({ roomId: groupId, sender: m.sender_name || m.sender?.username, text: m.text || m.content || '', timestamp: new Date(m.created_at).getTime(), type: m.message_type || 'text', fileUrl: m.image || m.file_url || m.media_url,});
       });
     } catch {
       // Offline: load from local DB
