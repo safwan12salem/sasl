@@ -209,11 +209,16 @@ export default function SnapSender() {
   // Post story
     const postStory = async () => {
     if (!storyFile) return toast.error(t('Select an image or video'));
-    const formData = new FormData(); formData.append('media', storyFile);
-    if (storySound) formData.append('sound_track', storySound);
-        if (selectedSound?.audio_url) formData.append('sound_url', selectedSound.audio_url);
+       // Upload to Supabase first
+    const mediaUrl = await uploadFile(storyFile, 'stories');
+    
     try {
-      await api.post('/snaps/snaps/post_story/', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await api.post('/snaps/snaps/post_story/', {
+        media_url: mediaUrl,
+        caption: caption,
+        sound_track: storySound,
+        sound_url: selectedSound?.audio_url || ''
+      });
       toast.success(t('Story posted! 📖'));
       setShowStoryForm(false); setStoryFile(null); setStoryPreview(null); setStorySound(''); setSelectedSound(null); fetchStories();
     } catch { toast.error(t('Failed to post story')); }
