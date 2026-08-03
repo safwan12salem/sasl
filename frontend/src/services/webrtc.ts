@@ -5,6 +5,7 @@ export class WebRTCConnection {
   private makingOffer = false;
   private ignoreOffer = false;
   private candidateQueue: RTCIceCandidateInit[] = [];
+  private remoteVideoElement: HTMLVideoElement | null = null;
   
   constructor(signalSend: (msg: any) => void) {
     this.signalSend = signalSend;
@@ -43,53 +44,43 @@ export class WebRTCConnection {
       ],
     });
 
+    // Add local tracks IMMEDIATELY so they're in the SDP
+    if (this.localStream) {
+      this.localStream.getTracks().forEach(track => {
+        try { pc.addTrack(track, this.localStream!); } catch (e) {}
+      });
+    }
+
     pc.onicecandidate = (event) => {
       if (event.candidate) {
         this.signalSend({ type: 'candidate', candidate: event.candidate.toJSON() });
       }
     };
 
+    // Handle incoming remote tracks
+    pc.ontrack = (event) => {
+      if (event.streams[0] && this.remoteVideoElement) {
+        if (this.remoteVideoElement.srcObject !== event.streams[0]) {
+          this.remoteVideoElement.srcObject = event.streams[0];
+          this.remoteVideoElement.play().catch(() => {});
+        }
+      }
+    };
+
     return pc;
   }
 
-
   async createOffer(remoteVideoElement: HTMLVideoElement) {
-    if (this.pc && this.pc.signalingState !== 'stable' && this.pc.signalingState !== 'closed') return;
-    this.pc = this.createPeerConnection();
-
-   this.pc.ontrack = (event) => {
-  if (event.streams[0] && event.track.kind === 'video') {
-    if (remoteVideoElement.srcObject !== event.streams[0]) {
-            remoteVideoElement.srcObject = event.streams[0];
-
-      remoteVideoElement.load();
-      // TEST: raw DOM video element
-var testVideo = document.createElement('video');
-testVideo.srcObject = event.streams[0];
-testVideo.autoplay = true;
-testVideo.playsInline = true;
-testVideo.style.cssText = 'position:fixed;top:50px;left:50px;width:300px;height:200px;z-index:99999;border:3px solid red;background:black;';
-document.body.appendChild(testVideo);
-testVideo.play().catch(() => {});
-
-
-      remoteVideoElement.style.width = '100%';
-      remoteVideoElement.style.height = '100%';
-      setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
+    this.remoteVideoElement = remoteVideoElement;
+    
+    if (this.pc && this.pc.signalingState !== 'closed') {
+      this.pc.close();
     }
-  }
-};
+    this.pc = this.createPeerConnection();
 
     try {
       const offer = await this.pc.createOffer();
-      if (this.pc.signalingState !== 'stable') return;
       await this.pc.setLocalDescription(offer);
-            // Add local tracks AFTER setting local description
-      if (this.localStream) {
-        this.localStream.getTracks().forEach(track => {
-          try { this.pc!.addTrack(track, this.localStream!); } catch (e) {}
-        });
-      }
       if (this.pc.localDescription) {
         this.signalSend({ type: 'offer', offer: this.pc.localDescription.toJSON() });
       }
@@ -99,43 +90,24 @@ testVideo.play().catch(() => {});
   }
 
   async handleOffer(offer: RTCSessionDescriptionInit, remoteVideoElement: HTMLVideoElement) {
+    this.remoteVideoElement = remoteVideoElement;
+    
     if (this.makingOffer) { this.ignoreOffer = true; return; }
-    if (!this.pc) { this.pc = this.createPeerConnection(); }
-
-        this.pc.ontrack = (event) => {
-      if (event.streams[0] && event.track.kind === 'video') {
-        if (remoteVideoElement.srcObject !== event.streams[0]) {
-                    remoteVideoElement.srcObject = event.streams[0];
-                    var testVideo = document.createElement('video');
-testVideo.srcObject = event.streams[0];
-testVideo.autoplay = true;
-testVideo.playsInline = true;
-testVideo.style.cssText = 'position:fixed;top:50px;left:50px;width:300px;height:200px;z-index:99999;border:3px solid red;background:black;';
-document.body.appendChild(testVideo);
-testVideo.play().catch(() => {});
-          remoteVideoElement.load();
-
-          remoteVideoElement.style.width = '100%';
-          remoteVideoElement.style.height = '100%';
-          setTimeout(() => remoteVideoElement.play().catch(() => {}), 200);
-        }
-      }
-    };
+    
+    if (this.pc) { this.pc.close(); }
+    this.pc = this.createPeerConnection();
 
     try {
       await this.pc.setRemoteDescription(new RTCSessionDescription(offer));
-            // Add local tracks AFTER setting local description
-      if (this.localStream) {
-        this.localStream.getTracks().forEach(track => {
-          try { this.pc!.addTrack(track, this.localStream!); } catch (e) {}
-        });
-      }
+      
       for (const c of this.candidateQueue) {
         try { await this.pc!.addIceCandidate(new RTCIceCandidate(c)); } catch {}
       }
       this.candidateQueue = [];
+
       const answer = await this.pc.createAnswer();
       await this.pc.setLocalDescription(answer);
+      
       if (this.pc.localDescription) {
         this.signalSend({ type: 'answer', answer: this.pc.localDescription.toJSON() });
       }
@@ -178,5 +150,6 @@ testVideo.play().catch(() => {});
     this.makingOffer = false;
     this.ignoreOffer = false;
     this.candidateQueue = [];
+    this.remoteVideoElement = null;
   }
 }

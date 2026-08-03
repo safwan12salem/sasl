@@ -340,7 +340,6 @@ useEffect(() => {
         const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
           if (callingRef.current) { console.log('⚠️ Already connecting'); return; }
 callingRef.current = true;
-            if (inCall) { console.log('⚠️ Already in call, ignoring'); return; }
     console.log('🔴 START startVideoCall', sessionId, role);
     try {
       console.log('🟠 Step 1: Permission check');
