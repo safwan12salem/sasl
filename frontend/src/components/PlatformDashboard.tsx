@@ -86,10 +86,10 @@ export default function PlatformDashboard() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Total Fees', value: `$${(data.total_platform_fees || 0).toFixed(2)}`, icon: <DollarSign size={24} />, color: 'from-green-400 to-emerald-600' },
-            { label: 'This Month', value: `$${(data.monthly_platform_fees || 0).toFixed(2)}`, icon: <TrendingUp size={24} />, color: 'from-blue-400 to-indigo-600' },
-            { label: 'All Sources', value: `$${totalBreakdown.toFixed(2)}`, icon: <Wallet size={24} />, color: 'from-purple-400 to-pink-600' },
-            { label: 'Your Wallet', value: `$${(user?.wallet?.balance || 0).toFixed(2)}`, icon: <ArrowUpRight size={24} />, color: 'from-orange-400 to-red-600' },
+            { label: 'Total Fees', value: `$${Number(data.total_platform_fees || 0).toFixed(2)}`, icon: <DollarSign size={24} />, color: 'from-green-400 to-emerald-600' },
+            { label: 'This Month', value: `$${Number(data.monthly_platform_fees || 0).toFixed(2)}`, icon: <TrendingUp size={24} />, color: 'from-blue-400 to-indigo-600' },
+            { label: 'All Sources', value: `$${Number(totalBreakdown).toFixed(2)}`, icon: <Wallet size={24} />, color: 'from-purple-400 to-pink-600' },
+            { label: 'Your Wallet', value: `$${Number(user?.wallet?.balance || 0).toFixed(2)}`, icon: <ArrowUpRight size={24} />, color: 'from-orange-400 to-red-600' },
           ].map((card, i) => (
             <motion.div key={i} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
               className="bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/10">
@@ -109,7 +109,7 @@ export default function PlatformDashboard() {
                   <div className={`w-3 h-3 rounded-full ${item.color}`} />
                   <span className="text-gray-400 text-xs">{item.icon}</span>
                   <span className="flex-1 text-gray-300 text-sm">{item.label}</span>
-                  <span className="text-white font-bold">${(item.value || 0).toFixed(2)}</span>
+                  <span className="text-white font-bold">${Number(item.value || 0).toFixed(2)}</span>
                 </div>
               ))}
             </div>
