@@ -126,6 +126,7 @@ export default function GigChat({ roomId, onClose }: Props) {
     const file = e.target.files?.[0];
     if (!file) return;
     toast.success('Uploading...');
+    console.log('📎 GigChat upload starting, file:', file.name, file.size);
     try {
       const url = await uploadFile(file, 'gig-chat');
       if (url) {
@@ -154,7 +155,7 @@ export default function GigChat({ roomId, onClose }: Props) {
       } else {
         toast.error('Upload failed');
       }
-      
+
     } catch (err: any) {
       toast.error(err.message || 'Upload failed');
     }
