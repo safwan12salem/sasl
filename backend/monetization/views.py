@@ -2,10 +2,9 @@
 Sasl - Social Asynchronous Sharing Layer
 Monetization views: ad serving, wallet management.
 """
-from datetime import timezone
-
+from django.utils import timezone
 from decimal import Decimal
-from time import timezone
+
 
 from django.http import JsonResponse
 from rest_framework import viewsets, permissions, status, mixins
