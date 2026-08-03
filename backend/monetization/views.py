@@ -368,7 +368,56 @@ class EarningsViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(data)
     
 
-
+class PlatformOwnerViewSet(viewsets.GenericViewSet):
+    """Platform owner dashboard — accessible only by superuser/owner"""
+    permission_classes = [IsAuthenticated]
+    
+    @action(detail=False, methods=['get'])
+    def dashboard(self, request):
+        # Only allow owner/superuser
+        if not request.user.is_superuser:
+            return Response({'error': 'Access denied'}, status=403)
+        
+        # Total platform fees collected
+        total_fees = Transaction.objects.filter(
+            transaction_type='platform_fee'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        # Monthly fees
+        now = timezone.now()
+        month_start = now.replace(day=1, hour=0, minute=0, second=0)
+        monthly_fees = Transaction.objects.filter(
+            transaction_type='platform_fee',
+            created_at__gte=month_start
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        # Breakdown by source
+        marketplace_fees = Transaction.objects.filter(
+            transaction_type='platform_fee', description__icontains='Marketplace'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        gig_fees = Transaction.objects.filter(
+            transaction_type='platform_fee', description__icontains='gig'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        donation_fees = Transaction.objects.filter(
+            transaction_type='platform_fee', description__icontains='donation'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        ad_fees = Transaction.objects.filter(
+            transaction_type='platform_fee', description__icontains='ad'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        return Response({
+            'total_platform_fees': float(total_fees),
+            'monthly_platform_fees': float(monthly_fees),
+            'breakdown': {
+                'marketplace': float(marketplace_fees),
+                'gigs': float(gig_fees),
+                'donations': float(donation_fees),
+                'ads': float(ad_fees),
+            }
+        })
 
 
 
