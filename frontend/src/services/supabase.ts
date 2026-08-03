@@ -6,14 +6,22 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Subscribe to real-time notifications
-export const subscribeToNotifications = (callback: (payload: any) => void) => {
+export const subscribeToNotifications = (userId: string, callback: (payload: any) => void) => {
   return supabase
     .channel('notifications')
     .on('postgres_changes', 
-      { event: 'INSERT', schema: 'public', table: 'notifications' }, 
+      { event: 'INSERT', schema: 'public', table: 'notifications', filter: `recipient_id=eq.${userId}` }, 
       callback
     )
     .subscribe();
+};
+
+// Send notification (used by backend or frontend)
+export const sendNotification = async (recipientId: string, actorName: string, message: string, type: string = 'general') => {
+  const { error } = await supabase
+    .from('notifications')
+    .insert({ recipient_id: recipientId, actor_name: actorName, message, notification_type: type });
+  return !error;
 };
 
 // Upload media file
