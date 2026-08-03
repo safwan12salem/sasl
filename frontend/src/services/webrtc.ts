@@ -89,22 +89,25 @@ export class WebRTCConnection {
     }
   }
 
-  async handleOffer(offer: RTCSessionDescriptionInit, remoteVideoElement: HTMLVideoElement) {
+  
+
+async handleOffer(offer: RTCSessionDescriptionInit, remoteVideoElement: HTMLVideoElement) {
     this.remoteVideoElement = remoteVideoElement;
-    
     if (this.makingOffer) { this.ignoreOffer = true; return; }
     
+    // Always close old connection if exists, create fresh one
     if (this.pc) { this.pc.close(); }
-    this.pc = this.createPeerConnection();
+    this.pc = this.createPeerConnection(); // This already adds tracks
 
     try {
       await this.pc.setRemoteDescription(new RTCSessionDescription(offer));
+      // DO NOT add tracks again here — they're already added by createPeerConnection()
       
       for (const c of this.candidateQueue) {
         try { await this.pc!.addIceCandidate(new RTCIceCandidate(c)); } catch {}
       }
       this.candidateQueue = [];
-
+      
       const answer = await this.pc.createAnswer();
       await this.pc.setLocalDescription(answer);
       
