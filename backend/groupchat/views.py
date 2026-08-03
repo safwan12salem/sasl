@@ -1,4 +1,4 @@
-from .models import Message as GroupMessage
+from .models import GroupMessage
 from django.utils import timezone
 from tokenize import group
 from urllib import request
