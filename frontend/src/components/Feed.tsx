@@ -326,18 +326,21 @@ const Feed: React.FC = () => {
       media_url: mediaUrl,
       media_type: mediaType
     });
+       const payload: any = {
+      text: composing,
+      visibility: visibility,
+      media_url: mediaUrl,
+      media_type: mediaType
+    };
     if (composingWithPoll) {
-      formData.append('poll', JSON.stringify({
+      payload.poll = JSON.stringify({
         question: composing,
         options: pollOptions.filter(o => o.trim()),
         expires_in_days: 1
-      }));
+      });
     }
     try {
-      const res = await api.post('/content/posts/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (e: any) => { if (e.total) setUploadProgress(Math.round((e.loaded * 100) / e.total)); },
-      } as any);
+      const res = await api.post('/content/posts/', payload);
       setPosts(prev => [res.data, ...prev]);
       resetComposer();
       window.scrollTo({ top: 0, behavior: 'smooth' });
