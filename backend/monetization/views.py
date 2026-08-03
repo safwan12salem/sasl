@@ -402,9 +402,21 @@ class PlatformOwnerViewSet(viewsets.GenericViewSet):
         donation_fees = Transaction.objects.filter(
             transaction_type='platform_fee', description__icontains='donation'
         ).aggregate(total=Sum('amount'))['total'] or 0
-        
+
         ad_fees = Transaction.objects.filter(
             transaction_type='platform_fee', description__icontains='ad'
+        ).aggregate(total=Sum('amount'))['total'] or 0 
+       
+        tutoring_fees = Transaction.objects.filter(
+            transaction_type='platform_fee', description__icontains='tutoring'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        creator_studio_fees = Transaction.objects.filter(
+            transaction_type='platform_fee', description__icontains='creator'
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        
+        subscription_fees = Transaction.objects.filter(
+            transaction_type='platform_fee', description__icontains='subscription'
         ).aggregate(total=Sum('amount'))['total'] or 0
         
         return Response({
@@ -415,10 +427,53 @@ class PlatformOwnerViewSet(viewsets.GenericViewSet):
                 'gigs': float(gig_fees),
                 'donations': float(donation_fees),
                 'ads': float(ad_fees),
+                'tutoring': float(tutoring_fees),
+                'creator_studio': float(creator_studio_fees),
+                'subscriptions': float(subscription_fees),
             }
         })
 
+    @action(detail=False, methods=['post'])
+    def transfer(self, request):
+        """Transfer platform funds to a user"""
+        if not request.user.is_superuser:
+            return Response({'error': 'Access denied'}, status=403)
+        amount = float(request.data.get('amount', 0))
+        username = request.data.get('target_username', '')
+        if amount <= 0 or not username:
+            return Response({'error': 'Invalid amount or username'}, status=400)
+        try:
+            target = User.objects.get(username=username)
+            target.wallet.balance += amount
+            target.wallet.save()
+            Transaction.objects.create(user=target, amount=amount, transaction_type='platform_transfer', description=f'Platform transfer from owner')
+            return Response({'status': 'transferred', 'to': username, 'amount': amount})
+        except User.DoesNotExist:
+            return Response({'error': 'User not found'}, status=404)
 
+    @action(detail=False, methods=['post'])
+    def donate(self, request):
+        """Donate platform funds"""
+        if not request.user.is_superuser:
+            return Response({'error': 'Access denied'}, status=403)
+        amount = float(request.data.get('amount', 0))
+        if amount <= 0:
+            return Response({'error': 'Invalid amount'}, status=400)
+        Transaction.objects.create(user=request.user, amount=-amount, transaction_type='platform_donation', description='Platform donation')
+        return Response({'status': 'donated', 'amount': amount})
+
+    @action(detail=False, methods=['post'])
+    def withdraw(self, request):
+        """Withdraw platform funds to owner's wallet"""
+        if not request.user.is_superuser:
+            return Response({'error': 'Access denied'}, status=403)
+        amount = float(request.data.get('amount', 0))
+        if amount <= 0:
+            return Response({'error': 'Invalid amount'}, status=400)
+        request.user.wallet.balance += amount
+        request.user.wallet.save()
+        Transaction.objects.create(user=request.user, amount=amount, transaction_type='platform_withdrawal', description='Platform withdrawal to owner')
+        return Response({'status': 'withdrawn', 'amount': amount})  
 
 
 
