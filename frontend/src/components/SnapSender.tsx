@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 import {
   Camera, Video, X, Loader2, Send, RotateCcw, Zap,
   Users, Inbox, PenTool, Play, Pause, Plus, Music,
-  Trophy, UserPlus, FileText, DollarSign, TrendingUp, Flame, Clock
+  Trophy, UserPlus, FileText, DollarSign, TrendingUp, Flame, Clock,ImageIcon
 } from 'lucide-react';
 import SoundUploader from './SoundUploader';
 import { Sound } from '../services/soundLibrary';
@@ -73,9 +73,10 @@ export default function SnapSender() {
   const [duration, setDuration] = useState(5);
   const [filter, setFilter] = useState('none');
   const [drawingMode, setDrawingMode] = useState(false);
-
+  
   // Data states
   const [mode, setMode] = useState<SnapMode>('camera');
+  const [inboxTab, setInboxTab] = useState<'received' | 'sent'>('received');
   const [snaps, setSnaps] = useState<Snap[]>([]);
   const [sentSnaps, setSentSnaps] = useState<Snap[]>([]);
   const [viewingSnap, setViewingSnap] = useState<Snap | null>(null);
@@ -166,7 +167,7 @@ export default function SnapSender() {
         media_url: mediaUrl,
         receiver_username: receiver,
         caption: caption,
-        media_type: mediaType
+        
       });
       toast.success(t('Snap sent! 📸'));
       setBlob(null); setReceiver(''); setCaption(''); fetchSnaps();
@@ -311,7 +312,17 @@ export default function SnapSender() {
                   <button onClick={() => setDrawingMode(!drawingMode)} className={`p-3 rounded-full ${drawingMode ? 'bg-yellow-500 text-white' : 'bg-black/40 text-white'}`}>
                     <PenTool size={20} />
                   </button>
+                  <label className="bg-black/40 text-white p-3 rounded-full cursor-pointer hover:bg-black/60 transition">
+  <ImageIcon size={20} />
+  <input type="file" accept="image/*,video/*" className="hidden" onChange={async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBlob(file);
+    setMediaType(file.type.startsWith('video/') ? 'video' : 'image');
+  }} />
+</label>
                 </>
+                            
               )}
             </div>
             {cameraActive && (
@@ -355,6 +366,9 @@ export default function SnapSender() {
                 </div>
                 <input value={receiver} onChange={e => setReceiver(e.target.value)} placeholder={t('Or type any username...')} className="input-field flex-1 text-sm rounded-full mt-2" />
               </div>
+              <button onClick={() => setShowSoundPicker(true)} className={`p-2 rounded-full text-sm ${selectedSound ? 'bg-purple-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
+  <Music size={18} />
+</button>
               <button
                 onClick={sendSnap}
                 disabled={uploading || !receiver.trim()}
@@ -372,17 +386,17 @@ export default function SnapSender() {
       {mode === 'inbox' && (
         <div className="space-y-3">
           <div className="flex gap-2 mb-3">
-            <button className="px-3 py-1 rounded-full text-xs font-semibold bg-yellow-500 text-white">{t('Received')} ({snaps.length})</button>
-            <button className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">{t('Sent')} ({sentSnaps.length})</button>
+            <button onClick={() => setInboxTab('received')} className={`px-3 py-1 rounded-full text-xs font-semibold ${inboxTab === 'received' ? 'bg-yellow-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}>{t('Received')} ({snaps.length})</button>
+            <button onClick={() => setInboxTab('sent')} className={`px-3 py-1 rounded-full text-xs font-semibold ${inboxTab === 'sent' ? 'bg-yellow-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'}`}>{t('Sent')} ({sentSnaps.length})</button>
           </div>
-          {snaps.length === 0 ? (
+          {(inboxTab === 'received' ? snaps : sentSnaps).length === 0 ? (
             <div className="glass p-8 rounded-2xl text-center">
               <Inbox size={48} className="mx-auto mb-3 text-gray-300" />
               <p className="text-gray-500">{t('No new snaps')}</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {snaps.map(snap => (
+             {(inboxTab === 'received' ? snaps : sentSnaps).map(snap => (
                 <motion.div
                   key={snap.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
                   className={`glass p-3 rounded-xl flex items-center gap-3 cursor-pointer ${!snap.viewed ? 'ring-2 ring-red-300 bg-red-50 dark:bg-red-900/20' : 'opacity-75'}`}
