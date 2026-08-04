@@ -43,12 +43,13 @@ export default function Layout() {
     { to: '/snap', icon: Camera, label: t('Snap') },
     { to: '/reels', icon: Video, label: t('Reels') },
     {to: '/creator-studio', icon: Brain, label: t('Creator Studio') },
-       {to: '/platform', icon: Crown, label: t('Platform') },           
+                
     { to: '/analytics', icon: TrendingUp, label: t('Analytics') },
     { to: '/progress', icon: Star, label: t('Progress') },   
     { to: '/chat-dashboard', icon: Inbox, label: t('Messages') },
     { to: '/earnings', icon: DollarSign, label: t('Earnings') },
     { to: '/wallet', icon: Wallet, label: t('wallet') },
+    {to: '/platform', icon: Crown, label: t('Platform') },  
     { to: '/profile', icon: User, label: t('profile') },
         { to: '/support', icon: Shield, label: t('help_support') },
   ];

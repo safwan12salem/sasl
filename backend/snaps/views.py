@@ -56,14 +56,11 @@ class SnapViewSet(viewsets.ModelViewSet):
         except User.DoesNotExist:
             raise ValidationError({'error': 'User not found'})
         
-        # If media_url provided (Supabase), use it directly
+               # If media_url provided (Supabase), use it directly
         if media_url:
-             serializer.save(sender=self.request.user, receiver=receiver, media_url=media_url)
+            snap = serializer.save(sender=self.request.user, receiver=receiver, media_url=media_url)
         else:
-             serializer.save(sender=self.request.user, receiver=receiver)
-
-
-        snap = serializer.save(sender=self.request.user, receiver=receiver)
+            snap = serializer.save(sender=self.request.user, receiver=receiver)
         
         if scheduled_for:
             snap.scheduled_for = scheduled_for
