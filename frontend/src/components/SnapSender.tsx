@@ -27,6 +27,7 @@ interface Snap {
   receiver_name?: string;
   video_url?: string;
   image_url?: string;
+  media_url?: string;
   caption?: string;
   viewed: boolean;
   created_at: string;
@@ -70,7 +71,7 @@ export default function SnapSender() {
   const [uploading, setUploading] = useState(false);
   const [receiver, setReceiver] = useState('');
   const [caption, setCaption] = useState('');
-  const [duration, setDuration] = useState(5);
+  const [duration, setDuration] = useState(11);
   const [filter, setFilter] = useState('none');
   const [drawingMode, setDrawingMode] = useState(false);
   
@@ -205,7 +206,7 @@ export default function SnapSender() {
 
   // View snap
   const viewSnap = (snap: Snap) => {
-    setViewingSnap(snap); setSnapTimer(snap.duration || 5);
+    setViewingSnap(snap); setSnapTimer(snap.duration || 11);
     const timer = setInterval(() => { setSnapTimer(prev => { if (prev <= 1) { clearInterval(timer); setViewingSnap(null); return 0; } return prev - 1; }); }, 1000);
     api.post(`/snaps/snaps/${snap.id}/mark_viewed/`);
   };
@@ -636,7 +637,7 @@ export default function SnapSender() {
         {viewingSnap && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black z-50 flex items-center justify-center" onClick={() => setViewingSnap(null)}>
             <div className="relative max-w-md w-full">
-              {viewingSnap.video_url ? <video src={viewingSnap.video_url} autoPlay className="w-full max-h-[80vh] object-contain" /> : viewingSnap.image_url ? <img src={viewingSnap.image_url} alt="" className="w-full max-h-[80vh] object-contain" /> : null}
+              {viewingSnap.video_url ? <video src={viewingSnap.video_url} autoPlay className="w-full max-h-[80vh] object-contain" /> : viewingSnap.image_url ? <img src={viewingSnap.image_url} alt="" className="w-full max-h-[80vh] object-contain" /> : viewingSnap.media_url ? <img src={viewingSnap.media_url} alt="" className="w-full max-h-[80vh] object-contain" /> : null}
               <p className="absolute top-4 left-4 text-white font-bold">{viewingSnap.sender_name}</p>
               <p className="absolute top-4 right-4 text-white text-sm">{snapTimer}s</p>
               {viewingSnap.caption && <p className="absolute bottom-20 left-4 right-4 text-white text-lg">{viewingSnap.caption}</p>}
