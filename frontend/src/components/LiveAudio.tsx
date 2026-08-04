@@ -62,7 +62,8 @@ export default function LiveAudio() {
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
   const [listenerCount, setListenerCount] = useState(0);
   const localStreamRef = useRef<MediaStream | null>(null);
-
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+const wsRef = useRef<WebSocket | null>(null);
   const [showReactions, setShowReactions] = useState(false);
   const [floatingReactions, setFloatingReactions] = useState<{ id: number; emoji: string; x: number }[]>([]);
   const [showInvite, setShowInvite] = useState(false);
@@ -113,6 +114,53 @@ export default function LiveAudio() {
       setInRoom(roomId);
       // Connect WebRTC for real audio (August backend: WebSocket signaling)
 
+            // Connect WebSocket for signaling
+          const token = localStorage.getItem('sasl_token');
+      const wsUrl = `wss://sasl-api-i34r.onrender.com/ws/audio/${roomId}/?token=${token}`;
+      wsRef.current = new WebSocket(wsUrl);
+      
+      pcRef.current = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'turn:global.relay.metered.ca:80', username: '9a949126f260451ca16f969e', credential: 'HNHbY2NEDOgMoMfd' },
+        ]
+      });
+      
+      stream.getAudioTracks().forEach(track => pcRef.current!.addTrack(track, stream));
+      
+      pcRef.current!.ontrack = (event) => {
+        const remoteAudio = new Audio();
+        remoteAudio.srcObject = event.streams[0];
+        remoteAudio.play().catch(() => {});
+      };
+      
+      wsRef.current.onopen = async () => {
+        const offer = await pcRef.current!.createOffer();
+        await pcRef.current!.setLocalDescription(offer);
+        wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
+      };
+      
+      wsRef.current.onmessage = async (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'answer') {
+          await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.answer));
+        } else if (data.type === 'offer') {
+          await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.offer));
+          const answer = await pcRef.current!.createAnswer();
+          await pcRef.current!.setLocalDescription(answer);
+          wsRef.current!.send(JSON.stringify({ type: 'answer', answer: pcRef.current!.localDescription }));
+        } else if (data.type === 'candidate') {
+          await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
+        }
+      };
+      
+      pcRef.current!.onicecandidate = (event) => {
+        if (event.candidate) {
+          wsRef.current!.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+        }
+      };
+
+      
       const foundRoom = rooms.find(r => r.id === roomId);
       if (foundRoom) {
         setListenerCount(foundRoom.current_listeners + 1);
@@ -127,6 +175,10 @@ export default function LiveAudio() {
     try { await api.post(`/liveaudio/rooms/${roomId}/leave/`); } catch {}
     localStreamRef.current?.getTracks().forEach(t => t.stop());
     localStreamRef.current = null;
+        pcRef.current?.close();
+    pcRef.current = null;
+    wsRef.current?.close();
+    wsRef.current = null;
     setInRoom(null);
     setIsSpeaker(false);
     setHandRaised(false);
