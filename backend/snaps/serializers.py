@@ -15,13 +15,14 @@ class SnapSerializer(serializers.ModelSerializer):
     class Meta:
         model = Snap
         fields = [
-            'id', 'sender', 'sender_name', 'receiver', 'receiver_name',
+            'id','sender_name','receiver_name',
             'video', 'video_url', 'image', 'media_url','image_url',
             'caption', 'duration', 'viewed', 'viewed_at',
             'is_challenge', 'challenge_name', 'is_draft',
             'scheduled_for', 'tip_amount', 'screenshot_count', 'replay_count',
             'created_at'
         ]
+        
     read_only_fields = ['sender', 'receiver', 'viewed', 'tip_amount', 'screenshot_count', 'replay_count']
     def get_video_url(self, obj):
         if obj.video and (request := self.context.get('request')):
