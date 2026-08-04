@@ -38,6 +38,8 @@ class SnapViewSet(viewsets.ModelViewSet):
         ).filter(is_draft=False).select_related('sender', 'receiver').order_by('-created_at')
 
     def perform_create(self, serializer):
+        import json
+        print(f"📩 Snap data: {self.request.data}", flush=True)
         receiver_username = self.request.data.get('receiver_username')
         is_draft = self.request.data.get('is_draft', 'false') == 'true'
         scheduled_for = self.request.data.get('scheduled_for')

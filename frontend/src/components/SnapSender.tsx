@@ -171,7 +171,10 @@ export default function SnapSender() {
       });
       toast.success(t('Snap sent! 📸'));
       setBlob(null); setReceiver(''); setCaption(''); fetchSnaps();
-    } catch (err: any) { toast.error(err.response?.data?.detail || t('Failed to send snap')); }
+    } catch (err: any) { 
+  console.log('Snap error:', err.response?.data);
+  toast.error(JSON.stringify(err.response?.data) || t('Failed to send snap')); 
+}
     finally { setUploading(false); }
   };
 
