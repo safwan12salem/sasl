@@ -76,7 +76,7 @@ const [chatInput, setChatInput] = useState('');
   const [floatingReactions, setFloatingReactions] = useState<{ id: number; emoji: string; x: number }[]>([]);
   const [showInvite, setShowInvite] = useState(false);
   const [inviteUsername, setInviteUsername] = useState('');
-
+  const [speakRequests, setSpeakRequests] = useState<string[]>([]);
   // Payment state
   const [showPayment, setShowPayment] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
@@ -148,7 +148,7 @@ const [chatInput, setChatInput] = useState('');
         wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
       };
       
-      wsRef.current.onmessage = async (event) => {
+          wsRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
         if (data.type === 'answer') {
           await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.answer));
@@ -159,22 +159,25 @@ const [chatInput, setChatInput] = useState('');
           wsRef.current!.send(JSON.stringify({ type: 'answer', answer: pcRef.current!.localDescription }));
         } else if (data.type === 'candidate') {
           await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
+        } else if (data.type === 'reaction') {
+          setFloatingReactions(prev => [...prev, { id: Date.now(), emoji: data.emoji, x: Math.random() * 80 + 10 }]);
+          setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== Date.now())), 3000);
+        } else if (data.type === 'hand_raise') {
+          toast(`${data.username} ${data.raised ? 'raised' : 'lowered'} their hand ✋`);
+        } else if (data.type === 'chat') {
+          setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username }]);
+          setTimeout(() => setChatMessages(prev => prev.filter((_, i) => i !== 0)), 5000);
+        } else if (data.type === 'speak_request') {
+          setSpeakRequests(prev => [...prev, data.username]);
+          toast(`${data.username} wants to speak!`, { icon: '🎤' });
+        } else if (data.type === 'user_joined') {
+          setListenerCount(prev => prev + 1);
+          toast(`${data.username} joined`, { icon: '👋' });
+        } else if (data.type === 'user_left') {
+          setListenerCount(prev => Math.max(0, prev - 1));
         }
-        if (data.type === 'chat') {
-      setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username }]);
-    // Auto-dismiss after 5 seconds
-    setTimeout(() => {
-        setChatMessages(prev => prev.filter((_, i) => i !== 0));
-    }, 5000);
-} else if (data.type === 'speak_request') {
-    toast(`${data.username} wants to speak!`, { icon: '🎤' });
-} else if (data.type === 'user_joined') {
-    setListenerCount(prev => prev + 1);
-    toast(`${data.username} joined`, { icon: '👋' });
-} else if (data.type === 'user_left') {
-    setListenerCount(prev => Math.max(0, prev - 1));
-}
       };
+
       
       pcRef.current!.onicecandidate = (event) => {
         if (event.candidate) {
@@ -223,10 +226,13 @@ const [chatInput, setChatInput] = useState('');
   const raiseHand = async () => {
     if (!inRoom) return;
     try {
-      const res = await api.post(`/liveaudio/rooms/${inRoom}/raise_hand/`);
-      setHandRaised(res.data.status === 'hand_raised');
+        const res = await api.post(`/liveaudio/rooms/${inRoom}/raise_hand/`);
+        setHandRaised(res.data.status === 'hand_raised');
+        if (wsRef.current?.readyState === WebSocket.OPEN) {
+            wsRef.current.send(JSON.stringify({ type: 'hand_raise', username: user?.username, raised: res.data.status === 'hand_raised' }));
+        }
     } catch {}
-  };
+};
 
   const inviteSpeaker = async () => {
     if (!inviteUsername.trim() || !inRoom) return;
@@ -240,10 +246,14 @@ const [chatInput, setChatInput] = useState('');
   const sendReaction = async (emoji: string) => {
     if (!inRoom) return;
     try { await api.post(`/liveaudio/rooms/${inRoom}/react/`, { reaction: emoji }); } catch {}
+    // Also send via WebSocket for real-time
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: 'reaction', emoji, username: user?.username }));
+    }
     const id = Date.now();
     setFloatingReactions(prev => [...prev, { id, emoji, x: Math.random() * 80 + 10 }]);
     setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== id)), 3000);
-  };
+};
 
 const sendChat = () => {
     if (!chatInput.trim() || !wsRef.current) return;
@@ -323,6 +333,25 @@ const requestSpeak = () => {
                   </p>
                 </div>
               </div>
+                            {/* Speak Requests Banner */}
+              {speakRequests.length > 0 && rooms.find(r => r.id === inRoom)?.host.username === user?.username && (
+                <div className="absolute top-14 left-4 right-4 z-30 bg-yellow-500/90 backdrop-blur-sm rounded-xl p-3 mx-4">
+                  <p className="text-black text-xs font-bold mb-2">🎤 Speak Requests:</p>
+                  {speakRequests.map((username, i) => (
+                    <div key={i} className="flex items-center gap-2 mb-1">
+                      <span className="text-black text-sm">@{username}</span>
+                      <button onClick={() => {
+                        api.post(`/liveaudio/rooms/${inRoom}/invite_speaker/`, { username });
+                        setSpeakRequests(prev => prev.filter(u => u !== username));
+                        toast.success(`@${username} is now a speaker!`);
+                      }} className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">✅ Accept</button>
+                      <button onClick={() => {
+                        setSpeakRequests(prev => prev.filter(u => u !== username));
+                      }} className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">❌ Decline</button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <button 
                 onClick={() => setShowInvite(true)} 
                 className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition text-white"

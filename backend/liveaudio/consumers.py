@@ -76,6 +76,27 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 }}
             )
 
+
+        elif msg_type == 'reaction':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {'type': 'reaction_broadcast', 'data': {
+                    'type': 'reaction',
+                    'emoji': data.get('emoji', '👏'),
+                    'username': self.user.username
+                }}
+            )
+        elif msg_type == 'hand_raise':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {'type': 'hand_raise_broadcast', 'data': {
+                    'type': 'hand_raise',
+                    'username': self.user.username,
+                    'raised': data.get('raised', True)
+                }}
+            )
+
+             
     async def audio_message(self, event):
         await self.send(text_data=json.dumps(event['data']))
 
@@ -85,5 +106,11 @@ class AudioConsumer(AsyncWebsocketConsumer):
     async def speak_request(self, event):
         await self.send(text_data=json.dumps(event['data']))
 
+    async def reaction_broadcast(self, event):
+        await self.send(text_data=json.dumps(event['data']))
+
+    async def hand_raise_broadcast(self, event):
+        await self.send(text_data=json.dumps(event['data']))    
+    
     async def room_update(self, event):
         await self.send(text_data=json.dumps(event['data']))
