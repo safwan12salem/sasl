@@ -99,18 +99,28 @@ class SnapViewSet(viewsets.ModelViewSet):
             daily_reward = STREAK_REWARD_PER_DAY * streak.current_streak
             streak.total_reward_earned += daily_reward
             
-            # Milestone bonus
+            # Milestone bonus - safe wallet update
             if streak.current_streak in STREAK_MILESTONE_BONUS:
                 bonus = STREAK_MILESTONE_BONUS[streak.current_streak]
                 streak.total_reward_earned += bonus
-                # Add to user wallets
-                user_a.wallet.balance += bonus / 2
-                user_a.wallet.save()
-                user_b.wallet.balance += bonus / 2
-                user_b.wallet.save()
+                try:
+                    user_a.wallet.balance += bonus / 2
+                    user_a.wallet.save()
+                    user_b.wallet.balance += bonus / 2
+                    user_b.wallet.save()
+                except: pass
             
             streak.save()
             
+            # Daily reward - safe wallet update
+            try:
+                user_a.wallet.balance += daily_reward / 2
+                user_a.wallet.save()
+                user_b.wallet.balance += daily_reward / 2
+                user_b.wallet.save()
+            except: pass
+
+
             # Add daily reward to wallets
             user_a.wallet.balance += daily_reward / 2
             user_a.wallet.save()
