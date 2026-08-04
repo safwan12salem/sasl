@@ -161,7 +161,11 @@ const [chatInput, setChatInput] = useState('');
           await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
         }
         if (data.type === 'chat') {
-    setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username }]);
+      setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username }]);
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        setChatMessages(prev => prev.filter((_, i) => i !== 0));
+    }, 5000);
 } else if (data.type === 'speak_request') {
     toast(`${data.username} wants to speak!`, { icon: '🎤' });
 } else if (data.type === 'user_joined') {
@@ -489,32 +493,7 @@ const requestSpeak = () => {
                   </motion.button>
                 )}
                     
-                                {/* Chat Panel */}
-            {showChat && (
-              <div className="absolute right-0 top-0 bottom-0 w-72 bg-gray-900/95 backdrop-blur-xl border-l border-white/10 flex flex-col z-10">
-                <div className="p-3 border-b border-white/10 flex justify-between items-center">
-                  <span className="text-white font-bold text-sm">💬 Chat</span>
-                  <button onClick={() => setShowChat(false)} className="text-white/60 hover:text-white">
-                    <X size={16} />
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-3 space-y-2">
-                  {chatMessages.length === 0 && (
-                    <p className="text-gray-500 text-xs text-center mt-10">No messages yet</p>
-                  )}
-                  {chatMessages.map((m, i) => (
-                    <div key={i} className={`text-sm ${m.isMe ? 'text-right' : ''}`}>
-                      <span className="text-purple-400 text-xs font-semibold">{m.isMe ? '' : `@${m.username}`}</span>
-                      <p className={`inline-block px-3 py-1.5 rounded-xl text-xs ${m.isMe ? 'bg-purple-500 text-white' : 'bg-white/10 text-white'}`}>{m.message}</p>
-                    </div>
-                  ))}
-                </div>
-                <div className="p-2 border-t border-white/10 flex gap-2">
-                  <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendChat()} placeholder="Message..." className="flex-1 bg-white/10 rounded-full px-3 py-1.5 text-xs text-white outline-none" />
-                  <button onClick={sendChat} className="bg-purple-500 text-white p-1.5 rounded-full"><Send size={14} /></button>
-                </div>
-              </div>
-            )}
+                           
                 {/* Chat Toggle */}
                 <motion.button 
                   whileTap={{ scale: 0.9 }} 
