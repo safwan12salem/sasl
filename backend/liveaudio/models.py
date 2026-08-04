@@ -13,7 +13,9 @@ class AudioRoom(models.Model):
     is_public = models.BooleanField(default=True)
     current_listeners = models.PositiveIntegerField(default=0)
     max_listeners = models.PositiveIntegerField(default=100)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    background_url = models.URLField(blank=True, null=True)
     ended_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:

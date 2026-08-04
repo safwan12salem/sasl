@@ -9,11 +9,13 @@ import toast from 'react-hot-toast';
 import {
   Mic, MicOff, Users, Hand, Plus, Phone, Loader2, AlertCircle,
   Volume2, Smile, TrendingUp, Radio, Zap, Crown,
-  UserPlus, Globe, Lock, Sparkles, X
+  UserPlus, Globe, Lock, Sparkles, X, Send, MessageCircle,ImageIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
+import { uploadFile } from '../services/uploadService';
+
 
 interface AudioRoom {
   id: string;
@@ -29,6 +31,7 @@ interface AudioRoom {
   topics?: string;
   created_at: string;
   price?: string;
+    background_url?: string;
 }
 
 interface Speaker {
@@ -54,6 +57,8 @@ export default function LiveAudio() {
   const [roomTopics, setRoomTopics] = useState('');
   const [isPublic, setIsPublic] = useState(true);
   const [maxListeners, setMaxListeners] = useState('100');
+const [bgImage, setBgImage] = useState<File | null>(null);
+const [bgImageUrl, setBgImageUrl] = useState('');
 
   const [inRoom, setInRoom] = useState<string | null>(null);
   const [isSpeaker, setIsSpeaker] = useState(false);
@@ -64,6 +69,9 @@ export default function LiveAudio() {
   const localStreamRef = useRef<MediaStream | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
 const wsRef = useRef<WebSocket | null>(null);
+const [showChat, setShowChat] = useState(false);
+const [chatMessages, setChatMessages] = useState<any[]>([]);
+const [chatInput, setChatInput] = useState('');
   const [showReactions, setShowReactions] = useState(false);
   const [floatingReactions, setFloatingReactions] = useState<{ id: number; emoji: string; x: number }[]>([]);
   const [showInvite, setShowInvite] = useState(false);
@@ -152,6 +160,16 @@ const wsRef = useRef<WebSocket | null>(null);
         } else if (data.type === 'candidate') {
           await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
         }
+        if (data.type === 'chat') {
+    setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username }]);
+} else if (data.type === 'speak_request') {
+    toast(`${data.username} wants to speak!`, { icon: '🎤' });
+} else if (data.type === 'user_joined') {
+    setListenerCount(prev => prev + 1);
+    toast(`${data.username} joined`, { icon: '👋' });
+} else if (data.type === 'user_left') {
+    setListenerCount(prev => Math.max(0, prev - 1));
+}
       };
       
       pcRef.current!.onicecandidate = (event) => {
@@ -160,7 +178,7 @@ const wsRef = useRef<WebSocket | null>(null);
         }
       };
 
-      
+
       const foundRoom = rooms.find(r => r.id === roomId);
       if (foundRoom) {
         setListenerCount(foundRoom.current_listeners + 1);
@@ -222,6 +240,19 @@ const wsRef = useRef<WebSocket | null>(null);
     setFloatingReactions(prev => [...prev, { id, emoji, x: Math.random() * 80 + 10 }]);
     setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== id)), 3000);
   };
+
+const sendChat = () => {
+    if (!chatInput.trim() || !wsRef.current) return;
+    wsRef.current.send(JSON.stringify({ type: 'chat', message: chatInput, timestamp: Date.now() }));
+    setChatMessages(prev => [...prev, { username: 'You', message: chatInput, isMe: true }]);
+    setChatInput('');
+};
+
+const requestSpeak = () => {
+    if (!wsRef.current) return;
+    wsRef.current.send(JSON.stringify({ type: 'request_speak' }));
+    toast.success('Requested to speak!');
+};
 
   const endRoom = async (roomId: string) => {
     try { await api.post(`/liveaudio/rooms/${roomId}/end_room/`); toast.success(t('room_ended')); fetchRooms(); } catch {}
@@ -446,7 +477,52 @@ const wsRef = useRef<WebSocket | null>(null);
                     <Hand size={24} />
                   </motion.button>
                 )}
-
+                 
+                                 {/* Request Speak */}
+                {!isSpeaker && (
+                  <motion.button 
+                    whileTap={{ scale: 0.9 }} 
+                    onClick={requestSpeak} 
+                    className="p-4 rounded-full bg-blue-500 text-white shadow-lg shadow-blue-500/30 hover:bg-blue-600 transition"
+                  >
+                    <Volume2 size={24} />
+                  </motion.button>
+                )}
+                    
+                                {/* Chat Panel */}
+            {showChat && (
+              <div className="absolute right-0 top-0 bottom-0 w-72 bg-gray-900/95 backdrop-blur-xl border-l border-white/10 flex flex-col z-10">
+                <div className="p-3 border-b border-white/10 flex justify-between items-center">
+                  <span className="text-white font-bold text-sm">💬 Chat</span>
+                  <button onClick={() => setShowChat(false)} className="text-white/60 hover:text-white">
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                  {chatMessages.length === 0 && (
+                    <p className="text-gray-500 text-xs text-center mt-10">No messages yet</p>
+                  )}
+                  {chatMessages.map((m, i) => (
+                    <div key={i} className={`text-sm ${m.isMe ? 'text-right' : ''}`}>
+                      <span className="text-purple-400 text-xs font-semibold">{m.isMe ? '' : `@${m.username}`}</span>
+                      <p className={`inline-block px-3 py-1.5 rounded-xl text-xs ${m.isMe ? 'bg-purple-500 text-white' : 'bg-white/10 text-white'}`}>{m.message}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="p-2 border-t border-white/10 flex gap-2">
+                  <input value={chatInput} onChange={e => setChatInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendChat()} placeholder="Message..." className="flex-1 bg-white/10 rounded-full px-3 py-1.5 text-xs text-white outline-none" />
+                  <button onClick={sendChat} className="bg-purple-500 text-white p-1.5 rounded-full"><Send size={14} /></button>
+                </div>
+              </div>
+            )}
+                {/* Chat Toggle */}
+                <motion.button 
+                  whileTap={{ scale: 0.9 }} 
+                  onClick={() => setShowChat(!showChat)} 
+                  className={`p-4 rounded-full transition-all shadow-lg ${showChat ? 'bg-purple-500 text-white shadow-purple-500/30' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                >
+                  <MessageCircle size={24} />
+                </motion.button>
                 {/* Leave */}
                 <motion.button 
                   whileTap={{ scale: 0.9 }} 
@@ -490,6 +566,17 @@ const wsRef = useRef<WebSocket | null>(null);
             <textarea className="input-field" placeholder="Description..." value={roomDesc} onChange={e => setRoomDesc(e.target.value)} rows={2} />
             <input className="input-field" placeholder="Topics (comma separated)" value={roomTopics} onChange={e => setRoomTopics(e.target.value)} />
             <div className="flex gap-3 items-center">
+                          <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-500 hover:text-gray-700">
+              <ImageIcon size={16} />
+              {bgImage ? bgImage.name : 'Room background (optional)'}
+              <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setBgImage(file);
+                const url = await uploadFile(file, 'liveaudio');
+                if (url) setBgImageUrl(url);
+              }} />
+            </label>
               <label className="flex items-center gap-2 text-sm cursor-pointer">
                 <input type="checkbox" checked={isPublic} onChange={e => setIsPublic(e.target.checked)} className="rounded" />
                 {isPublic ? <Globe size={14} /> : <Lock size={14} />}{t(' Public')}
@@ -548,10 +635,12 @@ const wsRef = useRef<WebSocket | null>(null);
       ) : (
         <div className="space-y-3">
           {rooms.map(room => (
-            <motion.div key={room.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                       <motion.div key={room.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: -2 }}
-              className="glass-card rounded-2xl p-5 transition">
-              <div className="flex items-start justify-between gap-4 flex-wrap">
+              className="glass-card rounded-2xl p-5 transition relative overflow-hidden"
+              style={room.background_url ? { backgroundImage: `url(${room.background_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
+              {room.background_url && <div className="absolute inset-0 bg-black/50" />}
+              <div className="relative z-10 flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="relative flex-shrink-0">
                     {room.host.avatar_url ? (
