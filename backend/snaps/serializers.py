@@ -22,8 +22,7 @@ class SnapSerializer(serializers.ModelSerializer):
             'scheduled_for', 'tip_amount', 'screenshot_count', 'replay_count',
             'created_at'
         ]
-        read_only_fields = ['sender', 'viewed', 'tip_amount', 'screenshot_count', 'replay_count']
-
+    read_only_fields = ['sender', 'receiver', 'viewed', 'tip_amount', 'screenshot_count', 'replay_count']
     def get_video_url(self, obj):
         if obj.video and (request := self.context.get('request')):
             return obj.video.url if obj.video else None
