@@ -100,6 +100,14 @@ const [chatInput, setChatInput] = useState('');
   }, [activeTopic]);
 
   useEffect(() => { fetchRooms(); }, [fetchRooms]);
+    // Rejoin saved room on page refresh
+  useEffect(() => {
+    const savedRoom = localStorage.getItem('sasl_live_room');
+    if (savedRoom && !inRoom) {
+      joinRoom(savedRoom);
+    }
+  }, []);
+
 
   const createRoom = async () => {
     if (!roomTitle.trim()) return toast.error(t('enter_room_title'));
@@ -123,6 +131,7 @@ const [chatInput, setChatInput] = useState('');
       stream.getAudioTracks()[0].enabled = !isMuted;
       await api.post(`/liveaudio/rooms/${roomId}/join/`);
       setInRoom(roomId);
+      localStorage.setItem('sasl_live_room', roomId);
       // Connect WebRTC for real audio (August backend: WebSocket signaling)
 
             // Connect WebSocket for signaling
@@ -213,7 +222,8 @@ const [chatInput, setChatInput] = useState('');
     setSpeakers([]);
     setListenerCount(0);
     fetchRooms();
-  
+    localStorage.removeItem('sasl_live_room');
+
   };
 
   const toggleMute = () => {
@@ -682,7 +692,14 @@ const requestSpeak = () => {
                     <button onClick={() => setShowInvite(true)} className="btn-primary text-xs flex items-center gap-1 px-2 py-1"><UserPlus size={12} /> {t('invite')}</button>
                     <motion.button whileTap={{ scale: 0.95 }} onClick={() => {
                       if (room.price) { setPaymentAmount(parseFloat(room.price)); setShowPayment(true); }
-                      else { joinRoom(room.id); }
+                                           else { 
+                        if (room.is_public) {
+                          joinRoom(room.id); 
+                        } else {
+                          api.post(`/liveaudio/rooms/${room.id}/join/`);
+                          toast.success('Join request sent to host');
+                        }
+                      }
                     }} className="btn-primary text-xs px-3 py-1 min-w-[50px] text-center">{room.price ? `$${room.price}` : t('join')}</motion.button>
                     <button onClick={(e) => { e.stopPropagation(); tipHost(room.id); }} 
   className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-semibold hover:bg-yellow-200 transition">

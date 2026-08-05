@@ -21,3 +21,5 @@ application = ProtocolTypeRouter({
         URLRouter(content_ws + streaming_ws + marketplace_ws + gig_ws + tutoring_ws + mesh_ws + notifications_ws + liveaudio_ws)
     ),
 })
+# liveaudio WebSocket routing
+
