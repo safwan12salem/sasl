@@ -81,16 +81,16 @@ const [chatInput, setChatInput] = useState('');
   const [showPayment, setShowPayment] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
 
-  const fetchRooms = useCallback(async () => {
+    const fetchRooms = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-           const params = new URLSearchParams();
-      if (activeTopic) params.set('topic', activeTopic);
-      const url = `/liveaudio/rooms/?${params.toString()}`;
-      console.log('Fetching rooms from:', url);
-      const res = await api.get('/liveaudio/rooms/');
-      setRooms(res.data.results || res.data || []);
+      const token = localStorage.getItem('sasl_token');
+      const res = await fetch(`https://sasl-api-i34r.onrender.com/api/liveaudio/rooms/`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setRooms(data.results || data || []);
     } catch (err) {
       console.log('LiveAudio fetch error:', err);
       setError(t('failed_to_load_rooms'));
