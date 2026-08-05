@@ -553,7 +553,7 @@ const requestSpeak = () => {
                 </motion.button>
 
                 {/* Raise Hand */}
-                {!isSpeaker && (
+                {!isSpeaker && rooms.find(r => r.id === inRoom)?.host.username !== user?.username && (
                   <motion.button 
                     whileTap={{ scale: 0.9 }} 
                     onClick={raiseHand} 
@@ -568,7 +568,7 @@ const requestSpeak = () => {
                 )}
                  
                                  {/* Request Speak */}
-                {!isSpeaker && (
+               {!isSpeaker && rooms.find(r => r.id === inRoom)?.host.username !== user?.username && (
                   <motion.button 
                     whileTap={{ scale: 0.9 }} 
                     onClick={requestSpeak} 

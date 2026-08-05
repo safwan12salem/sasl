@@ -91,7 +91,8 @@ class AudioRoomViewSet(viewsets.ModelViewSet):
         return Response({
             'status': 'hand_raised' if listener.is_raised_hand else 'hand_lowered'
         })
-
+    
+    # Force redeploy - invite speaker endpoint
     @action(detail=True, methods=['post'])
     def invite_speaker(self, request, pk=None):
         room = self.get_object()
