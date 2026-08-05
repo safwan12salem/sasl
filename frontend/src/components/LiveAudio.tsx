@@ -85,9 +85,11 @@ const [chatInput, setChatInput] = useState('');
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams();
+           const params = new URLSearchParams();
       if (activeTopic) params.set('topic', activeTopic);
-      const res = await api.get(`/liveaudio/rooms/?${params.toString()}`);
+      const url = `/liveaudio/rooms/?${params.toString()}`;
+      console.log('Fetching rooms from:', url);
+      const res = await api.get(url);
       setRooms(res.data.results || res.data || []);
     } catch (err) {
       console.log('LiveAudio fetch error:', err);
