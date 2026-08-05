@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 import uuid
 
-
 class AudioRoom(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='audio_rooms_hosted')
@@ -13,9 +12,7 @@ class AudioRoom(models.Model):
     is_public = models.BooleanField(default=True)
     current_listeners = models.PositiveIntegerField(default=0)
     max_listeners = models.PositiveIntegerField(default=100)
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    background_url = models.URLField(blank=True, null=True)
     ended_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -23,7 +20,6 @@ class AudioRoom(models.Model):
 
     def __str__(self):
         return f"Room: {self.title} by {self.host.username}"
-
 
 class AudioRoomSpeaker(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
