@@ -158,12 +158,15 @@ const [chatInput, setChatInput] = useState('');
         remoteAudio.play().catch(() => {});
       };
       
-      wsRef.current.onopen = async () => {
-        const offer = await pcRef.current!.createOffer();
-        await pcRef.current!.setLocalDescription(offer);
-        wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
+            wsRef.current.onopen = async () => {
+        // Only host (first in room) creates offer
+        const isHost = rooms.find(r => r.id === roomId)?.host.username === user?.username;
+        if (isHost) {
+          const offer = await pcRef.current!.createOffer();
+          await pcRef.current!.setLocalDescription(offer);
+          wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
+        }
       };
-      
           wsRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
         if (data.type === 'answer') {
@@ -287,7 +290,7 @@ const sendChat = () => {
 
 const requestSpeak = () => {
     if (!wsRef.current) return;
-    wsRef.current.send(JSON.stringify({ type: 'request_speak' }));
+    wsRef.current.send(JSON.stringify({ type: 'request_speak', username: user?.username }));
     toast.success('Requested to speak!');
 };
 
