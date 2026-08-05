@@ -56,6 +56,7 @@ export default function LiveAudio() {
   const [roomDesc, setRoomDesc] = useState('');
   const [roomTopics, setRoomTopics] = useState('');
   const [isPublic, setIsPublic] = useState(true);
+  const [roomPrice, setRoomPrice] = useState('');
   const [maxListeners, setMaxListeners] = useState('100');
 const [bgImage, setBgImage] = useState<File | null>(null);
 const [bgImageUrl, setBgImageUrl] = useState('');
@@ -109,17 +110,20 @@ const [chatInput, setChatInput] = useState('');
   }, []);
 
 
-  const createRoom = async () => {
+    const createRoom = async () => {
     if (!roomTitle.trim()) return toast.error(t('enter_room_title'));
     try {
       await api.post('/liveaudio/rooms/', {
         title: roomTitle, description: roomDesc, topics: roomTopics,
         is_public: isPublic, max_listeners: parseInt(maxListeners),
+        background_url: bgImageUrl,
+        price: roomPrice || null,
       });
       toast.success(t('room_created'));
       setShowCreate(false);
       setRoomTitle(''); setRoomDesc(''); setRoomTopics('');
       setIsPublic(true); setMaxListeners('100');
+      setBgImage(null); setBgImageUrl('');
       fetchRooms();
     } catch { toast.error(t('failed_to_create_room')); }
   };
@@ -269,9 +273,15 @@ const [chatInput, setChatInput] = useState('');
 };
 
 const sendChat = () => {
-    if (!chatInput.trim() || !wsRef.current) return;
-    wsRef.current.send(JSON.stringify({ type: 'chat', message: chatInput, timestamp: Date.now() }));
-    setChatMessages(prev => [...prev, { username: 'You', message: chatInput, isMe: true }]);
+    if (!chatInput.trim()) return;
+    const msg = chatInput;
+    if (wsRef.current?.readyState === WebSocket.OPEN) {
+        wsRef.current.send(JSON.stringify({ type: 'chat', message: msg, timestamp: Date.now() }));
+    } else if (inRoom) {
+        // REST fallback
+        api.post(`/liveaudio/rooms/${inRoom}/react/`, { reaction: `💬 ${msg}` }).catch(() => {});
+    }
+    setChatMessages(prev => [...prev, { username: 'You', message: msg, isMe: true }]);
     setChatInput('');
 };
 
@@ -478,6 +488,17 @@ const requestSpeak = () => {
               </div>
             </div>
 
+            {/* Chat Input Bar */}
+            <div className="absolute bottom-20 left-4 right-4 z-20 flex gap-2">
+              <input value={chatInput} onChange={e => setChatInput(e.target.value)} 
+                onKeyDown={e => e.key === 'Enter' && sendChat()} 
+                placeholder="Send a message..." 
+                className="flex-1 bg-black/50 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-white outline-none border border-white/20" />
+              <button onClick={sendChat} className="bg-purple-500 text-white p-2 rounded-full hover:bg-purple-600 transition">
+                <Send size={16} />
+              </button>
+            </div>
+
             {/* Bottom Controls */}
             <div className="px-4 py-4 border-t border-white/10 bg-black/20 backdrop-blur-xl">
               {/* Reactions Quick Bar */}
@@ -603,6 +624,7 @@ const requestSpeak = () => {
                 {isPublic ? <Globe size={14} /> : <Lock size={14} />}{t(' Public')}
               </label>
               <input className="input-field w-24 text-sm" type="number" placeholder="Max" value={maxListeners} onChange={e => setMaxListeners(e.target.value)} />
+                            <input className="input-field w-24 text-sm" type="number" placeholder="Price $" value={roomPrice} onChange={e => setRoomPrice(e.target.value)} />
             </div>
             <button onClick={createRoom} className="btn-primary w-full">{t('🎙️ Start Room')}</button>
           </motion.div>

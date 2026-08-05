@@ -11,39 +11,20 @@ class AudioConsumer(AsyncWebsocketConsumer):
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'audio_{self.room_name}'
         
-        # Validate token from query string
-        query_string = self.scope.get('query_string', b'').decode()
-        token = query_string.replace('token=', '') if 'token=' in query_string else ''
-        user = await self.get_user(token)
-        if not user:
-            await self.close()
-            return
-        
-        self.user = user
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
-        
-        # Notify room that someone joined
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {'type': 'room_update', 'data': {'type': 'user_joined', 'username': user.username}}
-        )
 
     @database_sync_to_async
     def get_user(self, token):
         try:
             access_token = AccessToken(token)
-            return User.objects.get(id=access_token['user_id'])
-        except:
+            user_id = access_token['user_id']
+            return User.objects.get(id=user_id)
+        except Exception as e:
+            print(f"AudioConsumer auth failed: {e}", flush=True)
             return None
-
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-        if hasattr(self, 'user'):
-            await self.channel_layer.group_send(
-                self.room_group_name,
-                {'type': 'room_update', 'data': {'type': 'user_left', 'username': self.user.username}}
-            )
 
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -61,7 +42,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {'type': 'chat_message', 'data': {
                     'type': 'chat',
-                    'username': self.user.username,
+                    'username': 'User',
                     'message': data.get('message', ''),
                     'timestamp': data.get('timestamp', '')
                 }}
@@ -72,7 +53,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {'type': 'speak_request', 'data': {
                     'type': 'speak_request',
-                    'username': self.user.username
+                    'username': 'User',
                 }}
             )
 
@@ -83,7 +64,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 {'type': 'reaction_broadcast', 'data': {
                     'type': 'reaction',
                     'emoji': data.get('emoji', '👏'),
-                    'username': self.user.username
+                    'username': 'User'
                 }}
             )
         elif msg_type == 'hand_raise':
@@ -91,7 +72,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {'type': 'hand_raise_broadcast', 'data': {
                     'type': 'hand_raise',
-                    'username': self.user.username,
+                    'username': 'User',
                     'raised': data.get('raised', True)
                 }}
             )
