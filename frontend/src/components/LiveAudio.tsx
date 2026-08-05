@@ -90,6 +90,7 @@ const [chatInput, setChatInput] = useState('');
       const res = await api.get(`/liveaudio/rooms/?${params.toString()}`);
       setRooms(res.data.results || res.data || []);
     } catch (err) {
+      console.log('LiveAudio fetch error:', err);
       setError(t('failed_to_load_rooms'));
     } finally {
       setLoading(false);
