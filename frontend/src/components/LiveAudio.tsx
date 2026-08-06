@@ -57,6 +57,7 @@ export default function LiveAudio() {
   const [roomTopics, setRoomTopics] = useState('');
   const [isPublic, setIsPublic] = useState(true);
   const [roomPrice, setRoomPrice] = useState('');
+  const [roomDuration, setRoomDuration] = useState('30');
   const [maxListeners, setMaxListeners] = useState('100');
 const [bgImage, setBgImage] = useState<File | null>(null);
 const [bgImageUrl, setBgImageUrl] = useState('');
@@ -78,6 +79,7 @@ const [chatInput, setChatInput] = useState('');
   const [showInvite, setShowInvite] = useState(false);
   const [inviteUsername, setInviteUsername] = useState('');
   const [speakRequests, setSpeakRequests] = useState<string[]>([]);
+  const [speakerTimers, setSpeakerTimers] = useState<Record<string, NodeJS.Timeout>>({});
   // Payment state
   const [showPayment, setShowPayment] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
@@ -139,7 +141,7 @@ const [chatInput, setChatInput] = useState('');
       // Connect WebRTC for real audio (August backend: WebSocket signaling)
 
             // Connect WebSocket for signaling
-          const token = localStorage.getItem('sasl_token');
+      const token = localStorage.getItem('sasl_token');
       const wsUrl = `wss://sasl-api-i34r.onrender.com/ws/audio/${roomId}/?token=${token}`;
       wsRef.current = new WebSocket(wsUrl);
       
@@ -170,7 +172,7 @@ const [chatInput, setChatInput] = useState('');
         remoteAudio.play().catch(() => {});
       };
       
-              wsRef.current.onopen = async () => {
+      wsRef.current.onopen = async () => {
         // Tell everyone in the room that someone joined
         wsRef.current!.send(JSON.stringify({ type: 'join_room', username: user?.username }));
       };
@@ -191,9 +193,12 @@ const [chatInput, setChatInput] = useState('');
           setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== Date.now())), 3000);
         } else if (data.type === 'hand_raise') {
           toast(`${data.username} ${data.raised ? 'raised' : 'lowered'} their hand ✋`);
-        } else if (data.type === 'chat') {
-          setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username }]);
-          
+                } else if (data.type === 'chat') {
+          // Skip if it's our own message (already added locally)
+          if (data.username !== user?.username) {
+            setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: false }]);
+          }
+        
         } else if (data.type === 'speak_request') {
           setSpeakRequests(prev => [...prev, data.username]);
           toast(`${data.username} wants to speak!`, { icon: '🎤' });
@@ -204,11 +209,14 @@ const [chatInput, setChatInput] = useState('');
           setListenerCount(prev => Math.max(0, prev - 1));
         
          
-                } else if (data.type === 'join_room') {
-          // Someone joined — create offer for them
-          const offer = await pcRef.current!.createOffer();
-          await pcRef.current!.setLocalDescription(offer);
-          wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
+                       } else if (data.type === 'join_room') {
+          setTimeout(async () => {
+            try {
+              const offer = await pcRef.current!.createOffer();
+              await pcRef.current!.setLocalDescription(offer);
+              wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
+            } catch(e) { console.log('Offer creation failed:', e); }
+          }, 500);
         }
       };
 
@@ -354,6 +362,14 @@ const requestSpeak = () => {
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex flex-col"
+            style={(() => {
+              const room = rooms.find(r => r.id === inRoom);
+              return room?.background_url ? {
+                backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${room.background_url})`,
+                backgroundSize: 'cover',
+                backgroundPosition: 'center'
+              } : {};
+            })()}
           >
             {/* Room Header */}
             <div className="px-4 py-3 flex items-center justify-between border-b border-white/10">
@@ -380,11 +396,18 @@ const requestSpeak = () => {
                   <p className="text-black text-xs font-bold mb-2">🎤 Speak Requests:</p>
                   {speakRequests.map((username, i) => (
                     <div key={i} className="flex items-center gap-2 mb-1">
-                      <span className="text-black text-sm">@{username}</span>
-                      <button onClick={() => {
+                                           <button onClick={() => {
                         api.post(`/liveaudio/rooms/${inRoom}/invite_speaker/`, { username });
                         setSpeakRequests(prev => prev.filter(u => u !== username));
-                        toast.success(`@${username} is now a speaker!`);
+                        toast.success(`@${username} is now a speaker for ${roomDuration || 30} mins!`);
+                        
+                        // Auto-remove speaker after duration
+                        const durationMs = (parseInt(roomDuration) || 30) * 60 * 1000;
+                        const timer = setTimeout(() => {
+                          api.post(`/liveaudio/rooms/${inRoom}/remove_speaker/`, { username }).catch(() => {});
+                          toast(`@${username}'s speaking time ended`, { icon: '⏰' });
+                        }, durationMs);
+                        setSpeakerTimers(prev => ({ ...prev, [username]: timer }));
                       }} className="bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">✅ Accept</button>
                       <button onClick={() => {
                         setSpeakRequests(prev => prev.filter(u => u !== username));
@@ -671,6 +694,7 @@ const requestSpeak = () => {
               </label>
               <input className="input-field w-24 text-sm" type="number" placeholder="Max" value={maxListeners} onChange={e => setMaxListeners(e.target.value)} />
                             <input className="input-field w-24 text-sm" type="number" placeholder="Price $" value={roomPrice} onChange={e => setRoomPrice(e.target.value)} />
+                            <input className="input-field w-24 text-sm" type="number" placeholder="Mins" value={roomDuration} onChange={e => setRoomDuration(e.target.value)} />
             </div>
             <button onClick={createRoom} className="btn-primary w-full">{t('🎙️ Start Room')}</button>
           </motion.div>

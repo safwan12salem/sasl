@@ -42,7 +42,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {'type': 'chat_message', 'data': {
                     'type': 'chat',
-                    'username': 'User',
+                    'username': data.get('username', 'User'),
                     'message': data.get('message', ''),
                     'timestamp': data.get('timestamp', '')
                 }}
@@ -64,7 +64,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 {'type': 'reaction_broadcast', 'data': {
                     'type': 'reaction',
                     'emoji': data.get('emoji', '👏'),
-                    'username': 'User'
+                    'username': data.get('username', 'User')
                 }}
             )
         elif msg_type == 'hand_raise':
