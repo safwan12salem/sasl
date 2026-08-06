@@ -53,7 +53,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {'type': 'speak_request', 'data': {
                     'type': 'speak_request',
-                    'username': 'User',
+                  'username': data.get('username', 'User'),
                 }}
             )
 
@@ -72,7 +72,7 @@ class AudioConsumer(AsyncWebsocketConsumer):
                 self.room_group_name,
                 {'type': 'hand_raise_broadcast', 'data': {
                     'type': 'hand_raise',
-                    'username': 'User',
+                    'username': data.get('username', 'User'),
                     'raised': data.get('raised', True)
                 }}
             )

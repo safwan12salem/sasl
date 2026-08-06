@@ -158,15 +158,11 @@ const [chatInput, setChatInput] = useState('');
         remoteAudio.play().catch(() => {});
       };
       
-            wsRef.current.onopen = async () => {
-        // Only host (first in room) creates offer
-        const isHost = rooms.find(r => r.id === roomId)?.host.username === user?.username;
-        if (isHost) {
-          const offer = await pcRef.current!.createOffer();
-          await pcRef.current!.setLocalDescription(offer);
-          wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
-        }
+              wsRef.current.onopen = async () => {
+        // Tell everyone in the room that someone joined
+        wsRef.current!.send(JSON.stringify({ type: 'join_room', username: user?.username }));
       };
+
           wsRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
         if (data.type === 'answer') {
@@ -194,6 +190,13 @@ const [chatInput, setChatInput] = useState('');
           toast(`${data.username} joined`, { icon: '👋' });
         } else if (data.type === 'user_left') {
           setListenerCount(prev => Math.max(0, prev - 1));
+        
+         
+                } else if (data.type === 'join_room') {
+          // Someone joined — create offer for them
+          const offer = await pcRef.current!.createOffer();
+          await pcRef.current!.setLocalDescription(offer);
+          wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
         }
       };
 
@@ -525,6 +528,16 @@ const requestSpeak = () => {
                 </div>
               )}
 
+                          {/* Emoji Quick Bar */}
+              <div className="flex justify-center gap-2 mb-2">
+                {['❤️', '😂', '🔥', '👏', '💯'].map(emoji => (
+                  <button key={emoji} onClick={() => { setChatInput(prev => prev + emoji); }}
+                    className="text-lg hover:scale-125 transition-transform">
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+
               {/* Chat Input */}
               <div className="flex gap-2 mb-3">
                 <input value={chatInput} onChange={e => setChatInput(e.target.value)} 
@@ -535,7 +548,6 @@ const requestSpeak = () => {
                   <Send size={14} />
                 </button>
               </div>
-
 
               {/* Action Buttons */}
               <div className="flex items-center justify-center gap-4">
