@@ -188,13 +188,16 @@ const [chatInput, setChatInput] = useState('');
         remoteAudio.play().catch(() => {});
       };
       
-      wsRef.current.onopen = async () => {
-        // Tell everyone in the room that someone joined
+            wsRef.current.onopen = async () => {
+        console.log('🔌 Audio WS onopen FIRED');
+        console.log('📤 Sending join_room...');
         wsRef.current!.send(JSON.stringify({ type: 'join_room', username: user?.username }));
+        console.log('📤 join_room sent');
       };
 
           wsRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
+         console.log('📩 Audio WS message:', data.type);
         if (data.type === 'answer') {
           await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.answer));
         } else if (data.type === 'offer') {
@@ -224,7 +227,9 @@ const [chatInput, setChatInput] = useState('');
          
                        } else if (data.type === 'join_room') {
           // Only respond if someone ELSE joined (not our own join_room echo)
+           console.log('📩 join_room received from:', data.username);
           if (data.username !== user?.username) {
+            console.log('🎯 Creating offer for:', data.username);
             setTimeout(async () => {
               try {
                 const offer = await pcRef.current!.createOffer();
