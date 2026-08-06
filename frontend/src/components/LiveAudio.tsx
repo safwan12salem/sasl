@@ -146,7 +146,16 @@ const [chatInput, setChatInput] = useState('');
       pcRef.current = new RTCPeerConnection({
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'turn:global.relay.metered.ca:80', username: '9a949126f260451ca16f969e', credential: 'HNHbY2NEDOgMoMfd' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { 
+            urls: [
+              'turn:global.relay.metered.ca:80?transport=udp',
+              'turn:global.relay.metered.ca:80?transport=tcp',
+              'turn:global.relay.metered.ca:443?transport=tcp',
+            ],
+            username: '9a949126f260451ca16f969e',
+            credential: 'HNHbY2NEDOgMoMfd'
+          },
         ]
       });
       
@@ -155,6 +164,9 @@ const [chatInput, setChatInput] = useState('');
       pcRef.current!.ontrack = (event) => {
         const remoteAudio = new Audio();
         remoteAudio.srcObject = event.streams[0];
+        remoteAudio.setAttribute('playsinline', '');
+        remoteAudio.setAttribute('webkit-playsinline', '');
+        remoteAudio.autoplay = true;
         remoteAudio.play().catch(() => {});
       };
       
