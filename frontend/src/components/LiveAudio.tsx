@@ -153,7 +153,10 @@ const [chatInput, setChatInput] = useState('');
             // Connect WebSocket for signaling
       const token = localStorage.getItem('sasl_token');
       const wsUrl = `wss://sasl-api-i34r.onrender.com/ws/audio/${roomId}/?token=${token}`;
+            console.log('🔌 Connecting audio WS:', wsUrl);
       wsRef.current = new WebSocket(wsUrl);
+             console.log('🔌 Audio WS created');
+      wsRef.current.onerror = (e) => console.log('🔌 Audio WS error:', e);  
       
            pcRef.current = new RTCPeerConnection({
         iceTransportPolicy: 'relay',
