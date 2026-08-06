@@ -218,13 +218,16 @@ const [chatInput, setChatInput] = useState('');
         
          
                        } else if (data.type === 'join_room') {
-          setTimeout(async () => {
-            try {
-              const offer = await pcRef.current!.createOffer();
-              await pcRef.current!.setLocalDescription(offer);
-              wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
-            } catch(e) { console.log('Offer creation failed:', e); }
-          }, 500);
+          // Only respond if someone ELSE joined (not our own join_room echo)
+          if (data.username !== user?.username) {
+            setTimeout(async () => {
+              try {
+                const offer = await pcRef.current!.createOffer();
+                await pcRef.current!.setLocalDescription(offer);
+                wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
+              } catch(e) { console.log('Offer creation failed:', e); }
+            }, 500);
+          }
         }
       };
 
