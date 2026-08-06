@@ -155,7 +155,9 @@ const [chatInput, setChatInput] = useState('');
       const wsUrl = `wss://sasl-api-i34r.onrender.com/ws/audio/${roomId}/?token=${token}`;
       wsRef.current = new WebSocket(wsUrl);
       
-      pcRef.current = new RTCPeerConnection({
+           pcRef.current = new RTCPeerConnection({
+        iceTransportPolicy: 'all',
+        iceCandidatePoolSize: 2,
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
