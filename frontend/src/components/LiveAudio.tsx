@@ -188,11 +188,19 @@ const [chatInput, setChatInput] = useState('');
         remoteAudio.play().catch(() => {});
       };
       
-            wsRef.current.onopen = async () => {
-        console.log('🔌 Audio WS onopen FIRED');
-        console.log('📤 Sending join_room...');
-        wsRef.current!.send(JSON.stringify({ type: 'join_room', username: user?.username }));
-        console.log('📤 join_room sent');
+                wsRef.current.onopen = async () => {
+        console.log('🔌 Audio WS onopen FIRED, listeners:', listenerCount);
+        if (listenerCount > 1) {
+          console.log('🎯 Second joiner - creating offer');
+          setTimeout(async () => {
+            try {
+              const offer = await pcRef.current!.createOffer();
+              await pcRef.current!.setLocalDescription(offer);
+              wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
+              console.log('📤 Offer sent');
+            } catch(e) { console.log('Offer creation failed:', e); }
+          }, 2000);
+        }
       };
 
           wsRef.current.onmessage = async (event) => {
@@ -225,23 +233,7 @@ const [chatInput, setChatInput] = useState('');
           setListenerCount(prev => Math.max(0, prev - 1));
         
          
-                 } else if (data.type === 'join_room') {
-          console.log('📩 join_room received from:', data.username);
-          if (data.username !== user?.username) {
-            console.log('🎯 Creating offer for:', data.username, '| pcRef:', !!pcRef.current);
-            if (!pcRef.current) {
-              console.log('❌ pcRef is null, cannot create offer');
-              return;
-            }
-            setTimeout(async () => {
-              try {
-                const offer = await pcRef.current!.createOffer();
-                await pcRef.current!.setLocalDescription(offer);
-                wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
-                console.log('📤 Offer sent to:', data.username);
-              } catch(e) { console.log('Offer creation failed:', e); }
-            }, 1500);
-          }
+             
         }
       };
 
