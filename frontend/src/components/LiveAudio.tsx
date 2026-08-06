@@ -188,7 +188,12 @@ const receivedOfferRef = useRef(false);
         remoteAudio.setAttribute('playsinline', '');
         remoteAudio.setAttribute('webkit-playsinline', '');
         remoteAudio.autoplay = true;
-        remoteAudio.play().catch(() => {});
+                remoteAudio.play().then(() => {
+          console.log('🔊 Remote audio playing');
+        }).catch(e => {
+          console.log('🔇 Autoplay blocked - tap screen to hear');
+          toast('👆 Tap anywhere to hear speaker', { duration: 5000, icon: '🔊' });
+        });
       };
       
                    wsRef.current.onopen = async () => {
