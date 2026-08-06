@@ -84,8 +84,14 @@ const [chatInput, setChatInput] = useState('');
   const [showPayment, setShowPayment] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
 
-    const fetchRooms = useCallback(async () => {
-    setLoading(true);
+      const fetchRooms = useCallback(async () => {
+    // Show cached rooms instantly
+    const cached = localStorage.getItem('sasl_liveaudio_rooms');
+    if (cached) {
+      try { setRooms(JSON.parse(cached)); setLoading(false); } catch {}
+    } else {
+      setLoading(true);
+    }
     setError(null);
     try {
       const token = localStorage.getItem('sasl_token');
@@ -93,7 +99,9 @@ const [chatInput, setChatInput] = useState('');
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
-      setRooms(data.results || data || []);
+      const roomsData = data.results || data || [];
+      setRooms(roomsData);
+      localStorage.setItem('sasl_liveaudio_rooms', JSON.stringify(roomsData));
     } catch (err) {
       console.log('LiveAudio fetch error:', err);
       setError(t('failed_to_load_rooms'));
@@ -101,6 +109,8 @@ const [chatInput, setChatInput] = useState('');
       setLoading(false);
     }
   }, [activeTopic]);
+
+
 
   useEffect(() => { fetchRooms(); }, [fetchRooms]);
     // Rejoin saved room on page refresh
@@ -164,6 +174,7 @@ const [chatInput, setChatInput] = useState('');
       stream.getAudioTracks().forEach(track => pcRef.current!.addTrack(track, stream));
       
       pcRef.current!.ontrack = (event) => {
+        console.log('🎵 ONTRACK FIRED! Track kind:', event.track.kind, 'Streams:', event.streams.length);
         const remoteAudio = new Audio();
         remoteAudio.srcObject = event.streams[0];
         remoteAudio.setAttribute('playsinline', '');
@@ -193,11 +204,8 @@ const [chatInput, setChatInput] = useState('');
           setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== Date.now())), 3000);
         } else if (data.type === 'hand_raise') {
           toast(`${data.username} ${data.raised ? 'raised' : 'lowered'} their hand ✋`);
-                } else if (data.type === 'chat') {
-          // Skip if it's our own message (already added locally)
-          if (data.username !== user?.username) {
-            setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: false }]);
-          }
+        } else if (data.type === 'chat') {
+          setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username }]);
         
         } else if (data.type === 'speak_request') {
           setSpeakRequests(prev => [...prev, data.username]);
@@ -302,12 +310,11 @@ const sendChat = () => {
     if (!chatInput.trim()) return;
     const msg = chatInput;
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: 'chat', message: msg, timestamp: Date.now() }));
+        wsRef.current.send(JSON.stringify({ type: 'chat', message: msg, username: user?.username, timestamp: Date.now() }));
     } else if (inRoom) {
-        // REST fallback
         api.post(`/liveaudio/rooms/${inRoom}/react/`, { reaction: `💬 ${msg}` }).catch(() => {});
     }
-    setChatMessages(prev => [...prev, { username: 'You', message: msg, isMe: true }]);
+    // Don't add local echo — let WebSocket broadcast handle it
     setChatInput('');
 };
 
@@ -356,20 +363,17 @@ const requestSpeak = () => {
 
            {/* In-Room UI — Full-Screen Immersive Room */}
       <AnimatePresence>
-        {inRoom && (
+       {inRoom && (
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex flex-col"
-            style={(() => {
-              const room = rooms.find(r => r.id === inRoom);
-              return room?.background_url ? {
-                backgroundImage: `linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url(${room.background_url})`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center'
-              } : {};
-            })()}
+            className="fixed inset-0 z-50 flex flex-col"
+            style={{
+              background: rooms.find(r => r.id === inRoom)?.background_url 
+                ? `linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url(${rooms.find(r => r.id === inRoom)?.background_url}) center/cover no-repeat`
+                : 'linear-gradient(to bottom right, #1a1a2e, #6b21a8, #1a1a2e)'
+            }}
           >
             {/* Room Header */}
             <div className="px-4 py-3 flex items-center justify-between border-b border-white/10">
