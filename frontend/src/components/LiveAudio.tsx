@@ -83,6 +83,9 @@ const [chatInput, setChatInput] = useState('');
   // Payment state
   const [showPayment, setShowPayment] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
+const offerTimerRef = useRef<NodeJS.Timeout | null>(null);
+const receivedOfferRef = useRef(false);
+
 
       const fetchRooms = useCallback(async () => {
     // Show cached rooms instantly
@@ -188,20 +191,22 @@ const [chatInput, setChatInput] = useState('');
         remoteAudio.play().catch(() => {});
       };
       
-                wsRef.current.onopen = async () => {
-        console.log('🔌 Audio WS onopen FIRED, listeners:', listenerCount);
-        if (listenerCount > 1) {
-          console.log('🎯 Second joiner - creating offer');
-          setTimeout(async () => {
-            try {
-              const offer = await pcRef.current!.createOffer();
-              await pcRef.current!.setLocalDescription(offer);
-              wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
-              console.log('📤 Offer sent');
-            } catch(e) { console.log('Offer creation failed:', e); }
-          }, 2000);
-        }
+                   wsRef.current.onopen = async () => {
+        console.log('🔌 Audio WS onopen FIRED');
+        receivedOfferRef.current = false;
+        
+        offerTimerRef.current = setTimeout(() => {
+          if (!receivedOfferRef.current) {
+            console.log('🎯 No offer received in 3s — creating offer');
+            pcRef.current!.createOffer()
+              .then(offer => pcRef.current!.setLocalDescription(offer))
+              .then(() => wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription })))
+              .then(() => console.log('📤 Offer sent'))
+              .catch(e => console.log('Offer failed:', e));
+          }
+        }, 3000);
       };
+
 
           wsRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
@@ -209,6 +214,8 @@ const [chatInput, setChatInput] = useState('');
         if (data.type === 'answer') {
           await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.answer));
         } else if (data.type === 'offer') {
+             receivedOfferRef.current = true;
+          if (offerTimerRef.current) clearTimeout(offerTimerRef.current);
           await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.offer));
           const answer = await pcRef.current!.createAnswer();
           await pcRef.current!.setLocalDescription(answer);
@@ -231,9 +238,7 @@ const [chatInput, setChatInput] = useState('');
           toast(`${data.username} joined`, { icon: '👋' });
         } else if (data.type === 'user_left') {
           setListenerCount(prev => Math.max(0, prev - 1));
-        
-         
-             
+                    
         }
       };
 
