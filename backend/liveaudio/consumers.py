@@ -30,8 +30,8 @@ class AudioConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         msg_type = data.get('type', 'audio_message')
         
-        if msg_type == 'audio_message':
-            # WebRTC signaling (offer/answer/candidate)
+        if msg_type == 'audio_message' or msg_type in ('offer', 'answer', 'candidate', 'join_room'):
+            # WebRTC signaling + join_room — broadcast to all peers
             await self.channel_layer.group_send(
                 self.room_group_name,
                 {'type': 'audio_message', 'data': data}
