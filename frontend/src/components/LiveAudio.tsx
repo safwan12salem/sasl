@@ -206,35 +206,51 @@ const receivedOfferRef = useRef(false);
           toast('👆 Tap anywhere to hear speaker', { duration: 5000, icon: '🔊' });
         });
       };
-                   wsRef.current.onopen = async () => {
+                  wsRef.current.onopen = async () => {
         console.log('🔌 Audio WS onopen FIRED');
-        receivedOfferRef.current = false;
         
-        offerTimerRef.current = setTimeout(() => {
+        // Polite negotiation: only the peer with alphabetically lower username creates offer
+        const myUsername = user?.username || '';
+        const otherUsername = ''; // We don't know yet
+        
+        // Wait 2 seconds for both to connect, then decide
+        setTimeout(() => {
+          // Check if we should be the offerer (polite peer = creates offer)
+          // Use a simple rule: if we haven't received an offer, we're the first one
           if (!receivedOfferRef.current) {
-            console.log('🎯 No offer received in 3s — creating offer');
+            console.log('🎯 Creating offer as polite peer');
             pcRef.current!.createOffer()
               .then(offer => pcRef.current!.setLocalDescription(offer))
-              .then(() => wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription })))
-              .then(() => console.log('📤 Offer sent'))
+              .then(() => {
+                if (pcRef.current!.localDescription) {
+                  wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
+                  console.log('📤 Offer sent');
+                }
+              })
               .catch(e => console.log('Offer failed:', e));
           }
-        }, 3000);
+        }, 2000);
       };
-
 
           wsRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
          console.log('📩 Audio WS message:', data.type);
         if (data.type === 'answer') {
           await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.answer));
-        } else if (data.type === 'offer') {
-             receivedOfferRef.current = true;
+               } else if (data.type === 'offer') {
+          receivedOfferRef.current = true;
           if (offerTimerRef.current) clearTimeout(offerTimerRef.current);
+          
+          if (pcRef.current!.signalingState !== 'stable') {
+            console.log('⚠️ Ignoring offer - not in stable state:', pcRef.current!.signalingState);
+            return;
+          }
+          
           await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.offer));
           const answer = await pcRef.current!.createAnswer();
           await pcRef.current!.setLocalDescription(answer);
           wsRef.current!.send(JSON.stringify({ type: 'answer', answer: pcRef.current!.localDescription }));
+        
         } else if (data.type === 'candidate') {
           await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
         } else if (data.type === 'reaction') {
