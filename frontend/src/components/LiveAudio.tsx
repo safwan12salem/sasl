@@ -262,14 +262,26 @@ const [chatInput, setChatInput] = useState('');
             if (localStream) {
               localStream.getTracks().forEach(track => newPC.addTrack(track, localStream));
             }
-            newPC.ontrack = (event) => {
+                       newPC.ontrack = (event) => {
               console.log('🎵 ONTRACK from:', data.username);
+              const remoteStream = event.streams[0];
+              
+              // Play for the host
               const audio = document.createElement('audio');
-              audio.srcObject = event.streams[0];
+              audio.srcObject = remoteStream;
               audio.autoplay = true;
               audio.setAttribute('playsinline', '');
               document.body.appendChild(audio);
               audio.play().catch(() => {});
+              
+              // Relay this speaker's audio to ALL other listeners
+              peerConnections.current.forEach((pc, username) => {
+                if (username !== data.username) {
+                  remoteStream.getTracks().forEach(track => {
+                    pc.addTrack(track, remoteStream);
+                  });
+                }
+              });
             };
             newPC.onicecandidate = (event) => {
               if (event.candidate) {
