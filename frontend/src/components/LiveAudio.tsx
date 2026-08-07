@@ -489,8 +489,12 @@ const requestSpeak = () => {
                   className="relative mb-8"
                 >
                   <div className="w-28 h-28 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 p-1 shadow-2xl shadow-purple-500/30">
-                    <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center text-white text-3xl font-bold border-4 border-purple-400/50">
-                      {speakers[0].user.username[0]?.toUpperCase()}
+                                       <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center text-white text-3xl font-bold border-4 border-purple-400/50 overflow-hidden">
+                                           {speakers[0].user.avatar_url ? (
+                        <img src={speakers[0].user.avatar_url} className="w-full h-full object-cover rounded-full" alt="" />
+                      ) : (
+                        speakers[0].user.username[0]?.toUpperCase()
+                      )}
                       <span className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-gray-900" />
                     </div>
                   </div>
