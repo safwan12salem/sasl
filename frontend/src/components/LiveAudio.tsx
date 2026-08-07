@@ -71,6 +71,7 @@ const [bgImageUrl, setBgImageUrl] = useState('');
   const localStreamRef = useRef<MediaStream | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
 const wsRef = useRef<WebSocket | null>(null);
+const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
 const [showChat, setShowChat] = useState(false);
 const [chatMessages, setChatMessages] = useState<any[]>([]);
 const [chatInput, setChatInput] = useState('');
@@ -181,21 +182,30 @@ const receivedOfferRef = useRef(false);
       
       stream.getAudioTracks().forEach(track => pcRef.current!.addTrack(track, stream));
       
-      pcRef.current!.ontrack = (event) => {
+           pcRef.current!.ontrack = (event) => {
         console.log('🎵 ONTRACK FIRED! Track kind:', event.track.kind, 'Streams:', event.streams.length);
-        const remoteAudio = new Audio();
-        remoteAudio.srcObject = event.streams[0];
-        remoteAudio.setAttribute('playsinline', '');
-        remoteAudio.setAttribute('webkit-playsinline', '');
-        remoteAudio.autoplay = true;
-                remoteAudio.play().then(() => {
-          console.log('🔊 Remote audio playing');
+        
+        if (remoteAudioRef.current) {
+          remoteAudioRef.current.srcObject = null;
+          remoteAudioRef.current.remove();
+        }
+        
+        const audio = document.createElement('audio');
+        audio.srcObject = event.streams[0];
+        audio.setAttribute('playsinline', '');
+        audio.setAttribute('webkit-playsinline', '');
+        audio.autoplay = true;
+        audio.controls = false;
+        document.body.appendChild(audio);
+        remoteAudioRef.current = audio;
+        
+        audio.play().then(() => {
+          console.log('🔊 Remote audio playing, volume:', audio.volume);
         }).catch(e => {
-          console.log('🔇 Autoplay blocked - tap screen to hear');
+          console.log('🔇 Autoplay blocked:', e.name);
           toast('👆 Tap anywhere to hear speaker', { duration: 5000, icon: '🔊' });
         });
       };
-      
                    wsRef.current.onopen = async () => {
         console.log('🔌 Audio WS onopen FIRED');
         receivedOfferRef.current = false;
