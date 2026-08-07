@@ -298,10 +298,30 @@ const [chatInput, setChatInput] = useState('');
           const answer = await pcRef.current!.createAnswer();
           await pcRef.current!.setLocalDescription(answer);
           wsRef.current!.send(JSON.stringify({ type: 'answer', answer: pcRef.current!.localDescription, target: data.username }));
-        } else if (data.type === 'candidate') {
+                } else if (data.type === 'candidate') {
           try {
-            await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
+            if (data.target) {
+              const targetPC = peerConnections.current.get(data.target);
+              if (targetPC) await targetPC.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } else {
+              await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
           } catch(e) {}
+        } else if (data.type === 'reaction') {
+          setFloatingReactions(prev => [...prev, { id: Date.now(), emoji: data.emoji, x: Math.random() * 80 + 10 }]);
+          setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== Date.now())), 3000);
+        } else if (data.type === 'hand_raise') {
+          toast(`${data.username} ${data.raised ? 'raised' : 'lowered'} their hand ✋`);
+        } else if (data.type === 'chat') {
+          setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username}]);
+        } else if (data.type === 'speak_request') {
+          setSpeakRequests(prev => [...prev, data.username]);
+          toast(`${data.username} wants to speak!`, { icon: '🎤' });
+        } else if (data.type === 'user_joined') {
+          setListenerCount(prev => prev + 1);
+          toast(`${data.username} joined`, { icon: '👋' });
+        } else if (data.type === 'user_left') {
+          setListenerCount(prev => Math.max(0, prev - 1));
         }
       };
 
