@@ -273,6 +273,15 @@ class ProductViewSet(viewsets.ModelViewSet):
         wishlist_item.delete()
         return Response({'status': 'removed'})
      return Response({'status': 'added'})
+
+
+    @action(detail=True, methods=['post'])
+    def increment_view(self, request, pk=None):
+        product = self.get_object()
+        product.views_count = (product.views_count or 0) + 1
+        product.save(update_fields=['views_count'])
+        return Response({'views_count': product.views_count})
+    
 class WishlistViewSet(viewsets.ModelViewSet):
     serializer_class = WishlistSerializer
     permission_classes = [permissions.IsAuthenticated]

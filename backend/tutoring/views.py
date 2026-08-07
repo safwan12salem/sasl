@@ -213,6 +213,15 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         return Response(session.signaling or {})
 
 
+    @action(detail=True, methods=['post'])
+    def increment_view(self, request, pk=None):
+        session = self.get_object()
+        session.views_count = (session.views_count or 0) + 1
+        session.save(update_fields=['views_count'])
+        return Response({'views_count': session.views_count})
+
+   
+
 class TutoringChatViewSet(viewsets.ViewSet):
     """Dedicated tutoring chat - isolated from WaveMesh"""
     permission_classes = [permissions.IsAuthenticated]

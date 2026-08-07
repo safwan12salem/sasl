@@ -388,6 +388,15 @@ class GigViewSet(viewsets.ModelViewSet):
         gig.save()
         return Response({'status': 'cancelled'})
 
+
+    @action(detail=True, methods=['post'])
+    def increment_view(self, request, pk=None):
+        gig = self.get_object()
+        gig.views = (gig.views or 0) + 1
+        gig.save(update_fields=['views'])
+        return Response({'views': gig.views})
+
+
 class GigChatViewSet(viewsets.ViewSet):
     """Dedicated gig chat - isolated from WaveMesh"""
     permission_classes = [permissions.IsAuthenticated]
