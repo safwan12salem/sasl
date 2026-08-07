@@ -374,7 +374,10 @@ const resetSellForm = () => {
           {products.map((p, idx) => (
                        <motion.div key={p.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}
               whileHover={{ y: -4 }}
-              onClick={() => { setSelectedProduct(p); setSelectedImageIndex(0); }}
+                            onClick={async () => { 
+                setSelectedProduct(p); setSelectedImageIndex(0);
+                try { await api.post(`/marketplace/products/${p.id}/increment_view/`); } catch {}
+              }}
               className="glass-card rounded-2xl overflow-hidden group cursor-pointer">
               <div className="h-48 bg-gray-100 overflow-hidden relative">
                 {p.image_url ? (
@@ -417,14 +420,17 @@ const resetSellForm = () => {
         </div>
       ) : (
         <div className="space-y-3">
-          {products.map(p => (
-            <motion.div key={p.id} whileHover={{ y: -1 }} className="glass-card p-4 rounded-2xl flex gap-4 items-center cursor-pointer" onClick={() => setSelectedProduct(p)}>
+                    {products.map(p => (
+            <div key={p.id} className="glass-card p-4 rounded-2xl flex gap-4 items-center cursor-pointer" onClick={async () => { 
+              setSelectedProduct(p);
+              try { await api.post(`/marketplace/products/${p.id}/increment_view/`); } catch {}
+            }}>
               <div className="w-20 h-20 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
                 {p.image_url ? <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400"><Package size={24} /></div>}
               </div>
               <div className="flex-1"><h3 className="font-semibold">{p.title}</h3><p className="text-sm text-gray-500">by {p.seller_name} · {p.stock} {t('in_stock')}</p></div>
               <div className="text-right"><p className="text-xl font-bold text-green-600">${p.price}</p><button onClick={(e) => { e.stopPropagation(); requestBuy(p.id); }} disabled={p.stock === 0} className="btn-primary text-xs mt-1"> Request to Buy</button></div>
-            </motion.div>
+                        </div>
           ))}
         </div>
       )}

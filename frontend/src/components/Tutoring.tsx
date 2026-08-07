@@ -917,8 +917,11 @@ const getTouchPos = (e: React.TouchEvent) => {
     backgroundSize: 'cover',
     backgroundPosition: 'center',
   } : undefined}>
-  <div className="p-4 sm:p-5 cursor-pointer" onClick={() => {
-    const isOpening = expandedSession !== session.id;
+  <div className="p-4 sm:p-5 cursor-pointer" onClick={async () => {
+        const isOpening = expandedSession !== session.id;
+    if (isOpening) {
+      try { await api.post(`/tutoring/sessions/${session.id}/increment_view/`); } catch {}
+    }
     setExpandedSession(isOpening ? session.id : null);
     if (isOpening) {
       setSessions(prev => prev.map(s => s.id === session.id ? { ...s, views: (s.views || 0) + 1 } : s));
