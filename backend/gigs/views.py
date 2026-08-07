@@ -397,6 +397,13 @@ class GigViewSet(viewsets.ModelViewSet):
         return Response({'views': gig.views})
 
 
+    @action(detail=True, methods=['post'])
+    def like(self, request, pk=None):
+        gig = self.get_object()
+        gig.likes = (gig.likes or 0) + 1
+        gig.save(update_fields=['likes'])
+        return Response({'likes': gig.likes})
+
 class GigChatViewSet(viewsets.ViewSet):
     """Dedicated gig chat - isolated from WaveMesh"""
     permission_classes = [permissions.IsAuthenticated]
