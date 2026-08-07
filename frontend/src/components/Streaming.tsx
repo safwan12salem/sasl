@@ -493,7 +493,8 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
         // VIRAL: Connect to chat when entering call
         connectChatWebSocket(streamId);
         // VIRAL: Join stream
-        api.post(`/streaming/streams/${streamId}/join/`).catch(() => {});
+               api.post(`/streaming/streams/${streamId}/join/`).catch(() => {});
+        api.post(`/streaming/streams/${streamId}/increment_view/`).catch(() => {});
       })
       .catch(() => toast.error(t('Camera access denied')));
   };
@@ -603,7 +604,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
             <div className="flex-1 flex flex-col md:flex-row">
               <div className="flex-1 relative bg-black flex items-center justify-center"
                 onClick={() => setIsFullscreen(!isFullscreen)}>
-                <video ref={remoteVideoRef} autoPlay playsInline className={`${isFullscreen ? 'w-full h-full object-contain' : 'max-w-full max-h-full'}`} />
+                <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
                 <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl" />
 
                 {/* Viewer Count with Avatars */}
@@ -889,10 +890,9 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
           {streams && streams.length > 0 && streams.map((s, idx) => (
             <motion.div key={s.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: idx * 0.05 }}
               className="glass rounded-2xl overflow-hidden hover:shadow-xl transition group">
-              {/* Thumbnail */}
+                           {/* Thumbnail */}
               <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 relative overflow-hidden cursor-pointer" 
      onClick={() => {
-       setStreams(prev => prev.map(st => st.id === s.id ? { ...st, viewers_count: st.viewers_count + 1 } : st));
        toast.success(`📺 Joined ${s.streamer.username}'s stream!`);
      }}>
                 {s.thumbnail_url ? (

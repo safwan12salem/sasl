@@ -53,7 +53,7 @@ class TutoringSessionSerializer(serializers.ModelSerializer):
         read_only_fields = ['tutor', 'student', 'status']
     
     def get_students_enrolled(self, obj):
-        return obj.max_students  # Placeholder — would track actual enrollments
+          return 1 if obj.student else 0  # Placeholder — would track actual enrollments
     
 class TutoringChatMessageSerializer(serializers.ModelSerializer):
     sender_name = serializers.ReadOnlyField(source='sender.username')

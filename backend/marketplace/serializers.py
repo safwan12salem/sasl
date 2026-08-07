@@ -61,7 +61,7 @@ class ProductSerializer(serializers.ModelSerializer):
             'id', 'seller', 'seller_name', 'seller_avatar', 'seller_rating',
             'title', 'description', 'price', 'currency',
             'category', 'category_name', 'image', 'image_url','images',
-            'stock', 'sales_count', 'is_active', 'is_wishlisted',
+            'stock','views_count', 'sales_count', 'is_active', 'is_wishlisted',
             'average_rating', 'review_count', 'reviews',
             'created_at', 'updated_at'
         ]
