@@ -71,6 +71,7 @@ const [bgImageUrl, setBgImageUrl] = useState('');
   const localStreamRef = useRef<MediaStream | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
 const wsRef = useRef<WebSocket | null>(null);
+const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
 const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
 const [showChat, setShowChat] = useState(false);
 const [chatMessages, setChatMessages] = useState<any[]>([]);
@@ -251,18 +252,43 @@ const [chatInput, setChatInput] = useState('');
         } else if (data.type === 'join_room') {
           console.log('📩 join_room from:', data.username);
           if (data.username !== user?.username) {
-            console.log('🎯 Creating offer for:', data.username);
+                      const newPC = new RTCPeerConnection({
+              iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: ['turn:global.relay.metered.ca:80?transport=udp', 'turn:global.relay.metered.ca:80?transport=tcp'], username: '9a949126f260451ca16f969e', credential: 'HNHbY2NEDOgMoMfd' },
+              ]
+            });
+            const localStream = localStreamRef.current;
+            if (localStream) {
+              localStream.getTracks().forEach(track => newPC.addTrack(track, localStream));
+            }
+            newPC.ontrack = (event) => {
+              console.log('🎵 ONTRACK from:', data.username);
+              const audio = document.createElement('audio');
+              audio.srcObject = event.streams[0];
+              audio.autoplay = true;
+              audio.setAttribute('playsinline', '');
+              document.body.appendChild(audio);
+              audio.play().catch(() => {});
+            };
+            newPC.onicecandidate = (event) => {
+              if (event.candidate) {
+                wsRef.current!.send(JSON.stringify({ type: 'candidate', candidate: event.candidate, target: data.username }));
+              }
+            };
+            peerConnections.current.set(data.username, newPC);
             setTimeout(async () => {
               try {
-                const offer = await pcRef.current!.createOffer();
-                await pcRef.current!.setLocalDescription(offer);
-                wsRef.current!.send(JSON.stringify({ type: 'offer', offer: pcRef.current!.localDescription }));
-                console.log('📤 Offer sent');
+                const offer = await newPC.createOffer();
+                await newPC.setLocalDescription(offer);
+                wsRef.current!.send(JSON.stringify({ type: 'offer', offer: newPC.localDescription, target: data.username }));
+                console.log('📤 Offer sent to:', data.username);
               } catch(e) { console.log('Offer failed:', e); }
             }, 1000);
           }
-        } else if (data.type === 'answer') {
-          await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.answer));
+                } else if (data.type === 'answer') {
+          const targetPC = peerConnections.current.get(data.target) || pcRef.current;
+          if (targetPC) await targetPC!.setRemoteDescription(new RTCSessionDescription(data.answer));
         } else if (data.type === 'offer') {
           if (pcRef.current!.signalingState !== 'stable') {
             console.log('⚠️ Ignoring offer - state:', pcRef.current!.signalingState);
@@ -271,7 +297,7 @@ const [chatInput, setChatInput] = useState('');
           await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.offer));
           const answer = await pcRef.current!.createAnswer();
           await pcRef.current!.setLocalDescription(answer);
-          wsRef.current!.send(JSON.stringify({ type: 'answer', answer: pcRef.current!.localDescription }));
+          wsRef.current!.send(JSON.stringify({ type: 'answer', answer: pcRef.current!.localDescription, target: data.username }));
         } else if (data.type === 'candidate') {
           try {
             await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
@@ -305,6 +331,8 @@ const [chatInput, setChatInput] = useState('');
     pcRef.current = null;
     wsRef.current?.close();
     wsRef.current = null;
+        peerConnections.current.forEach(pc => pc.close());
+    peerConnections.current.clear();
     setInRoom(null);
     setIsSpeaker(false);
     setHandRaised(false);
