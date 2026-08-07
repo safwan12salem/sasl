@@ -37,6 +37,7 @@ class TutoringSession(models.Model):
     scheduled_at = models.DateTimeField()
     duration_minutes = models.PositiveIntegerField(default=60)
     background_image = models.URLField(blank=True, null=True, help_text="URL for session background image")
+    views_count = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=20, default='scheduled', choices=STATUS_CHOICES)
    
     created_at = models.DateTimeField(auto_now_add=True)

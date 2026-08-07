@@ -11,7 +11,7 @@ import {
   AlertCircle, DollarSign, MessageCircle, Calendar, FileText,
   Search, Filter, Clock, Award, Shield, Zap, TrendingUp,
   ChevronDown, ChevronUp, X, Image as ImageIcon, Link, Upload,
-  ThumbsUp, Flag, Users, Target, BarChart3, Eye, Send, MapPin, Verified
+  ThumbsUp, Flag, Users, Target, BarChart3, Eye, Send, MapPin, Verified, Heart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GigChat from './GigChat';
@@ -33,6 +33,7 @@ interface Gig {
   milestones?: Milestone[];
   reviews?: Review[];
   average_rating?: number;
+  likes?: number;
   review_count?: number;
   created_at: string;
   deadline?: string;
@@ -266,7 +267,12 @@ export default function GigCentral() {
   const addMilestone = () => setMilestones(prev => [...prev, { title: '', amount: '' }]);
   const updateMilestone = (index: number, field: 'title' | 'amount', value: string) => { const updated = [...milestones]; updated[index][field] = value; setMilestones(updated); };
   const removeMilestone = (index: number) => setMilestones(prev => prev.filter((_, i) => i !== index));
-  const toggleExpand = (gigId: string) => setExpandedGig(expandedGig === gigId ? null : gigId);
+    const toggleExpand = async (gigId: string) => {
+    if (expandedGig !== gigId) {
+      try { await api.post(`/gigs/gigs/${gigId}/increment_view/`); } catch {}
+    }
+    setExpandedGig(expandedGig === gigId ? null : gigId);
+  };
   const renderStars = (rating: number) => [...Array(5)].map((_, i) => <Star key={i} size={12} className={i < Math.round(rating) ? 'fill-amber-400 text-amber-400' : 'text-gray-200 dark:text-gray-600'} />);
 
   const tabs = [
@@ -621,7 +627,7 @@ export default function GigCentral() {
                         {gig.deadline && <span className="text-xs text-gray-400 flex items-center gap-1"><Calendar size={12} /> {new Date(gig.deadline).toLocaleDateString()}</span>}
                       </div>
 
-                      {/* Quick Actions */}
+                                           {/* Quick Actions */}
                       <div className="flex items-center gap-4 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700 flex-wrap">
                         <button onClick={async (e) => { e.stopPropagation();
                           const newLiked = new Set(likedGigs); newLiked.has(gig.id) ? newLiked.delete(gig.id) : newLiked.add(gig.id);
@@ -629,6 +635,9 @@ export default function GigCentral() {
                         }} className={`flex items-center gap-1 text-xs transition ${likedGigs.has(gig.id) ? 'text-green-500 font-bold' : 'text-gray-500 hover:text-green-500'}`}>
                           <ThumbsUp size={14} className={likedGigs.has(gig.id) ? 'fill-green-500' : ''} /> Like
                         </button>
+                        <span className="flex items-center gap-1 text-xs text-gray-400"><Heart size={14} /> {gig.likes || 0}</span>
+                        <span className="flex items-center gap-1 text-xs text-gray-400"><Eye size={14} /> {gig.views || 0}</span>
+                        <span className="flex items-center gap-1 text-xs text-gray-400"><Users size={14} /> {gig.applicants_count ||0} applicants</span>
                         <span className="flex items-center gap-1 text-xs text-gray-400"><Eye size={14} /> {gig.views || 0}</span>
                         <span className="flex items-center gap-1 text-xs text-gray-400"><Users size={14} /> {gig.applicants_count || 0} applicants</span>
                         {user && (
