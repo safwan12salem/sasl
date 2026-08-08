@@ -75,10 +75,12 @@ export class WebRTCConnection {
         this.remoteVideoElement.muted = false;
         this.remoteVideoElement.play().then(() => {
           console.log('▶️ Remote video playing');
-        }).catch(e => {
+                }).catch(e => {
           console.log('▶️ Play blocked, waiting for tap');
           const playVideo = () => {
-            this.remoteVideoElement!.play().catch(() => {});
+            if (this.remoteVideoElement) {
+              this.remoteVideoElement.play().catch(() => {});
+            }
           };
           document.addEventListener('click', playVideo, { once: true });
           document.addEventListener('touchstart', playVideo, { once: true });
