@@ -356,7 +356,7 @@ class SnapViewSet(viewsets.ModelViewSet):
         return Response(GroupSnapStreakSerializer(group).data, status=201)
 
     # FORCE DEPLOY v2 - group send
-    @action(detail=False, methods=['post'])
+    
     def send_to_group(self, request):
         group_id = request.data.get('group_id')
         media_url = request.data.get('media_url')
