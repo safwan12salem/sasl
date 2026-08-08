@@ -160,8 +160,10 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
             total=Sum('amount')
         ).order_by('-total')[:10]
         return Response(top)
-    
 
+
+        
+    
     @action(detail=True, methods=['post'])
     def react(self, request, pk=None):
         stream = self.get_object()
@@ -173,9 +175,7 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
             reaction_type=reaction_type
         )
         
-        if stream.streamer != request.user:
-            stream.streamer.wallet.xp += 1
-            stream.streamer.wallet.save()
+        
         
         # Return counts for all reaction types
         reaction_counts = {}

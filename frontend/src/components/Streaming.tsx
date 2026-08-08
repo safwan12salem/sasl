@@ -31,6 +31,7 @@ interface Stream {
   top_donors?: { username: string; total: number }[];
   total_donations?: number;
   tags?: string[];
+  reaction_counts?: Record<string, number>;
 }
 
 interface ScheduledStream {
@@ -941,13 +942,22 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                 <h3 className="font-bold text-sm line-clamp-1">{s.title}</h3>
                   
                   {/* Quick Reactions */}
-<div className="flex gap-1 mt-1">
-  {['❤️', '🔥', '👏', '😂'].map(emoji => (
-    <button key={emoji} onClick={async (e) => { e.stopPropagation();
-      try { await api.post(`/streaming/streams/${s.id}/react/`, { reaction: emoji }); toast.success(emoji); }
-      catch {}
-    }} className="text-sm hover:scale-125 transition-transform">{emoji}</button>
-  ))}
+<div className="flex gap-1 mt-1 flex-wrap">
+  {['❤️', '🔥', '👏', '😂'].map(emoji => {
+    const count = s.reaction_counts?.[emoji] || 0;
+    return (
+      <button key={emoji} onClick={async (e) => { e.stopPropagation();
+        try { 
+          const res = await api.post(`/streaming/streams/${s.id}/react/`, { reaction: emoji }); 
+          if (res.data?.reaction_counts) {
+            setStreams(prev => prev.map(st => st.id === s.id ? {...st, reaction_counts: res.data.reaction_counts} : st));
+          }
+        } catch {}
+      }} className="text-sm hover:scale-125 transition-transform flex items-center gap-0.5">
+        {emoji}<span className="text-[10px] text-gray-400">{count || ''}</span>
+      </button>
+    );
+  })}
 </div>
                 {/* Top Donors */}
                {s.top_donors && Array.isArray(s.top_donors) && s.top_donors.length > 0 && (
