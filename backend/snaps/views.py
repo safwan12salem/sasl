@@ -3,6 +3,7 @@ Sasl Snap — Enhanced: Streak rewards, snap tips, challenges, group streaks
 """
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
 from django.db.models import Q, Count, Sum
 from django.utils import timezone
@@ -49,8 +50,7 @@ class SnapViewSet(viewsets.ModelViewSet):
             serializer.save(sender=self.request.user, is_draft=True)
             return
         
-        if not receiver_username:
-            from rest_framework.exceptions import ValidationError
+        if not receiver_username:            
             raise ValidationError({'error': 'receiver_username required'})
         
         try:
