@@ -366,7 +366,12 @@ class SnapViewSet(viewsets.ModelViewSet):
         try:
             group = SnapGroupStreak.objects.get(name=group_id)
         except SnapGroupStreak.DoesNotExist:
+      
+       
+            all_groups = list(SnapGroupStreak.objects.values_list('name', flat=True))
+            print(f"📩 Available groups: {all_groups}", flush=True)
             return Response({'error': 'Group not found'}, status=404)
+           
         
         if request.user.username not in group.members:
             return Response({'error': 'Not a member'}, status=403)

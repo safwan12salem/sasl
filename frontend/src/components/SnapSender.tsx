@@ -168,7 +168,7 @@ export default function SnapSender() {
       
            // Send URL to backend - user or group
       if (sendMode === 'group') {
-        await api.post('/snaps/snaps/send_to_group/', {
+       await api.post('/snaps/send_to_group/', {
           group_id: receiver,
           media_url: mediaUrl,
           caption: caption,
