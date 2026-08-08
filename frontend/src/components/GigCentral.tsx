@@ -639,7 +639,7 @@ export default function GigCentral() {
                         <span className="flex items-center gap-1 text-xs text-gray-400"><Eye size={14} /> {gig.views || 0}</span>
                         <span className="flex items-center gap-1 text-xs text-gray-400"><Users size={14} /> {gig.applicants_count ||0} applicants</span>
                         <span className="flex items-center gap-1 text-xs text-gray-400"><Eye size={14} /> {gig.views || 0}</span>
-                        <span className="flex items-center gap-1 text-xs text-gray-400"><Users size={14} /> {gig.applicants_count || 0} applicants</span>
+                       
                         {user && (
                           <button onClick={(e) => { e.stopPropagation(); setChatRoom(gig.id); }} className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 font-medium">
                             <MessageCircle size={14} /> {t('Chat')}

@@ -180,14 +180,14 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
     
      return Response({'status': 'reacted', 'reaction': reaction_type})
 
-
-    @action(detail=True, methods=['post'])
+    @action(detail=True, methods=['post']) 
     def increment_view(self, request, pk=None):
         stream = self.get_object()
-        stream.views_count = (stream.views_count or 0) + 1
-        stream.save(update_fields=['views_count'])
-        return Response({'views_count': stream.views_count}) 
-    
+        stream.viewers_count = (stream.viewers_count or 0) + 1
+        stream.save(update_fields=['viewers_count'])
+        return Response({'viewers_count': stream.viewers_count}) 
+
+
 class StreamScheduleViewSet(viewsets.ModelViewSet):
     serializer_class = StreamScheduleSerializer
     permission_classes = [permissions.IsAuthenticated]
