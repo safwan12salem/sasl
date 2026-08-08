@@ -353,7 +353,7 @@ class SnapViewSet(viewsets.ModelViewSet):
         caption = request.data.get('caption', '')
         
         try:
-            group = SnapGroupStreak.objects.get(id=group_id)
+            group = SnapGroupStreak.objects.get(name=group_id)
         except SnapGroupStreak.DoesNotExist:
             return Response({'error': 'Group not found'}, status=404)
         

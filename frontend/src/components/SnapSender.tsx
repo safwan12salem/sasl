@@ -396,7 +396,7 @@ export default function SnapSender() {
                   <select value={receiver} onChange={e => setReceiver(e.target.value)} className="input-field flex-1 text-sm rounded-full mt-2">
                     <option value="">Select a group...</option>
                     {groupStreaks.map((g: any) => (
-                      <option key={g.id} value={g.id}>{g.name} ({g.member_count} members)</option>
+                      <option key={g.id} value={g.name}>{g.name} ({g.member_count} members)</option>
                     ))}
                   </select>
                 )}
