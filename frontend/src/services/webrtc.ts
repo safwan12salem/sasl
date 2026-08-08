@@ -34,16 +34,24 @@ export class WebRTCConnection {
   }
 
   private createPeerConnection(): RTCPeerConnection {
-    const pc = new RTCPeerConnection({
+      const pc = new RTCPeerConnection({
+      iceTransportPolicy: 'all',
+      iceCandidatePoolSize: 2,
       iceServers: [
-        { urls: "stun:stun.relay.metered.ca:80" },
-        { urls: "turn:global.relay.metered.ca:80", username: "9a949126f260451ca16f969e", credential: "HNHbY2NEDOgMoMfd" },
-        { urls: "turn:global.relay.metered.ca:80?transport=tcp", username: "9a949126f260451ca16f969e", credential: "HNHbY2NEDOgMoMfd" },
-        { urls: "turn:global.relay.metered.ca:443", username: "9a949126f260451ca16f969e", credential: "HNHbY2NEDOgMoMfd" },
-        { urls: "turns:global.relay.metered.ca:443?transport=tcp", username: "9a949126f260451ca16f969e", credential: "HNHbY2NEDOgMoMfd" },
-      ],
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' },
+        { 
+          urls: [
+            'turn:global.relay.metered.ca:80?transport=udp',
+            'turn:global.relay.metered.ca:80?transport=tcp',
+            'turn:global.relay.metered.ca:443?transport=tcp',
+          ],
+          username: '9a949126f260451ca16f969e',
+          credential: 'HNHbY2NEDOgMoMfd'
+        },
+      ]
     });
-
+    
     // Add local tracks IMMEDIATELY so they're in the SDP
     if (this.localStream) {
       this.localStream.getTracks().forEach(track => {

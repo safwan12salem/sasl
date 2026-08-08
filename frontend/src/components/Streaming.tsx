@@ -492,10 +492,9 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
             else if (data.type === 'candidate') await rtc.addIceCandidate(data.candidate);
           };
           if (role === 'viewer') {
+                      if (role === 'viewer') {
             ws.send(JSON.stringify({ type: 'join_room' }));
-            setTimeout(() => {
-              if (remoteVideoRef.current) rtc.createOffer(remoteVideoRef.current!);
-            }, 2000);
+          }
           }
         };
         setInCall({ streamId, role });
