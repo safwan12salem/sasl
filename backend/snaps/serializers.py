@@ -78,7 +78,7 @@ class GroupSnapStreakSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GroupSnapStreak
-        fields = ['id', 'name', 'member_count', 'current_streak', 'longest_streak', 'last_snap_date', 'total_reward_earned', 'created_at']
+        fields = ['id', 'name', 'member_count','snap_count', 'current_streak', 'longest_streak', 'last_snap_date', 'total_reward_earned', 'created_at']
     
     def get_member_count(self, obj):
         return obj.members.count()
