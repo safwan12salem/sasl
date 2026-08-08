@@ -6,5 +6,6 @@ router = DefaultRouter()
 router.register(r'snaps', SnapViewSet, basename='snap')
 
 urlpatterns = [
+    path('snaps/send_to_group/', SnapViewSet.as_view({'post': 'send_to_group'}), name='snap-send-to-group'),
     *router.urls,
 ]
