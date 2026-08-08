@@ -34,6 +34,8 @@ interface Snap {
   duration?: number;
   tip_amount?: number;
   screenshot_count?: number;
+  view_count?: number;
+  reactions?: Record<string, number>;
   is_draft?: boolean;
 }
 
@@ -409,9 +411,15 @@ export default function SnapSender() {
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-400 to-red-500 flex items-center justify-center text-white font-bold">
                     {snap.sender_name[0]?.toUpperCase()}
                   </div>
-                  <div className="flex-1">
+                               <div className="flex-1">
                     <p className="font-semibold text-sm">{snap.sender_name}</p>
                     <p className="text-xs text-gray-500">{snap.caption || '📸 Snap'} · {new Date(snap.created_at).toLocaleTimeString()}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs text-gray-400">👁️ {snap.view_count || 0}</span>
+                      {snap.reactions && Object.entries(snap.reactions).map(([emoji, count]) => (
+                        <span key={emoji} className="text-xs">{emoji}{count}</span>
+                      ))}
+                    </div>
                   </div>
                   {!snap.viewed && <span className="w-2.5 h-2.5 bg-red-500 rounded-full" />}
                 </motion.div>

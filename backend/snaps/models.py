@@ -14,6 +14,8 @@ class Snap(models.Model):
     duration = models.PositiveIntegerField(default=5)  # seconds (1-30)
     viewed = models.BooleanField(default=False)
     viewed_at = models.DateTimeField(null=True, blank=True)
+    view_count = models.PositiveIntegerField(default=0)
+    reactions = models.JSONField(default=dict, blank=True)
     # NEW: Snap enhancements
     is_challenge = models.BooleanField(default=False)  # Part of daily challenge
     challenge_name = models.CharField(max_length=100, blank=True, default='')

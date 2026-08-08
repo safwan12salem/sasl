@@ -19,11 +19,11 @@ class SnapSerializer(serializers.ModelSerializer):
             'video', 'video_url', 'image', 'media_url','image_url',
             'caption', 'duration', 'viewed', 'viewed_at',
             'is_challenge', 'challenge_name', 'is_draft',
-            'scheduled_for', 'tip_amount', 'screenshot_count', 'replay_count',
-            'created_at'
+            'scheduled_for', 'tip_amount', 'screenshot_count', 'replay_count','created_at', 'view_count', 'reactions'
+        
         ]
 
-    read_only_fields = ['sender', 'receiver', 'viewed', 'tip_amount', 'screenshot_count', 'replay_count']
+    read_only_fields = ['sender', 'receiver', 'viewed', 'tip_amount', 'screenshot_count', 'replay_count','view_count', 'reactions']
     def get_video_url(self, obj):
         if obj.video and (request := self.context.get('request')):
             return obj.video.url if obj.video else None

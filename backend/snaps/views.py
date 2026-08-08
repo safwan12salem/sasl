@@ -132,10 +132,22 @@ class SnapViewSet(viewsets.ModelViewSet):
         snap = self.get_object()
         if snap.receiver != request.user:
             return Response({'error': 'Not your snap'}, status=403)
-        snap.viewed = True
-        snap.viewed_at = timezone.now()
-        snap.save()
-        return Response({'status': 'viewed'})
+        if not snap.viewed:
+            snap.viewed = True
+            snap.viewed_at = timezone.now()
+        snap.view_count = (snap.view_count or 0) + 1
+        snap.save(update_fields=['viewed', 'viewed_at', 'view_count'])
+        return Response({'status': 'viewed', 'view_count': snap.view_count})
+
+    @action(detail=True, methods=['post'])
+    def react(self, request, pk=None):
+        snap = self.get_object()
+        emoji = request.data.get('emoji', '❤️')
+        if not snap.reactions:
+            snap.reactions = {}
+        snap.reactions[emoji] = snap.reactions.get(emoji, 0) + 1
+        snap.save(update_fields=['reactions'])
+        return Response({'reactions': snap.reactions})
 
     @action(detail=True, methods=['post'])
     def tip(self, request, pk=None):
