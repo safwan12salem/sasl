@@ -467,13 +467,14 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
   // VIDEO CALL (enhanced with chat + viewer features)
   // ============================================================
   const startVideoCall = (streamId: string, role: 'streamer' | 'viewer') => {
+        // Increment view count and join BEFORE camera request (works even if camera blocked)
+    api.post(`/streaming/streams/${streamId}/join/`).catch(() => {});
+    api.post(`/streaming/streams/${streamId}/increment_view/`).catch(() => {});
+
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(stream => {
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-        const isLocal = window.location.hostname === 'localhost';
-        const wsUrl = isLocal
-          ? `ws://localhost:8000/ws/video/${streamId}/?token=${token}`
-                    : `wss://sasl-api-i34r.onrender.com/ws/video/${streamId}/?token=${token}`;
+        const wsUrl = `wss://sasl-api-i34r.onrender.com/ws/video/${streamId}/?token=${token}`;
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
         const rtc = new WebRTCConnection((msg) => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); });
@@ -491,15 +492,12 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
         };
 
         setInCall({ streamId, role });
-        // VIRAL: Connect to chat when entering call
         connectChatWebSocket(streamId);
-        // VIRAL: Join stream
-               api.post(`/streaming/streams/${streamId}/join/`).catch(() => {});
-        api.post(`/streaming/streams/${streamId}/increment_view/`).catch(() => {});
       })
       .catch(() => toast.error(t('Camera access denied')));
   };
 
+  
   const endCall = () => {
     rtcRef.current?.disconnect();
     wsRef.current?.close();
