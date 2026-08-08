@@ -356,7 +356,6 @@ class SnapViewSet(viewsets.ModelViewSet):
         return Response(GroupSnapStreakSerializer(group).data, status=201)
 
     # FORCE DEPLOY v2 - group send
-    
     def send_to_group(self, request):
         group_id = request.data.get('group_id')
         media_url = request.data.get('media_url')
@@ -366,29 +365,21 @@ class SnapViewSet(viewsets.ModelViewSet):
         try:
             group = GroupSnapStreak.objects.get(name=group_id)
         except GroupSnapStreak.DoesNotExist:
-      
-       
             all_groups = list(GroupSnapStreak.objects.values_list('name', flat=True))
             print(f"📩 Available groups: {all_groups}", flush=True)
             return Response({'error': 'Group not found'}, status=404)
            
-        
-        if request.user.username not in group.members:
+        if not group.members.filter(id=request.user.id).exists():
             return Response({'error': 'Not a member'}, status=403)
         
         snaps = []
-        for member in group.members:
-            if member != request.user.username:
-                try:
-                    member_user = User.objects.get(username=member)
-                    snap = Snap.objects.create(
-                        sender=request.user,
-                        receiver=member_user,
-                        media_url=media_url,
-                        caption=caption,
-                    )
-                    snaps.append(snap.id)
-                except User.DoesNotExist:
-                    pass
+        for member_user in group.members.exclude(id=request.user.id):
+            snap = Snap.objects.create(
+                sender=request.user,
+                receiver=member_user,
+                media_url=media_url,
+                caption=caption,
+            )
+            snaps.append(snap.id)
         
-        return Response({'status': 'sent', 'snaps': snaps, 'count': len(snaps)})
+        return Response({'status': 'sent', 'snaps': snaps, 'count': len(snaps)}) 
