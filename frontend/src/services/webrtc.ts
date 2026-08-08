@@ -66,7 +66,7 @@ export class WebRTCConnection {
     };
 
     // Handle incoming remote tracks
-       pc.ontrack = (event) => {
+           pc.ontrack = (event) => {
       console.log('🔥 ONTRACK FIRED! Track kind:', event.track.kind, 'Streams:', event.streams.length);
       if (event.streams[0] && this.remoteVideoElement) {
         console.log('🔥 Setting remote video srcObject');
@@ -77,15 +77,16 @@ export class WebRTCConnection {
           console.log('▶️ Remote video playing');
         }).catch(e => {
           console.log('▶️ Play blocked, waiting for tap');
-          document.addEventListener('click', () => {
+          const playVideo = () => {
             this.remoteVideoElement!.play().catch(() => {});
-          }, { once: true });
+          };
+          document.addEventListener('click', playVideo, { once: true });
+          document.addEventListener('touchstart', playVideo, { once: true });
         });
-      }
+            }
     };
 
     return pc;
-   
   }
 
   async createOffer(remoteVideoElement: HTMLVideoElement) {
@@ -107,9 +108,8 @@ export class WebRTCConnection {
     }
   }
 
-  
 
-async handleOffer(offer: RTCSessionDescriptionInit, remoteVideoElement: HTMLVideoElement) {
+  async handleOffer(offer: RTCSessionDescriptionInit, remoteVideoElement: HTMLVideoElement) {
     this.remoteVideoElement = remoteVideoElement;
     if (this.makingOffer) { this.ignoreOffer = true; return; }
     
@@ -173,4 +173,5 @@ async handleOffer(offer: RTCSessionDescriptionInit, remoteVideoElement: HTMLVide
     this.candidateQueue = [];
     this.remoteVideoElement = null;
   }
-}
+}  
+
