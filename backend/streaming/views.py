@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
 from django.db.models import Q, Sum, Count
-from .models import StreamSession, StreamDonation, StreamViewer, StreamClip, StreamSchedule
+from .models import StreamSession, StreamDonation, StreamViewer, StreamClip, StreamSchedule, StreamReaction
 from .serializers import (
     StreamSessionSerializer, StreamDonationSerializer,
     StreamClipSerializer, StreamScheduleSerializer
@@ -164,22 +164,32 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def react(self, request, pk=None):
-     stream = self.get_object()
-     reaction_type = request.data.get('reaction', 'heart')
+        stream = self.get_object()
+        reaction_type = request.data.get('reaction', 'heart')
+        
+        StreamReaction.objects.create(
+            stream=stream,
+            user=request.user,
+            reaction_type=reaction_type
+        )
+        
+        if stream.streamer != request.user:
+            stream.streamer.wallet.xp += 1
+            stream.streamer.wallet.save()
+        
+        # Return counts for all reaction types
+        reaction_counts = {}
+        for rtype in ['heart', 'laugh', 'wow', 'sad', 'angry', 'xp']:
+            reaction_counts[rtype] = StreamReaction.objects.filter(
+                stream=stream, reaction_type=rtype
+            ).count()
+        
+        return Response({
+            'status': 'reacted',
+            'reaction': reaction_type,
+            'reaction_counts': reaction_counts
+        })
     
-     StreamReaction.objects.create(
-        stream=stream,
-        user=request.user,
-        reaction_type=reaction_type
-    )
-    
-    # XP reward for the streamer
-     if stream.streamer != request.user:
-        stream.streamer.wallet.xp += 1
-        stream.streamer.wallet.save()
-    
-     return Response({'status': 'reacted', 'reaction': reaction_type})
-
     @action(detail=True, methods=['post']) 
     def increment_view(self, request, pk=None):
         stream = self.get_object()

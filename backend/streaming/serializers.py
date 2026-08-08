@@ -40,14 +40,14 @@ class StreamSessionSerializer(serializers.ModelSerializer):
     thumbnail_url = serializers.SerializerMethodField()
     top_donors = serializers.SerializerMethodField()
     total_donations = serializers.SerializerMethodField()
-
+    reaction_counts = serializers.SerializerMethodField()
     class Meta:
         model = StreamSession
         fields = [
             'id', 'streamer', 'title', 'description', 'category',
             'thumbnail', 'thumbnail_url', 'is_live', 'started_at', 'ended_at',
             'viewers_count', 'max_viewers', 'donations', 'total_donations',
-            'top_donors', 'tags'
+            'top_donors','reaction_counts', 'tags'
         ]
         read_only_fields = ['streamer', 'viewers_count']
 
@@ -61,6 +61,13 @@ class StreamSessionSerializer(serializers.ModelSerializer):
             return obj.thumbnail.url
         except Exception:
             return None
+
+
+    def get_reaction_counts(self, obj):
+         counts = {}
+         for rtype in ['heart', 'laugh', 'wow', 'sad', 'angry', 'xp']:
+            counts[rtype] = obj.reactions.filter(reaction_type=rtype).count()
+         return counts
     def get_top_donors(self, obj):
         top = obj.donations.values('donor__username').annotate(
             total=Sum('amount')
