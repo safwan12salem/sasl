@@ -38,6 +38,7 @@ class Gig(models.Model):
     deadline = models.DateField(null=True, blank=True)
     views = models.PositiveIntegerField(default=0)
     likes = models.PositiveIntegerField(default=0)
+    liked_by = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='liked_gigs')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

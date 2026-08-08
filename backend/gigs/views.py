@@ -396,14 +396,18 @@ class GigViewSet(viewsets.ModelViewSet):
         gig.save(update_fields=['views'])
         return Response({'views': gig.views})
 
-
     @action(detail=True, methods=['post'])
     def like(self, request, pk=None):
         gig = self.get_object()
-        gig.likes = (gig.likes or 0) + 1
+        if request.user in gig.liked_by.all():
+            gig.liked_by.remove(request.user)
+            gig.likes = max(0, (gig.likes or 1) - 1)
+        else:
+            gig.liked_by.add(request.user)
+            gig.likes = (gig.likes or 0) + 1
         gig.save(update_fields=['likes'])
-        return Response({'likes': gig.likes})
-
+        return Response({'likes': gig.likes, 'liked': request.user in gig.liked_by.all()})
+   
 class GigChatViewSet(viewsets.ViewSet):
     """Dedicated gig chat - isolated from WaveMesh"""
     permission_classes = [permissions.IsAuthenticated]

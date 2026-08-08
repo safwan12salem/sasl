@@ -71,6 +71,7 @@ class GigSerializer(serializers.ModelSerializer):
     reviews = GigReviewSerializer(many=True, read_only=True)
     average_rating = serializers.SerializerMethodField()
     review_count = serializers.SerializerMethodField()
+    liked_by_me = serializers.SerializerMethodField()
 
     class Meta:
         model = Gig
@@ -80,9 +81,9 @@ class GigSerializer(serializers.ModelSerializer):
             'status', 'category', 'skills_required',
             'taker', 'taker_name', 'taker_avatar','proposal_message', 'proposed_budget','proposals',
             'milestones', 'reviews', 'average_rating', 'review_count',
-            'created_at', 'updated_at', 'deadline'
+            'created_at', 'updated_at', 'deadline','views', 'likes', 'liked_by_me'
         ]
-        read_only_fields = ['creator', 'status', 'taker']
+        read_only_fields = ['creator', 'status', 'taker', 'likes']
 
     def get_proposals(self, obj):
         from .models import GigProposal
@@ -114,7 +115,11 @@ class GigSerializer(serializers.ModelSerializer):
         return obj.reviews.count()
     
 
-    
+    def get_liked_by_me(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return obj.liked_by.filter(id=request.user.id).exists()
+        return False    
 
 class GigChatMessageSerializer(serializers.ModelSerializer):
     sender_name = serializers.ReadOnlyField(source='sender.username')
