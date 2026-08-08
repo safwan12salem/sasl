@@ -74,7 +74,8 @@ class SnapChallengeSerializer(serializers.ModelSerializer):
 
 class GroupSnapStreakSerializer(serializers.ModelSerializer):
     member_count = serializers.SerializerMethodField()
-    
+    snap_count = serializers.SerializerMethodField()
+
     class Meta:
         model = GroupSnapStreak
         fields = ['id', 'name', 'member_count', 'current_streak', 'longest_streak', 'last_snap_date', 'total_reward_earned', 'created_at']
@@ -82,7 +83,12 @@ class GroupSnapStreakSerializer(serializers.ModelSerializer):
     def get_member_count(self, obj):
         return obj.members.count()
 
-
+    def get_snap_count(self, obj):
+        # Count snaps between group members
+        from .models import Snap
+        member_ids = obj.members.values_list('id', flat=True)
+        return Snap.objects.filter(sender_id__in=member_ids, receiver_id__in=member_ids).count()
+    
 class SnapTipSerializer(serializers.ModelSerializer):
     sender_name = serializers.ReadOnlyField(source='sender.username')
     

@@ -397,7 +397,7 @@ export default function SnapSender() {
                   <select value={receiver} onChange={e => setReceiver(e.target.value)} className="input-field flex-1 text-sm rounded-full mt-2">
                     <option value="">Select a group...</option>
                     {groupStreaks.map((g: any) => (
-                      <option key={g.id} value={g.name}>{g.name} ({g.member_count} members)</option>
+                    <option key={g.id} value={g.name}>{g.name} ({g.member_count} members · {g.snap_count || 0} snaps)</option>
                     ))}
                   </select>
                 )}
@@ -610,7 +610,7 @@ export default function SnapSender() {
                 <div key={gs.id} className="glass p-4 rounded-xl flex items-center justify-between">
                   <div>
                     <p className="font-semibold text-sm">{gs.name}</p>
-                    <p className="text-xs text-gray-500">{gs.member_count} {t('members')}</p>
+                    <p className="text-xs text-gray-500">{gs.member_count} {t('members')} · {gs.snap_count || 0} snaps</p>
                   </div>
                   <div className="text-center">
                     <p className="text-xl font-bold text-purple-500">🔥 {gs.current_streak}</p>
@@ -701,8 +701,36 @@ export default function SnapSender() {
     } catch {}
   }} className="flex items-center gap-1 bg-gray-700 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-gray-600">
     <Camera size={16} /> Screenshot
-  </button>
+   </button>
+  
+  {/* Reactions */}
+  {['❤️', '🔥', '😂', '😢', '😡'].map(emoji => (
+    <button key={emoji} onClick={async (e) => { e.stopPropagation();
+      try {
+        const res = await api.post(`/snaps/snaps/${viewingSnap.id}/react/`, { emoji });
+        setViewingSnap(prev => prev ? {...prev, reactions: res.data.reactions} : null);
+      } catch {}
+    }} className="text-xl hover:scale-125 transition-transform">{emoji}</button>
+  ))}
 </div>
+
+{/* Comment input */}
+<div className="absolute bottom-16 left-4 right-4 flex gap-2">
+  <input 
+    placeholder="Add a comment..." 
+    className="flex-1 bg-white/20 text-white px-3 py-2 rounded-full text-sm outline-none"
+    onKeyDown={async (e) => {
+      if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+        try {
+          const res = await api.post(`/snaps/snaps/${viewingSnap.id}/comment/`, { text: e.currentTarget.value });
+          setViewingSnap(prev => prev ? {...prev, comments: res.data.comments} : null);
+          e.currentTarget.value = '';
+        } catch {}
+      }
+    }}
+  />
+</div>
+
 <button onClick={() => setViewingSnap(null)} className="absolute top-4 right-4 text-white"><X size={24} /></button>
             </div>
           </motion.div>
