@@ -126,18 +126,24 @@ class BrandCampaignViewSet(viewsets.ModelViewSet):
         
         content.status = 'approved'
         content.save()
+        # Auto-decline all other pending applicants
+        SponsoredContent.objects.filter(campaign=campaign, status='pending').exclude(id=content.id).update(status='rejected')
+
         return Response({'status': 'accepted'}) 
 
     @action(detail=True, methods=['post'])
     def decline_creator(self, request, pk=None):
-        """Brand declines a creator"""
         campaign = self.get_object()
         content_id = request.data.get('content_id')
-        content = SponsoredContent.objects.get(id=content_id, campaign=campaign, status='pending')
-        content.status = 'rejected'
-        content.brand_feedback = request.data.get('feedback', '')
-        content.save()
+        try:
+            content = SponsoredContent.objects.get(id=content_id, campaign=campaign)
+            content.status = 'rejected'
+            content.brand_feedback = request.data.get('feedback', '')
+            content.save()
+        except SponsoredContent.DoesNotExist:
+            return Response({'error': 'Application not found'}, status=404)
         return Response({'status': 'declined'})
+    
     @action(detail=True, methods=['post'])
     def submit_work(self, request, pk=None):
         """Creator submits completed work"""
