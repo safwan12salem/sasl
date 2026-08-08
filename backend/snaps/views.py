@@ -1,5 +1,5 @@
 """
-Sasl Snap — Enhanced: Streak rewards, snap tips, challenges, group streaks
+Sasl Snap — Enhanced: Streak rewards, snap tips, challenges, group streaks, group send
 """
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
@@ -148,6 +148,16 @@ class SnapViewSet(viewsets.ModelViewSet):
         snap.reactions[emoji] = snap.reactions.get(emoji, 0) + 1
         snap.save(update_fields=['reactions'])
         return Response({'reactions': snap.reactions})
+
+    @action(detail=True, methods=['post'])
+    def comment(self, request, pk=None):
+        snap = self.get_object()
+        text = request.data.get('text', '')
+        if not snap.comments:
+            snap.comments = []
+        snap.comments.append({'user': request.user.username, 'text': text, 'time': timezone.now().isoformat()})
+        snap.save(update_fields=['comments'])
+        return Response({'comments': snap.comments})
 
     @action(detail=True, methods=['post'])
     def tip(self, request, pk=None):
@@ -345,7 +355,7 @@ class SnapViewSet(viewsets.ModelViewSet):
         
         return Response(GroupSnapStreakSerializer(group).data, status=201)
 
-
+    # FORCE DEPLOY v2 - group send
     @action(detail=False, methods=['post'])
     def send_to_group(self, request):
         group_id = request.data.get('group_id')

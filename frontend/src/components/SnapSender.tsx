@@ -36,6 +36,7 @@ interface Snap {
   screenshot_count?: number;
   view_count?: number;
   reactions?: Record<string, number>;
+  comments?: { user: string; text: string; time: string }[];
   is_draft?: boolean;
 }
 
@@ -448,6 +449,7 @@ export default function SnapSender() {
                       {snap.reactions && Object.entries(snap.reactions).map(([emoji, count]) => (
                         <span key={emoji} className="text-xs">{emoji}{count}</span>
                       ))}
+                                            <span className="text-xs text-gray-400">💬 {snap.comments?.length || 0}</span>
                     </div>
                   </div>
                   {!snap.viewed && <span className="w-2.5 h-2.5 bg-red-500 rounded-full" />}
