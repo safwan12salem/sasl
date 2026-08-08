@@ -344,3 +344,35 @@ class SnapViewSet(viewsets.ModelViewSet):
                 pass
         
         return Response(GroupSnapStreakSerializer(group).data, status=201)
+
+
+    @action(detail=False, methods=['post'])
+    def send_to_group(self, request):
+        group_id = request.data.get('group_id')
+        media_url = request.data.get('media_url')
+        caption = request.data.get('caption', '')
+        
+        try:
+            group = SnapGroupStreak.objects.get(id=group_id)
+        except SnapGroupStreak.DoesNotExist:
+            return Response({'error': 'Group not found'}, status=404)
+        
+        if request.user.username not in group.members:
+            return Response({'error': 'Not a member'}, status=403)
+        
+        snaps = []
+        for member in group.members:
+            if member != request.user.username:
+                try:
+                    member_user = User.objects.get(username=member)
+                    snap = Snap.objects.create(
+                        sender=request.user,
+                        receiver=member_user,
+                        media_url=media_url,
+                        caption=caption,
+                    )
+                    snaps.append(snap.id)
+                except User.DoesNotExist:
+                    pass
+        
+        return Response({'status': 'sent', 'snaps': snaps, 'count': len(snaps)})    

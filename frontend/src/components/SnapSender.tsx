@@ -102,7 +102,7 @@ export default function SnapSender() {
   const [groupName, setGroupName] = useState('');
   const [groupMembers, setGroupMembers] = useState('');
   const [storySound, setStorySound] = useState('');
-
+  const [sendMode, setSendMode] = useState<'user' | 'group'>('user');
 
   const FILTERS = [
     { name: 'none', label: t('Normal'), style: '' },
@@ -165,14 +165,22 @@ export default function SnapSender() {
       const file = new File([blob], fileName, { type: mediaType === 'video' ? 'video/webm' : 'image/jpeg' });
       const mediaUrl = await uploadFile(file, 'snaps');
       
-      // Send URL to backend
-      await api.post('/snaps/snaps/', {
-        media_url: mediaUrl,
-        receiver_username: receiver,
-        caption: caption,
-        
-      });
-      toast.success(t('Snap sent! 📸'));
+           // Send URL to backend - user or group
+      if (sendMode === 'group') {
+        await api.post('/snaps/snaps/send_to_group/', {
+          group_id: receiver,
+          media_url: mediaUrl,
+          caption: caption,
+        });
+        toast.success(t(`Snap sent to group! 📸`));
+      } else {
+        await api.post('/snaps/snaps/', {
+          media_url: mediaUrl,
+          receiver_username: receiver,
+          caption: caption,
+        });
+        toast.success(t('Snap sent! 📸'));
+      }
       setBlob(null); setReceiver(''); setCaption(''); fetchSnaps();
     } catch (err: any) { 
   console.log('Snap error:', err.response?.data);
@@ -370,7 +378,28 @@ export default function SnapSender() {
                     </button>
                   )) : <p className="text-xs text-gray-400 italic">{t('No recent contacts. Enter a username below.')}</p>}
                 </div>
-                <input value={receiver} onChange={e => setReceiver(e.target.value)} placeholder={t('Or type any username...')} className="input-field flex-1 text-sm rounded-full mt-2" />
+                                {/* Send Mode Toggle */}
+                <div className="flex items-center gap-2 mt-2">
+                  <button onClick={() => { setSendMode('user'); setReceiver(''); }} 
+                    className={`text-xs px-3 py-1 rounded-full ${sendMode === 'user' ? 'bg-purple-500 text-white' : 'bg-gray-200'}`}>
+                    👤 User
+                  </button>
+                  <button onClick={() => { setSendMode('group'); setReceiver(''); }} 
+                    className={`text-xs px-3 py-1 rounded-full ${sendMode === 'group' ? 'bg-purple-500 text-white' : 'bg-gray-200'}`}>
+                    👥 Group
+                  </button>
+                </div>
+                
+                {sendMode === 'user' ? (
+                  <input value={receiver} onChange={e => setReceiver(e.target.value)} placeholder={t('Or type any username...')} className="input-field flex-1 text-sm rounded-full mt-2" />
+                ) : (
+                  <select value={receiver} onChange={e => setReceiver(e.target.value)} className="input-field flex-1 text-sm rounded-full mt-2">
+                    <option value="">Select a group...</option>
+                    {groupStreaks.map((g: any) => (
+                      <option key={g.id} value={g.id}>{g.name} ({g.member_count} members)</option>
+                    ))}
+                  </select>
+                )}
               </div>
               <button onClick={() => setShowSoundPicker(true)} className={`p-2 rounded-full text-sm ${selectedSound ? 'bg-purple-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'}`}>
   <Music size={18} />
