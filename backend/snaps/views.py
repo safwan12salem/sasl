@@ -359,6 +359,7 @@ class SnapViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def send_to_group(self, request):
         group_id = request.data.get('group_id')
+        print(f"📩 send_to_group: group_id={group_id}, media_url={media_url}", flush=True)
         media_url = request.data.get('media_url')
         caption = request.data.get('caption', '')
         
