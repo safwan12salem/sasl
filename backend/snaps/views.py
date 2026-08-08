@@ -364,11 +364,11 @@ class SnapViewSet(viewsets.ModelViewSet):
         caption = request.data.get('caption', '')
         
         try:
-            group = SnapGroupStreak.objects.get(name=group_id)
-        except SnapGroupStreak.DoesNotExist:
+            group = GroupSnapStreak.objects.get(name=group_id)
+        except GroupSnapStreak.DoesNotExist:
       
        
-            all_groups = list(SnapGroupStreak.objects.values_list('name', flat=True))
+            all_groups = list(GroupSnapStreak.objects.values_list('name', flat=True))
             print(f"📩 Available groups: {all_groups}", flush=True)
             return Response({'error': 'Group not found'}, status=404)
            
