@@ -386,4 +386,4 @@ class SnapViewSet(viewsets.ModelViewSet):
                 except User.DoesNotExist:
                     pass
         
-        return Response({'status': 'sent', 'snaps': snaps, 'count': len(snaps)})    
+        return Response({'status': 'sent', 'snaps': snaps, 'count': len(snaps)})
