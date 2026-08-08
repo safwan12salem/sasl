@@ -65,7 +65,7 @@ class StreamSessionSerializer(serializers.ModelSerializer):
 
     def get_reaction_counts(self, obj):
          counts = {}
-         for rtype in ['heart', 'laugh', 'wow', 'sad', 'angry', 'xp']:
+         for rtype in ['❤️', '🔥', '👏', '😂']: 
             counts[rtype] = obj.reactions.filter(reaction_type=rtype).count()
          return counts
     def get_top_donors(self, obj):

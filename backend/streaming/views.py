@@ -167,7 +167,7 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def react(self, request, pk=None):
         stream = self.get_object()
-        reaction_type = request.data.get('reaction', 'heart')
+        reaction_type = request.data.get('reaction','❤️')
         
         StreamReaction.objects.create(
             stream=stream,
@@ -179,7 +179,7 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
         
         # Return counts for all reaction types
         reaction_counts = {}
-        for rtype in ['heart', 'laugh', 'wow', 'sad', 'angry', 'xp']:
+        for rtype in ['❤️', '🔥', '👏', '😂']:
             reaction_counts[rtype] = StreamReaction.objects.filter(
                 stream=stream, reaction_type=rtype
             ).count()
