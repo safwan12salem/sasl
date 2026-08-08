@@ -480,24 +480,31 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
         const rtc = new WebRTCConnection((msg) => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); });
         rtcRef.current = rtc;
 
-        ws.onopen = () => {
+                ws.onopen = () => {
           if (localVideoRef.current) rtc.startLocalStream(localVideoRef.current);
           ws.onmessage = async (event) => {
             const data = JSON.parse(event.data);
             if (data.type === 'answer' && role === 'viewer') await rtc.handleAnswer(data.answer);
             else if (data.type === 'offer' && role === 'streamer' && remoteVideoRef.current) await rtc.handleOffer(data.offer, remoteVideoRef.current);
+            else if (data.type === 'join_room' && role === 'streamer' && remoteVideoRef.current) {
+              setTimeout(() => rtc.createOffer(remoteVideoRef.current!), 1000);
+            }
             else if (data.type === 'candidate') await rtc.addIceCandidate(data.candidate);
           };
-          if (role === 'viewer' && remoteVideoRef.current) rtc.createOffer(remoteVideoRef.current);
+          if (role === 'viewer') {
+            ws.send(JSON.stringify({ type: 'join_room' }));
+            setTimeout(() => {
+              if (remoteVideoRef.current) rtc.createOffer(remoteVideoRef.current!);
+            }, 2000);
+          }
         };
-
         setInCall({ streamId, role });
         connectChatWebSocket(streamId);
       })
       .catch(() => toast.error(t('Camera access denied')));
   };
 
-  
+
   const endCall = () => {
     rtcRef.current?.disconnect();
     wsRef.current?.close();
