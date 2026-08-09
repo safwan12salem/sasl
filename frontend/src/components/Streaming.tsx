@@ -510,12 +510,13 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
               const answer = await pc.createAnswer();
               await pc.setLocalDescription(answer);
               ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription }));
-            } else if (data.type === 'join_room') {
-              // Streamer creates offer for new viewer
+                       } else if (data.type === 'join_room') {
               console.log('📩 join_room, creating offer');
-              const offer = await pc.createOffer();
-              await pc.setLocalDescription(offer);
-              ws.send(JSON.stringify({ type: 'offer', offer: pc.localDescription }));
+              if (role === 'streamer') {
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                ws.send(JSON.stringify({ type: 'offer', offer: pc.localDescription }));
+              }
             } else if (data.type === 'candidate') {
               try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e) {}
             }
