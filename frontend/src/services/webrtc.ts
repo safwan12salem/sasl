@@ -66,17 +66,20 @@ export class WebRTCConnection {
     };
 
     // Handle incoming remote tracks
-           pc.ontrack = (event) => {
+    pc.ontrack = (event) => {
       console.log('🔥 ONTRACK FIRED! Track kind:', event.track.kind, 'Streams:', event.streams.length);
       if (event.streams[0] && this.remoteVideoElement) {
         console.log('🔥 Setting remote video srcObject');
-        this.remoteVideoElement.srcObject = event.streams[0];
-        this.remoteVideoElement.style.display = 'block';
+        const newStream = new MediaStream();
+        newStream.addTrack(event.track);
+        this.remoteVideoElement.srcObject = newStream;
+        this.remoteVideoElement.autoplay = true;
+        this.remoteVideoElement.playsInline = true;
         this.remoteVideoElement.muted = false;
         this.remoteVideoElement.play().then(() => {
           console.log('▶️ Remote video playing');
-                }).catch(e => {
-          console.log('▶️ Play blocked, waiting for tap');
+        }).catch(e => {
+          console.log('▶️ Play blocked');
           const playVideo = () => {
             if (this.remoteVideoElement) {
               this.remoteVideoElement.play().catch(() => {});
@@ -85,12 +88,12 @@ export class WebRTCConnection {
           document.addEventListener('click', playVideo, { once: true });
           document.addEventListener('touchstart', playVideo, { once: true });
         });
-            }
+      }
     };
-
-    return pc;
+  return pc;
   }
 
+  
   async createOffer(remoteVideoElement: HTMLVideoElement) {
     this.remoteVideoElement = remoteVideoElement;
     
