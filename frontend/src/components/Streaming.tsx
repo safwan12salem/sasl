@@ -465,9 +465,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
   // ============================================================
   // VIDEO CALL (enhanced with chat + viewer features)
-  // ============================================================
-  const startVideoCall = (streamId: string, role: 'streamer' | 'viewer') => {
-        // Increment view count and join BEFORE camera request (works even if camera blocked)
+    const startVideoCall = (streamId: string, role: 'streamer' | 'viewer') => {
     api.post(`/streaming/streams/${streamId}/join/`).catch(() => {});
     api.post(`/streaming/streams/${streamId}/increment_view/`).catch(() => {});
 
@@ -477,26 +475,50 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
         const wsUrl = `wss://sasl-api-i34r.onrender.com/ws/video/${streamId}/?token=${token}`;
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
-        const rtc = new WebRTCConnection((msg) => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); });
-        rtcRef.current = rtc;
 
-                ws.onopen = () => {
-          if (localVideoRef.current) rtc.startLocalStream(localVideoRef.current);
-          ws.onmessage = async (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === 'answer' && role === 'viewer') await rtc.handleAnswer(data.answer);
-            else if (data.type === 'offer' && role === 'streamer' && remoteVideoRef.current) await rtc.handleOffer(data.offer, remoteVideoRef.current);
-            else if (data.type === 'join_room' && role === 'streamer' && remoteVideoRef.current) {
-              setTimeout(() => rtc.createOffer(remoteVideoRef.current!), 1000);
-            }
-            else if (data.type === 'candidate') await rtc.addIceCandidate(data.candidate);
-          };
-          if (role === 'viewer') {
-                      if (role === 'viewer') {
-            ws.send(JSON.stringify({ type: 'join_room' }));
-          }
+        const pc = new RTCPeerConnection({
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: ['turn:global.relay.metered.ca:80?transport=tcp', 'turn:global.relay.metered.ca:443?transport=tcp'], username: '9a949126f260451ca16f969e', credential: 'HNHbY2NEDOgMoMfd' },
+          ]
+        });
+
+        stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+        pc.ontrack = (event) => {
+          console.log('🎥 Remote track:', event.track.kind);
+          if (remoteVideoRef.current && event.streams[0]) {
+            remoteVideoRef.current.srcObject = event.streams[0];
+            remoteVideoRef.current.play().catch(() => {});
           }
         };
+
+        pc.onicecandidate = (event) => {
+          if (event.candidate && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+          }
+        };
+
+        ws.onopen = () => {
+          ws.onmessage = async (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'answer') await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+            else if (data.type === 'offer') {
+              await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+              const answer = await pc.createAnswer();
+              await pc.setLocalDescription(answer);
+              ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription }));
+            }
+            else if (data.type === 'candidate') {
+              try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch(e) {}
+            }
+          };
+
+          if (role === 'viewer') {
+            ws.send(JSON.stringify({ type: 'join_room' }));
+          }
+        };
+
         setInCall({ streamId, role });
         connectChatWebSocket(streamId);
       })
