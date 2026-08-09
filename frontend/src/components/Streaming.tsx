@@ -511,8 +511,8 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
               await pc.setLocalDescription(answer);
               ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription }));
                        } else if (data.type === 'join_room') {
-              console.log('📩 join_room, creating offer');
-              if (role === 'streamer') {
+                           console.log('📩 join_room, creating offer');
+              if (role === 'streamer' && data.username !== user?.username) {
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
                 ws.send(JSON.stringify({ type: 'offer', offer: pc.localDescription }));
@@ -523,7 +523,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
           };
 
           if (role === 'viewer') {
-            ws.send(JSON.stringify({ type: 'join_room' }));
+        ws.send(JSON.stringify({ type: 'join_room', username: user?.username }));
           }
         };
 
