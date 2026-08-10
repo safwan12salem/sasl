@@ -495,25 +495,29 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
           }
         };
         pc.onicecandidate = (event) => {
-          if (event.candidate && ws.readyState === WebSocket.OPEN) {
+                    if (event.candidate && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
           }
         };
 
         ws.onopen = () => {
-                    ws.onmessage = async (event) => {
+          ws.onmessage = async (event) => {
             const data = JSON.parse(event.data);
             console.log('📩 Video WS:', data.type);
             if (data.type === 'answer') {
-              await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+              if (pc.signalingState === 'have-local-offer') {
+                await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+              }
             } else if (data.type === 'offer') {
-              await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-              const answer = await pc.createAnswer();
-              await pc.setLocalDescription(answer);
-              ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription }));
-                       } else if (data.type === 'join_room') {
-                           console.log('📩 join_room, creating offer');
-           if (role === 'streamer' && data.from !== user?.username) {
+              if (pc.signalingState === 'stable') {
+                await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+                const answer = await pc.createAnswer();
+                await pc.setLocalDescription(answer);
+                ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription }));
+              }
+            } else if (data.type === 'join_room') {
+              console.log('📩 join_room, creating offer');
+              if (role === 'streamer' && data.from !== user?.username) {
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
                 ws.send(JSON.stringify({ type: 'offer', offer: pc.localDescription }));
@@ -524,7 +528,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
           };
 
           if (role === 'viewer') {
-                ws.send(JSON.stringify({ type: 'join_room', from: user?.username }));
+            ws.send(JSON.stringify({ type: 'join_room', from: user?.username }));
           }
         };
 
@@ -533,7 +537,6 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
       })
       .catch(() => toast.error(t('Camera access denied')));
   };
-
 
   const endCall = () => {
     rtcRef.current?.disconnect();
