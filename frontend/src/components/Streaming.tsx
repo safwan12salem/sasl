@@ -485,14 +485,19 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-                 pc.ontrack = (event) => {
+                     pc.ontrack = (event) => {
           console.log('🎥 Remote track:', event.track.kind);
           if (remoteVideoRef.current && event.streams[0]) {
             const newStream = new MediaStream();
             newStream.addTrack(event.track);
             remoteVideoRef.current.srcObject = newStream;
             remoteVideoRef.current.muted = false;
-            remoteVideoRef.current.play().catch(() => {});
+            remoteVideoRef.current.play().then(() => {
+              console.log('▶️ Remote video playing');
+            }).catch(e => {
+              console.log('🔇 Audio blocked - tap screen');
+              toast('👆 Tap screen to hear audio', { duration: 4000, icon: '🔊' });
+            });
           }
         };
         pc.onicecandidate = (event) => {
@@ -534,6 +539,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
         };
 
         setInCall({ streamId, role });
+        fetchStreams();
         connectChatWebSocket(streamId);
       })
       .catch(() => toast.error(t('Camera access denied')));
