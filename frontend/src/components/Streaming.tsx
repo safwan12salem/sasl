@@ -467,7 +467,9 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
   // VIDEO CALL (enhanced with chat + viewer features)
     const startVideoCall = (streamId: string, role: 'streamer' | 'viewer') => {
     api.post(`/streaming/streams/${streamId}/join/`).catch(() => {});
-    api.post(`/streaming/streams/${streamId}/increment_view/`).catch(() => {});
+        api.post(`/streaming/streams/${streamId}/increment_view/`).then(() => {
+      setStreams(prev => prev.map(s => s.id === streamId ? {...s, viewers_count: (s.viewers_count || 0) + 1} : s));
+    }).catch(() => {});
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(stream => {
@@ -659,10 +661,10 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                 {inCall?.role === 'viewer' ? (
                   <>
                     <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl z-10" />
+                   <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl z-10 bg-black" />
                   </>
                 ) : (
-                  <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                  <video ref={localVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
 
                 )}
                                 
@@ -670,18 +672,21 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                 {/* TAP TO HEAR OVERLAY */}
                 {inCall?.role === 'viewer' && (
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 cursor-pointer"
-                                     onClick={(e) => { e.stopPropagation();
-                      // Force audio context resume (browser requirement)
-                      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-                      if (AudioContext) {
-                        const ctx = new AudioContext();
-                        ctx.resume().then(() => {
-                          const videos = document.querySelectorAll('video');
-                          videos.forEach(v => { v.muted = false; v.play().catch(() => {}); });
-                        });
-                      }
+                                           onClick={(e) => { e.stopPropagation();
+                      const videos = document.querySelectorAll('video');
+                      videos.forEach(v => {
+                        v.muted = false;
+                        try {
+                          const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                          const source = ctx.createMediaElementSource(v);
+                          source.connect(ctx.destination);
+                          ctx.resume();
+                        } catch(e) {}
+                        v.play().catch(() => {});
+                      });
                       e.currentTarget.style.display = 'none';
                     }}>
+                     
                     <div className="bg-green-500 text-white px-6 py-3 rounded-full text-lg font-bold animate-pulse shadow-2xl">
                       👆 Tap to hear streamer
                     </div>
