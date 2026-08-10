@@ -643,9 +643,16 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
             <div className="flex-1 flex flex-col md:flex-row">
               <div className="flex-1 relative bg-black flex items-center justify-center"
                 onClick={() => setIsFullscreen(!isFullscreen)}>
-                <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl" />
-
+                                {inCall.role === 'viewer' ? (
+                  <>
+                    <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl" />
+                  </>
+                ) : (
+                  <>
+                    <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                  </>
+                )}
                 {/* Viewer Count with Avatars */}
                 <div className="absolute top-4 left-4 flex items-center gap-1">
                   <div className="flex -space-x-2">
@@ -682,7 +689,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
               {showChat && (
                 <div className="w-full md:w-80 bg-gray-900 flex flex-col">
                   {/* Mobile Tabs */}
-                  <div className="flex md:hidden border-b border-gray-700">
+                  <div className="flex border-b border-gray-700">
                     {(['chat', 'info', 'donors'] as const).map(tab => (
                       <button key={tab} onClick={() => setActiveStreamTab(tab)}
                         className={`flex-1 py-2 text-xs font-semibold ${activeStreamTab === tab ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-400'}`}>
@@ -692,7 +699,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   </div>
 
                   {/* Chat Messages */}
-                  {(activeStreamTab === 'chat' || window.innerWidth >= 768) && (
+                  {(activeStreamTab === 'chat') && (
                     <>
                       <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-3 space-y-2">
                         {chatMessages.length === 0 && (
