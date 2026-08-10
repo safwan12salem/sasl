@@ -646,18 +646,36 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
               </motion.div>
             ))}
 
-            {/* Main Video Area */}
+                      {/* Main Video Area */}
             <div className="flex-1 flex flex-col md:flex-row">
-              <div className="flex-1 relative bg-black flex items-center justify-center"
+              <div className="flex-1 relative bg-gray-900 flex items-center justify-center"
                 onClick={() => setIsFullscreen(!isFullscreen)}>
-                                         {inCall?.role === 'viewer' ? (
+                {inCall?.role === 'viewer' ? (
                   <>
                     <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl bg-black" />
+                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl z-10" />
                   </>
                 ) : (
-                  <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover bg-black" />
+                  <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+
                 )}
+                                
+                
+                {/* TAP TO HEAR OVERLAY */}
+                {inCall?.role === 'viewer' && (
+                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 cursor-pointer"
+                    onClick={(e) => { e.stopPropagation();
+                      const v = document.querySelectorAll('video')[0];
+                      if (v) { v.muted = false; v.play().catch(() => {}); }
+                      e.currentTarget.style.display = 'none';
+                    }}>
+                    <div className="bg-green-500 text-white px-6 py-3 rounded-full text-lg font-bold animate-pulse shadow-2xl">
+                      👆 Tap to hear streamer
+                    </div>
+                  </div>
+                )}
+
+                
                 {/* Viewer Count with Avatars */}
                 <div className="absolute top-4 left-4 flex items-center gap-1">
                   <div className="flex -space-x-2">
