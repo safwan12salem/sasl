@@ -485,12 +485,13 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-               pc.ontrack = (event) => {
+                 pc.ontrack = (event) => {
           console.log('🎥 Remote track:', event.track.kind);
           if (remoteVideoRef.current && event.streams[0]) {
             const newStream = new MediaStream();
             newStream.addTrack(event.track);
             remoteVideoRef.current.srcObject = newStream;
+            remoteVideoRef.current.muted = false;
             remoteVideoRef.current.play().catch(() => {});
           }
         };
@@ -643,15 +644,13 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
             <div className="flex-1 flex flex-col md:flex-row">
               <div className="flex-1 relative bg-black flex items-center justify-center"
                 onClick={() => setIsFullscreen(!isFullscreen)}>
-                                {inCall.role === 'viewer' ? (
+                                         {inCall?.role === 'viewer' ? (
                   <>
                     <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl" />
+                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl bg-black" />
                   </>
                 ) : (
-                  <>
-                    <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-                  </>
+                  <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover bg-black" />
                 )}
                 {/* Viewer Count with Avatars */}
                 <div className="absolute top-4 left-4 flex items-center gap-1">
@@ -671,7 +670,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                       </div>
                     )}
                   </div>
-                  <span className="text-white text-sm font-semibold ml-1">{viewerAvatars.length}</span>
+                  <span className="text-white text-sm font-semibold ml-1">{streams.find(s => s.id === inCall?.streamId)?.viewers_count || viewerAvatars.length}</span>
                 </div>
 
                 {/* Stream Info Overlay */}
