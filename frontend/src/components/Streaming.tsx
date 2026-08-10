@@ -485,14 +485,15 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-        pc.ontrack = (event) => {
+               pc.ontrack = (event) => {
           console.log('🎥 Remote track:', event.track.kind);
           if (remoteVideoRef.current && event.streams[0]) {
-            remoteVideoRef.current.srcObject = event.streams[0];
+            const newStream = new MediaStream();
+            newStream.addTrack(event.track);
+            remoteVideoRef.current.srcObject = newStream;
             remoteVideoRef.current.play().catch(() => {});
           }
         };
-
         pc.onicecandidate = (event) => {
           if (event.candidate && ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
@@ -512,7 +513,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
               ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription }));
                        } else if (data.type === 'join_room') {
                            console.log('📩 join_room, creating offer');
-              if (role === 'streamer' && data.username !== user?.username) {
+           if (role === 'streamer' && data.from !== user?.username) {
                 const offer = await pc.createOffer();
                 await pc.setLocalDescription(offer);
                 ws.send(JSON.stringify({ type: 'offer', offer: pc.localDescription }));
@@ -523,7 +524,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
           };
 
           if (role === 'viewer') {
-        ws.send(JSON.stringify({ type: 'join_room', username: user?.username }));
+                ws.send(JSON.stringify({ type: 'join_room', from: user?.username }));
           }
         };
 
