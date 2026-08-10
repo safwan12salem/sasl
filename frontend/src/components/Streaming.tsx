@@ -471,7 +471,10 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(stream => {
-        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+                if (localVideoRef.current) {
+          localVideoRef.current.srcObject = stream;
+          localVideoRef.current.play().catch(() => {});
+        }   
         const wsUrl = `wss://sasl-api-i34r.onrender.com/ws/video/${streamId}/?token=${token}`;
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
@@ -668,14 +671,15 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                 {inCall?.role === 'viewer' && (
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 cursor-pointer"
                                      onClick={(e) => { e.stopPropagation();
-                      const videos = document.querySelectorAll('video');
-                      videos.forEach(v => { v.muted = false; v.play().catch(() => {}); });
-                      videos.forEach(v => {
-                        if (v.srcObject) {
-                          const stream = v.srcObject as MediaStream;
-                          stream.getAudioTracks().forEach(t => { t.enabled = true; });
-                        }
-                      });
+                      // Force audio context resume (browser requirement)
+                      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+                      if (AudioContext) {
+                        const ctx = new AudioContext();
+                        ctx.resume().then(() => {
+                          const videos = document.querySelectorAll('video');
+                          videos.forEach(v => { v.muted = false; v.play().catch(() => {}); });
+                        });
+                      }
                       e.currentTarget.style.display = 'none';
                     }}>
                     <div className="bg-green-500 text-white px-6 py-3 rounded-full text-lg font-bold animate-pulse shadow-2xl">
@@ -703,7 +707,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                       </div>
                     )}
                   </div>
-                  <span className="text-white text-sm font-semibold ml-1">{streams.find(s => s.id === inCall?.streamId)?.viewers_count || viewerAvatars.length}</span>
+                     <span className="text-white text-sm font-semibold ml-1">{streams.find(s => s.id === inCall?.streamId)?.viewers_count || viewerAvatars.length || 0}</span>
                 </div>
 
                 {/* Stream Info Overlay */}
