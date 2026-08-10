@@ -539,10 +539,13 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
         };
 
         setInCall({ streamId, role });
-        fetchStreams();
+      
         connectChatWebSocket(streamId);
       })
-      .catch(() => toast.error(t('Camera access denied')));
+            .catch((err) => {
+        console.log('📷 Camera error:', err.message);
+        toast.error(err.message || t('Camera access denied'));
+      });
   };
 
   const endCall = () => {
@@ -664,9 +667,15 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                 {/* TAP TO HEAR OVERLAY */}
                 {inCall?.role === 'viewer' && (
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 cursor-pointer"
-                    onClick={(e) => { e.stopPropagation();
-                      const v = document.querySelectorAll('video')[0];
-                      if (v) { v.muted = false; v.play().catch(() => {}); }
+                                     onClick={(e) => { e.stopPropagation();
+                      const videos = document.querySelectorAll('video');
+                      videos.forEach(v => { v.muted = false; v.play().catch(() => {}); });
+                      videos.forEach(v => {
+                        if (v.srcObject) {
+                          const stream = v.srcObject as MediaStream;
+                          stream.getAudioTracks().forEach(t => { t.enabled = true; });
+                        }
+                      });
                       e.currentTarget.style.display = 'none';
                     }}>
                     <div className="bg-green-500 text-white px-6 py-3 rounded-full text-lg font-bold animate-pulse shadow-2xl">
