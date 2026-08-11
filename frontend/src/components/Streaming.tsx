@@ -704,31 +704,33 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   </div>
                             )}
 
-                {/* Video Elements */}
-                {inCall?.role === 'viewer' ? (
+                               {inCall?.role === 'viewer' ? (
                   <>
-                    <video ref={remoteVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30">
-                      <button 
-                        onClick={(e) => { e.stopPropagation();
-                          const v = remoteVideoRef.current;
-                          if (v) {
-                            v.muted = !v.muted;
-                            if (!v.muted) v.play().catch(() => {});
-                            toast(v.muted ? '🔇 Muted' : '🔊 Unmuted');
-                          }
-                        }}
-                        className="bg-gray-900/80 text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-gray-800 transition flex items-center gap-2 backdrop-blur-sm"
-                      >
-                        <Volume2 size={16} /> Tap to Unmute
-                      </button>
+                    <video 
+                      ref={remoteVideoRef} 
+                      autoPlay 
+                      muted 
+                      playsInline 
+                      className="w-full h-full object-cover cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const v = e.currentTarget;
+                        v.muted = !v.muted;
+                        if (!v.muted) v.play().catch(() => {});
+                        toast(v.muted ? '🔇 Muted' : '🔊 Unmuted');
+                      }}
+                    />
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-none">
+                      <div className="bg-gray-900/80 text-white px-5 py-2.5 rounded-full text-sm font-semibold backdrop-blur-sm">
+                        <Volume2 size={16} className="inline mr-2" /> Tap video to Unmute
+                      </div>
                     </div>
                   </>
-                  
                 ) : (
-                  <video ref={localVideoRef} autoPlay muted playsInline controls className="w-full h-full object-cover" />
+                  <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
                 )}
- 
+
+                
                 {/* Viewer Count with Avatars */}
                 <div className="absolute top-4 left-4 flex items-center gap-1">
                   <div className="flex -space-x-2">
