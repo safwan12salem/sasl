@@ -831,7 +831,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   {/* Chat Messages */}
                   {(activeStreamTab === 'chat') && (
                     <>
-                      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-3 space-y-2">
+                      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-3 space-y-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
                         {chatMessages.length === 0 && (
                           <div className="text-center text-gray-500 mt-8">
                             <MessageCircle size={32} className="mx-auto mb-2 opacity-50" />
