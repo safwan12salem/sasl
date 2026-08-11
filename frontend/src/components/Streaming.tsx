@@ -27,7 +27,7 @@ interface Stream {
   category?: string;
   viewers_count: number;
   max_viewers: number;
-  
+  streamer_level?: number;
   is_live: boolean;
   thumbnail_url?: string;
   top_donors?: { username: string; total: number }[];
