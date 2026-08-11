@@ -120,9 +120,13 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
     def leave(self, request, pk=None):
         stream = self.get_object()
         StreamViewer.objects.filter(stream=stream, user=request.user).delete()
-        stream.viewers_count = stream.viewers.count()
+        current_count = stream.viewers.count()
+        stream.viewers_count = current_count
+        # Keep max_viewers as the highest ever
+        if current_count > stream.max_viewers:
+            stream.max_viewers = current_count
         stream.save()
-        return Response({'status': 'left'})
+        return Response({'status': 'left', 'viewers_count': current_count})
 
     @action(detail=True, methods=['post'])
     def create_clip(self, request, pk=None):

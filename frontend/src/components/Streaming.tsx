@@ -26,6 +26,8 @@ interface Stream {
   description?: string;
   category?: string;
   viewers_count: number;
+  max_viewers: number;
+  
   is_live: boolean;
   thumbnail_url?: string;
   top_donors?: { username: string; total: number }[];
@@ -676,16 +678,30 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                                 {/* TAP TO HEAR OVERLAY */}
                 {inCall?.role === 'viewer' && (
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 cursor-pointer"
-                                                   onClick={async (e) => { e.stopPropagation();
-                      const remoteVideo = document.querySelectorAll('video')[0];
+                                                       onClick={async (e) => { e.stopPropagation();
+                      const remoteVideo = document.querySelectorAll('video')[0] as HTMLVideoElement;
                       if (remoteVideo && remoteVideo.srcObject) {
                         const stream = remoteVideo.srcObject as MediaStream;
+                        
+                        // Method 1: Audio element (works on most browsers)
                         const audioEl = document.createElement('audio');
                         audioEl.srcObject = stream;
                         audioEl.autoplay = true;
                         audioEl.style.display = 'none';
                         document.body.appendChild(audioEl);
                         audioEl.play().catch(() => {});
+                        
+                        // Method 2: Web Audio API direct connection (fallback)
+                        try {
+                          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                          const source = audioCtx.createMediaStreamSource(stream);
+                          source.connect(audioCtx.destination);
+                          audioCtx.resume();
+                        } catch (err) {
+                          console.log('Web Audio API fallback:', err);
+                        }
+                        
+                        // Method 3: Unmute video element as last resort
                         remoteVideo.muted = false;
                         remoteVideo.play().catch(() => {});
                       }
@@ -726,7 +742,12 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                       </div>
                     )}
                   </div>
-                     <span className="text-white text-sm font-semibold ml-1">{streams.find(s => s.id === inCall?.streamId)?.viewers_count || viewerAvatars.length || 0}</span>
+                     <span className="text-white text-sm font-semibold ml-1">
+  {(() => {
+    const s = streams.find(s => s.id === inCall?.streamId);
+    return s?.is_live ? (s.viewers_count || 0) : (s?.max_viewers || s?.viewers_count || 0);
+  })()}
+</span>
                 </div>
 
                 {/* Stream Info Overlay */}
