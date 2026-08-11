@@ -825,13 +825,19 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                             </div>
                           )}
                         </div>
+
                       ))}
                     </div>
                   </div>
+                                    {viewerAvatars.length === 0 && (
+                    <div className="px-3 py-2 text-xs text-gray-400 text-center">
+                      {streams.find(s => s.id === inCall?.streamId)?.viewers_count || 0} viewer(s)
+                    </div>
+                  )}
                   {/* Chat Messages */}
                   {(activeStreamTab === 'chat') && (
                     <>
-                      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-3 space-y-2" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+                  <div ref={chatContainerRef} className="flex-1 p-3 space-y-2" style={{ overflowY: 'scroll', maxHeight: 'calc(100vh - 250px)', WebkitOverflowScrolling: 'touch' }}>
                         {chatMessages.length === 0 && (
                           <div className="text-center text-gray-500 mt-8">
                             <MessageCircle size={32} className="mx-auto mb-2 opacity-50" />
