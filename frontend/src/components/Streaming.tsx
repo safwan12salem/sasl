@@ -445,7 +445,9 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
             existingDonors.push({ username: donorName, total: Number(amt) });
           }
           existingDonors.sort((a: any, b: any) => b.total - a.total);
-          return { ...s, top_donors: existingDonors.slice(0, 3), total_donations: (s.total_donations || 0) + amt };
+                    const newTotal = (s.total_donations || 0) + Number(amt);
+          const newLevel = Math.max(1, Math.floor(newTotal / 100) + 1);
+          return { ...s, top_donors: existingDonors.slice(0, 3), total_donations: newTotal, streamer_level: newLevel };
         }
         return s;
       }));
@@ -799,7 +801,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                              
               {/* Chat Panel (mobile: tab-based) */}
               {showChat && (
-                <div className="w-full md:w-80 bg-gray-900 flex flex-col overflow-hidden" style={{ maxHeight: '100%' }}>
+                <div className="w-full md:w-80 bg-gray-900 flex flex-col" style={{ height: '100%' }}>
                   {/* Mobile Tabs */}
                   <div className="flex border-b border-gray-700">
                     {(['chat', 'info', 'donors'] as const).map(tab => (
