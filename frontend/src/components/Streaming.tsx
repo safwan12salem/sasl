@@ -834,8 +834,8 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                     )}
                   </div>
 
-                  {/* SCROLLABLE CONTENT AREA */}
-                  <div className="flex-1" style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+         {/* SCROLLABLE CONTENT AREA */}
+          <div style={{ flex: 1, overflowY: 'scroll', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', height: '100%', maxHeight: 'calc(100vh - 280px)' }}>
                     {/* Chat Messages */}
                     {(activeStreamTab === 'chat') && (
                       <div ref={chatContainerRef} className="p-3 space-y-2">
