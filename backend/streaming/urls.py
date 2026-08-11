@@ -7,5 +7,4 @@ router.register(r'streams', StreamSessionViewSet, basename='stream')
 router.register(r'donations', StreamDonationViewSet, basename='donation')
 router.register(r'schedules', StreamScheduleViewSet, basename='schedule')
 
-urlpatterns =*router.urls,
-   
+urlpatterns = router.urls

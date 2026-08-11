@@ -12,7 +12,7 @@ import {
   Play, Users, DollarSign, Loader2, Radio, AlertCircle, Video, VideoOff,
   Clock, Calendar, TrendingUp, Crown, Image as ImageIcon, X, Bookmark,
   MessageCircle, Heart, Send, Bell, BellOff, Sparkles, Eye, Share2,
-  ChevronUp, ChevronDown, Gift, Star, Zap, Timer, Maximize2, Minimize2
+  ChevronUp, ChevronDown, Gift, Star, Zap, Timer, Maximize2, Minimize2,Volume2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WebRTCConnection } from '../services/webrtc';
@@ -675,37 +675,23 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
             <div className="flex-1 flex flex-col md:flex-row">
               <div className="flex-1 relative bg-gray-900 flex items-center justify-center"
                 onClick={() => setIsFullscreen(!isFullscreen)}>
-                                {/* TAP TO HEAR OVERLAY */}
+                                       {/* Unmute Button */}
                 {inCall?.role === 'viewer' && (
-                  <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 cursor-pointer"
-                                                     onClick={async (e) => { e.stopPropagation();
-                      const remoteVideo = document.querySelectorAll('video')[0] as HTMLVideoElement;
-                      if (remoteVideo && remoteVideo.srcObject) {
-                        const stream = remoteVideo.srcObject as MediaStream;
-                        
-                        // Clone audio tracks to a new stream
-                        const audioStream = new MediaStream();
-                        stream.getAudioTracks().forEach(track => {
-                          audioStream.addTrack(track.clone());
-                        });
-                        
-                        // Play through fresh audio element
-                        const audioEl = new Audio();
-                        audioEl.srcObject = audioStream;
-                        audioEl.play().catch(() => {});
-                        
-                        // Also unmute the video
-                        remoteVideo.muted = false;
-                        remoteVideo.play()
-                        remoteVideo.play().catch(() => {});
-                      }
-                      e.currentTarget.style.display = 'none';
-                    }}>
-                    <div className="bg-green-500 text-white px-6 py-3 rounded-full text-lg font-bold animate-pulse shadow-2xl">
-                      👆 Tap to hear streamer
-                    </div>
+                  <div className="absolute bottom-20 left-1/2 -translate-x-1/2 z-20">
+                    <button 
+                      onClick={(e) => { e.stopPropagation();
+                        if (remoteVideoRef.current) {
+                          remoteVideoRef.current.muted = !remoteVideoRef.current.muted;
+                          toast(remoteVideoRef.current.muted ? '🔇 Muted' : '🔊 Unmuted');
+                        }
+                      }}
+                      className="bg-gray-800/80 text-white px-4 py-2 rounded-full text-sm font-semibold hover:bg-gray-700 transition flex items-center gap-2"
+                    >
+                      <Volume2 size={16} /> Unmute
+                    </button>
                   </div>
                 )}
+                    
 
                
                 {/* Video Elements */}
