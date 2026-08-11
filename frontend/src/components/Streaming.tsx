@@ -800,8 +800,8 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
                              
                          {/* Chat Panel */}
-              {showChat && (
-                <div className="w-full md:w-80 bg-gray-900 flex flex-col" style={{ height: '100%', maxHeight: '100vh' }}>
+                           {showChat && (
+                <div className="absolute right-0 top-0 bottom-0 w-full md:w-80 bg-gray-900 flex flex-col z-30" style={{ maxHeight: '100%' }}>
                   {/* Tabs */}
                   <div className="flex border-b border-gray-700 flex-shrink-0">
                     {(['chat', 'info', 'donors'] as const).map(tab => (
@@ -835,7 +835,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   </div>
 
          {/* SCROLLABLE CONTENT AREA */}
-          <div style={{ flex: 1, overflowY: 'scroll', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', height: '100%', maxHeight: 'calc(100vh - 280px)' }}>
+                            <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch' }}>
                     {/* Chat Messages */}
                     {(activeStreamTab === 'chat') && (
                       <div ref={chatContainerRef} className="p-3 space-y-2">
