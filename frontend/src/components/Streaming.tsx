@@ -105,6 +105,7 @@ export default function Streaming() {
   // Video call
   const [inCall, setInCall] = useState<{ streamId: string; role: 'streamer' | 'viewer' } | null>(null);
   const localVideoRef = useRef<HTMLVideoElement>(null);
+  const pendingStreamRef = useRef<MediaStream | null>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const rtcRef = useRef<WebRTCConnection | null>(null);
@@ -139,6 +140,21 @@ export default function Streaming() {
   // Mobile viewer
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeStreamTab, setActiveStreamTab] = useState<'info' | 'chat' | 'donors'>('chat');
+
+
+useEffect(() => {
+  if (pendingStreamRef.current) {
+    // Wait for React to attach the ref to the DOM
+    const timer = setTimeout(() => {
+      if (localVideoRef.current && pendingStreamRef.current) {
+        localVideoRef.current.srcObject = pendingStreamRef.current;
+        localVideoRef.current.play().catch(() => {});
+        pendingStreamRef.current = null;
+      }
+    }, 100);
+    return () => clearTimeout(timer);
+  }
+}, [inCall]);
 
   // ============================================================
   // FETCH
@@ -473,10 +489,12 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(stream => {
-                if (localVideoRef.current) {
+                      if (localVideoRef.current) {
           localVideoRef.current.srcObject = stream;
           localVideoRef.current.play().catch(() => {});
-        }   
+        } else {
+          pendingStreamRef.current = stream;
+        }
         const wsUrl = `wss://sasl-api-i34r.onrender.com/ws/video/${streamId}/?token=${token}`;
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
@@ -490,19 +508,13 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-                     pc.ontrack = (event) => {
+                          pc.ontrack = (event) => {
           console.log('🎥 Remote track:', event.track.kind);
           if (remoteVideoRef.current && event.streams[0]) {
             const newStream = new MediaStream();
             newStream.addTrack(event.track);
             remoteVideoRef.current.srcObject = newStream;
-            remoteVideoRef.current.muted = false;
-            remoteVideoRef.current.play().then(() => {
-              console.log('▶️ Remote video playing');
-            }).catch(e => {
-              console.log('🔇 Audio blocked - tap screen');
-              toast('👆 Tap screen to hear audio', { duration: 4000, icon: '🔊' });
-            });
+            // Audio will be unlocked by the tap overlay
           }
         };
         pc.onicecandidate = (event) => {
@@ -544,8 +556,9 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
         };
 
         setInCall({ streamId, role });
-      
         connectChatWebSocket(streamId);
+         fetchStreams();  
+
       })
             .catch((err) => {
         console.log('📷 Camera error:', err.message);
@@ -660,11 +673,11 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                 onClick={() => setIsFullscreen(!isFullscreen)}>
                 {inCall?.role === 'viewer' ? (
                   <>
-                    <video ref={remoteVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                    <video ref={remoteVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl z-10 bg-black" />
                   </>
                 ) : (
-                  <video ref={localVideoRef} autoPlay playsInline className="w-full h-full object-cover" />
+                  <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
 
                 )}
                                 
@@ -672,21 +685,14 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                 {/* TAP TO HEAR OVERLAY */}
                 {inCall?.role === 'viewer' && (
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 cursor-pointer"
-                                           onClick={(e) => { e.stopPropagation();
+                                    onClick={(e) => { e.stopPropagation();
                       const videos = document.querySelectorAll('video');
-                      videos.forEach(v => {
-                        v.muted = false;
-                        try {
-                          const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-                          const source = ctx.createMediaElementSource(v);
-                          source.connect(ctx.destination);
-                          ctx.resume();
-                        } catch(e) {}
-                        v.play().catch(() => {});
+                      videos.forEach(v => { 
+                        v.muted = false; 
+                        v.play().catch(() => {}); 
                       });
                       e.currentTarget.style.display = 'none';
                     }}>
-                     
                     <div className="bg-green-500 text-white px-6 py-3 rounded-full text-lg font-bold animate-pulse shadow-2xl">
                       👆 Tap to hear streamer
                     </div>
