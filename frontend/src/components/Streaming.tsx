@@ -702,15 +702,29 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                       👆 Tap to enable audio
                     </div>
                   </div>
-                )}
-                    
+                            )}
 
-               
                 {/* Video Elements */}
                 {inCall?.role === 'viewer' ? (
                   <>
-                    <video ref={remoteVideoRef} autoPlay muted playsInline controls  className="w-full h-full object-cover" />
+                    <video ref={remoteVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30">
+                      <button 
+                        onClick={(e) => { e.stopPropagation();
+                          const v = remoteVideoRef.current;
+                          if (v) {
+                            v.muted = !v.muted;
+                            if (!v.muted) v.play().catch(() => {});
+                            toast(v.muted ? '🔇 Muted' : '🔊 Unmuted');
+                          }
+                        }}
+                        className="bg-gray-900/80 text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-gray-800 transition flex items-center gap-2 backdrop-blur-sm"
+                      >
+                        <Volume2 size={16} /> Tap to Unmute
+                      </button>
+                    </div>
                   </>
+                  
                 ) : (
                   <video ref={localVideoRef} autoPlay muted playsInline controls className="w-full h-full object-cover" />
                 )}
