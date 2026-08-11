@@ -678,30 +678,23 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                                 {/* TAP TO HEAR OVERLAY */}
                 {inCall?.role === 'viewer' && (
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 cursor-pointer"
-                                                       onClick={async (e) => { e.stopPropagation();
+                                                     onClick={async (e) => { e.stopPropagation();
                       const remoteVideo = document.querySelectorAll('video')[0] as HTMLVideoElement;
                       if (remoteVideo && remoteVideo.srcObject) {
                         const stream = remoteVideo.srcObject as MediaStream;
                         
-                        // Method 1: Audio element (works on most browsers)
-                        const audioEl = document.createElement('audio');
-                        audioEl.srcObject = stream;
-                        audioEl.autoplay = true;
-                        audioEl.style.display = 'none';
-                        document.body.appendChild(audioEl);
+                        // Clone audio tracks to a new stream
+                        const audioStream = new MediaStream();
+                        stream.getAudioTracks().forEach(track => {
+                          audioStream.addTrack(track.clone());
+                        });
+                        
+                        // Play through fresh audio element
+                        const audioEl = new Audio();
+                        audioEl.srcObject = audioStream;
                         audioEl.play().catch(() => {});
                         
-                        // Method 2: Web Audio API direct connection (fallback)
-                        try {
-                          const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-                          const source = audioCtx.createMediaStreamSource(stream);
-                          source.connect(audioCtx.destination);
-                          audioCtx.resume();
-                        } catch (err) {
-                          console.log('Web Audio API fallback:', err);
-                        }
-                        
-                        // Method 3: Unmute video element as last resort
+                        // Also unmute the video
                         remoteVideo.muted = false;
                         remoteVideo.play().catch(() => {});
                       }
@@ -718,7 +711,6 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                 {inCall?.role === 'viewer' ? (
                   <>
                     <video ref={remoteVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl z-10 bg-black" />
                   </>
                 ) : (
                   <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
@@ -736,7 +728,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                         </div>
                       )
                     ))}
-                    {viewerAvatars.length > 5 && (
+                    {viewerAvatars.length > 5 && (    
                       <div className="w-8 h-8 rounded-full bg-gray-700 border-2 border-black flex items-center justify-center text-white text-xs font-bold">
                         +{viewerAvatars.length - 5}
                       </div>

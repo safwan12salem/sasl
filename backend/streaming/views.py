@@ -96,14 +96,19 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
         )
 
         return Response(StreamDonationSerializer(donation, context={'request': request}).data, status=201)
-    @action(detail=True, methods=['post'])
+    
+
     def join(self, request, pk=None):
         stream = self.get_object()
         viewer, created = StreamViewer.objects.get_or_create(
             stream=stream, user=request.user
         )
         if created:
-            stream.viewers_count = stream.viewers.count()
+            current_count = stream.viewers.count()
+            stream.viewers_count = current_count
+            # Track highest ever
+            if current_count > stream.max_viewers:
+                stream.max_viewers = current_count
             stream.save()
         
         if stream.streamer != request.user:
@@ -115,7 +120,6 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
             )
         
         return Response({'status': 'joined', 'viewers_count': stream.viewers_count})
-
     @action(detail=True, methods=['post'])
     def leave(self, request, pk=None):
         stream = self.get_object()
