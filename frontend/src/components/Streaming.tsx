@@ -766,7 +766,24 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   </button>
                 </div>
               </div>
+               
 
+                                 {/* Viewer Avatars Row */}
+                  <div className="px-3 py-2 border-b border-gray-700 overflow-x-auto">
+                    <div className="flex gap-1">
+                      {viewerAvatars.map((v, i) => (
+                        <div key={i} className="flex-shrink-0 cursor-pointer" title={v.username}>
+                          {v.avatar_url ? (
+                            <img src={v.avatar_url} className="w-7 h-7 rounded-full object-cover border border-white/20 hover:border-red-500 transition" alt="" />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold hover:ring-2 hover:ring-red-500 transition">
+                              {(v.username || '?')[0]?.toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
               {/* Chat Panel (mobile: tab-based) */}
               {showChat && (
                 <div className="w-full md:w-80 bg-gray-900 flex flex-col">
@@ -837,7 +854,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   )}
 
                   {/* Info Tab */}
-                  {activeStreamTab === 'info' && window.innerWidth < 768 && (
+                  {activeStreamTab === 'info'  && (
                     <div className="flex-1 p-4 text-white">
                       <h3 className="font-bold text-lg">{streams.find(s => s.id === inCall?.streamId)?.title}</h3>
                       <p className="text-gray-400 text-sm mt-2">{streams.find(s => s.id === inCall?.streamId)?.description}</p>
@@ -849,7 +866,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   )}
 
                   {/* Top Donors Tab */}
-                  {activeStreamTab === 'donors' && window.innerWidth < 768 && (
+                  {activeStreamTab === 'donors' && (
                     <div className="flex-1 p-4 text-white">
                       <h4 className="font-bold mb-3">{t('Top Donors')}</h4>
                       {streams.find(s => s.id === inCall?.streamId)?.top_donors?.map((d, i) => (
@@ -869,7 +886,14 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
             {/* Bottom Controls */}
             <div className="bg-gray-900 p-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2">
+                {streams.find(s => s.id === inCall?.streamId)?.streamer.avatar_url ? (
+                  <img src={streams.find(s => s.id === inCall?.streamId)?.streamer.avatar_url} className="w-8 h-8 rounded-full object-cover border border-white/20" alt="" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
+                    {streams.find(s => s.id === inCall?.streamId)?.streamer.username?.[0]?.toUpperCase() || 'S'}
+                  </div>
+                )}
                 <span className="text-white font-bold text-sm">{streams.find(s => s.id === inCall?.streamId)?.streamer.username}</span>
                 <span className="text-gray-400 text-xs">{streams.find(s => s.id === inCall?.streamId)?.title}</span>
               </div>
