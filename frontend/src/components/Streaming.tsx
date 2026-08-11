@@ -711,7 +711,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
             ))}
 
                       {/* Main Video Area */}
-            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+            <div className="flex-1 flex flex-col md:flex-row" style={{ minHeight: 0 }}>
               <div className="flex-1 relative bg-gray-900 flex items-center justify-center"
                 onClick={() => setIsFullscreen(!isFullscreen)}>
                                               {/* Click video to unmute — first click enables audio */}
