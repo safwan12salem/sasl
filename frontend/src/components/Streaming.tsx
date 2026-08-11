@@ -799,11 +799,11 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                
 
                              
-              {/* Chat Panel (mobile: tab-based) */}
+                         {/* Chat Panel */}
               {showChat && (
-               <div className="w-full md:w-80 bg-gray-900 flex flex-col" style={{ height: '100%', maxHeight: '100dvh' }}>
-                  {/* Mobile Tabs */}
-                  <div className="flex border-b border-gray-700">
+                <div className="w-full md:w-80 bg-gray-900 flex flex-col" style={{ height: '100%', maxHeight: '100vh' }}>
+                  {/* Tabs */}
+                  <div className="flex border-b border-gray-700 flex-shrink-0">
                     {(['chat', 'info', 'donors'] as const).map(tab => (
                       <button key={tab} onClick={() => setActiveStreamTab(tab)}
                         className={`flex-1 py-2 text-xs font-semibold ${activeStreamTab === tab ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-400'}`}>
@@ -813,43 +813,40 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   </div>
                  
                   {/* Viewer Avatars Row */}
-                  <div className="px-3 py-2 border-b border-gray-700 overflow-x-auto">
+                  <div className="px-3 py-2 border-b border-gray-700 overflow-x-auto flex-shrink-0">
                     <div className="flex gap-1">
                       {viewerAvatars.map((v, i) => (
                         <div key={i} className="flex-shrink-0 cursor-pointer" title={v.username}>
                           {v.avatar_url ? (
-                            <img src={v.avatar_url} className="w-7 h-7 rounded-full object-cover border border-white/20 hover:border-red-500 transition" alt="" />
+                            <img src={v.avatar_url} className="w-7 h-7 rounded-full object-cover border border-white/20" alt="" />
                           ) : (
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold hover:ring-2 hover:ring-red-500 transition">
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
                               {(v.username || '?')[0]?.toUpperCase()}
                             </div>
                           )}
                         </div>
-
                       ))}
                     </div>
+                    {viewerAvatars.length === 0 && (
+                      <div className="text-xs text-gray-400 text-center">
+                        {streams.find(s => s.id === inCall?.streamId)?.viewers_count || 0} viewer(s)
+                      </div>
+                    )}
                   </div>
-                                    {viewerAvatars.length === 0 && (
-                    <div className="px-3 py-2 text-xs text-gray-400 text-center">
-                      {streams.find(s => s.id === inCall?.streamId)?.viewers_count || 0} viewer(s)
-                    </div>
-                  )}
-                  {/* Chat Messages */}
-                  {(activeStreamTab === 'chat') && (
-                    <>
-                 <div ref={chatContainerRef} className="flex-1 p-3 space-y-2" style={{ overflowY: 'scroll', height: '100%', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
+
+                  {/* SCROLLABLE CONTENT AREA */}
+                  <div className="flex-1" style={{ overflowY: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    {/* Chat Messages */}
+                    {(activeStreamTab === 'chat') && (
+                      <div ref={chatContainerRef} className="p-3 space-y-2">
                         {chatMessages.length === 0 && (
                           <div className="text-center text-gray-500 mt-8">
                             <MessageCircle size={32} className="mx-auto mb-2 opacity-50" />
                             <p className="text-sm">{t('No messages yet')}</p>
-                            <p className="text-xs">{t('Be the first to chat!')}</p>
                           </div>
-
                         )}
                         {chatMessages.map((msg, i) => (
-                          <motion.div key={msg.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: Math.min(i * 0.02, 0.3) }}
-                            className={`flex items-start gap-2 ${msg.is_donation ? 'bg-yellow-500/10 rounded-lg p-2 border border-yellow-500/30' : ''}`}>
+                          <div key={msg.id} className={`flex items-start gap-2 ${msg.is_donation ? 'bg-yellow-500/10 rounded-lg p-2 border border-yellow-500/30' : ''}`}>
                             {msg.avatar_url ? (
                               <img src={msg.avatar_url} className="w-6 h-6 rounded-full object-cover flex-shrink-0" alt="" />
                             ) : (
@@ -862,35 +859,66 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                               {msg.is_donation && <span className="text-yellow-400 text-xs ml-1">${msg.amount}</span>}
                               <p className="text-white text-sm break-words">{msg.message}</p>
                             </div>
-                          </motion.div>
+                          </div>
                         ))}
                       </div>
-                      {/* Chat Input */}
-                      <div className="p-3 border-t border-gray-700">
-                        <div className="flex gap-2">
-                          <input
-                            className="flex-1 bg-gray-800 text-white rounded-full px-4 py-2 text-sm border border-gray-700 focus:border-red-500 focus:outline-none"
-                            placeholder={t('Send a message...')}
-                            value={chatInput}
-                            onChange={e => setChatInput(e.target.value)}
-                            onKeyDown={e => { if (e.key === 'Enter') sendChatMessage(); }}
-                          />
-                          <button onClick={sendChatMessage}
-                            className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition">
-                            <Send size={16} />
-                          </button>
-                        </div>
-                        {/* Quick Emojis */}
-                        <div className="flex gap-1 mt-2">
-                          {['❤️', '🔥', '👏', '😂', '🎉', '💎'].map(emoji => (
-                            <button key={emoji} onClick={() => setChatInput(prev => prev + emoji)}
-                              className="hover:scale-125 transition-transform text-lg">{emoji}</button>
-                          ))}
+                    )}
+
+                    {/* Info Tab */}
+                    {activeStreamTab === 'info' && (
+                      <div className="p-4 text-white">
+                        <h3 className="font-bold text-lg">{streams.find(s => s.id === inCall?.streamId)?.title}</h3>
+                        <p className="text-gray-400 text-sm mt-2">{streams.find(s => s.id === inCall?.streamId)?.description}</p>
+                        <div className="mt-4 flex items-center gap-2">
+                          <Users size={16} className="text-gray-400" />
+                          <span className="text-sm">{streams.find(s => s.id === inCall?.streamId)?.viewers_count || 0} {t('viewers')}</span>
                         </div>
                       </div>
-                    </>
-                  )}
+                    )}
 
+                    {/* Top Donors Tab */}
+                    {activeStreamTab === 'donors' && (
+                      <div className="p-4 text-white">
+                        <h4 className="font-bold mb-3">{t('Top Donors')}</h4>
+                        {streams.find(s => s.id === inCall?.streamId)?.top_donors?.map((d, i) => (
+                          <div key={i} className="flex items-center justify-between py-2 border-b border-gray-700">
+                            <div className="flex items-center gap-2">
+                              <span className="text-yellow-400">{i === 0 ? '👑' : i === 1 ? '🥈' : i === 2 ? '🥉' : '⭐'}</span>
+                              <span>@{d.username}</span>
+                            </div>
+                            <span className="text-yellow-400 font-bold">${d.total}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Chat Input — fixed at bottom */}
+                  {(activeStreamTab === 'chat') && (
+                    <div className="p-3 border-t border-gray-700 flex-shrink-0">
+                      <div className="flex gap-2">
+                        <input
+                          className="flex-1 bg-gray-800 text-white rounded-full px-4 py-2 text-sm border border-gray-700 focus:border-red-500 focus:outline-none"
+                          placeholder={t('Send a message...')}
+                          value={chatInput}
+                          onChange={e => setChatInput(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') sendChatMessage(); }}
+                        />
+                        <button onClick={sendChatMessage}
+                          className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition">
+                          <Send size={16} />
+                        </button>
+                      </div>
+                      <div className="flex gap-1 mt-2">
+                        {['❤️', '🔥', '👏', '😂', '🎉', '💎'].map(emoji => (
+                          <button key={emoji} onClick={() => setChatInput(prev => prev + emoji)}
+                            className="hover:scale-125 transition-transform text-lg">{emoji}</button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
                   {/* Info Tab */}
                   {activeStreamTab === 'info'  && (
                     <div className="flex-1 p-4 text-white">
@@ -919,9 +947,9 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-
+                            
+             
+                              
             {/* Bottom Controls */}
             <div className="bg-gray-900 p-3 flex items-center justify-between flex-shrink-0">
                             <div className="flex items-center gap-2">
