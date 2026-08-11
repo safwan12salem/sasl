@@ -801,7 +801,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                              
               {/* Chat Panel (mobile: tab-based) */}
               {showChat && (
-                <div className="w-full md:w-80 bg-gray-900 flex flex-col" style={{ height: '100%' }}>
+               <div className="w-full md:w-80 bg-gray-900 flex flex-col" style={{ height: '100%', maxHeight: '100dvh' }}>
                   {/* Mobile Tabs */}
                   <div className="flex border-b border-gray-700">
                     {(['chat', 'info', 'donors'] as const).map(tab => (
@@ -837,7 +837,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   {/* Chat Messages */}
                   {(activeStreamTab === 'chat') && (
                     <>
-                  <div ref={chatContainerRef} className="flex-1 p-3 space-y-2" style={{ overflowY: 'scroll', maxHeight: 'calc(100vh - 250px)', WebkitOverflowScrolling: 'touch' }}>
+                 <div ref={chatContainerRef} className="flex-1 p-3 space-y-2" style={{ overflowY: 'scroll', height: '100%', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain' }}>
                         {chatMessages.length === 0 && (
                           <div className="text-center text-gray-500 mt-8">
                             <MessageCircle size={32} className="mx-auto mb-2 opacity-50" />
