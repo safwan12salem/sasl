@@ -453,8 +453,10 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
       
       // VIRAL: Send donation to chat
       if (chatWsRef.current?.readyState === WebSocket.OPEN) {
-        chatWsRef.current.send(JSON.stringify({
+                chatWsRef.current.send(JSON.stringify({
           type: 'chat_message',
+          username: user?.username,
+          avatar_url: user?.avatar_url,
           message: `${DONATION_EMOJIS[Math.floor(Math.random() * DONATION_EMOJIS.length)]} Donated $${amt}! ${donationMessage[streamId] || '👏'}`,
           is_donation: true,
           amount: amt,
@@ -464,7 +466,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
       
       setAmount(prev => ({ ...prev, [streamId]: 0 }));
       setDonationMessage(prev => ({ ...prev, [streamId]: '' }));
-      fetchStreams();
+    
     } catch (err: any) {
       toast.error(err.response?.data?.error || t('Donation failed'));
     }
@@ -590,6 +592,11 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
         };
 
         setInCall({ streamId, role });
+                // Add current user to viewer avatars list
+        setViewerAvatars(prev => {
+          if (prev.find(v => v.username === user?.username)) return prev;
+          return [...prev, { username: user?.username || 'User', avatar_url: user?.avatar_url }];
+        });
         connectChatWebSocket(streamId);
      
 
@@ -908,7 +915,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
             </div>
 
             {/* Bottom Controls */}
-            <div className="bg-gray-900 p-3 flex items-center justify-between">
+            <div className="bg-gray-900 p-3 flex items-center justify-between flex-shrink-0">
                             <div className="flex items-center gap-2">
                 {streams.find(s => s.id === inCall?.streamId)?.streamer.avatar_url ? (
                   <img src={streams.find(s => s.id === inCall?.streamId)?.streamer.avatar_url} className="w-8 h-8 rounded-full object-cover border border-white/20" alt="" />
