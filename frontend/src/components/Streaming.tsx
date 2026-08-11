@@ -799,7 +799,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                              
               {/* Chat Panel (mobile: tab-based) */}
               {showChat && (
-                <div className="w-full md:w-80 bg-gray-900 flex flex-col">
+                <div className="w-full md:w-80 bg-gray-900 flex flex-col overflow-hidden" style={{ maxHeight: '100%' }}>
                   {/* Mobile Tabs */}
                   <div className="flex border-b border-gray-700">
                     {(['chat', 'info', 'donors'] as const).map(tab => (
