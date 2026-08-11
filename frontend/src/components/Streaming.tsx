@@ -354,10 +354,12 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
   // ============================================================
   // VIRAL: Send chat message
   // ============================================================
-  const sendChatMessage = () => {
+    const sendChatMessage = () => {
     if (!chatInput.trim() || !chatWsRef.current || chatWsRef.current.readyState !== WebSocket.OPEN) return;
     chatWsRef.current.send(JSON.stringify({
       type: 'chat_message',
+      username: user?.username,
+      avatar_url: user?.avatar_url,
       message: chatInput.trim(),
       color: CHAT_COLORS[Math.floor(Math.random() * CHAT_COLORS.length)]
     }));
@@ -413,7 +415,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
       
       // Refresh from server after 3s to get Cloudinary thumbnail
       setTimeout(() => {
-        fetchStreams();
+      fetchStreams(); // Refresh from server
       }, 3000);
     } catch (err: any) {
       toast.error(err.response?.data?.error || t('Failed to start stream'));
@@ -429,6 +431,25 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
         message: donationMessage[streamId] || '👏',
       });
       toast.success(`Donated $${amt}! 🎉`);
+           
+      
+      // Update local state immediately for top donors
+      setStreams(prev => prev.map(s => {
+        if (s.id === streamId) {
+          const donorName = user?.username || 'You';
+          const existingDonors = [...(s.top_donors || [])];
+          const existingIdx = existingDonors.findIndex((d: any) => d.username === donorName);
+          if (existingIdx >= 0) {
+            existingDonors[existingIdx].total += amt;
+          } else {
+            existingDonors.push({ username: donorName, total: amt });
+          }
+          existingDonors.sort((a: any, b: any) => b.total - a.total);
+          return { ...s, top_donors: existingDonors.slice(0, 3), total_donations: (s.total_donations || 0) + amt };
+        }
+        return s;
+      }));
+      
       
       // VIRAL: Send donation to chat
       if (chatWsRef.current?.readyState === WebSocket.OPEN) {
@@ -768,7 +789,21 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
               </div>
                
 
-                                 {/* Viewer Avatars Row */}
+                             
+              {/* Chat Panel (mobile: tab-based) */}
+              {showChat && (
+                <div className="w-full md:w-80 bg-gray-900 flex flex-col">
+                  {/* Mobile Tabs */}
+                  <div className="flex border-b border-gray-700">
+                    {(['chat', 'info', 'donors'] as const).map(tab => (
+                      <button key={tab} onClick={() => setActiveStreamTab(tab)}
+                        className={`flex-1 py-2 text-xs font-semibold ${activeStreamTab === tab ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-400'}`}>
+                        {tab === 'chat' ? t('Chat') : tab === 'info' ? t('Info') : t('Top Donors')}
+                      </button>
+                    ))}
+                  </div>
+                 
+                  {/* Viewer Avatars Row */}
                   <div className="px-3 py-2 border-b border-gray-700 overflow-x-auto">
                     <div className="flex gap-1">
                       {viewerAvatars.map((v, i) => (
@@ -784,19 +819,6 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                       ))}
                     </div>
                   </div>
-              {/* Chat Panel (mobile: tab-based) */}
-              {showChat && (
-                <div className="w-full md:w-80 bg-gray-900 flex flex-col">
-                  {/* Mobile Tabs */}
-                  <div className="flex border-b border-gray-700">
-                    {(['chat', 'info', 'donors'] as const).map(tab => (
-                      <button key={tab} onClick={() => setActiveStreamTab(tab)}
-                        className={`flex-1 py-2 text-xs font-semibold ${activeStreamTab === tab ? 'text-red-500 border-b-2 border-red-500' : 'text-gray-400'}`}>
-                        {tab === 'chat' ? t('Chat') : tab === 'info' ? t('Info') : t('Top Donors')}
-                      </button>
-                    ))}
-                  </div>
-
                   {/* Chat Messages */}
                   {(activeStreamTab === 'chat') && (
                     <>
@@ -807,6 +829,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                             <p className="text-sm">{t('No messages yet')}</p>
                             <p className="text-xs">{t('Be the first to chat!')}</p>
                           </div>
+
                         )}
                         {chatMessages.map((msg, i) => (
                           <motion.div key={msg.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
@@ -860,7 +883,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                       <p className="text-gray-400 text-sm mt-2">{streams.find(s => s.id === inCall?.streamId)?.description}</p>
                       <div className="mt-4 flex items-center gap-2">
                         <Users size={16} className="text-gray-400" />
-                        <span className="text-sm">{viewerAvatars.length} {t('viewers')}</span>
+                        <span className="text-sm">{streams.find(s => s.id === inCall?.streamId)?.viewers_count || 0} {t('viewers')}</span>
                       </div>
                     </div>
                   )}
