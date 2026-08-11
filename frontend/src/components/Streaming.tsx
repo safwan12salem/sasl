@@ -702,7 +702,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                     <video ref={remoteVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
                   </>
                 ) : (
-                  <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                  <video ref={localVideoRef} autoPlay muted playsInline controls className="w-full h-full object-cover" />
                 )}
  
                 {/* Viewer Count with Avatars */}
@@ -1009,7 +1009,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE
                 </span>
                 <span className="absolute top-2 right-2 bg-black/60 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
-                  <Users size={12} /> {s.viewers_count}
+                                   <Users size={12} /> {s.max_viewers > s.viewers_count ? s.max_viewers : s.viewers_count}
                 </span>
                 
                 {/* VIRAL: Subscribe bell + Share */}
