@@ -503,10 +503,20 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
         const ws = new WebSocket(wsUrl);
         wsRef.current = ws;
 
-        const pc = new RTCPeerConnection({
+                const pc = new RTCPeerConnection({
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
-            { urls: ['turn:global.relay.metered.ca:80?transport=tcp', 'turn:global.relay.metered.ca:443?transport=tcp'], username: '9a949126f260451ca16f969e', credential: 'HNHbY2NEDOgMoMfd' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { 
+              urls: [
+                'turn:global.relay.metered.ca:80?transport=udp',
+                'turn:global.relay.metered.ca:80?transport=tcp',
+                'turn:global.relay.metered.ca:443?transport=tcp',
+                'turns:global.relay.metered.ca:443?transport=tcp',
+              ],
+              username: '9a949126f260451ca16f969e',
+              credential: 'HNHbY2NEDOgMoMfd'
+            },
           ]
         });
 
@@ -699,7 +709,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                 {/* Video Elements */}
                 {inCall?.role === 'viewer' ? (
                   <>
-                    <video ref={remoteVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                    <video ref={remoteVideoRef} autoPlay muted playsInline controls  className="w-full h-full object-cover" />
                   </>
                 ) : (
                   <video ref={localVideoRef} autoPlay muted playsInline controls className="w-full h-full object-cover" />
