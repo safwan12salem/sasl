@@ -439,10 +439,10 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
           const donorName = user?.username || 'You';
           const existingDonors = [...(s.top_donors || [])];
           const existingIdx = existingDonors.findIndex((d: any) => d.username === donorName);
-          if (existingIdx >= 0) {
-            existingDonors[existingIdx].total += amt;
+                    if (existingIdx >= 0) {
+            existingDonors[existingIdx].total += Number(amt);
           } else {
-            existingDonors.push({ username: donorName, total: amt });
+            existingDonors.push({ username: donorName, total: Number(amt) });
           }
           existingDonors.sort((a: any, b: any) => b.total - a.total);
           return { ...s, top_donors: existingDonors.slice(0, 3), total_donations: (s.total_donations || 0) + amt };
@@ -709,7 +709,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
             ))}
 
                       {/* Main Video Area */}
-            <div className="flex-1 flex flex-col md:flex-row">
+            <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
               <div className="flex-1 relative bg-gray-900 flex items-center justify-center"
                 onClick={() => setIsFullscreen(!isFullscreen)}>
                                               {/* Click video to unmute — first click enables audio */}
