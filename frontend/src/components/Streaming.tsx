@@ -696,6 +696,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                         
                         // Also unmute the video
                         remoteVideo.muted = false;
+                        remoteVideo.play()
                         remoteVideo.play().catch(() => {});
                       }
                       e.currentTarget.style.display = 'none';
