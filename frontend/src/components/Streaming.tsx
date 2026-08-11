@@ -800,8 +800,15 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
                              
                          {/* Chat Panel */}
-                           {showChat && (
+                               {showChat && (
                 <div className="absolute right-0 top-0 bottom-0 w-full md:w-80 bg-gray-900 flex flex-col z-30" style={{ maxHeight: '100%' }}>
+                  {/* Close button */}
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-gray-700 flex-shrink-0">
+                    <span className="text-white font-bold text-sm">Stream Chat</span>
+                    <button onClick={() => setShowChat(false)} className="text-gray-400 hover:text-white p-1">
+                      <X size={18} />
+                    </button>
+                  </div>
                   {/* Tabs */}
                   <div className="flex border-b border-gray-700 flex-shrink-0">
                     {(['chat', 'info', 'donors'] as const).map(tab => (
