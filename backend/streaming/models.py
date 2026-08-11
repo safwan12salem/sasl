@@ -97,3 +97,19 @@ class StreamReaction(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     reaction_type = models.CharField(max_length=20)  # heart, laugh, wow, sad, angry, xp
     created_at = models.DateTimeField(auto_now_add=True)
+
+
+
+
+class StreamerXP(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='streamer_xp')
+    total_xp = models.PositiveIntegerField(default=0)
+    level = models.PositiveIntegerField(default=1)
+    
+    def add_xp(self, amount):
+        self.total_xp += amount
+        self.level = max(1, self.total_xp // 100 + 1)
+        self.save()
+    
+    class Meta:
+        ordering = ['-total_xp']

@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
 from django.db.models import Q, Sum, Count
-from .models import StreamSession, StreamDonation, StreamViewer, StreamClip, StreamSchedule, StreamReaction
+from .models import StreamSession, StreamDonation, StreamViewer, StreamClip, StreamSchedule, StreamReaction, StreamerXP
 from .serializers import (
     StreamSessionSerializer, StreamDonationSerializer,
     StreamClipSerializer, StreamScheduleSerializer
@@ -94,6 +94,10 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
             notification_type='donation',
             message=f'{request.user.username} donated ${amount} to your stream'
         )
+        
+
+        xp, _ = StreamerXP.objects.get_or_create(user=stream.streamer)
+        xp.add_xp(50)
 
         return Response(StreamDonationSerializer(donation, context={'request': request}).data, status=201)
     
@@ -110,7 +114,9 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
             if current_count > stream.max_viewers:
                 stream.max_viewers = current_count
             stream.save()
-        
+                        # Award XP to streamer for new viewer
+            xp, _ = StreamerXP.objects.get_or_create(user=stream.streamer)
+            xp.add_xp(10)
         if stream.streamer != request.user:
             create_notification(
                 recipient=stream.streamer,

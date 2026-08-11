@@ -926,6 +926,9 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                 )}
                 <span className="text-white font-bold text-sm">{streams.find(s => s.id === inCall?.streamId)?.streamer.username}</span>
                 <span className="text-gray-400 text-xs">{streams.find(s => s.id === inCall?.streamId)?.title}</span>
+                                <span className="text-yellow-400 text-xs font-bold flex items-center gap-1 ml-2">
+                  <Zap size={12} /> Lv.{streams.find(s => s.id === inCall?.streamId)?.streamer_level || 1}
+                </span>
               </div>
               <div className="flex items-center gap-2">
                 {inCall.role === 'viewer' && (

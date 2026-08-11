@@ -41,13 +41,19 @@ class StreamSessionSerializer(serializers.ModelSerializer):
     top_donors = serializers.SerializerMethodField()
     total_donations = serializers.SerializerMethodField()
     reaction_counts = serializers.SerializerMethodField()
+    streamer_level = serializers.SerializerMethodField()
+    
+    def get_streamer_level(self, obj):
+        from .models import StreamerXP
+        xp, _ = StreamerXP.objects.get_or_create(user=obj.streamer)
+        return xp.level
     class Meta:
         model = StreamSession
         fields = [
             'id', 'streamer', 'title', 'description', 'category',
             'thumbnail', 'thumbnail_url', 'is_live', 'started_at', 'ended_at',
             'viewers_count', 'max_viewers', 'donations', 'total_donations',
-            'top_donors','reaction_counts', 'tags'
+            'top_donors','reaction_counts', 'tags', 'streamer_level'
         ]
         read_only_fields = ['streamer', 'viewers_count']
 
