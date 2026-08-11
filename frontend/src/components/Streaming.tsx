@@ -141,21 +141,23 @@ export default function Streaming() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeStreamTab, setActiveStreamTab] = useState<'info' | 'chat' | 'donors'>('chat');
 
-
 useEffect(() => {
   if (pendingStreamRef.current) {
-    // Wait for React to attach the ref to the DOM
-    const timer = setTimeout(() => {
+    // Try immediately, retry if ref not attached yet
+    const tryAttach = () => {
       if (localVideoRef.current && pendingStreamRef.current) {
         localVideoRef.current.srcObject = pendingStreamRef.current;
         localVideoRef.current.play().catch(() => {});
         pendingStreamRef.current = null;
       }
-    }, 100);
-    return () => clearTimeout(timer);
+    };
+    tryAttach();
+    if (pendingStreamRef.current) {
+      const timer = setTimeout(tryAttach, 200);
+      return () => clearTimeout(timer);
+    }
   }
 }, [inCall]);
-
   // ============================================================
   // FETCH
   // ============================================================
@@ -557,7 +559,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
         setInCall({ streamId, role });
         connectChatWebSocket(streamId);
-         fetchStreams();  
+     
 
       })
             .catch((err) => {
@@ -671,26 +673,22 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
             <div className="flex-1 flex flex-col md:flex-row">
               <div className="flex-1 relative bg-gray-900 flex items-center justify-center"
                 onClick={() => setIsFullscreen(!isFullscreen)}>
-                {inCall?.role === 'viewer' ? (
-                  <>
-                    <video ref={remoteVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-                   <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl z-10 bg-black" />
-                  </>
-                ) : (
-                  <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
-
-                )}
-                                
-                
-                {/* TAP TO HEAR OVERLAY */}
+                                {/* TAP TO HEAR OVERLAY */}
                 {inCall?.role === 'viewer' && (
                   <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 cursor-pointer"
-                                    onClick={(e) => { e.stopPropagation();
-                      const videos = document.querySelectorAll('video');
-                      videos.forEach(v => { 
-                        v.muted = false; 
-                        v.play().catch(() => {}); 
-                      });
+                                                   onClick={async (e) => { e.stopPropagation();
+                      const remoteVideo = document.querySelectorAll('video')[0];
+                      if (remoteVideo && remoteVideo.srcObject) {
+                        const stream = remoteVideo.srcObject as MediaStream;
+                        const audioEl = document.createElement('audio');
+                        audioEl.srcObject = stream;
+                        audioEl.autoplay = true;
+                        audioEl.style.display = 'none';
+                        document.body.appendChild(audioEl);
+                        audioEl.play().catch(() => {});
+                        remoteVideo.muted = false;
+                        remoteVideo.play().catch(() => {});
+                      }
                       e.currentTarget.style.display = 'none';
                     }}>
                     <div className="bg-green-500 text-white px-6 py-3 rounded-full text-lg font-bold animate-pulse shadow-2xl">
@@ -699,7 +697,17 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   </div>
                 )}
 
-                
+               
+                {/* Video Elements */}
+                {inCall?.role === 'viewer' ? (
+                  <>
+                    <video ref={remoteVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute bottom-4 right-4 w-32 md:w-48 rounded-xl border-2 border-white/30 shadow-xl z-10 bg-black" />
+                  </>
+                ) : (
+                  <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
+                )}
+ 
                 {/* Viewer Count with Avatars */}
                 <div className="absolute top-4 left-4 flex items-center gap-1">
                   <div className="flex -space-x-2">
