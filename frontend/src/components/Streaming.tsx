@@ -522,13 +522,12 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
 
         stream.getTracks().forEach(track => pc.addTrack(track, stream));
 
-                          pc.ontrack = (event) => {
+                 let remoteStream = new MediaStream();
+        pc.ontrack = (event) => {
           console.log('🎥 Remote track:', event.track.kind);
-          if (remoteVideoRef.current && event.streams[0]) {
-            const newStream = new MediaStream();
-            newStream.addTrack(event.track);
-            remoteVideoRef.current.srcObject = newStream;
-            // Audio will be unlocked by the tap overlay
+          if (remoteVideoRef.current) {
+            remoteStream.addTrack(event.track);
+            remoteVideoRef.current.srcObject = remoteStream;
           }
         };
         pc.onicecandidate = (event) => {
@@ -730,7 +729,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                   <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover" />
                 )}
 
-                
+
                 {/* Viewer Count with Avatars */}
                 <div className="absolute top-4 left-4 flex items-center gap-1">
                   <div className="flex -space-x-2">
