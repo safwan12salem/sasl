@@ -149,6 +149,19 @@ export default function Streaming() {
   const [challenges, setChallenges] = useState<any[]>([]); 
 const [challengeTimer, setChallengeTimer] = useState<number>(0);
 
+  // Restore inCall from localStorage on refresh
+  useEffect(() => {
+    const saved = localStorage.getItem('sasl_in_call');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (parsed?.streamId && parsed?.role) {
+          startVideoCall(parsed.streamId, parsed.role);
+        }
+      } catch {}
+    }
+  }, []);
+
 
 useEffect(() => {
   if (pendingStreamRef.current) {
@@ -629,6 +642,7 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
         };
 
         setInCall({ streamId, role });
+         localStorage.setItem('sasl_in_call', JSON.stringify({ streamId, role }));
                 // Add current user to viewer avatars list
         setViewerAvatars(prev => {
           if (prev.find(v => v.username === user?.username)) return prev;
@@ -652,6 +666,7 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
       api.post(`/streaming/streams/${inCall.streamId}/leave/`).catch(() => {});
     }
     setInCall(null);
+    localStorage.removeItem('sasl_in_call');
     setChatMessages([]);
     setFloatingComments([]);
     setDonationAnimations([]);
@@ -685,6 +700,15 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
       if (active) setActiveChallenge(active);
     } catch {}
   };
+
+
+  // Poll challenges every 5 seconds for both users
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchChallenges();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const acceptChallenge = async (id: string) => {
     try {
