@@ -1384,15 +1384,7 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
                   </div>
                  
 
-                {user?.is_creator && s.streamer.username !== user?.username && (
-                        <button onClick={(e) => { e.stopPropagation(); 
-                          setChallengeOpponent(s.streamer.username);
-                          setShowChallengeModal(true);
-                        }} className="flex-1 bg-purple-500 text-white py-1.5 rounded-full text-xs font-semibold hover:bg-purple-600 flex items-center justify-center gap-1">
-                          <Zap size={12} /> Challenge
-                        </button>
-                      )}
-
+                
                   {/* Donation */}
                   <div className="flex gap-1">
                     <input type="number" min="1" className="w-16 border rounded-full px-2 py-1 text-xs" placeholder="$1"

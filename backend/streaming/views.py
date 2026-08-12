@@ -278,9 +278,14 @@ class StreamChallengeViewSet(viewsets.ModelViewSet):
         if challenge.opponent != request.user:
             return Response({'error': 'Only the opponent can accept'}, status=403)
         
+        # Find or create opponent's stream
         opponent_stream = StreamSession.objects.filter(streamer=request.user, is_live=True).first()
         if not opponent_stream:
-            return Response({'error': 'You need an active stream to accept'}, status=400)
+            opponent_stream = StreamSession.objects.create(
+                streamer=request.user,
+                title=f'{request.user.username}\'s Challenge Stream',
+                is_live=True
+            )
         
         challenge.opponent_stream = opponent_stream
         challenge.status = 'active'
