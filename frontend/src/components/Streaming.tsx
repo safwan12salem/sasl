@@ -1134,28 +1134,7 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
               </div>
             </div>
 
-              <div className="flex items-center gap-2">
-                {inCall.role === 'viewer' && (
-                                   <button onClick={() => {
-                    const streamId = inCall.streamId;
-                    donate(streamId);
-                  }} className="bg-yellow-500 text-white px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 hover:bg-yellow-600">
-                    <Gift size={14} /> {t('Donate')}
-                  </button>
-                )}
-                                {inCall?.role === 'streamer' && (
-                  <button onClick={() => setShowChallengeModal(true)} className="bg-purple-500 text-white px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 hover:bg-purple-600">
-                    <Zap size={14} /> Challenge
-                  </button>
-                )}
-                <button onClick={() => setIsFullscreen(!isFullscreen)} className="text-white p-2 hover:bg-gray-800 rounded-full">
-                  {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
-                </button>
-                <button onClick={endCall} className="bg-red-500 text-white px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 hover:bg-red-600">
-                  <VideoOff size={14} /> {t('Leave')}
-                </button>
-              </div>
-            
+             
             
           </motion.div>
         )}
