@@ -676,11 +676,12 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
     }
   };
 
-  const fetchChallenges = async () => {
+    const fetchChallenges = async () => {
     try {
       const res = await api.get('/streaming/challenges/');
-      setChallenges(res.data || []);
-      const active = (res.data || []).find((c: any) => c.status === 'active');
+      const data = res.data.results || res.data || [];
+      setChallenges(Array.isArray(data) ? data : []);
+      const active = (Array.isArray(data) ? data : []).find((c: any) => c.status === 'active');
       if (active) setActiveChallenge(active);
     } catch {}
   };
@@ -1100,7 +1101,7 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
                   <Zap size={12} /> Lv.{streams.find(s => s.id === inCall?.streamId)?.streamer_level || 1}
 
                 </span>
-                                {challenges.filter(c => c.status === 'pending' && c.opponent_name === user?.username).length > 0 && (
+                    {(Array.isArray(challenges) && challenges.filter((c: any) => c.status === 'pending' && c.opponent_name === user?.username).length > 0) && (
                   <button onClick={() => {
                     const pending = challenges.find(c => c.status === 'pending' && c.opponent_name === user?.username);
                     if (pending) {
