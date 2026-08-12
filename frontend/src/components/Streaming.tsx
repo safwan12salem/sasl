@@ -1085,34 +1085,55 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
                             
                 
                               
-            {/* Bottom Controls */}
-            <div className="bg-gray-900 p-3 flex items-center justify-between flex-shrink-0">
-                            <div className="flex items-center gap-2">
+         {/* Bottom Controls */}
+            <div className="bg-gray-900 p-3 flex flex-col gap-2 flex-shrink-0">
+              {/* Top row: Streamer info */}
+              <div className="flex items-center gap-2 min-w-0">
                 {streams.find(s => s.id === inCall?.streamId)?.streamer.avatar_url ? (
-                  <img src={streams.find(s => s.id === inCall?.streamId)?.streamer.avatar_url} className="w-8 h-8 rounded-full object-cover border border-white/20" alt="" />
+                  <img src={streams.find(s => s.id === inCall?.streamId)?.streamer.avatar_url} className="w-7 h-7 rounded-full object-cover border border-white/20 flex-shrink-0" alt="" />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                     {streams.find(s => s.id === inCall?.streamId)?.streamer.username?.[0]?.toUpperCase() || 'S'}
                   </div>
                 )}
-                <span className="text-white font-bold text-sm">{streams.find(s => s.id === inCall?.streamId)?.streamer.username}</span>
-                <span className="text-gray-400 text-xs">{streams.find(s => s.id === inCall?.streamId)?.title}</span>
-                                <span className="text-yellow-400 text-xs font-bold flex items-center gap-1 ml-2">
+                <span className="text-white font-bold text-sm truncate">{streams.find(s => s.id === inCall?.streamId)?.streamer.username}</span>
+                <span className="text-gray-400 text-xs truncate">{streams.find(s => s.id === inCall?.streamId)?.title}</span>
+                <span className="text-yellow-400 text-xs font-bold flex items-center gap-1 flex-shrink-0">
                   <Zap size={12} /> Lv.{streams.find(s => s.id === inCall?.streamId)?.streamer_level || 1}
-
                 </span>
-                    {(Array.isArray(challenges) && challenges.filter((c: any) => c.status === 'pending' && c.opponent_name === user?.username).length > 0) && (
+              </div>
+              {/* Bottom row: Action buttons */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {(Array.isArray(challenges) && challenges.filter((c: any) => c.status === 'pending' && c.opponent_name === user?.username).length > 0) && (
                   <button onClick={() => {
-                    const pending = challenges.find(c => c.status === 'pending' && c.opponent_name === user?.username);
+                    const pending = challenges.find((c: any) => c.status === 'pending' && c.opponent_name === user?.username);
                     if (pending) {
                       if (window.confirm(`@${pending.challenger_name} challenged you! Accept?`)) acceptChallenge(pending.id);
                       else declineChallenge(pending.id);
                     }
                   }} className="bg-purple-500 text-white px-3 py-1.5 rounded-full text-xs font-bold animate-pulse flex items-center gap-1">
-                    ⚔️ Challenge!
+                    ⚔️ Accept
                   </button>
                 )}
+                {inCall?.role === 'viewer' && (
+                  <button onClick={() => donate(inCall.streamId)} className="bg-yellow-500 text-white px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1">
+                    <Gift size={14} /> Donate
+                  </button>
+                )}
+                {inCall?.role === 'streamer' && (
+                  <button onClick={() => setShowChallengeModal(true)} className="bg-purple-500 text-white px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1">
+                    <Zap size={14} /> Challenge
+                  </button>
+                )}
+                <button onClick={() => setIsFullscreen(!isFullscreen)} className="text-white p-2 hover:bg-gray-800 rounded-full flex-shrink-0">
+                  {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+                </button>
+                <button onClick={endCall} className="bg-red-500 text-white px-4 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 flex-shrink-0">
+                  <VideoOff size={14} /> Leave
+                </button>
               </div>
+            </div>
+
               <div className="flex items-center gap-2">
                 {inCall.role === 'viewer' && (
                                    <button onClick={() => {
@@ -1134,7 +1155,8 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
                   <VideoOff size={14} /> {t('Leave')}
                 </button>
               </div>
-            </div>
+            
+            
           </motion.div>
         )}
       </AnimatePresence>
