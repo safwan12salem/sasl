@@ -147,7 +147,7 @@ export default function Streaming() {
   const [challengeTitle, setChallengeTitle] = useState('');
   const [activeChallenge, setActiveChallenge] = useState<any>(null);
   const [challenges, setChallenges] = useState<any[]>([]); 
-
+const [challengeTimer, setChallengeTimer] = useState<number>(0);
 
 
 useEffect(() => {
@@ -201,6 +201,34 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
   };
 
 useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchChallenges(); }, []);
+
+  // Challenge auto-complete timer
+  useEffect(() => {
+    if (activeChallenge && activeChallenge.status === 'active' && activeChallenge.started_at) {
+      const startedAt = new Date(activeChallenge.started_at).getTime();
+      const durationMs = (activeChallenge.duration_minutes || 5) * 60 * 1000;
+      const endTime = startedAt + durationMs;
+      
+      const interval = setInterval(() => {
+        const remaining = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+        setChallengeTimer(remaining);
+        
+        if (remaining <= 0 && activeChallenge) {
+          api.post(`/streaming/challenges/${activeChallenge.id}/complete/`).then(() => {
+            toast.success('🏆 Challenge complete!');
+            fetchChallenges();
+            setActiveChallenge(null);
+            setChallengeTimer(0);
+          }).catch(() => {});
+          clearInterval(interval);
+        }
+      }, 1000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [activeChallenge]);
+
+
     // Restore subscriptions from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('sasl_stream_subscriptions');
@@ -783,7 +811,14 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
                     <span className="text-red-400 font-bold text-lg">{activeChallenge.challenger_score}</span>
                   </div>
                   <div className="text-center flex-shrink-0">
-                    <span className="text-yellow-400 font-bold text-lg">⚔️ VS</span>
+                   <div className="text-center">
+  <span className="text-yellow-400 font-bold text-lg">⚔️ VS</span>
+  {challengeTimer > 0 && (
+    <div className="text-white text-xs mt-1">
+      {Math.floor(challengeTimer / 60)}:{(challengeTimer % 60).toString().padStart(2, '0')}
+    </div>
+  )}
+</div>
                     <div className="flex gap-2 mt-1">
                       <button onClick={() => voteChallenge(activeChallenge.id, 'challenger')}
                         className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold hover:bg-red-600">❤️ Vote</button>
