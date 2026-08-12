@@ -696,8 +696,15 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
       const res = await api.get('/streaming/challenges/');
       const data = res.data.results || res.data || [];
       setChallenges(Array.isArray(data) ? data : []);
-      const active = (Array.isArray(data) ? data : []).find((c: any) => c.status === 'active');
-      if (active) setActiveChallenge(active);
+            const active = data.find((c: any) => c.status === 'active');
+      if (active) {
+       setActiveChallenge((prev: any) => {
+          if (prev && prev.id === active.id && prev.challenger_score === active.challenger_score && prev.opponent_score === active.opponent_score) {
+            return prev; // No change, prevent re-render
+          }
+          return active;
+        });
+      }
     } catch {}
   };
 
