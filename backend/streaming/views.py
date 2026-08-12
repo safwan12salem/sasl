@@ -7,17 +7,18 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
 from django.db.models import Q, Sum, Count
-from .models import StreamSession, StreamDonation, StreamViewer, StreamClip, StreamSchedule, StreamReaction, StreamerXP
+from .models import StreamSession, StreamDonation, StreamViewer, StreamClip, StreamSchedule, StreamReaction, StreamerXP, StreamChallenge
 from .serializers import (
     StreamSessionSerializer, StreamDonationSerializer,
-    StreamClipSerializer, StreamScheduleSerializer
+    StreamClipSerializer, StreamScheduleSerializer, StreamChallengeSerializer
 )
 from monetization.services import process_donation
 from notifications.services import create_notification
 
 from monetization.transaction_validator import validate_donation
 
-
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 
 class StreamSessionViewSet(viewsets.ModelViewSet):
@@ -229,6 +230,119 @@ class StreamScheduleViewSet(viewsets.ModelViewSet):
             scheduled_at__gte=timezone.now()
         ).select_related('streamer').order_by('scheduled_at')
         return Response(StreamScheduleSerializer(schedules, many=True).data)
+
+
+class StreamChallengeViewSet(viewsets.ModelViewSet):
+    serializer_class = StreamChallengeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        return StreamChallenge.objects.filter(
+            Q(challenger=self.request.user) | Q(opponent=self.request.user)
+        ).order_by('-created_at')
+    
+    @action(detail=False, methods=['post'])
+    def create_challenge(self, request):
+        opponent_username = request.data.get('opponent')
+        title = request.data.get('title', 'Creator Challenge')
+        duration = request.data.get('duration', 5)
+        
+        opponent = User.objects.filter(username=opponent_username).first()
+        if not opponent:
+            return Response({'error': 'Opponent not found'}, status=404)
+        
+        challenger_stream = StreamSession.objects.filter(streamer=request.user, is_live=True).first()
+        if not challenger_stream:
+            return Response({'error': 'You need an active stream'}, status=400)
+        
+        challenge = StreamChallenge.objects.create(
+            challenger=request.user,
+            opponent=opponent,
+            challenger_stream=challenger_stream,
+            title=title,
+            duration_minutes=int(duration)
+        )
+        
+        create_notification(
+            recipient=opponent,
+            actor=request.user,
+            notification_type='challenge',
+            message=f'{request.user.username} challenged you to "{title}"!'
+        )
+        
+        return Response(StreamChallengeSerializer(challenge).data, status=201)
+    
+    @action(detail=True, methods=['post'])
+    def accept(self, request, pk=None):
+        challenge = self.get_object()
+        if challenge.opponent != request.user:
+            return Response({'error': 'Only the opponent can accept'}, status=403)
+        
+        opponent_stream = StreamSession.objects.filter(streamer=request.user, is_live=True).first()
+        if not opponent_stream:
+            return Response({'error': 'You need an active stream to accept'}, status=400)
+        
+        challenge.opponent_stream = opponent_stream
+        challenge.status = 'active'
+        challenge.started_at = timezone.now()
+        challenge.save()
+        
+        # Auto-end after duration
+        from datetime import timedelta
+        challenge.ended_at = timezone.now() + timedelta(minutes=challenge.duration_minutes)
+        challenge.save()
+        
+        return Response(StreamChallengeSerializer(challenge).data)
+    
+    @action(detail=True, methods=['post'])
+    def decline(self, request, pk=None):
+        challenge = self.get_object()
+        if challenge.opponent != request.user:
+            return Response({'error': 'Only the opponent can decline'}, status=403)
+        challenge.status = 'declined'
+        challenge.save()
+        return Response({'status': 'declined'})
+    
+    @action(detail=True, methods=['post'])
+    def vote(self, request, pk=None):
+        """Viewer votes by reacting — counts as score"""
+        challenge = self.get_object()
+        if challenge.status != 'active':
+            return Response({'error': 'Challenge is not active'}, status=400)
+        
+        vote_for = request.data.get('vote_for')  # 'challenger' or 'opponent'
+        if vote_for == 'challenger':
+            challenge.challenger_score += 1
+        elif vote_for == 'opponent':
+            challenge.opponent_score += 1
+        challenge.save()
+        
+        return Response({
+            'challenger_score': challenge.challenger_score,
+            'opponent_score': challenge.opponent_score
+        })
+    
+    @action(detail=True, methods=['post'])
+    def complete(self, request, pk=None):
+        challenge = self.get_object()
+        challenge.status = 'completed'
+        
+        # Determine winner
+        if challenge.challenger_score > challenge.opponent_score:
+            challenge.winner = challenge.challenger
+            # Award XP
+            xp, _ = StreamerXP.objects.get_or_create(user=challenge.challenger)
+            xp.add_xp(200)
+        elif challenge.opponent_score > challenge.challenger_score:
+            challenge.winner = challenge.opponent
+            xp, _ = StreamerXP.objects.get_or_create(user=challenge.opponent)
+            xp.add_xp(200)
+        
+        challenge.ended_at = timezone.now()
+        challenge.save()
+        return Response(StreamChallengeSerializer(challenge).data)
+
+
 
 
 class StreamDonationViewSet(viewsets.ReadOnlyModelViewSet):

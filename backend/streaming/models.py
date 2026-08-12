@@ -113,3 +113,33 @@ class StreamerXP(models.Model):
     
     class Meta:
         ordering = ['-total_xp']
+
+
+
+
+class StreamChallenge(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('declined', 'Declined'),
+    ]
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    challenger = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='challenges_sent')
+    opponent = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='challenges_received')
+    challenger_stream = models.ForeignKey(StreamSession, on_delete=models.CASCADE, related_name='challenge_as_challenger')
+    opponent_stream = models.ForeignKey(StreamSession, on_delete=models.CASCADE, related_name='challenge_as_opponent', null=True, blank=True)
+    title = models.CharField(max_length=200, default='Creator Challenge')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    challenger_score = models.PositiveIntegerField(default=0)
+    opponent_score = models.PositiveIntegerField(default=0)
+    duration_minutes = models.PositiveIntegerField(default=5)
+    winner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='challenges_won')
+    created_at = models.DateTimeField(auto_now_add=True)
+    started_at = models.DateTimeField(null=True, blank=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+
+

@@ -142,6 +142,13 @@ export default function Streaming() {
   // Mobile viewer
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [activeStreamTab, setActiveStreamTab] = useState<'info' | 'chat' | 'donors'>('chat');
+    const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const [challengeOpponent, setChallengeOpponent] = useState('');
+  const [challengeTitle, setChallengeTitle] = useState('');
+  const [activeChallenge, setActiveChallenge] = useState<any>(null);
+  const [challenges, setChallenges] = useState<any[]>([]); 
+
+
 
 useEffect(() => {
   if (pendingStreamRef.current) {
@@ -193,7 +200,7 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
     } catch {}
   };
 
-  useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); }, []);
+useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchChallenges(); }, []);
     // Restore subscriptions from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('sasl_stream_subscriptions');
@@ -623,6 +630,60 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
     setViewerAvatars([]);
   };
 
+
+    const createChallenge = async () => {
+    if (!challengeOpponent) return;
+    try {
+      const res = await api.post('/streaming/challenges/create_challenge/', {
+        opponent: challengeOpponent,
+        title: challengeTitle || 'Creator Challenge',
+        duration: 5
+      });
+      toast.success(`⚔️ Challenge sent to ${challengeOpponent}!`);
+      setShowChallengeModal(false);
+      setChallengeTitle('');
+      fetchChallenges();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to create challenge');
+    }
+  };
+
+  const fetchChallenges = async () => {
+    try {
+      const res = await api.get('/streaming/challenges/');
+      setChallenges(res.data || []);
+      const active = (res.data || []).find((c: any) => c.status === 'active');
+      if (active) setActiveChallenge(active);
+    } catch {}
+  };
+
+  const acceptChallenge = async (id: string) => {
+    try {
+      await api.post(`/streaming/challenges/${id}/accept/`);
+      toast.success('⚔️ Challenge accepted!');
+      fetchChallenges();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to accept');
+    }
+  };
+
+  const declineChallenge = async (id: string) => {
+    try {
+      await api.post(`/streaming/challenges/${id}/decline/`);
+      toast('Challenge declined');
+      fetchChallenges();
+    } catch {}
+  };
+
+  const voteChallenge = async (id: string, voteFor: string) => {
+    try {
+      const res = await api.post(`/streaming/challenges/${id}/vote/`, { vote_for: voteFor });
+      if (activeChallenge) {
+        setActiveChallenge({ ...activeChallenge, challenger_score: res.data.challenger_score, opponent_score: res.data.opponent_score });
+      }
+    } catch {}
+  };
+
   // ============================================================
   // RENDER: Loading skeleton (preserved)
   // ============================================================
@@ -709,6 +770,37 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                 </div>
               </motion.div>
             ))}
+               
+                           {/* Challenge Battle Bar */}
+              {activeChallenge && (
+                <div className="absolute top-12 left-0 right-0 z-30 flex items-center justify-center gap-4 px-4">
+                  <div className="flex-1 text-center">
+                    <span className="text-white font-bold text-sm">@{activeChallenge.challenger_name}</span>
+                    <div className="w-full bg-gray-700 rounded-full h-3 mt-1 overflow-hidden">
+                      <div className="bg-red-500 h-3 rounded-full transition-all" 
+                        style={{ width: `${activeChallenge.challenger_score + activeChallenge.opponent_score > 0 ? (activeChallenge.challenger_score / (activeChallenge.challenger_score + activeChallenge.opponent_score)) * 100 : 50}%` }} />
+                    </div>
+                    <span className="text-red-400 font-bold text-lg">{activeChallenge.challenger_score}</span>
+                  </div>
+                  <div className="text-center flex-shrink-0">
+                    <span className="text-yellow-400 font-bold text-lg">⚔️ VS</span>
+                    <div className="flex gap-2 mt-1">
+                      <button onClick={() => voteChallenge(activeChallenge.id, 'challenger')}
+                        className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold hover:bg-red-600">❤️ Vote</button>
+                      <button onClick={() => voteChallenge(activeChallenge.id, 'opponent')}
+                        className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold hover:bg-blue-600">🔥 Vote</button>
+                    </div>
+                  </div>
+                  <div className="flex-1 text-center">
+                    <span className="text-white font-bold text-sm">@{activeChallenge.opponent_name}</span>
+                    <div className="w-full bg-gray-700 rounded-full h-3 mt-1 overflow-hidden">
+                      <div className="bg-blue-500 h-3 rounded-full transition-all" 
+                        style={{ width: `${activeChallenge.challenger_score + activeChallenge.opponent_score > 0 ? (activeChallenge.opponent_score / (activeChallenge.challenger_score + activeChallenge.opponent_score)) * 100 : 50}%` }} />
+                    </div>
+                    <span className="text-blue-400 font-bold text-lg">{activeChallenge.opponent_score}</span>
+                  </div>
+                </div>
+              )}
 
                       {/* Main Video Area */}
             <div className="flex-1 flex flex-col md:flex-row" style={{ minHeight: 0 }}>
@@ -971,7 +1063,19 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                 <span className="text-gray-400 text-xs">{streams.find(s => s.id === inCall?.streamId)?.title}</span>
                                 <span className="text-yellow-400 text-xs font-bold flex items-center gap-1 ml-2">
                   <Zap size={12} /> Lv.{streams.find(s => s.id === inCall?.streamId)?.streamer_level || 1}
+
                 </span>
+                                {challenges.filter(c => c.status === 'pending' && c.opponent_name === user?.username).length > 0 && (
+                  <button onClick={() => {
+                    const pending = challenges.find(c => c.status === 'pending' && c.opponent_name === user?.username);
+                    if (pending) {
+                      if (window.confirm(`@${pending.challenger_name} challenged you! Accept?`)) acceptChallenge(pending.id);
+                      else declineChallenge(pending.id);
+                    }
+                  }} className="bg-purple-500 text-white px-3 py-1.5 rounded-full text-xs font-bold animate-pulse flex items-center gap-1">
+                    ⚔️ Challenge!
+                  </button>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 {inCall.role === 'viewer' && (
@@ -1215,6 +1319,16 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
                       </button>
                     )}
                   </div>
+                 
+
+                {user?.is_creator && s.streamer.username !== user?.username && (
+                        <button onClick={(e) => { e.stopPropagation(); 
+                          setChallengeOpponent(s.streamer.username);
+                          setShowChallengeModal(true);
+                        }} className="flex-1 bg-purple-500 text-white py-1.5 rounded-full text-xs font-semibold hover:bg-purple-600 flex items-center justify-center gap-1">
+                          <Zap size={12} /> Challenge
+                        </button>
+                      )}
 
                   {/* Donation */}
                   <div className="flex gap-1">
@@ -1265,6 +1379,31 @@ const res = await api.get(`/streaming/streams/?${params.toString()}`);
     ))}
   </div>
 </div>
+
+              {/* Challenge Modal */}
+      <AnimatePresence>
+        {showChallengeModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowChallengeModal(false)}>
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+              className="bg-gray-900 rounded-2xl p-6 max-w-sm w-full border border-purple-500/30 shadow-2xl" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-white text-lg flex items-center gap-2"><Zap size={20} className="text-purple-400" /> Creator Challenge</h3>
+                <button onClick={() => setShowChallengeModal(false)} className="text-gray-400 hover:text-white"><X size={20} /></button>
+              </div>
+              <p className="text-gray-400 text-sm mb-4">Challenge <span className="text-purple-400 font-bold">@{challengeOpponent}</span> to a live battle!</p>
+              <input className="w-full bg-gray-800 text-white px-4 py-3 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500" 
+                placeholder="Challenge title (optional)" value={challengeTitle} onChange={e => setChallengeTitle(e.target.value)} />
+              <button onClick={createChallenge}
+                className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-500 text-white rounded-xl font-bold text-sm hover:shadow-lg hover:shadow-purple-500/25 transition">
+                ⚔️ Send Challenge
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+
       {/* Payment Modal (preserved) */}
       {showPayment && (
         <PaymentModal amount={paymentAmount} type="donation"

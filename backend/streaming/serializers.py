@@ -3,7 +3,7 @@ Sasl - Social Asynchronous Sharing Layer
 Streaming serializers with clips, schedules, top donors
 """
 from rest_framework import serializers
-from .models import StreamSession, StreamDonation, StreamViewer, StreamClip, StreamSchedule
+from .models import StreamSession, StreamDonation, StreamViewer, StreamClip, StreamSchedule, StreamChallenge
 from users.serializers import UserProfileSerializer
 from django.db.models import Sum
 
@@ -91,3 +91,29 @@ class StreamViewerSerializer(serializers.ModelSerializer):
     class Meta:
         model = StreamViewer
         fields = ['id', 'stream', 'user', 'joined_at']
+
+
+
+
+class StreamChallengeSerializer(serializers.ModelSerializer):
+    challenger_name = serializers.ReadOnlyField(source='challenger.username')
+    opponent_name = serializers.ReadOnlyField(source='opponent.username')
+    challenger_avatar = serializers.SerializerMethodField()
+    opponent_avatar = serializers.SerializerMethodField()
+    winner_name = serializers.ReadOnlyField(source='winner.username')
+    
+    def get_challenger_avatar(self, obj):
+        if obj.challenger.avatar:
+            return obj.challenger.avatar.url
+        return None
+    
+    def get_opponent_avatar(self, obj):
+        if obj.opponent.avatar:
+            return obj.opponent.avatar.url
+        return None
+    
+    class Meta:
+        model = StreamChallenge
+        fields = '__all__'
+
+
