@@ -1083,7 +1083,7 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
                   )}
                 </div>
                             
-             
+                
                               
             {/* Bottom Controls */}
             <div className="bg-gray-900 p-3 flex items-center justify-between flex-shrink-0">
@@ -1120,6 +1120,11 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
                     donate(streamId);
                   }} className="bg-yellow-500 text-white px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 hover:bg-yellow-600">
                     <Gift size={14} /> {t('Donate')}
+                  </button>
+                )}
+                                {inCall?.role === 'streamer' && (
+                  <button onClick={() => setShowChallengeModal(true)} className="bg-purple-500 text-white px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 hover:bg-purple-600">
+                    <Zap size={14} /> Challenge
                   </button>
                 )}
                 <button onClick={() => setIsFullscreen(!isFullscreen)} className="text-white p-2 hover:bg-gray-800 rounded-full">
@@ -1427,7 +1432,9 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
                 <h3 className="font-bold text-white text-lg flex items-center gap-2"><Zap size={20} className="text-purple-400" /> Creator Challenge</h3>
                 <button onClick={() => setShowChallengeModal(false)} className="text-gray-400 hover:text-white"><X size={20} /></button>
               </div>
-              <p className="text-gray-400 text-sm mb-4">Challenge <span className="text-purple-400 font-bold">@{challengeOpponent}</span> to a live battle!</p>
+              <p className="text-gray-400 text-sm mb-4">Challenge another streamer to a live battle!</p>
+                            <input className="w-full bg-gray-800 text-white px-4 py-3 rounded-xl mb-3 text-sm outline-none focus:ring-2 focus:ring-purple-500" 
+                placeholder="Opponent username" value={challengeOpponent} onChange={e => setChallengeOpponent(e.target.value)} />
               <input className="w-full bg-gray-800 text-white px-4 py-3 rounded-xl mb-4 text-sm outline-none focus:ring-2 focus:ring-purple-500" 
                 placeholder="Challenge title (optional)" value={challengeTitle} onChange={e => setChallengeTitle(e.target.value)} />
               <button onClick={createChallenge}
