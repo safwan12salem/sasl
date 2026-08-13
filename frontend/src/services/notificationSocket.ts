@@ -40,6 +40,21 @@ function connect(token: string) {
   socket.onerror = () => {
     socket?.close();
   };
+
+  // Poll fallback every 30 seconds
+setInterval(() => {
+  fetch('/api/content/notifications/', {
+    headers: { 'Authorization': `Bearer ${localStorage.getItem('sasl_token')}` }
+  })
+  .then(res => res.json())
+  .then(data => {
+    const notifications = data.results || data || [];
+    const unreadCount = notifications.filter((n: any) => !n.is_read).length;
+    listeners.forEach(cb => cb({ type: 'unread_count', count: unreadCount }));
+  })
+  .catch(() => {});
+}, 30000);
+
 }
 
 export function subscribeNotifications(callback: (data: any) => void) {
