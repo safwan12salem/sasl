@@ -1,12 +1,7 @@
-"""
-Sasl - Notification WebSocket Consumer
-Uses connection_registry for direct channel delivery (no Redis/group_send needed)
-"""
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
 from .connection_registry import register, unregister
-
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -14,26 +9,17 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         if self.user.is_anonymous:
             await self.close()
             return
-        
         await self.accept()
         user_id = str(self.user.id)
-        try:
-            register(user_id, self.channel_name)
-            print(f"🔵 REGISTERED: user={user_id}, channel={self.channel_name}")
-        except Exception as e:
-            print(f"❌ REGISTER FAILED: {e}")
-        
+        register(user_id, self.channel_name)
+        print(f"REGISTERED_OK user={user_id}")
         count = await self.get_unread_count()
-        await self.send(text_data=json.dumps({
-            'type': 'unread_count',
-            'count': count
-        }))
+        await self.send(text_data=json.dumps({'type': 'unread_count', 'count': count}))
 
-        
     async def disconnect(self, close_code):
         if hasattr(self, 'user') and self.user and not self.user.is_anonymous:
-            print(f"🔴 CONSUMER UNREGISTERING: {self.user.id} -> {self.channel_name}")
             unregister(str(self.user.id), self.channel_name)
+
     async def receive(self, text_data):
         data = json.loads(text_data)
         if data.get('type') == 'mark_read':
@@ -42,8 +28,6 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             await self.mark_all_read()
 
     async def notification_message(self, event):
-        """Receive direct message from connection_registry and forward to client"""
-        print(f"📨 CONSUMER FORWARDING: {event}")
         await self.send(text_data=json.dumps(event['data']))
 
     @database_sync_to_async
