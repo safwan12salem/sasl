@@ -1,268 +1,313 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
-import { Award, TrendingUp, Star, Users, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
-import DailyChallenge from './DailyChallenge';
+import { 
+  Award, TrendingUp, Star, Users, Loader2, Zap, Flame, 
+  Target, Trophy, Crown, Rocket, Heart, MessageCircle, Video,
+  Briefcase, BookOpen, ShoppingCart, Sparkles, CheckCircle2, Clock
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
+import confetti from 'canvas-confetti';
+
+interface SkillXP {
+  social: number;
+  streaming: number;
+  marketplace: number;
+  tutoring: number;
+  gigs: number;
+}
+
 interface Badge {
+  id: string;
   name: string;
   icon: string;
   earned: boolean;
-}
-
-interface LeaderboardEntry {
-  username: string;
-  xp: number;
+  progress: number;
+  target: number;
 }
 
 export default function ProgressHub() {
   const { user } = useAuth();
-  const [stats, setStats] = useState({ xp: 0, level: 1, posts: 0, likes: 0 });
-  const [badges, setBadges] = useState<Badge[]>([]);
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [loading, setLoading] = useState(true);
   const { t } = useTranslation();
-  useEffect(() => {
-    const fetchData = async () => {
+  const [loading, setLoading] = useState(true);
+  const [xp, setXp] = useState(0);
+  const [level, setLevel] = useState(1);
+  const [xpToNext, setXpToNext] = useState(100);
+  const [skillXP, setSkillXP] = useState<SkillXP>({ social: 0, streaming: 0, marketplace: 0, tutoring: 0, gigs: 0 });
+  const [badges, setBadges] = useState<Badge[]>([]);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [newLevel, setNewLevel] = useState(0);
+
+  const calculateXP = async () => {
+    try {
+      // Social
+      const profile = await api.get('/users/profile/');
+      const postsRes = await api.get(`/content/posts/?author=${profile.data.username}`);
+      const posts = postsRes.data.results || [];
+      const totalLikes = posts.reduce((sum: number, p: any) => sum + (p.likes_count || 0), 0);
+      const totalComments = posts.reduce((sum: number, p: any) => sum + (p.comments_count || 0), 0);
+      const socialXP = totalLikes * 10 + totalComments * 5 + posts.length * 50;
+
+      // Streaming
+      let streamingXP = 0;
       try {
-        // Simulate fetching XP data – in real app, aggregate from backend
-        const profile = await api.get('/users/profile/');
-        const postsRes = await api.get('/content/posts/?author=' + profile.data.username);
-        const posts = postsRes.data.results || [];
-        const totalLikes = posts.reduce((sum: number, p: any) => sum + p.likes_count, 0);
-        const xp = totalLikes * 10 + posts.length * 50;
-        const level = Math.floor(xp / 100) + 1;
-        setStats({ xp, level, posts: posts.length, likes: totalLikes });
+        const streamsRes = await api.get('/streaming/streams/?streamer=' + profile.data.username);
+        const streams = streamsRes.data.results || [];
+        const totalDonations = streams.reduce((sum: number, s: any) => sum + (s.total_donations || 0), 0);
+        const totalViewers = streams.reduce((sum: number, s: any) => sum + (s.max_viewers || 0), 0);
+        streamingXP = totalDonations * 20 + totalViewers * 2 + streams.length * 100;
+      } catch {}
 
-        // Badges
-        const earnedBadges: Badge[] = [
-          { name: t('First Post'), icon: '📝', earned: posts.length > 0 },
-          { name: t('10 Likes'), icon: '❤️', earned: totalLikes >= 10 },
-          { name: t('Seller'), icon: '🛒', earned: user?.is_seller || false },
-          { name: t('Streamer'), icon: '🎥', earned: user?.is_creator || false },
-          { name: t('Teacher'), icon: '📚', earned: user?.is_teacher || false },
-          { name: t('100 XP'), icon: '⭐', earned: xp >= 100 },
-        ];
-        setBadges(earnedBadges);
+      // Marketplace
+      let marketplaceXP = 0;
+      try {
+        if (user?.is_seller) {
+          const productsRes = await api.get('/marketplace/products/?seller=me');
+          const products = productsRes.data.results || [];
+          marketplaceXP = products.length * 75;
+        }
+      } catch {}
 
-        // Leaderboard mock
-                // Real usernames from followers + current user
-        const followersRes = await api.get('/users/profile/').catch(() => ({ data: {} }));
-        const followerNames = (followersRes.data?.followers || []).slice(0, 5).map((f: any) => ({
-          username: f.username || f,
-          xp: Math.floor(Math.random() * 3000) + 500
-        }));
-        
-        const leaderboardData = [
-          { username: user?.username || 'You', xp },
-          ...followerNames,
-          { username: 'sasl_pioneer', xp: 4500 },
-          { username: 'wave_runner', xp: 3200 },
-          { username: 'mesh_explorer', xp: 2800 },
-        ].sort((a, b) => b.xp - a.xp).slice(0, 10);
-        
-        // Clean underscores from usernames
-        const cleaned = leaderboardData.map(entry => ({
-          ...entry,
-          username: entry.username.replace(/_/g, ' ')
-        }));
-        
-        setLeaderboard(cleaned);
-      } catch (err) {
-        // handle error
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [user]);
+      // Tutoring
+      let tutoringXP = 0;
+      try {
+        if (user?.is_teacher) {
+          const sessionsRes = await api.get('/tutoring/sessions/?tutor=me');
+          const sessions = sessionsRes.data.results || [];
+          tutoringXP = sessions.length * 80;
+        }
+      } catch {}
 
-  
-    if (loading) return (
-    <div className="flex justify-center py-20">
-      <Loader2 className="animate-spin text-green-500" size={48} />
-    </div>
-  );
+      // Gigs
+      let gigsXP = 0;
+      try {
+        const gigsRes = await api.get('/gigs/gigs/?creator=me');
+        const gigs = gigsRes.data.results || [];
+        gigsXP = gigs.length * 60;
+      } catch {}
 
-  const levelProgress = (stats.xp % 100) / 100 * 100;
-  const isCurrentUser = (username: string) => username === user?.username;
+      const totalXP = socialXP + streamingXP + marketplaceXP + tutoringXP + gigsXP;
+      const calculatedLevel = Math.floor(totalXP / 100) + 1;
+      const nextThreshold = calculatedLevel * 100;
+
+      setXp(totalXP);
+      setLevel(calculatedLevel);
+      setXpToNext(nextThreshold);
+      setSkillXP({ social: socialXP, streaming: streamingXP, marketplace: marketplaceXP, tutoring: tutoringXP, gigs: gigsXP });
+
+      // Build badges with progress
+      const badgeList: Badge[] = [
+        { id: 'first_post', name: t('First Post'), icon: '📝', earned: posts.length > 0, progress: posts.length, target: 1 },
+        { id: '10_posts', name: t('Content Creator'), icon: '✍️', earned: posts.length >= 10, progress: Math.min(posts.length, 10), target: 10 },
+        { id: '100_likes', name: t('Loved'), icon: '❤️', earned: totalLikes >= 100, progress: Math.min(totalLikes, 100), target: 100 },
+        { id: 'streamer', name: t('Live Streamer'), icon: '🎥', earned: user?.is_creator || false, progress: user?.is_creator ? 1 : 0, target: 1 },
+        { id: 'seller', name: t('Seller'), icon: '🛒', earned: user?.is_seller || false, progress: user?.is_seller ? 1 : 0, target: 1 },
+        { id: 'teacher', name: t('Teacher'), icon: '📚', earned: user?.is_teacher || false, progress: user?.is_teacher ? 1 : 0, target: 1 },
+        { id: '100xp', name: t('Rising Star'), icon: '⭐', earned: totalXP >= 100, progress: Math.min(totalXP, 100), target: 100 },
+        { id: '500xp', name: t('Pro'), icon: '💎', earned: totalXP >= 500, progress: Math.min(totalXP, 500), target: 500 },
+        { id: '1000xp', name: t('Elite'), icon: '👑', earned: totalXP >= 1000, progress: Math.min(totalXP, 1000), target: 1000 },
+        { id: 'gig_creator', name: t('Gig Creator'), icon: '💼', earned: gigsXP > 0, progress: Math.min(gigsXP / 60, 1), target: 1 },
+        { id: 'donor', name: t('Donor'), icon: '🎁', earned: streamingXP > 0, progress: Math.min(streamingXP / 20, 1), target: 1 },
+        { id: 'commenter', name: t('Engager'), icon: '💬', earned: totalComments >= 10, progress: Math.min(totalComments, 10), target: 10 },
+      ];
+      setBadges(badgeList);
+
+      setLoading(false);
+    } catch (err) {
+      console.error('Failed to load progress:', err);
+      setLoading(false);
+    }
+  };
+
+  const fetchLeaderboard = async () => {
+    try {
+      const res = await api.get('/users/leaderboard/');
+      setLeaderboard(res.data || []);
+    } catch {
+      setLeaderboard([
+        { username: user?.username || 'You', xp: Math.floor(xp), level },
+        { username: 'SaslKing', xp: 2450, level: 25 },
+        { username: 'MegaStreamer', xp: 1830, level: 19 },
+        { username: 'TopSeller', xp: 1200, level: 13 },
+        { username: 'EduGuru', xp: 980, level: 10 },
+      ]);
+    }
+  };
+
+  useEffect(() => {
+    calculateXP();
+    fetchLeaderboard();
+  }, []);
+
+  const fireConfetti = () => {
+    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+  };
+
+  const xpPercent = ((xp % 100) / 100) * 100;
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="animate-spin text-purple-500" size={48} />
+      </div>
+    );
+  }
+
+  const skills = [
+    { name: t('Social'), icon: <Heart size={20} className="text-pink-500" />, xp: skillXP.social, color: 'from-pink-500 to-rose-500' },
+    { name: t('Streaming'), icon: <Video size={20} className="text-red-500" />, xp: skillXP.streaming, color: 'from-red-500 to-orange-500' },
+    { name: t('Marketplace'), icon: <ShoppingCart size={20} className="text-green-500" />, xp: skillXP.marketplace, color: 'from-green-500 to-emerald-500' },
+    { name: t('Tutoring'), icon: <BookOpen size={20} className="text-blue-500" />, xp: skillXP.tutoring, color: 'from-blue-500 to-indigo-500' },
+    { name: t('Gigs'), icon: <Briefcase size={20} className="text-purple-500" />, xp: skillXP.gigs, color: 'from-purple-500 to-violet-500' },
+  ];
+
+  const earnedCount = badges.filter(b => b.earned).length;
 
   return (
-    <div className="p-4 md:p-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-        <h2 className="text-3xl font-bold bg-gradient-to-r from-green-400 via-emerald-500 to-teal-500 bg-clip-text text-transparent flex items-center gap-2">
-          <TrendingUp size={32} className="text-green-500" /> {t('Progress Hub')}
-        </h2>
-        <p className="text-gray-500 mt-1">{t('Track your journey and earn rewards')}</p>
-      </motion.div>
-
-      <DailyChallenge />
-
-      {/* Level Card — Hero Section */}
-      <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }} 
-        animate={{ opacity: 1, scale: 1 }} 
-        transition={{ delay: 0.1 }}
-        className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-gray-900 via-green-900 to-emerald-900 p-8 mb-8 text-white shadow-2xl shadow-green-500/20"
-      >
-        {/* Background glow */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-green-400 rounded-full blur-3xl opacity-20" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-300 rounded-full blur-3xl opacity-10" />
-        
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <p className="text-green-300 text-sm font-medium uppercase tracking-wider">{t('Level')} {stats.level}</p>
-              <h3 className="text-4xl font-black mt-1">{stats.xp.toLocaleString()} <span className="text-xl font-normal text-green-300">XP</span></h3>
-            </div>
-            <motion.div 
-              animate={{ rotate: 360 }} 
-              transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-              className="w-20 h-20 rounded-full border-4 border-green-400/30 border-t-green-400 flex items-center justify-center"
-            >
-              <Star size={32} className="text-yellow-400" fill="currentColor" />
+    <div className="p-4 md:p-6 max-w-6xl mx-auto space-y-6">
+      {/* Level Up Celebration */}
+      <AnimatePresence>
+        {showLevelUp && (
+          <motion.div initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.5 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70" onClick={() => setShowLevelUp(false)}>
+            <motion.div initial={{ y: 50 }} animate={{ y: 0 }} className="text-center" onClick={e => e.stopPropagation()}>
+              <motion.div animate={{ rotate: [0, -10, 10, 0], scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 1 }}
+                className="text-8xl mb-4">🏆</motion.div>
+              <h2 className="text-4xl font-bold text-white mb-2">LEVEL {newLevel}!</h2>
+              <p className="text-gray-300">You're unstoppable! Keep going!</p>
+              <button onClick={() => { setShowLevelUp(false); fireConfetti(); }} className="mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-full font-bold text-lg hover:shadow-xl hover:shadow-purple-500/30 transition">
+                🎉 Celebrate!
+              </button>
             </motion.div>
-          </div>
-          
-          {/* XP Progress Bar */}
-          <div className="relative">
-            <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden">
-              <motion.div 
-                initial={{ width: 0 }}
-                animate={{ width: `${levelProgress}%` }}
-                transition={{ duration: 1.5, ease: 'easeOut' }}
-                className="h-full bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400 rounded-full shadow-lg shadow-green-400/50"
-              />
-            </div>
-            <p className="text-right text-green-300 text-xs mt-1">{Math.round(levelProgress)}% {t('to next level')}</p>
-          </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-          {/* Stats Row */}
-          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-white/10">
-            {[
-              { icon: '📝', label: t('Posts'), value: stats.posts },
-              { icon: '❤️', label: t('Likes'), value: stats.likes },
-              { icon: '👥', label: t('Followers'), value: user?.followers_count || 0 },
-            ].map((stat, i) => (
-              <motion.div 
-                key={i} 
-                initial={{ opacity: 0, y: 10 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: 0.3 + i * 0.1 }}
-                className="text-center"
-              >
-                <span className="text-2xl">{stat.icon}</span>
-                <p className="text-2xl font-black">{stat.value.toLocaleString()}</p>
-                <p className="text-green-300 text-xs">{stat.label}</p>
-              </motion.div>
-            ))}
+      {/* Main XP Card */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 rounded-3xl p-8 text-white shadow-2xl">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-12 -mb-12" />
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="w-16 h-16 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                <Trophy size={32} className="text-yellow-300" />
+              </div>
+              <div>
+                <p className="text-sm opacity-80">{t('Level')}</p>
+                <p className="text-4xl font-bold">{level}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="text-sm opacity-80">{t('Total XP')}</p>
+              <p className="text-3xl font-bold">{xp.toLocaleString()}</p>
+            </div>
+          </div>
+          <div className="bg-white/20 rounded-full h-4 overflow-hidden mb-2">
+            <motion.div initial={{ width: 0 }} animate={{ width: `${xpPercent}%` }} transition={{ duration: 1.5, ease: 'easeOut' }}
+              className="h-full bg-gradient-to-r from-yellow-300 to-green-400 rounded-full" />
+          </div>
+          <div className="flex justify-between text-xs opacity-80">
+            <span>{xp % 100} XP</span>
+            <span>{xpToNext} XP to Level {level + 1}</span>
           </div>
         </div>
       </motion.div>
 
-      {/* Badges — Glass Grid */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        transition={{ delay: 0.2 }}
-        className="mb-8"
-      >
-        <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
-          <Award size={22} className="text-yellow-500" /> {t('Badges')}
+      {/* Stats Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { icon: <Star size={24} className="text-yellow-500" />, label: t('Badges Earned'), value: `${earnedCount}/${badges.length}`, bg: 'from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20' },
+          { icon: <Zap size={24} className="text-purple-500" />, label: t('Total XP'), value: xp.toLocaleString(), bg: 'from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20' },
+          { icon: <Flame size={24} className="text-orange-500" />, label: t('Skills Active'), value: skills.filter(s => s.xp > 0).length, bg: 'from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20' },
+          { icon: <TrendingUp size={24} className="text-green-500" />, label: t('Leaderboard Rank'), value: `#${leaderboard.findIndex(e => e.username === user?.username) + 1 || 1}`, bg: 'from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20' },
+        ].map((stat, i) => (
+          <motion.div key={i} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.1 }}
+            className={`bg-gradient-to-br ${stat.bg} rounded-2xl p-4 border border-white/50 shadow-sm hover:shadow-md transition`}>
+            <div className="flex items-center gap-3">
+              {stat.icon}
+              <div>
+                <p className="text-2xl font-bold">{stat.value}</p>
+                <p className="text-xs text-gray-500">{stat.label}</p>
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Skill XP Bars */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+          <Rocket size={20} className="text-purple-500" /> {t('Skill Breakdown')}
         </h3>
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
-          {badges.map((b, i) => (
-            <motion.div 
-              key={i} 
-              initial={{ scale: 0, rotate: -10 }} 
-              animate={{ scale: 1, rotate: 0 }} 
-              transition={{ delay: 0.3 + i * 0.08, type: 'spring' }}
-              whileHover={{ y: -4, scale: 1.05 }}
-              className={`relative p-4 rounded-2xl text-center transition-all ${
-                b.earned 
-                  ? 'bg-white dark:bg-gray-800 shadow-lg border border-green-100 dark:border-green-900/30' 
-                  : 'bg-gray-50 dark:bg-gray-900 opacity-40 grayscale'
-              }`}
-            >
-              <motion.span 
-                animate={b.earned ? { scale: [1, 1.2, 1] } : {}} 
-                transition={{ duration: 2, repeat: Infinity }}
-                className="text-3xl block mb-1"
-              >
-                {b.icon}
-              </motion.span>
-              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{b.name}</p>
-              {b.earned && (
-                <motion.div 
-                  initial={{ scale: 0 }} 
-                  animate={{ scale: 1 }} 
-                  className="absolute -top-1 -right-1 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center"
-                >
-                  <span className="text-white text-[10px]">✓</span>
-                </motion.div>
+        <div className="space-y-4">
+          {skills.map((skill, i) => (
+            <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}>
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-2">
+                  {skill.icon}
+                  <span className="text-sm font-semibold">{skill.name}</span>
+                </div>
+                <span className="text-xs font-bold text-gray-500">{skill.xp} XP</span>
+              </div>
+              <div className="bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+                <motion.div initial={{ width: 0 }} animate={{ width: `${Math.min((skill.xp / 500) * 100, 100)}%` }} transition={{ duration: 1, delay: i * 0.15 }}
+                  className={`h-full bg-gradient-to-r ${skill.color} rounded-full`} />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* Badges Grid */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+          <Award size={20} className="text-yellow-500" /> {t('Achievements')}
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {badges.map((badge, i) => (
+            <motion.div key={badge.id} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
+              className={`rounded-xl p-4 text-center border-2 transition ${badge.earned ? 'border-yellow-400 bg-yellow-50 dark:bg-yellow-900/20' : 'border-gray-200 dark:border-gray-700 opacity-50'}`}>
+              <div className="text-3xl mb-2">{badge.icon}</div>
+              <p className="text-xs font-semibold">{badge.name}</p>
+              {badge.earned ? (
+                <CheckCircle2 size={16} className="mx-auto mt-1 text-green-500" />
+              ) : (
+                <div className="mt-2 bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                  <div className="h-full bg-yellow-400 rounded-full" style={{ width: `${(badge.progress / badge.target) * 100}%` }} />
+                </div>
               )}
             </motion.div>
           ))}
         </div>
-      </motion.div>
+      </div>
 
-      {/* Leaderboard — Viral Ranking */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }} 
-        animate={{ opacity: 1, y: 0 }} 
-        transition={{ delay: 0.3 }}
-      >
-        <h3 className="font-bold text-xl mb-4 flex items-center gap-2">
-          <Users size={22} className="text-purple-500" /> {t('Leaderboard')}
+      {/* Leaderboard */}
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+        <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
+          <Crown size={20} className="text-purple-500" /> {t('Leaderboard')}
         </h3>
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700">
+        <div className="space-y-2">
           {leaderboard.map((entry, i) => (
-            <motion.div 
-              key={i} 
-              initial={{ opacity: 0, x: -20 }} 
-              animate={{ opacity: 1, x: 0 }} 
-              transition={{ delay: 0.4 + i * 0.05 }}
-              whileHover={{ scale: 1.01 }}
-              className={`flex items-center justify-between px-5 py-4 transition ${
-                isCurrentUser(entry.username) 
-                  ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-l-4 border-green-500' 
-                  : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 border-l-4 border-transparent'
-              } ${i < leaderboard.length - 1 ? 'border-b border-gray-100 dark:border-gray-700/50' : ''}`}
-            >
-              <div className="flex items-center gap-4">
-                {/* Rank Badge */}
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm ${
-                  i === 0 ? 'bg-gradient-to-br from-yellow-400 to-amber-500 text-white shadow-lg shadow-yellow-400/30' :
-                  i === 1 ? 'bg-gradient-to-br from-gray-300 to-gray-400 text-white shadow-lg shadow-gray-400/20' :
-                  i === 2 ? 'bg-gradient-to-br from-amber-600 to-orange-700 text-white shadow-lg shadow-amber-600/20' :
-                  'bg-gray-100 dark:bg-gray-700 text-gray-500'
-                }`}>
-                  {i < 3 ? ['🥇','🥈','🥉'][i] : i + 1}
-                </div>
-                
-                {/* Avatar & Name */}
-                <div>
-                  <p className={`font-bold ${isCurrentUser(entry.username) ? 'text-green-600' : 'text-gray-800 dark:text-gray-200'}`}>
-                    @{entry.username}
-                    {isCurrentUser(entry.username) && (
-                      <span className="ml-2 text-xs bg-green-500 text-white px-2 py-0.5 rounded-full">{t('You')}</span>
-                    )}
-                  </p>
-                  <p className="text-xs text-gray-400">{t('Rank')} #{i + 1}</p>
-                </div>
+            <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
+              className={`flex items-center gap-3 p-3 rounded-xl ${entry.username === user?.username ? 'bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700' : ''}`}>
+              <span className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                {i + 1}
+              </span>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                {entry.username?.[0]?.toUpperCase() || '?'}
               </div>
-              
-              {/* XP Score */}
-              <div className="text-right">
-                <p className="text-lg font-black text-green-600">{entry.xp.toLocaleString()}</p>
-                <p className="text-xs text-gray-400">{t('XP')}</p>
-              </div>
+              <span className="flex-1 font-semibold text-sm truncate">{entry.username}</span>
+              <span className="text-xs font-bold text-purple-500 flex items-center gap-1">
+                <Zap size={12} /> {entry.xp?.toLocaleString() || 0} XP
+              </span>
             </motion.div>
           ))}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
