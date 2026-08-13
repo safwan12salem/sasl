@@ -1,3 +1,5 @@
+import { supabase } from './supabase';
+
 let socket: WebSocket | null = null;
 let heartbeatId: any = null;
 let reconnectTimeout: any = null;
@@ -16,7 +18,7 @@ function connect(token: string) {
   socket = new WebSocket(wsUrl);
   
   socket.onopen = () => {
-    console.log('🔔 Notification WebSocket connected');
+    console.log('🔔 WebSocket connected');
     heartbeatId = setInterval(() => {
       if (socket?.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: 'ping' }));
@@ -33,28 +35,11 @@ function connect(token: string) {
   
   socket.onclose = () => {
     clearInterval(heartbeatId);
-    console.log('🔔 WebSocket closed — reconnecting');
+    console.log('🔔 WebSocket closed — Supabase takes over');
     reconnectTimeout = setTimeout(() => connect(token), 5000);
   };
   
-  socket.onerror = () => {
-    socket?.close();
-  };
-
-  // Poll fallback every 30 seconds
-setInterval(() => {
-  fetch('/api/content/notifications/', {
-    headers: { 'Authorization': `Bearer ${localStorage.getItem('sasl_token')}` }
-  })
-  .then(res => res.json())
-  .then(data => {
-    const notifications = data.results || data || [];
-    const unreadCount = notifications.filter((n: any) => !n.is_read).length;
-    listeners.forEach(cb => cb({ type: 'unread_count', count: unreadCount }));
-  })
-  .catch(() => {});
-}, 30000);
-
+  socket.onerror = () => { socket?.close(); };
 }
 
 export function subscribeNotifications(callback: (data: any) => void) {
@@ -62,8 +47,45 @@ export function subscribeNotifications(callback: (data: any) => void) {
   const token = localStorage.getItem('sasl_token');
   if (token) connect(token);
   
+  // Supabase Realtime fallback
+  let supabaseChannel: any = null;
+  try {
+    supabaseChannel = supabase
+      .channel('notifications-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
+        const n = payload.new;
+        callback({
+          type: 'new_notification',
+          notification: {
+            id: n.id,
+            notification_type: n.type,
+            message: n.message,
+            actor: n.actor_username,
+            is_read: false,
+            created_at: n.created_at
+          }
+        });
+      })
+      .subscribe();
+  } catch {}
+  
+  // Polling last resort
+  const pollInterval = setInterval(async () => {
+    try {
+      const res = await fetch('/api/content/notifications/', {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('sasl_token')}` }
+      });
+      const data = await res.json();
+      const notifications = data.results || data || [];
+      const unreadCount = notifications.filter((n: any) => !n.is_read).length;
+      callback({ type: 'unread_count', count: unreadCount });
+    } catch {}
+  }, 30000);
+  
   return () => {
     listeners = listeners.filter(cb => cb !== callback);
+    supabaseChannel?.unsubscribe();
+    clearInterval(pollInterval);
   };
 }
 
