@@ -115,11 +115,19 @@ export default function NotificationBell() {
             // Play chime sound
             playNotificationSound();
             // Send to service worker for phone push
-            if (soundEnabled && navigator.serviceWorker?.controller) {
+                        if (navigator.serviceWorker?.controller) {
               navigator.serviceWorker.controller.postMessage({
                 type: 'NOTIFICATION',
                 title: 'Sasl',
                 body: data.notification.message
+              });
+            } else if (navigator.serviceWorker?.ready) {
+              navigator.serviceWorker.ready.then((registration) => {
+                registration.active?.postMessage({
+                  type: 'NOTIFICATION',
+                  title: 'Sasl',
+                  body: data.notification.message
+                });
               });
             }
             toast.success(data.notification.message, {
