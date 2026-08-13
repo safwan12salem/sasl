@@ -27,8 +27,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         if hasattr(self, 'user') and self.user and not self.user.is_anonymous:
-            unprint(f"🔵 CONSUMER REGISTERING: {self.user.id} -> {self.channel_name}"); register(str(self.user.id), self.channel_name)
-
+            print(f"🔴 CONSUMER UNREGISTERING: {self.user.id} -> {self.channel_name}")
+            unregister(str(self.user.id), self.channel_name)
     async def receive(self, text_data):
         data = json.loads(text_data)
         if data.get('type') == 'mark_read':
