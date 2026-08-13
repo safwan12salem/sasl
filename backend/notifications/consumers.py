@@ -16,15 +16,20 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             return
         
         await self.accept()
-        print(f"🔵 CONSUMER REGISTERING: {self.user.id} -> {self.channel_name}"); register(str(self.user.id), self.channel_name)
-        register(str(self.user.id), self.channel_name)
-        # Send unread count on connect
+        user_id = str(self.user.id)
+        try:
+            register(user_id, self.channel_name)
+            print(f"🔵 REGISTERED: user={user_id}, channel={self.channel_name}")
+        except Exception as e:
+            print(f"❌ REGISTER FAILED: {e}")
+        
         count = await self.get_unread_count()
         await self.send(text_data=json.dumps({
             'type': 'unread_count',
             'count': count
         }))
 
+        
     async def disconnect(self, close_code):
         if hasattr(self, 'user') and self.user and not self.user.is_anonymous:
             print(f"🔴 CONSUMER UNREGISTERING: {self.user.id} -> {self.channel_name}")
