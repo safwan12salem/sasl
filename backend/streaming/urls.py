@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import StreamSessionViewSet, StreamDonationViewSet, StreamScheduleViewSet, StreamChallengeViewSet,leaderboard
+from .views import StreamSessionViewSet, StreamDonationViewSet, StreamScheduleViewSet, StreamChallengeViewSet
 
 router = DefaultRouter()
 router.register(r'streams', StreamSessionViewSet, basename='stream')
