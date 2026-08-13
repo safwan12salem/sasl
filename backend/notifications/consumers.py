@@ -1,3 +1,4 @@
+# FRESH 2026-08-13
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -11,8 +12,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             return
         await self.accept()
         user_id = str(self.user.id)
-        register(user_id, self.channel_name)
         print(f"REGISTERED_OK user={user_id}")
+        register(user_id, self.channel_name)
         count = await self.get_unread_count()
         await self.send(text_data=json.dumps({'type': 'unread_count', 'count': count}))
 
