@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from datetime import date
 from decimal import Decimal
 import json
@@ -18,7 +19,6 @@ from .serializers import (
 from .models import DailyChallenge, Wallet, Follow, Subscription
 from notifications.services import create_notification
 User = get_user_model()
-from django.contrib.auth import get_user_model
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -322,14 +322,13 @@ def is_valid_email(email):
     return bool(re.match(pattern, email))
 
 
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def leaderboard(request):
     """Top users by XP across all activities"""
-    from django.db.models import Sum, Count
-    users = get_user_model().objects.all()[:20]
+    from django.db.models import Sum
+    User = get_user_model()
+    users = User.objects.all()[:20]
     leaderboard_data = []
     for u in users:
         total_xp = 0
@@ -340,11 +339,15 @@ def leaderboard(request):
         total_xp += u.streams.count() * 100
         total_xp += u.streams.aggregate(Sum('max_viewers'))['max_viewers__sum'] or 0 * 2
         # Gigs
-        total_xp += u.gigs_created.count() * 60 if hasattr(u, 'gigs_created') else 0
+        total_xp += u.gigs_created.count() * 60
         # Marketplace
-        total_xp += u.products.count() * 75 if hasattr(u, 'products') else 0
+        total_xp += u.products.count() * 75
         # Tutoring
-        total_xp += u.tutoring_sessions.count() * 80 if hasattr(u, 'tutoring_sessions') else 0
+        total_xp += u.tutoring_given.count() * 80
+        # Snaps
+        total_xp += u.snaps_sent.count() * 30
+        # Live Audio
+        total_xp += u.audio_rooms_hosted.count() * 40
         
         leaderboard_data.append({
             'username': u.username,
@@ -354,8 +357,6 @@ def leaderboard(request):
     
     leaderboard_data.sort(key=lambda x: x['xp'], reverse=True)
     return Response(leaderboard_data[:20])
-
-
 
 
 @api_view(['POST'])
