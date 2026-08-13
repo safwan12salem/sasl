@@ -4,7 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { 
   Award, TrendingUp, Star, Users, Loader2, Zap, Flame, 
   Target, Trophy, Crown, Rocket, Heart, MessageCircle, Video,
-  Briefcase, BookOpen, ShoppingCart, Sparkles, CheckCircle2, Clock
+  Briefcase, BookOpen, ShoppingCart, Sparkles, CheckCircle2, Clock,
+  Radio, Play
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +17,9 @@ interface SkillXP {
   marketplace: number;
   tutoring: number;
   gigs: number;
+  snap: number;
+  liveAudio: number;
+  reels: number;
 }
 
 interface Badge {
@@ -34,7 +38,7 @@ export default function ProgressHub() {
   const [xp, setXp] = useState(0);
   const [level, setLevel] = useState(1);
   const [xpToNext, setXpToNext] = useState(100);
-  const [skillXP, setSkillXP] = useState<SkillXP>({ social: 0, streaming: 0, marketplace: 0, tutoring: 0, gigs: 0 });
+  const [skillXP, setSkillXP] = useState<SkillXP>({ social: 0, streaming: 0, marketplace: 0, tutoring: 0, gigs: 0, snap: 0, liveAudio: 0, reels: 0 });
   const [badges, setBadges] = useState<Badge[]>([]);
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -87,15 +91,38 @@ export default function ProgressHub() {
         const gigs = gigsRes.data.results || [];
         gigsXP = gigs.length * 60;
       } catch {}
+            // Snap XP
+      let snapXP = 0;
+      try {
+        const snapsRes = await api.get('/snaps/snaps/inbox/');
+        const snaps = snapsRes.data || [];
+        snapXP = snaps.length * 30;
+      } catch {}
 
-      const totalXP = socialXP + streamingXP + marketplaceXP + tutoringXP + gigsXP;
+      // LiveAudio XP
+      let liveAudioXP = 0;
+      try {
+        const roomsRes = await api.get('/liveaudio/rooms/my_rooms/');
+        const rooms = roomsRes.data || [];
+        liveAudioXP = rooms.length * 40;
+      } catch {}
+
+      // Reels XP
+      let reelsXP = 0;
+      try {
+        const reelsRes = await api.get('/content/reels/');
+        const reels = reelsRes.data.results || reelsRes.data || [];
+        reelsXP = reels.length * 70;
+      } catch {}
+
+      const totalXP = socialXP + streamingXP + marketplaceXP + tutoringXP + gigsXP+ snapXP + liveAudioXP + reelsXP;;
       const calculatedLevel = Math.floor(totalXP / 100) + 1;
       const nextThreshold = calculatedLevel * 100;
 
       setXp(totalXP);
       setLevel(calculatedLevel);
       setXpToNext(nextThreshold);
-      setSkillXP({ social: socialXP, streaming: streamingXP, marketplace: marketplaceXP, tutoring: tutoringXP, gigs: gigsXP });
+      setSkillXP({ social: socialXP, streaming: streamingXP, marketplace: marketplaceXP, tutoring: tutoringXP, gigs: gigsXP, snap: snapXP, liveAudio: liveAudioXP, reels: reelsXP  });
 
       // Build badges with progress
       const badgeList: Badge[] = [
@@ -161,6 +188,9 @@ export default function ProgressHub() {
     { name: t('Marketplace'), icon: <ShoppingCart size={20} className="text-green-500" />, xp: skillXP.marketplace, color: 'from-green-500 to-emerald-500' },
     { name: t('Tutoring'), icon: <BookOpen size={20} className="text-blue-500" />, xp: skillXP.tutoring, color: 'from-blue-500 to-indigo-500' },
     { name: t('Gigs'), icon: <Briefcase size={20} className="text-purple-500" />, xp: skillXP.gigs, color: 'from-purple-500 to-violet-500' },
+    { name: t('Snap'), icon: <Zap size={20} className="text-yellow-500" />, xp: skillXP.snap, color: 'from-yellow-500 to-amber-500' },
+    { name: t('Live Audio'), icon: <Radio size={20} className="text-cyan-500" />, xp: skillXP.liveAudio, color: 'from-cyan-500 to-teal-500' },
+    { name: t('Reels'), icon: <Play size={20} className="text-orange-500" />, xp: skillXP.reels, color: 'from-orange-500 to-red-500' },
   ];
 
   const earnedCount = badges.filter(b => b.earned).length;

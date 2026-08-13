@@ -18,6 +18,7 @@ from .serializers import (
 from .models import DailyChallenge, Wallet, Follow, Subscription
 from notifications.services import create_notification
 User = get_user_model()
+from django.contrib.auth import get_user_model
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -323,7 +324,36 @@ def is_valid_email(email):
 
 
 
-
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def leaderboard(request):
+    """Top users by XP across all activities"""
+    from django.db.models import Sum, Count
+    users = get_user_model().objects.all()[:20]
+    leaderboard_data = []
+    for u in users:
+        total_xp = 0
+        # Social
+        total_xp += u.posts.count() * 50
+        total_xp += u.posts.aggregate(Sum('likes_count'))['likes_count__sum'] or 0 * 10
+        # Streaming
+        total_xp += u.streams.count() * 100
+        total_xp += u.streams.aggregate(Sum('max_viewers'))['max_viewers__sum'] or 0 * 2
+        # Gigs
+        total_xp += u.gigs_created.count() * 60 if hasattr(u, 'gigs_created') else 0
+        # Marketplace
+        total_xp += u.products.count() * 75 if hasattr(u, 'products') else 0
+        # Tutoring
+        total_xp += u.tutoring_sessions.count() * 80 if hasattr(u, 'tutoring_sessions') else 0
+        
+        leaderboard_data.append({
+            'username': u.username,
+            'xp': total_xp,
+            'level': total_xp // 100 + 1
+        })
+    
+    leaderboard_data.sort(key=lambda x: x['xp'], reverse=True)
+    return Response(leaderboard_data[:20])
 
 
 
