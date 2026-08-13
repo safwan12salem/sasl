@@ -171,11 +171,11 @@ export default function NotificationBell() {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
+        return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       wsRef.current?.close();
     };
-  }, [user]);
+  }, []);
 
   const markAsRead = async (id: string) => {
     try {
