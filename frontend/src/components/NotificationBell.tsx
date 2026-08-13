@@ -6,6 +6,9 @@ import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from 'react-i18next';
+import { subscribeNotifications } from '../services/notificationSocket';
+
+
 
 interface Notification {
   id: string;
@@ -38,7 +41,7 @@ export default function NotificationBell() {
   const [loading, setLoading] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const wsRef = useRef<WebSocket | null>(null);
+  
   const { t } = useTranslation();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -92,81 +95,7 @@ export default function NotificationBell() {
     } catch {}
   };
 
-  const connectWebSocket = () => {
-    const token = localStorage.getItem('sasl_token');
-    if (!token) return;
-    const isLocal = window.location.hostname === 'localhost';
-    const wsUrl = isLocal 
-      ? `ws://localhost:8000/ws/notifications/?token=${token}`
-      : `wss://sasl-api-i34r.onrender.com/ws/notifications/?token=${token}`;
-    
-    try {
-      const ws = new WebSocket(wsUrl);
-            ws.onopen = () => {
-        console.log('🔔 Notification WebSocket connected');
-        // Heartbeat every 5 seconds to keep connection alive
-        const heartbeat = setInterval(() => {
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({ type: 'ping' }));
-          }
-        }, 5000);
-        // Store heartbeat ID to clear on close
-        (ws as any).heartbeatId = heartbeat;
-      };
-      
-      ws.onclose = () => {
-        // Clear heartbeat on close
-        if ((ws as any).heartbeatId) {
-          clearInterval((ws as any).heartbeatId);
-        }
-        console.log('🔔 Notification WebSocket closed — reconnecting in 5s');
-        setTimeout(connectWebSocket, 5000);
-      };
-      
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'unread_count') {
-            setUnreadCount(data.count);
-          } else if (data.type === 'new_notification') {
-            setNotifications(prev => [data.notification, ...prev]);
-            setUnreadCount(prev => prev + 1);
-            // Play chime sound
-            playNotificationSound();
-            // Send to service worker for phone push
-                        if (navigator.serviceWorker?.controller) {
-              navigator.serviceWorker.controller.postMessage({
-                type: 'NOTIFICATION',
-                title: 'Sasl',
-                body: data.notification.message
-              });
-            } else if (navigator.serviceWorker?.ready) {
-              navigator.serviceWorker.ready.then((registration) => {
-                registration.active?.postMessage({
-                  type: 'NOTIFICATION',
-                  title: 'Sasl',
-                  body: data.notification.message
-                });
-              });
-            }
-            toast.success(data.notification.message, {
-              icon: iconMap[data.notification.notification_type] || '🔔',
-              duration: 4000,
-            });
-          }
-        } catch (err) {}
-      };
-      
-      ws.onerror = () => console.log('🔔 WebSocket error — falling back to polling');
-      ws.onclose = () => {
-        console.log('🔔 Notification WebSocket closed — reconnecting in 5s');
-        setTimeout(connectWebSocket, 5000);
-      };
-      
-      wsRef.current = ws;
-    } catch (err) {}
-  };
-
+  
   const fetchNotifications = async () => {
     setLoading(true);
     try {
@@ -178,21 +107,38 @@ export default function NotificationBell() {
       setLoading(false); 
     }
   };
-
   useEffect(() => {
     if (!user) return;
     fetchNotifications();
-    connectWebSocket();
+    
+    const unsubscribe = subscribeNotifications((data) => {
+      if (data.type === 'unread_count') {
+        setUnreadCount(data.count);
+      } else if (data.type === 'new_notification') {
+        setNotifications(prev => [data.notification, ...prev]);
+        setUnreadCount(prev => prev + 1);
+        playNotificationSound();
+        toast.success(data.notification.message, {
+          icon: iconMap[data.notification.notification_type] || '🔔',
+          duration: 4000,
+        });
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [user?.id]);
 
+  useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-        return () => {
+    return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      wsRef.current?.close();
     };
   }, []);
 
