@@ -44,9 +44,8 @@ export default function ProgressHub() {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [newLevel, setNewLevel] = useState(0);
 
-  const calculateXP = async () => {
+    const calculateXP = async () => {
     try {
-      // Social
       const profile = await api.get('/users/profile/');
       const postsRes = await api.get(`/content/posts/?author=${profile.data.username}`);
       const posts = postsRes.data.results || [];
@@ -54,93 +53,69 @@ export default function ProgressHub() {
       const totalComments = posts.reduce((sum: number, p: any) => sum + (p.comments_count || 0), 0);
       const socialXP = totalLikes * 10 + totalComments * 5 + posts.length * 50;
 
-      // Streaming
       let streamingXP = 0;
       try {
-        const streamsRes = await api.get('/streaming/streams/?streamer=' + profile.data.username);
+        const streamsRes = await api.get(`/streaming/streams/?streamer=${profile.data.username}`);
         const streams = streamsRes.data.results || [];
-        const totalDonations = streams.reduce((sum: number, s: any) => sum + (s.total_donations || 0), 0);
-        const totalViewers = streams.reduce((sum: number, s: any) => sum + (s.max_viewers || 0), 0);
-        streamingXP = totalDonations * 20 + totalViewers * 2 + streams.length * 100;
+        streamingXP = streams.reduce((sum: number, s: any) => sum + (s.total_donations || 0) * 20 + (s.max_viewers || 0) * 2, 0) + streams.length * 100;
       } catch {}
 
-      // Marketplace
       let marketplaceXP = 0;
       try {
         if (user?.is_seller) {
           const productsRes = await api.get('/marketplace/products/?seller=me');
-          const products = productsRes.data.results || [];
-          marketplaceXP = products.length * 75;
+          marketplaceXP = (productsRes.data.results || []).length * 75;
         }
       } catch {}
 
-      // Tutoring
       let tutoringXP = 0;
       try {
         if (user?.is_teacher) {
-          const sessionsRes = await api.get('/tutoring/sessions/?tutor=me');
-          const sessions = sessionsRes.data.results || [];
-          tutoringXP = sessions.length * 80;
+          const sessionsRes = await api.get('/tutoring/sessions/');
+          tutoringXP = (sessionsRes.data.results || []).length * 80;
         }
       } catch {}
 
-      // Gigs
       let gigsXP = 0;
       try {
-        const gigsRes = await api.get('/gigs/gigs/?creator=me');
-        const gigs = gigsRes.data.results || [];
-        gigsXP = gigs.length * 60;
+        const gigsRes = await api.get('/gigs/gigs/');
+        gigsXP = (gigsRes.data.results || []).length * 60;
       } catch {}
-            // Snap XP
+
       let snapXP = 0;
       try {
         const snapsRes = await api.get('/snaps/snaps/inbox/');
-        const snaps = snapsRes.data || [];
-        snapXP = snaps.length * 30;
+        snapXP = (snapsRes.data || []).length * 30;
       } catch {}
 
-      // LiveAudio XP
       let liveAudioXP = 0;
       try {
-        const roomsRes = await api.get('/liveaudio/rooms/my_rooms/');
-        const rooms = roomsRes.data || [];
-        liveAudioXP = rooms.length * 40;
+        const roomsRes = await api.get('/liveaudio/rooms/');
+        liveAudioXP = (roomsRes.data.results || roomsRes.data || []).length * 40;
       } catch {}
 
-      // Reels XP
       let reelsXP = 0;
       try {
         const reelsRes = await api.get('/content/reels/');
-        const reels = reelsRes.data.results || reelsRes.data || [];
-        reelsXP = reels.length * 70;
+        reelsXP = (reelsRes.data.results || reelsRes.data || []).length * 70;
       } catch {}
 
-      const totalXP = socialXP + streamingXP + marketplaceXP + tutoringXP + gigsXP+ snapXP + liveAudioXP + reelsXP;;
+      const totalXP = socialXP + streamingXP + marketplaceXP + tutoringXP + gigsXP + snapXP + liveAudioXP + reelsXP;
       const calculatedLevel = Math.floor(totalXP / 100) + 1;
-      const nextThreshold = calculatedLevel * 100;
-
       setXp(totalXP);
       setLevel(calculatedLevel);
-      setXpToNext(nextThreshold);
-      setSkillXP({ social: socialXP, streaming: streamingXP, marketplace: marketplaceXP, tutoring: tutoringXP, gigs: gigsXP, snap: snapXP, liveAudio: liveAudioXP, reels: reelsXP  });
-
-      // Build badges with progress
+      setXpToNext(calculatedLevel * 100);
+      setSkillXP({ social: socialXP, streaming: streamingXP, marketplace: marketplaceXP, tutoring: tutoringXP, gigs: gigsXP, snap: snapXP, liveAudio: liveAudioXP, reels: reelsXP });
+      
       const badgeList: Badge[] = [
         { id: 'first_post', name: t('First Post'), icon: '📝', earned: posts.length > 0, progress: posts.length, target: 1 },
-        { id: '10_posts', name: t('Content Creator'), icon: '✍️', earned: posts.length >= 10, progress: Math.min(posts.length, 10), target: 10 },
-        { id: '100_likes', name: t('Loved'), icon: '❤️', earned: totalLikes >= 100, progress: Math.min(totalLikes, 100), target: 100 },
         { id: 'streamer', name: t('Live Streamer'), icon: '🎥', earned: user?.is_creator || false, progress: user?.is_creator ? 1 : 0, target: 1 },
         { id: 'seller', name: t('Seller'), icon: '🛒', earned: user?.is_seller || false, progress: user?.is_seller ? 1 : 0, target: 1 },
         { id: 'teacher', name: t('Teacher'), icon: '📚', earned: user?.is_teacher || false, progress: user?.is_teacher ? 1 : 0, target: 1 },
         { id: '100xp', name: t('Rising Star'), icon: '⭐', earned: totalXP >= 100, progress: Math.min(totalXP, 100), target: 100 },
         { id: '500xp', name: t('Pro'), icon: '💎', earned: totalXP >= 500, progress: Math.min(totalXP, 500), target: 500 },
-        { id: '1000xp', name: t('Elite'), icon: '👑', earned: totalXP >= 1000, progress: Math.min(totalXP, 1000), target: 1000 },
-        { id: 'gig_creator', name: t('Gig Creator'), icon: '💼', earned: gigsXP > 0, progress: Math.min(gigsXP / 60, 1), target: 1 },
-        { id: 'donor', name: t('Donor'), icon: '🎁', earned: streamingXP > 0, progress: Math.min(streamingXP / 20, 1), target: 1 },
-        { id: 'commenter', name: t('Engager'), icon: '💬', earned: totalComments >= 10, progress: Math.min(totalComments, 10), target: 10 },
       ];
       setBadges(badgeList);
-
       setLoading(false);
     } catch (err) {
       console.error('Failed to load progress:', err);
@@ -148,21 +123,17 @@ export default function ProgressHub() {
     }
   };
 
-  const fetchLeaderboard = async () => {
+
+    const fetchLeaderboard = async () => {
     try {
-      const res = await api.get('/users/leaderboard/');
+      const res = await api.get('/users/leaderboard/', { timeout: 5000 });
       setLeaderboard(res.data || []);
     } catch {
-      setLeaderboard([
-        { username: user?.username || 'You', xp: Math.floor(xp), level },
-        { username: 'SaslKing', xp: 2450, level: 25 },
-        { username: 'MegaStreamer', xp: 1830, level: 19 },
-        { username: 'TopSeller', xp: 1200, level: 13 },
-        { username: 'EduGuru', xp: 980, level: 10 },
-      ]);
+      setLeaderboard([{ username: user?.username || 'You', xp, level }]);
     }
   };
 
+  
   useEffect(() => {
     calculateXP();
     fetchLeaderboard();
