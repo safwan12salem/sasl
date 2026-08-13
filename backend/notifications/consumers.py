@@ -17,7 +17,7 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         
         await self.accept()
         print(f"🔵 CONSUMER REGISTERING: {self.user.id} -> {self.channel_name}"); register(str(self.user.id), self.channel_name)
-        
+        register(str(self.user.id), self.channel_name)
         # Send unread count on connect
         count = await self.get_unread_count()
         await self.send(text_data=json.dumps({
