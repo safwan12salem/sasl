@@ -23,11 +23,13 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
+        if data.get('type') == 'ping':
+            await self.send(text_data=json.dumps({'type': 'pong'}))
+            return
         if data.get('type') == 'mark_read':
             await self.mark_as_read(data.get('notification_id'))
         elif data.get('type') == 'mark_all_read':
             await self.mark_all_read()
-
     async def notification_message(self, event):
         await self.send(text_data=json.dumps(event['data']))
 

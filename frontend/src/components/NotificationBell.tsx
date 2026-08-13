@@ -102,7 +102,26 @@ export default function NotificationBell() {
     
     try {
       const ws = new WebSocket(wsUrl);
-      ws.onopen = () => console.log('🔔 Notification WebSocket connected');
+            ws.onopen = () => {
+        console.log('🔔 Notification WebSocket connected');
+        // Heartbeat every 5 seconds to keep connection alive
+        const heartbeat = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'ping' }));
+          }
+        }, 5000);
+        // Store heartbeat ID to clear on close
+        (ws as any).heartbeatId = heartbeat;
+      };
+      
+      ws.onclose = () => {
+        // Clear heartbeat on close
+        if ((ws as any).heartbeatId) {
+          clearInterval((ws as any).heartbeatId);
+        }
+        console.log('🔔 Notification WebSocket closed — reconnecting in 5s');
+        setTimeout(connectWebSocket, 5000);
+      };
       
       ws.onmessage = (event) => {
         try {
