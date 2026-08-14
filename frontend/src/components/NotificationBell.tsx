@@ -72,14 +72,18 @@ export default function NotificationBell() {
   }, []);
 
   
-  const playNotificationSound = () => {
+    const playNotificationSound = (type?: string) => {
     if (!soundEnabled) return;
-    // Try HTML5 Audio first
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {});
-    }
-    // Also try Web Audio API
+    
+    // Different frequencies per notification type
+    let freq1 = 523, freq2 = 659; // Default
+    if (type === 'like') { freq1 = 523; freq2 = 659; }
+    else if (type === 'comment') { freq1 = 440; freq2 = 554; }
+    else if (type === 'follow') { freq1 = 659; freq2 = 784; }
+    else if (type === 'donation') { freq1 = 784; freq2 = 988; }
+    else if (type === 'challenge') { freq1 = 587; freq2 = 740; }
+    else if (type === 'snap') { freq1 = 698; freq2 = 880; }
+    
     try {
       const ctx = audioCtxRef.current || new (window.AudioContext || (window as any).webkitAudioContext)();
       audioCtxRef.current = ctx;
@@ -87,14 +91,14 @@ export default function NotificationBell() {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(ctx.destination);
-      osc.type = 'sine'; osc.frequency.setValueAtTime(523, ctx.currentTime);
-      osc.frequency.setValueAtTime(659, ctx.currentTime + 0.1);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq1, ctx.currentTime);
+      osc.frequency.setValueAtTime(freq2, ctx.currentTime + 0.1);
       gain.gain.setValueAtTime(0.3, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
       osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.5);
     } catch {}
   };
-
   
   const fetchNotifications = async () => {
     setLoading(true);
@@ -131,6 +135,7 @@ export default function NotificationBell() {
         toast.success(data.notification.message, {
           icon: iconMap[data.notification.notification_type] || '🔔',
           duration: 4000,
+          style: { background: '#1a1a2e', color: '#fff' }
         });
       }
     });

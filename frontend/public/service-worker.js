@@ -26,3 +26,15 @@ self.addEventListener('notificationclick', (event) => {
     clients.openWindow('https://sasl.vercel.app')
   );
 });
+
+
+
+
+self.registration.showNotification(title, {
+  body,
+  icon: '/logo192.png',
+  badge: '/logo192.png',
+  tag: 'sasl-notification',
+  requireInteraction: true,
+  vibrate: [200, 100, 200],
+});
