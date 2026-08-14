@@ -55,5 +55,6 @@ def create_notification(recipient, actor, notification_type, message, post=None)
         print(f"✅ Supabase notification sent")
     except Exception as e:
         print(f"⚠️ Supabase fallback failed: {e}")
-    
+        import traceback
+        traceback.print_exc()
     return notification
