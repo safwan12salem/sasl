@@ -6,7 +6,9 @@ export class WebRTCConnection {
   private ignoreOffer = false;
   private candidateQueue: RTCIceCandidateInit[] = [];
   private remoteVideoElement: HTMLVideoElement | null = null;
-  
+ private accumulatedStream: MediaStream | null = null;
+
+
   constructor(signalSend: (msg: any) => void) {
     this.signalSend = signalSend;
   }
@@ -66,13 +68,14 @@ export class WebRTCConnection {
     };
 
     // Handle incoming remote tracks
-    pc.ontrack = (event) => {
+       pc.ontrack = (event) => {
       console.log('🔥 ONTRACK FIRED! Track kind:', event.track.kind, 'Streams:', event.streams.length);
-      if (event.streams[0] && this.remoteVideoElement) {
-        console.log('🔥 Setting remote video srcObject');
-        const newStream = new MediaStream();
-        newStream.addTrack(event.track);
-        this.remoteVideoElement.srcObject = newStream;
+      if (this.remoteVideoElement) {
+        if (!this.accumulatedStream) {
+          this.accumulatedStream = new MediaStream();
+        }
+        this.accumulatedStream.addTrack(event.track);
+        this.remoteVideoElement.srcObject = this.accumulatedStream;
         this.remoteVideoElement.autoplay = true;
         this.remoteVideoElement.playsInline = true;
         this.remoteVideoElement.muted = false;
