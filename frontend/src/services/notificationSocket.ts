@@ -1,5 +1,19 @@
 import { supabase } from './supabase';
 
+
+
+function getCurrentUserId(): string {
+  try {
+    const token = localStorage.getItem('sasl_token');
+    if (!token) return '';
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.user_id || '';
+  } catch {
+    return '';
+  }
+}
+
+
 let socket: WebSocket | null = null;
 let heartbeatId: any = null;
 let reconnectTimeout: any = null;
@@ -53,18 +67,21 @@ export function subscribeNotifications(callback: (data: any) => void) {
     supabaseChannel = supabase
       .channel('notifications-realtime')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
-               const n = payload.new;
-        callback({
-          type: 'new_notification',
-          notification: {
-            id: n.id,
-            notification_type: n.notification_type,
-            message: n.message,
-            actor: n.actor_name,
-            is_read: false,
-            created_at: n.created_at
-          }
-        });
+                             const n = payload.new;
+        const currentUserId = getCurrentUserId();
+        if (n.recipient_id === currentUserId) {
+          callback({
+            type: 'new_notification',
+            notification: {
+              id: n.id,
+              notification_type: n.notification_type,
+              message: n.message,
+              actor: n.actor_name,
+              is_read: false,
+              created_at: n.created_at
+            }
+          });
+        }
       })
       .subscribe();
   } catch {}
