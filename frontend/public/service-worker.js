@@ -6,19 +6,23 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(clients.claim());
 });
 
+
+
+
+
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'NOTIFICATION') {
     const { title, body } = event.data;
-    self.registration.showNotification(title, {
-      body,
+    self.registration.showNotification(title || 'Sasl', {
+      body: body || 'New notification',
       icon: '/logo192.png',
       badge: '/logo192.png',
       tag: 'sasl-notification',
-      requireInteraction: true,
-      vibrate: [200, 100, 200],
+      requireInteraction: true
     });
   }
 });
+
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();

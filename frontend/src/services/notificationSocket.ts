@@ -69,20 +69,18 @@ export function subscribeNotifications(callback: (data: any) => void) {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
                       const n = payload.new;
         const currentUserId = getCurrentUserId();
-        if (n.recipient_id === currentUserId) {
+               if (n.recipient_id === currentUserId) {
           // Send system notification via service worker
-          if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
-            navigator.serviceWorker.ready.then((registration) => {
-              registration.showNotification('Sasl', {
-                body: n.message,
-                icon: '/logo192.png',
-                badge: '/logo192.png',
-                tag: 'sasl-notification',
-                requireInteraction: true,
-                vibrate: [200, 100, 200]
-                 } as any);
-            
-            });
+          if ('serviceWorker' in navigator) {
+                       navigator.serviceWorker.ready.then((registration) => {
+              if (registration.active) {
+                registration.active.postMessage({
+                  type: 'NOTIFICATION',
+                  title: 'Sasl',
+                  body: n.message
+                });
+              }
+            }).catch(() => {});
           }
           
           callback({
@@ -96,7 +94,7 @@ export function subscribeNotifications(callback: (data: any) => void) {
               created_at: n.created_at
             }
           });
-        }             
+        }
       })
       .subscribe();
   } catch {}
