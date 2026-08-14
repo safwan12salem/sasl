@@ -118,6 +118,16 @@ export default function NotificationBell() {
         setNotifications(prev => [data.notification, ...prev]);
         setUnreadCount(prev => prev + 1);
         playNotificationSound();
+
+        if (navigator.serviceWorker?.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'NOTIFICATION',
+            title: 'Sasl',
+            body: data.notification.message
+          });
+        }
+
+
         toast.success(data.notification.message, {
           icon: iconMap[data.notification.notification_type] || '🔔',
           duration: 4000,

@@ -45,8 +45,8 @@ def create_notification(recipient, actor, notification_type, message, post=None)
             },
             json={
                 "recipient_id": str(recipient.id),
-                "actor_username": actor.username if actor else "Sasl",
-                "type": notification_type,
+                "actor_name": actor.username if actor else "Sasl",
+                "notification_type": notification_type,
                 "message": message,
                 "is_read": False
             },

@@ -53,14 +53,14 @@ export function subscribeNotifications(callback: (data: any) => void) {
     supabaseChannel = supabase
       .channel('notifications-realtime')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
-        const n = payload.new;
+               const n = payload.new;
         callback({
           type: 'new_notification',
           notification: {
             id: n.id,
-            notification_type: n.type,
+            notification_type: n.notification_type,
             message: n.message,
-            actor: n.actor_username,
+            actor: n.actor_name,
             is_read: false,
             created_at: n.created_at
           }
