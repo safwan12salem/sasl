@@ -72,14 +72,14 @@ export function subscribeNotifications(callback: (data: any) => void) {
                if (n.recipient_id === currentUserId) {
           // Send system notification via service worker
           if ('serviceWorker' in navigator) {
-                       navigator.serviceWorker.ready.then((registration) => {
-              if (registration.active) {
-                registration.active.postMessage({
-                  type: 'NOTIFICATION',
-                  title: 'Sasl',
-                  body: n.message
-                });
-              }
+                                navigator.serviceWorker.ready.then((registration) => {
+              registration.showNotification('Sasl', {
+                body: n.message,
+                icon: '/logo192.png',
+                badge: '/logo192.png',
+                tag: 'sasl-notification',
+                requireInteraction: true
+              });
             }).catch(() => {});
           }
           
