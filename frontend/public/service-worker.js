@@ -24,6 +24,14 @@ self.addEventListener('message', (event) => {
 });
 
 
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'UPDATE_BADGE') {
+    self.registration.setAppBadge?.(event.data.count);
+  }
+});
+
+
+
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   event.waitUntil(

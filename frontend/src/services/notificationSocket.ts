@@ -72,15 +72,37 @@ export function subscribeNotifications(callback: (data: any) => void) {
                if (n.recipient_id === currentUserId) {
           // Send system notification via service worker
           if ('serviceWorker' in navigator) {
-                                navigator.serviceWorker.ready.then((registration) => {
-              registration.showNotification('Sasl', {
-                body: n.message,
-                icon: '/logo192.png',
-                badge: '/logo192.png',
-                tag: 'sasl-notification',
-                requireInteraction: true
-              });
-            }).catch(() => {});
+                                        navigator.serviceWorker.ready.then((registration) => {
+              // Check permission first
+              if (Notification.permission === 'granted') {
+                registration.showNotification('Sasl', {
+                  body: n.message,
+                  icon: '/logo192.png',
+                  badge: '/logo192.png',
+                  tag: 'sasl-notification',
+                  requireInteraction: true
+                });
+              } else if (Notification.permission === 'default') {
+                Notification.requestPermission().then((perm) => {
+                  if (perm === 'granted') {
+                    registration.showNotification('Sasl', {
+                      body: n.message,
+                      icon: '/logo192.png',
+                      badge: '/logo192.png',
+                      tag: 'sasl-notification',
+                      requireInteraction: true
+                    });
+                  }
+                });
+              }
+                       }).catch(() => {});
+          }
+          
+          // Update app badge
+          if ('serviceWorker' in navigator && navigator.serviceWorker.ready) {
+            navigator.serviceWorker.ready.then((registration) => {
+              (registration as any).setAppBadge?.(1).catch(() => {});
+            });
           }
           
           callback({

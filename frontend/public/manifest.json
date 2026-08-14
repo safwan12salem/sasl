@@ -10,5 +10,6 @@
   "display": "standalone",
   "scope": "/",
   "theme_color": "#00A86B",
-  "description": "The first social network that works without internet"
+  "description": "The first social network that works without internet",
+  "gcm_sender_id": "103953800507"
 }
