@@ -659,10 +659,22 @@ const getTouchPos = (e: React.TouchEvent) => {
                     <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">You</span>
                   </div>
                  <div className="relative rounded-xl overflow-hidden bg-gray-800" style={{ minHeight: '150px' }}>
-                   <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
+                   <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
                     <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">Remote</span>
                   </div>
                 </div>
+                                    <div className="absolute inset-0 z-10 cursor-pointer" onClick={(e) => {
+                      e.stopPropagation();
+                      const v = remoteVideoRef.current;
+                      if (v) {
+                        v.muted = !v.muted;
+                        if (!v.muted) v.play().catch(() => {});
+                      }
+                    }}>
+                      <span className="absolute bottom-8 left-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                        Tap to unmute
+                      </span>
+                    </div>
               </div>
               
               {/* SIDE PANEL */}
