@@ -987,7 +987,7 @@ const getTouchPos = (e: React.TouchEvent) => {
     )}
 
     {/* ACTION BUTTONS */}
-    <div className="flex items-center gap-2 flex-wrap">
+    <div className="flex items-center gap-2 flex-wrap z-50">
       {session.tutor?.username === user?.username ? (
         <>
           {session.status === 'pending_confirmation' && (
