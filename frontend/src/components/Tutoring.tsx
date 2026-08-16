@@ -630,7 +630,7 @@ const getTouchPos = (e: React.TouchEvent) => {
                   {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
                 </span>
               )}
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-2 flex-wrap relative z-50">
                 <button onClick={() => { setShowWhiteboard(!showWhiteboard); if (!showWhiteboard && inCall) fetchWhiteboard(inCall); }}
                   className="px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-sm flex items-center gap-1">
                   <PenTool size={14} /> Whiteboard
@@ -663,18 +663,7 @@ const getTouchPos = (e: React.TouchEvent) => {
                     <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">Remote</span>
                   </div>
                 </div>
-                                    <div className="absolute inset-0 z-10 cursor-pointer" onClick={(e) => {
-                      e.stopPropagation();
-                      const v = remoteVideoRef.current;
-                      if (v) {
-                        v.muted = !v.muted;
-                        if (!v.muted) v.play().catch(() => {});
-                      }
-                    }}>
-                      <span className="absolute bottom-8 left-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                        Tap to unmute
-                      </span>
-                    </div>
+                               
               </div>
               
               {/* SIDE PANEL */}
