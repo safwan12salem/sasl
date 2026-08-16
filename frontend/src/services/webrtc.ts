@@ -78,7 +78,7 @@ export class WebRTCConnection {
         this.remoteVideoElement.srcObject = this.accumulatedStream;
         this.remoteVideoElement.autoplay = true;
         this.remoteVideoElement.playsInline = true;
-        this.remoteVideoElement.muted = false;
+        this.remoteVideoElement.muted = true;
         this.remoteVideoElement.play().then(() => {
           console.log('▶️ Remote video playing');
         }).catch(e => {
