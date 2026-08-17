@@ -399,22 +399,17 @@ callingRef.current = true;
       console.log('🟢 Step 4: WebSocket created');
       
       console.log('🟠 Step 5: Create RTC');
+        
+            console.log('🟠 Step 5: Create RTC');
+      // Fetch fresh TURN credentials from Metered API
+      const turnResponse = await fetch('https://sasl.metered.live/api/v1/turn/credentials?apiKey=ee883c0e7c123bf3bc0aad70455f07682bef');
+      const turnIceServers = await turnResponse.json();
+      console.log('🟢 TURN credentials fetched:', turnIceServers.length, 'servers');
+      
       const pc = new RTCPeerConnection({
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          { 
-            urls: [
-              'turn:global.relay.metered.ca:80?transport=udp',
-              'turn:global.relay.metered.ca:80?transport=tcp',
-              'turn:global.relay.metered.ca:443?transport=tcp',
-            ],
-            username: '9a949126f260451ca16f969e',
-            credential: 'HNHbY2NEDOgMoMfd'
-          },
-        ]
+        iceTransportPolicy: 'relay',
+        iceServers: turnIceServers
       });
-
       stream.getTracks().forEach(track => pc.addTrack(track, stream));
          
 
