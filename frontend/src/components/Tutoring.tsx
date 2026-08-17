@@ -714,15 +714,15 @@ const getTouchPos = (e: React.TouchEvent) => {
                   </div>
                   <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
                   <video 
-  ref={(el) => {
-    remoteVideoRef.current = el;
-    if (el && remoteStreamRef.current) {
-      el.srcObject = remoteStreamRef.current;
-      el.play().catch(() => {});
-    }
-  }}
-  autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover"
-/>
+                  
+                    ref={(el) => {
+                      if (el) {
+                        el.srcObject = remoteStreamRef.current;
+                        el.play().catch(() => {});
+                      }
+                    }}
+                    autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover"
+                  />
                     <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">Remote</span>
                   </div>
                 </div>
