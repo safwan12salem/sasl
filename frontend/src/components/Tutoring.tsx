@@ -372,6 +372,14 @@ callingRef.current = true;
       });
       console.log('🟢 Step 2: Stream obtained, tracks:', stream.getTracks().length);
       
+
+      // Unmute all tracks — ensures video frames are sent
+      stream.getTracks().forEach(track => {
+        track.enabled = true;
+        console.log(`🔓 Track unmuted: ${track.kind}`);
+      });
+      
+     
       if (localVideoRef.current) {
         localVideoRef.current.srcObject = stream;
         localVideoRef.current.muted = true;
@@ -424,7 +432,7 @@ callingRef.current = true;
         }
       });
 
-      
+
       let remoteStream = new MediaStream();
       pc.ontrack = (event) => {
         console.log('🎥 Remote track:', event.track.kind);
