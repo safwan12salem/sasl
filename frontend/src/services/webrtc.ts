@@ -75,14 +75,14 @@ export class WebRTCConnection {
           this.accumulatedStream = new MediaStream();
         }
         this.accumulatedStream.addTrack(event.track);
+        // DO NOT set srcObject here — the component's useEffect handles it
         this.remoteVideoElement.srcObject = this.accumulatedStream;
-        // DO NOT call play() — the muted attribute on the video element handles autoplay
       }
     };
   return pc;
   }
-
   
+
   async createOffer(remoteVideoElement: HTMLVideoElement) {
     this.remoteVideoElement = remoteVideoElement;
     
