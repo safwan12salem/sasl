@@ -391,59 +391,77 @@ callingRef.current = true;
       console.log('🟢 Step 4: WebSocket created');
       
       console.log('🟠 Step 5: Create RTC');
-            const rtc = new WebRTCConnection((msg) => { 
-        if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); 
+      const pc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { 
+            urls: [
+              'turn:global.relay.metered.ca:80?transport=udp',
+              'turn:global.relay.metered.ca:80?transport=tcp',
+              'turn:global.relay.metered.ca:443?transport=tcp',
+            ],
+            username: '9a949126f260451ca16f969e',
+            credential: 'HNHbY2NEDOgMoMfd'
+          },
+        ]
       });
-      rtcRef.current = rtc;
-      rtc.setOnRemoteStream((stream) => {
-        remoteStreamRef.current = stream;
+
+      stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+      let remoteStream = new MediaStream();
+      pc.ontrack = (event) => {
+        console.log('🎥 Remote track:', event.track.kind);
         if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = stream;
+          remoteStream.addTrack(event.track);
+          remoteVideoRef.current.srcObject = remoteStream;
           remoteVideoRef.current.play().catch(() => {});
         }
-      });
+      };
+
+      pc.onicecandidate = (event) => {
+        if (event.candidate && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+        }
+      };
+
       console.log('🟢 Step 5: RTC created');
 
       console.log('🟠 Step 6: Set ws.onmessage');
       ws.onmessage = async (event) => {
-        console.log('📩 WS message received:', event.data.substring(0, 50));
         const data = JSON.parse(event.data);
-                if (data.type === 'student_joined' && role === 'tutor') {
+        if (data.type === 'student_joined' && role === 'tutor') {
           console.log('📩 Student joined, creating offer');
-          setTimeout(() => {
-            if (remoteVideoRef.current && stream.getVideoTracks().length > 0) {
-              rtc.createOffer(remoteVideoRef.current);
-            }
-          }, 500);
+          const offer = await pc.createOffer();
+          await pc.setLocalDescription(offer);
+          ws.send(JSON.stringify({ type: 'offer', offer: pc.localDescription }));
           return;
         }
         if (data.type === 'answer') {
           console.log('📩 Handling answer');
-          await rtc.handleAnswer(data.answer);
+          if (pc.signalingState === 'have-local-offer') {
+            await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
+          }
         }
         else if (data.type === 'offer') {
           console.log('📩 Handling offer');
-          const waitForVideo = () => {
-            if (remoteVideoRef.current) {
-              rtc.handleOffer(data.offer, remoteVideoRef.current);
-            } else {
-              setTimeout(waitForVideo, 200);
-            }
-          };
-          waitForVideo();
+          await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription }));
         }
         else if (data.type === 'candidate') {
           console.log('📩 Handling ICE candidate');
-          await rtc.addIceCandidate(data.candidate);
+          try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch {}
         }
       };
-      console.log('🟢 Step 6: onmessage set');
+
 
       console.log('🟠 Step 7: Set ws.onopen');
            ws.onopen = () => {
         console.log('🟢 Step 7: ws.onopen FIRED');
         if (stream.getVideoTracks().length > 0) {
-          rtc.setLocalStream(stream);
+          // Stream already added to pc via pc.addTrack — nothing needed here
           console.log('🟢 Local stream set on RTC');
         }
         if (role === 'student') {
