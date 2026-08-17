@@ -68,7 +68,7 @@ export class WebRTCConnection {
     };
 
     // Handle incoming remote tracks
-       pc.ontrack = (event) => {
+            pc.ontrack = (event) => {
       console.log('🔥 ONTRACK FIRED! Track kind:', event.track.kind, 'Streams:', event.streams.length);
       if (this.remoteVideoElement) {
         if (!this.accumulatedStream) {
@@ -76,21 +76,7 @@ export class WebRTCConnection {
         }
         this.accumulatedStream.addTrack(event.track);
         this.remoteVideoElement.srcObject = this.accumulatedStream;
-        this.remoteVideoElement.autoplay = true;
-        this.remoteVideoElement.playsInline = true;
-        this.remoteVideoElement.muted = true;
-        this.remoteVideoElement.play().then(() => {
-          console.log('▶️ Remote video playing');
-        }).catch(e => {
-          console.log('▶️ Play blocked');
-          const playVideo = () => {
-            if (this.remoteVideoElement) {
-              this.remoteVideoElement.play().catch(() => {});
-            }
-          };
-          document.addEventListener('click', playVideo, { once: true });
-          document.addEventListener('touchstart', playVideo, { once: true });
-        });
+        // DO NOT call play() — the muted attribute on the video element handles autoplay
       }
     };
   return pc;
