@@ -168,19 +168,20 @@ const STATUS_COLORS: Record<string, string> = {
   const [paymentAmount, setPaymentAmount] = useState(0);
   const [pendingJoinSession, setPendingJoinSession] = useState<string | null>(null);
 
-
   const fetchSessions = async () => {
     setLoading(true);
     setError(null);
     try {
       const params = new URLSearchParams();
       if (activeTab === 'mine') params.set('mine', 'true');
-      else if (activeTab === 'upcoming') params.set('status', 'open,scheduled,pending_confirmation');
-      else if (activeTab === 'ongoing') params.set('status', 'ongoing');
-      else if (activeTab === 'completed') params.set('status', 'completed');
+      // Don't filter by status for upcoming — show all non-completed
       if (searchQuery) params.set('search', searchQuery);
       const res = await api.get(`/tutoring/sessions/?${params.toString()}`);
-      const data = res.data.results || [];
+      let data = res.data.results || [];
+      // Filter on frontend
+      if (activeTab === 'ongoing') data = data.filter(s => s.status === 'ongoing');
+      else if (activeTab === 'completed') data = data.filter(s => s.status === 'completed');
+      else if (activeTab === 'upcoming') data = data.filter(s => ['open', 'scheduled', 'pending_confirmation'].includes(s.status));
       setSessions(data);
     } catch (err) {
       setError(t('Failed to load sessions.'));
@@ -260,7 +261,7 @@ useEffect(() => {
     try {
       // Convert datetime-local to ISO 8601 with timezone
       const scheduledISO = new Date(scheduledAt).toISOString();
-      await api.post('/tutoring/sessions/', {
+            await api.post('/tutoring/sessions/', {
         subject,
         description,
         price: parseFloat(price),
@@ -269,6 +270,7 @@ useEffect(() => {
         duration_minutes: parseInt(duration),
         max_students: parseInt(maxStudents),
         is_group_class: isGroupClass,
+        background_image: bgImageUrl || null,
       });
       toast.success(t('Session created!'));
       fetchSessions();
