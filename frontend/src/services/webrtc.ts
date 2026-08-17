@@ -8,6 +8,13 @@ export class WebRTCConnection {
   private remoteVideoElement: HTMLVideoElement | null = null;
  private accumulatedStream: MediaStream | null = null;
 
+  private onRemoteStream: ((stream: MediaStream) => void) | null = null;
+  
+  setOnRemoteStream(cb: (stream: MediaStream) => void) {
+    this.onRemoteStream = cb;
+  }
+
+
 
   constructor(signalSend: (msg: any) => void) {
     this.signalSend = signalSend;
@@ -68,15 +75,18 @@ export class WebRTCConnection {
     };
 
     // Handle incoming remote tracks
-            pc.ontrack = (event) => {
+                 pc.ontrack = (event) => {
       console.log('🔥 ONTRACK FIRED! Track kind:', event.track.kind, 'Streams:', event.streams.length);
       if (this.remoteVideoElement) {
         if (!this.accumulatedStream) {
           this.accumulatedStream = new MediaStream();
         }
         this.accumulatedStream.addTrack(event.track);
-        // DO NOT set srcObject here — the component's useEffect handles it
         this.remoteVideoElement.srcObject = this.accumulatedStream;
+        // NOTIFY COMPONENT
+        if (this.onRemoteStream) {
+          this.onRemoteStream(this.accumulatedStream);
+        }
       }
     };
   return pc;

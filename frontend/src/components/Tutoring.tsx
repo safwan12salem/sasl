@@ -391,10 +391,17 @@ callingRef.current = true;
       console.log('🟢 Step 4: WebSocket created');
       
       console.log('🟠 Step 5: Create RTC');
-      const rtc = new WebRTCConnection((msg) => { 
+            const rtc = new WebRTCConnection((msg) => { 
         if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(msg)); 
       });
       rtcRef.current = rtc;
+      rtc.setOnRemoteStream((stream) => {
+        remoteStreamRef.current = stream;
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = stream;
+          remoteVideoRef.current.play().catch(() => {});
+        }
+      });
       console.log('🟢 Step 5: RTC created');
 
       console.log('🟠 Step 6: Set ws.onmessage');
