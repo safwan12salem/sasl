@@ -251,27 +251,32 @@ useEffect(() => {
   // ============================================================
   // ACTIONS
   // ============================================================
+ 
+
   const createSession = async () => {
     if (!subject || !price || !scheduledAt) return toast.error(t('Fill all required fields'));
     try {
+      // Convert datetime-local to ISO 8601 with timezone
+      const scheduledISO = new Date(scheduledAt).toISOString();
       await api.post('/tutoring/sessions/', {
         subject,
         description,
         price: parseFloat(price),
-        scheduled_at: scheduledAt,
+        scheduled_at: scheduledISO,
         is_offline: isOffline,
         duration_minutes: parseInt(duration),
         max_students: parseInt(maxStudents),
         is_group_class: isGroupClass,
-                background_image: bgImageUrl || null,
       });
-      toast.success(`${isGroupClass ? 'Group class' : 'Session'} created! 🎉`);
-      resetForm();
+      toast.success(t('Session created!'));
       fetchSessions();
+      setShowCreateForm(false);
     } catch (err: any) {
-      toast.error(err.response?.data?.detail || 'Error creating session');
+      console.log('Session creation error:', err.response?.data || err.message);
+      toast.error(err.response?.data?.detail || err.response?.data?.error || t('Failed to create session'));
     }
   };
+
 
   const requestBooking = async (id: string) => {
     try {
