@@ -408,7 +408,23 @@ callingRef.current = true;
       });
 
       stream.getTracks().forEach(track => pc.addTrack(track, stream));
+         
 
+              // Force H.264 for maximum compatibility
+      const transceivers = pc.getTransceivers();
+      transceivers.forEach(t => {
+        if (t.sender.track?.kind === 'video') {
+          const capabilities = RTCRtpSender.getCapabilities('video');
+          if (capabilities) {
+            const h264 = capabilities.codecs.find(c => c.mimeType === 'video/H264');
+            if (h264) {
+              t.setCodecPreferences([h264]);
+            }
+          }
+        }
+      });
+
+      
       let remoteStream = new MediaStream();
       pc.ontrack = (event) => {
         console.log('🎥 Remote track:', event.track.kind);
