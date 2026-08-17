@@ -179,9 +179,9 @@ const STATUS_COLORS: Record<string, string> = {
       const res = await api.get(`/tutoring/sessions/?${params.toString()}`);
       let data = res.data.results || [];
       // Filter on frontend
-      if (activeTab === 'ongoing') data = data.filter(s => s.status === 'ongoing');
-      else if (activeTab === 'completed') data = data.filter(s => s.status === 'completed');
-      else if (activeTab === 'upcoming') data = data.filter(s => ['open', 'scheduled', 'pending_confirmation'].includes(s.status));
+      if (activeTab === 'ongoing') data = data.filter((s: any) => s.status === 'ongoing');
+      else if (activeTab === 'completed') data = data.filter((s: any) => s.status === 'completed');
+      else if (activeTab === 'upcoming') data = data.filter((s: any) => ['open', 'scheduled', 'pending_confirmation'].includes(s.status));
       setSessions(data);
     } catch (err) {
       setError(t('Failed to load sessions.'));
@@ -668,7 +668,10 @@ const getTouchPos = (e: React.TouchEvent) => {
                     <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">You</span>
                   </div>
                   <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
-                  <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" poster="/logo192.png" />
+                  <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" onLoadedData={(e) => {
+  const v = e.currentTarget;
+  v.style.opacity = '1';
+}} />
                     <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">Remote</span>
                   </div>
                 </div>
