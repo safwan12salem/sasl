@@ -365,80 +365,46 @@ useEffect(() => {
    const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
   if (callingRef.current) return;
   callingRef.current = true;
-  console.log('🔴 START PeerJS call', sessionId, role);
+  console.log('🔴 START Daily.co call', sessionId, role);
   
   try {
-       const stream = await navigator.mediaDevices.getUserMedia({ 
-  video: { width: 640, height: 480, facingMode: 'user' }, 
-  audio: true 
-});
-pendingStreamRef.current = stream;
-if (localVideoRef.current) {
-  localVideoRef.current.srcObject = stream;
-  localVideoRef.current.muted = true;
-  localVideoRef.current.play().catch(() => {});
-}
-    pendingStreamRef.current = stream;
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject =stream;
-      localVideoRef.current.muted = true;
-      localVideoRef.current.play().catch(() => {});
-    }
+    const Daily = (await import('@daily-co/daily-js')).default;
+    const callObject = Daily.createCallObject({
+      url: `https://sasl.daily.co/sasl`,
+    });
     
-    const { Peer } = await import('peerjs');
-    const peer = new Peer(`sasl-${sessionId}-${role}`);
-    
-    peer.on('open', () => {
-      console.log('🟢 PeerJS connected:', peer.id);
+    callObject.on('joined-meeting', () => {
+      console.log('🟢 Daily.co joined');
       setInCall(sessionId);
     });
     
-    peer.on('call', (call) => {
-      console.log('📞 Incoming call, answering');
-      call.answer(stream);
-      call.on('stream', (remoteStream) => {
-        console.log('🎥 Remote stream received');
-        remoteStreamRef.current = remoteStream;
-         remoteStream.getTracks().forEach(track => {
-    track.enabled = true;
-    // Try to unmute via applyConstraints
-    if (track.kind === 'video') {
-      track.applyConstraints({}).catch(() => {});
-    }
-  });
-        setRemoteReady(true);
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = stream;
-            remoteVideoRef.current.muted = true;
-          remoteVideoRef.current.play().catch(() => {});
-        }
+    callObject.on('participant-joined', (event: any) => {
+      console.log('📞 Participant joined');
+      callObject.updateParticipant(event.participant.session_id, {
+        setSubscribedTracks: { audio: true, video: true }
       });
     });
     
-    if (role === 'tutor') {
-      console.log('🟡 Tutor waiting for student to call');
-    } else {
-      setTimeout(() => {
-        const call = peer.call(`sasl-${sessionId}-tutor`, stream);
-        call.on('stream', (remoteStream) => {
-          console.log('🎥 Tutor stream received');
-          remoteStreamRef.current = remoteStream;
-           remoteStream.getTracks().forEach(track => {
-    track.enabled = true;
-    // Try to unmute via applyConstraints
-    if (track.kind === 'video') {
-      track.applyConstraints({}).catch(() => {});
-    }
-  });
-          setRemoteReady(true);
-          if (remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = remoteStream;
-              remoteVideoRef.current.muted = true;
-            remoteVideoRef.current.play().catch(() => {});
+    callObject.on('track-started', (event: any) => {
+      console.log('🎥 Track started:', event.track.kind);
+      if (event.participant && event.participant.local) {
+        if (localVideoRef.current && event.track.kind === 'video') {
+          localVideoRef.current.srcObject = new MediaStream([event.track]);
+          localVideoRef.current.muted = true;
+          localVideoRef.current.play().catch(() => {});
+        }
+      } else {
+        if (remoteVideoRef.current && event.track.kind === 'video') {
+          if (!remoteVideoRef.current.srcObject) {
+            remoteVideoRef.current.srcObject = new MediaStream();
           }
-        });
-      }, 2000);
-    }
+          (remoteVideoRef.current.srcObject as MediaStream).addTrack(event.track);
+          remoteVideoRef.current.play().catch(() => {});
+        }
+      }
+    });
+    
+    await callObject.join();
     
     const currentSession = sessions.find(s => s.id === sessionId);
     if (currentSession?.duration_minutes) {
@@ -446,12 +412,11 @@ if (localVideoRef.current) {
       setTimerActive(true);
     }
   } catch (err: any) {
-    console.log('🔴 PeerJS error:', err);
-    toast.error(err.message);
+    console.log('🔴 Daily.co error:', err);
+    toast.error(err.message || 'Daily.co failed');
     callingRef.current = false;
   }
 };
-      
      
       const endCall = () => {
     rtcRef.current?.disconnect();

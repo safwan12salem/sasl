@@ -9,6 +9,7 @@
     "@capacitor/ios": "^8.3.4",
     "@capacitor/preferences": "^8.0.1",
     "@capacitor/push-notifications": "^8.1.1",
+    "@daily-co/daily-js": "^0.92.0",
     "@headlessui/react": "^1.7.19",
     "@heroicons/react": "^2.2.0",
     "@mediapipe/face_mesh": "^0.4.1633559619",
