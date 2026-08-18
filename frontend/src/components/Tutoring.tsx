@@ -343,183 +343,66 @@ useEffect(() => {
   };
 
 
-   
-      
-        const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
-          if (callingRef.current) { console.log('⚠️ Already connecting'); return; }
-callingRef.current = true;
-    console.log('🔴 START startVideoCall', sessionId, role);
-    try {
-      console.log('🟠 Step 1: Permission check');
-      try {
-        const permStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-        console.log('🟢 Step 1: Permission GRANTED');
-        permStream.getTracks().forEach(t => t.stop());
-          } catch (permErr) {
-        console.log('🔴 Step 1: Permission DENIED, joining audio-only', permErr);
-        toast.error('Camera access denied. Joining with audio only.');
-        role = 'student'; // Force student role — can't be tutor without camera
-      }
-      
-      console.log('🟠 Step 2: Get camera stream');
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { width: 640, height: 480, facingMode: 'user' }, 
-        audio: true 
-      }).catch(async (err) => {
-        console.log('🔴 Step 2: Camera stream FAILED', err);
-        toast.error('Camera busy. Joining with audio only.');
-        return await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-      });
-      console.log('🟢 Step 2: Stream obtained, tracks:', stream.getTracks().length);
-      
-
-      // Unmute all tracks — ensures video frames are sent
-      stream.getTracks().forEach(track => {
-        track.enabled = true;
-        console.log(`🔓 Track unmuted: ${track.kind}`);
-      });
-      
-     
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-        localVideoRef.current.muted = true;
-        console.log('🟢 Step 3: Local video set');
-      } else {
-                pendingStreamRef.current = stream;
-      }
-      
-      console.log('🟠 Step 4: Create WebSocket');
-      const isLocal = window.location.hostname === 'localhost';
-      const wsUrl = isLocal
-        ? `ws://localhost:8000/ws/video/${sessionId}/?token=${token}&role=${role}`
-        : `wss://sasl-api-i34r.onrender.com/ws/video/${sessionId}/?token=${token}&role=${role}`;
-      console.log('🟡 WebSocket URL:', wsUrl.substring(0, 100));
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
-      console.log('🟢 Step 4: WebSocket created');
-      
-      console.log('🟠 Step 5: Create RTC');
-        
-            console.log('🟠 Step 5: Create RTC');
-      // Fetch fresh TURN credentials from Metered API
-      const turnResponse = await fetch('https://sasl.metered.live/api/v1/turn/credentials?apiKey=ee883c0e7c123bf3bc0aad70455f07682bef');
-      const turnIceServers = await turnResponse.json();
-      console.log('🟢 TURN credentials fetched:', turnIceServers.length, 'servers');
-      
-      const pc = new RTCPeerConnection({
-        iceTransportPolicy: 'relay',
-        iceServers: turnIceServers
-      });
-      stream.getTracks().forEach(track => pc.addTrack(track, stream));
-         
-
-              // Force H.264 for maximum compatibility
-      const transceivers = pc.getTransceivers();
-      transceivers.forEach(t => {
-        if (t.sender.track?.kind === 'video') {
-          const capabilities = RTCRtpSender.getCapabilities('video');
-          if (capabilities) {
-            const h264 = capabilities.codecs.find(c => c.mimeType === 'video/H264');
-            if (h264) {
-              t.setCodecPreferences([h264]);
-            }
-          }
-        }
-      });
-
-
-           let remoteStream = new MediaStream();
-      pc.ontrack = (event) => {
-        console.log('🎥 Remote track:', event.track.kind);
-        remoteStream.addTrack(event.track);
-        remoteStreamRef.current = remoteStream;
+   const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
+  if (callingRef.current) return;
+  callingRef.current = true;
+  console.log('🔴 START PeerJS call', sessionId, role);
+  
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
+      localVideoRef.current.muted = true;
+    }
+    
+    const { Peer } = await import('peerjs');
+    const peer = new Peer(`sasl-${sessionId}-${role}`);
+    
+    peer.on('open', () => {
+      console.log('🟢 PeerJS connected:', peer.id);
+      setInCall(sessionId);
+    });
+    
+    peer.on('call', (call) => {
+      console.log('📞 Incoming call, answering');
+      call.answer(stream);
+      call.on('stream', (remoteStream) => {
+        console.log('🎥 Remote stream received');
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
           remoteVideoRef.current.play().catch(() => {});
         }
-      };
-
-      pc.onicecandidate = (event) => {
-        if (event.candidate && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
-        }
-      };
-
-      console.log('🟢 Step 5: RTC created');
-
-      console.log('🟠 Step 6: Set ws.onmessage');
-      ws.onmessage = async (event) => {
-        const data = JSON.parse(event.data);
-        if (data.type === 'student_joined' && role === 'tutor') {
-          console.log('📩 Student joined, creating offer');
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-          ws.send(JSON.stringify({ type: 'offer', offer: pc.localDescription }));
-          return;
-        }
-        if (data.type === 'answer') {
-          console.log('📩 Handling answer');
-          if (pc.signalingState === 'have-local-offer') {
-            await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-          }
-        }
-        else if (data.type === 'offer') {
-          console.log('📩 Handling offer');
-          await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
-          const answer = await pc.createAnswer();
-          await pc.setLocalDescription(answer);
-          ws.send(JSON.stringify({ type: 'answer', answer: pc.localDescription }));
-        }
-        else if (data.type === 'candidate') {
-          console.log('📩 Handling ICE candidate');
-          try { await pc.addIceCandidate(new RTCIceCandidate(data.candidate)); } catch {}
-        }
-      };
-
-
-      console.log('🟠 Step 7: Set ws.onopen');
-           ws.onopen = () => {
-        console.log('🟢 Step 7: ws.onopen FIRED');
-        if (stream.getVideoTracks().length > 0) {
-          // Stream already added to pc via pc.addTrack — nothing needed here
-          console.log('🟢 Local stream set on RTC');
-        }
-        if (role === 'student') {
-          console.log('🟡 Student waiting for offer');
-          ws.send(JSON.stringify({ type: 'student_joined' }));
-        } else {
-          console.log('🟡 Tutor waiting for student to join');
-        }
-      };
-      console.log('🟢 Step 7: onopen set');
-      
-
-            setInCall(sessionId);
-      console.log('🟢 Step 8: setInCall done');
-      
-      // Wait for React to render the video element, then apply stream
+      });
+    });
+    
+    if (role === 'tutor') {
+      console.log('🟡 Tutor waiting for student to call');
+    } else {
       setTimeout(() => {
-        if (pendingStreamRef.current && localVideoRef.current) {
-          console.log('🟢 Applying pending stream to video element');
-          localVideoRef.current.srcObject = pendingStreamRef.current;
-          localVideoRef.current.muted = true;
-          pendingStreamRef.current = null;
-        }
-      }, 500);
-
-
-      const currentSession = sessions.find(s => s.id === sessionId);
-      if (currentSession?.duration_minutes) {
-        setTimer(currentSession.duration_minutes * 60);
-        setTimerActive(true);
-      }
-      console.log('🟢 Step 9: Timer set');
-    } catch (err: any) {
-      console.log('🔴 FATAL ERROR:', err.message, err);
-      toast.error('Cannot access media: ' + (err.message || 'Unknown error'));
+        const call = peer.call(`sasl-${sessionId}-tutor`, stream);
+        call.on('stream', (remoteStream) => {
+          console.log('🎥 Tutor stream received');
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = remoteStream;
+            remoteVideoRef.current.play().catch(() => {});
+          }
+        });
+      }, 2000);
     }
-  };
-
+    
+    const currentSession = sessions.find(s => s.id === sessionId);
+    if (currentSession?.duration_minutes) {
+      setTimer(currentSession.duration_minutes * 60);
+      setTimerActive(true);
+    }
+  } catch (err: any) {
+    console.log('🔴 PeerJS error:', err);
+    toast.error(err.message);
+    callingRef.current = false;
+  }
+};
+      
+     
       const endCall = () => {
     rtcRef.current?.disconnect();
     wsRef.current?.close();
