@@ -250,6 +250,22 @@ useEffect(() => {
   }
 }, [inCall, remoteStreamRef.current]);
 
+useEffect(() => {
+  if (remoteStreamRef.current && remoteVideoRef.current) {
+    console.log('🔗 Attaching remote stream to video element');
+    remoteVideoRef.current.srcObject = remoteStreamRef.current;
+    remoteVideoRef.current.play().catch(() => {});
+  }
+}, [inCall]);
+
+
+useEffect(() => {
+  if (pendingStreamRef.current && localVideoRef.current) {
+    localVideoRef.current.srcObject = pendingStreamRef.current;
+    localVideoRef.current.muted = true;
+    localVideoRef.current.play().catch(() => {});
+  }
+}, [inCall]);
 
   // ============================================================
   // ACTIONS
@@ -368,6 +384,7 @@ useEffect(() => {
       call.answer(stream);
       call.on('stream', (remoteStream) => {
         console.log('🎥 Remote stream received');
+        remoteStreamRef.current = remoteStream;
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
           remoteVideoRef.current.play().catch(() => {});
@@ -382,6 +399,7 @@ useEffect(() => {
         const call = peer.call(`sasl-${sessionId}-tutor`, stream);
         call.on('stream', (remoteStream) => {
           console.log('🎥 Tutor stream received');
+          remoteStreamRef.current = remoteStream;
           if (remoteVideoRef.current) {
             remoteVideoRef.current.srcObject = remoteStream;
             remoteVideoRef.current.play().catch(() => {});
