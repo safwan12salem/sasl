@@ -126,6 +126,7 @@ const STATUS_COLORS: Record<string, string> = {
 
   // Video call
   const [inCall, setInCall] = useState<string | null>(null);
+  const [remoteReady, setRemoteReady] = useState(false);
     const [timer, setTimer] = useState<number>(0);
   const [timerActive, setTimerActive] = useState(false);
 
@@ -250,13 +251,15 @@ useEffect(() => {
   }
 }, [inCall, remoteStreamRef.current]);
 
+
+
 useEffect(() => {
   if (remoteStreamRef.current && remoteVideoRef.current) {
-    console.log('🔗 Attaching remote stream to video element');
+    console.log('🔗 Attaching remote stream');
     remoteVideoRef.current.srcObject = remoteStreamRef.current;
     remoteVideoRef.current.play().catch(() => {});
   }
-}, [inCall]);
+}, [inCall, remoteReady]);
 
 
 useEffect(() => {
@@ -365,10 +368,12 @@ useEffect(() => {
   console.log('🔴 START PeerJS call', sessionId, role);
   
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    pendingStreamRef.current = stream;
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = stream;
       localVideoRef.current.muted = true;
+      localVideoRef.current.play().catch(() => {});
     }
     
     const { Peer } = await import('peerjs');
@@ -385,6 +390,7 @@ useEffect(() => {
       call.on('stream', (remoteStream) => {
         console.log('🎥 Remote stream received');
         remoteStreamRef.current = remoteStream;
+        setRemoteReady(true);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
           remoteVideoRef.current.play().catch(() => {});
@@ -400,6 +406,7 @@ useEffect(() => {
         call.on('stream', (remoteStream) => {
           console.log('🎥 Tutor stream received');
           remoteStreamRef.current = remoteStream;
+          setRemoteReady(true);
           if (remoteVideoRef.current) {
             remoteVideoRef.current.srcObject = remoteStream;
             remoteVideoRef.current.play().catch(() => {});
