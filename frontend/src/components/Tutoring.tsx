@@ -390,9 +390,17 @@ useEffect(() => {
       call.on('stream', (remoteStream) => {
         console.log('🎥 Remote stream received');
         remoteStreamRef.current = remoteStream;
+         remoteStream.getTracks().forEach(track => {
+    track.enabled = true;
+    // Try to unmute via applyConstraints
+    if (track.kind === 'video') {
+      track.applyConstraints({}).catch(() => {});
+    }
+  });
         setRemoteReady(true);
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
+            remoteVideoRef.current.muted = true;
           remoteVideoRef.current.play().catch(() => {});
         }
       });
@@ -406,9 +414,17 @@ useEffect(() => {
         call.on('stream', (remoteStream) => {
           console.log('🎥 Tutor stream received');
           remoteStreamRef.current = remoteStream;
+           remoteStream.getTracks().forEach(track => {
+    track.enabled = true;
+    // Try to unmute via applyConstraints
+    if (track.kind === 'video') {
+      track.applyConstraints({}).catch(() => {});
+    }
+  });
           setRemoteReady(true);
           if (remoteVideoRef.current) {
             remoteVideoRef.current.srcObject = remoteStream;
+              remoteVideoRef.current.muted = true;
             remoteVideoRef.current.play().catch(() => {});
           }
         });
