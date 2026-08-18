@@ -381,6 +381,19 @@ useEffect(() => {
     // Force enable all tracks
     stream.getTracks().forEach(track => {
       track.enabled = true;
+      // If video track is muted, replace it with fresh unmuted track
+const videoTrack = stream.getVideoTracks()[0];
+if (videoTrack && videoTrack.muted) {
+  console.log('⚠️ Video track is muted, replacing...');
+  videoTrack.stop();
+  const freshStream = await navigator.mediaDevices.getUserMedia({
+    video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+    audio: false
+  });
+  const freshVideoTrack = freshStream.getVideoTracks()[0];
+  stream.addTrack(freshVideoTrack);
+  console.log('✅ Fresh video track added, muted:', freshVideoTrack.muted);
+}
       if (track.kind === 'video') {
         const settings = track.getSettings();
         console.log('Camera settings:', settings);
