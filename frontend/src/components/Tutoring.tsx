@@ -372,22 +372,15 @@ useEffect(() => {
   video: { width: 640, height: 480, facingMode: 'user' }, 
   audio: true 
 });
-
-// Create a NEW stream with cloned UNMUTED tracks
-const cleanStream = new MediaStream();
-stream.getTracks().forEach(track => {
-  const clonedTrack = track.clone();
-  clonedTrack.enabled = true;
-  cleanStream.addTrack(clonedTrack);
-});
-
-// Stop the original (possibly muted) tracks
-stream.getTracks().forEach(t => t.stop());
-
-
+pendingStreamRef.current = stream;
+if (localVideoRef.current) {
+  localVideoRef.current.srcObject = stream;
+  localVideoRef.current.muted = true;
+  localVideoRef.current.play().catch(() => {});
+}
     pendingStreamRef.current = stream;
     if (localVideoRef.current) {
-      localVideoRef.current.srcObject = cleanStream;
+      localVideoRef.current.srcObject =stream;
       localVideoRef.current.muted = true;
       localVideoRef.current.play().catch(() => {});
     }
@@ -402,7 +395,7 @@ stream.getTracks().forEach(t => t.stop());
     
     peer.on('call', (call) => {
       console.log('📞 Incoming call, answering');
-      call.answer(cleanStream);
+      call.answer(stream);
       call.on('stream', (remoteStream) => {
         console.log('🎥 Remote stream received');
         remoteStreamRef.current = remoteStream;
@@ -415,7 +408,7 @@ stream.getTracks().forEach(t => t.stop());
   });
         setRemoteReady(true);
         if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = cleanStream;
+          remoteVideoRef.current.srcObject = stream;
             remoteVideoRef.current.muted = true;
           remoteVideoRef.current.play().catch(() => {});
         }
