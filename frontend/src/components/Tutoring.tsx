@@ -362,49 +362,76 @@ useEffect(() => {
   };
 
 
-   const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
+      const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
   if (callingRef.current) return;
   callingRef.current = true;
-  console.log('🔴 START Daily.co call', sessionId, role);
+  console.log('🔴 START PeerJS call', sessionId, role);
   
   try {
-    const Daily = (await import('@daily-co/daily-js')).default;
-    const callObject = Daily.createCallObject({
-      url: `https://sasl.daily.co/sasl`,
+    const stream = await navigator.mediaDevices.getUserMedia({ 
+      video: { 
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        facingMode: 'user',
+        frameRate: { ideal: 30 }
+      }, 
+      audio: true 
     });
-    
-    callObject.on('joined-meeting', () => {
-      console.log('🟢 Daily.co joined');
-      setInCall(sessionId);
-    });
-    
-    callObject.on('participant-joined', (event: any) => {
-      console.log('📞 Participant joined');
-      callObject.updateParticipant(event.participant.session_id, {
-        setSubscribedTracks: { audio: true, video: true }
-      });
-    });
-    
-    callObject.on('track-started', (event: any) => {
-      console.log('🎥 Track started:', event.track.kind);
-      if (event.participant && event.participant.local) {
-        if (localVideoRef.current && event.track.kind === 'video') {
-          localVideoRef.current.srcObject = new MediaStream([event.track]);
-          localVideoRef.current.muted = true;
-          localVideoRef.current.play().catch(() => {});
-        }
-      } else {
-        if (remoteVideoRef.current && event.track.kind === 'video') {
-          if (!remoteVideoRef.current.srcObject) {
-            remoteVideoRef.current.srcObject = new MediaStream();
-          }
-          (remoteVideoRef.current.srcObject as MediaStream).addTrack(event.track);
-          remoteVideoRef.current.play().catch(() => {});
-        }
+
+    // Force enable all tracks
+    stream.getTracks().forEach(track => {
+      track.enabled = true;
+      if (track.kind === 'video') {
+        const settings = track.getSettings();
+        console.log('Camera settings:', settings);
       }
     });
     
-    await callObject.join();
+    pendingStreamRef.current = stream;
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = stream;
+      localVideoRef.current.muted = true;
+      localVideoRef.current.play().catch(() => {});
+    }
+    
+    const { Peer } = await import('peerjs');
+    const peer = new Peer(`sasl-${sessionId}-${role}`);
+    
+    peer.on('open', () => {
+      console.log('🟢 PeerJS connected:', peer.id);
+      setInCall(sessionId);
+    });
+    
+    peer.on('call', (call) => {
+      console.log('📞 Incoming call, answering');
+      call.answer(stream);
+      call.on('stream', (remoteStream) => {
+        console.log('🎥 Remote stream received');
+        remoteStreamRef.current = remoteStream;
+        setRemoteReady(true);
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = remoteStream;
+          remoteVideoRef.current.play().catch(() => {});
+        }
+      });
+    });
+    
+    if (role === 'tutor') {
+      console.log('🟡 Tutor waiting for student to call');
+    } else {
+      setTimeout(() => {
+        const call = peer.call(`sasl-${sessionId}-tutor`, stream);
+        call.on('stream', (remoteStream) => {
+          console.log('🎥 Tutor stream received');
+          remoteStreamRef.current = remoteStream;
+          setRemoteReady(true);
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = remoteStream;
+            remoteVideoRef.current.play().catch(() => {});
+          }
+        });
+      }, 2000);
+    }
     
     const currentSession = sessions.find(s => s.id === sessionId);
     if (currentSession?.duration_minutes) {
@@ -412,12 +439,14 @@ useEffect(() => {
       setTimerActive(true);
     }
   } catch (err: any) {
-    console.log('🔴 Daily.co error:', err);
-    toast.error(err.message || 'Daily.co failed');
+    console.log('🔴 PeerJS error:', err);
+    toast.error(err.message || 'Failed to start call');
     callingRef.current = false;
   }
 };
-     
+
+
+
       const endCall = () => {
     rtcRef.current?.disconnect();
     wsRef.current?.close();
