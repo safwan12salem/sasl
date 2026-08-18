@@ -381,19 +381,23 @@ useEffect(() => {
     // Force enable all tracks
     stream.getTracks().forEach(track => {
       track.enabled = true;
-      // If video track is muted, replace it with fresh unmuted track
+     
+// If video track is muted, replace it with fresh unmuted track
 const videoTrack = stream.getVideoTracks()[0];
 if (videoTrack && videoTrack.muted) {
   console.log('⚠️ Video track is muted, replacing...');
   videoTrack.stop();
-  const freshStream = await navigator.mediaDevices.getUserMedia({
-    video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
-    audio: false
-  });
-  const freshVideoTrack = freshStream.getVideoTracks()[0];
-  stream.addTrack(freshVideoTrack);
-  console.log('✅ Fresh video track added, muted:', freshVideoTrack.muted);
+  (async () => {
+    const freshStream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
+      audio: false
+    });
+    const freshVideoTrack = freshStream.getVideoTracks()[0];
+    stream.addTrack(freshVideoTrack);
+    console.log('✅ Fresh video track added, muted:', freshVideoTrack.muted);
+  })();
 }
+    
       if (track.kind === 'video') {
         const settings = track.getSettings();
         console.log('Camera settings:', settings);
@@ -408,8 +412,18 @@ if (videoTrack && videoTrack.muted) {
     }
     
     const { Peer } = await import('peerjs');
-    const peer = new Peer(`sasl-${sessionId}-${role}`);
-    
+    const peer = new Peer(`sasl-${sessionId}-${role}`, {
+  host: '0.peerjs.com',
+  port: 443,
+  path: '/',
+  secure: true,
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' }
+    ]
+  }
+});
     peer.on('open', () => {
       console.log('🟢 PeerJS connected:', peer.id);
       setInCall(sessionId);
@@ -445,7 +459,9 @@ if (videoTrack && videoTrack.muted) {
         });
       }, 2000);
     }
-    
+    //current situation
+
+
     const currentSession = sessions.find(s => s.id === sessionId);
     if (currentSession?.duration_minutes) {
       setTimer(currentSession.duration_minutes * 60);
