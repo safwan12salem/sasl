@@ -368,10 +368,26 @@ useEffect(() => {
   console.log('🔴 START PeerJS call', sessionId, role);
   
   try {
-       const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+       const stream = await navigator.mediaDevices.getUserMedia({ 
+  video: { width: 640, height: 480, facingMode: 'user' }, 
+  audio: true 
+});
+
+// Create a NEW stream with cloned UNMUTED tracks
+const cleanStream = new MediaStream();
+stream.getTracks().forEach(track => {
+  const clonedTrack = track.clone();
+  clonedTrack.enabled = true;
+  cleanStream.addTrack(clonedTrack);
+});
+
+// Stop the original (possibly muted) tracks
+stream.getTracks().forEach(t => t.stop());
+
+
     pendingStreamRef.current = stream;
     if (localVideoRef.current) {
-      localVideoRef.current.srcObject = stream;
+      localVideoRef.current.srcObject = cleanStream;
       localVideoRef.current.muted = true;
       localVideoRef.current.play().catch(() => {});
     }
@@ -386,7 +402,7 @@ useEffect(() => {
     
     peer.on('call', (call) => {
       console.log('📞 Incoming call, answering');
-      call.answer(stream);
+      call.answer(cleanStream);
       call.on('stream', (remoteStream) => {
         console.log('🎥 Remote stream received');
         remoteStreamRef.current = remoteStream;
@@ -399,7 +415,7 @@ useEffect(() => {
   });
         setRemoteReady(true);
         if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = remoteStream;
+          remoteVideoRef.current.srcObject = cleanStream;
             remoteVideoRef.current.muted = true;
           remoteVideoRef.current.play().catch(() => {});
         }
