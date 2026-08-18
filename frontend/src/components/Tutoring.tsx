@@ -160,7 +160,7 @@ const STATUS_COLORS: Record<string, string> = {
 
   // Chat
   const [showChat, setShowChat] = useState(false);
-
+  const [showJitsi, setShowJitsi] = useState(false);
   // Stats
   const [stats, setStats] = useState({ totalSessions: 0, completedSessions: 0, totalEarned: '0', totalLearned: '0' });
 
@@ -361,119 +361,20 @@ useEffect(() => {
     }
   };
 
-
-      const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
+const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
   if (callingRef.current) return;
   callingRef.current = true;
-  console.log('🔴 START PeerJS call', sessionId, role);
+  console.log('🔴 START Jitsi call', sessionId, role);
   
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ 
-      video: { 
-        width: { ideal: 640 },
-        height: { ideal: 480 },
-        facingMode: 'user',
-        frameRate: { ideal: 30 }
-      }, 
-      audio: true 
-    });
-
-    // Force enable all tracks
-    stream.getTracks().forEach(track => {
-      track.enabled = true;
-     
-// If video track is muted, replace it with fresh unmuted track
-const videoTrack = stream.getVideoTracks()[0];
-if (videoTrack && videoTrack.muted) {
-  console.log('⚠️ Video track is muted, replacing...');
-  videoTrack.stop();
-  (async () => {
-    const freshStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
-      audio: false
-    });
-    const freshVideoTrack = freshStream.getVideoTracks()[0];
-    stream.addTrack(freshVideoTrack);
-    console.log('✅ Fresh video track added, muted:', freshVideoTrack.muted);
-  })();
-}
-    
-      if (track.kind === 'video') {
-        const settings = track.getSettings();
-        console.log('Camera settings:', settings);
-      }
-    });
-    
-    pendingStreamRef.current = stream;
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = stream;
-      localVideoRef.current.muted = true;
-      localVideoRef.current.play().catch(() => {});
-    }
-    
-    const { Peer } = await import('peerjs');
-    const peer = new Peer(`sasl-${sessionId}-${role}`, {
-  host: '0.peerjs.com',
-  port: 443,
-  path: '/',
-  secure: true,
-  config: {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-      { urls: 'stun:stun1.l.google.com:19302' }
-    ]
-  }
-});
-    peer.on('open', () => {
-      console.log('🟢 PeerJS connected:', peer.id);
-      setInCall(sessionId);
-    });
-    
-    peer.on('call', (call) => {
-      console.log('📞 Incoming call, answering');
-      call.answer(stream);
-      call.on('stream', (remoteStream) => {
-        console.log('🎥 Remote stream received');
-        remoteStreamRef.current = remoteStream;
-        setRemoteReady(true);
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = remoteStream;
-          remoteVideoRef.current.play().catch(() => {});
-        }
-      });
-    });
-    
-    if (role === 'tutor') {
-      console.log('🟡 Tutor waiting for student to call');
-    } else {
-      setTimeout(() => {
-        const call = peer.call(`sasl-${sessionId}-tutor`, stream);
-        call.on('stream', (remoteStream) => {
-          console.log('🎥 Tutor stream received');
-          remoteStreamRef.current = remoteStream;
-          setRemoteReady(true);
-          if (remoteVideoRef.current) {
-            remoteVideoRef.current.srcObject = remoteStream;
-            remoteVideoRef.current.play().catch(() => {});
-          }
-        });
-      }, 2000);
-    }
-    //current situation
-
-
-    const currentSession = sessions.find(s => s.id === sessionId);
-    if (currentSession?.duration_minutes) {
-      setTimer(currentSession.duration_minutes * 60);
-      setTimerActive(true);
-    }
-  } catch (err: any) {
-    console.log('🔴 PeerJS error:', err);
-    toast.error(err.message || 'Failed to start call');
-    callingRef.current = false;
+  setInCall(sessionId);
+  setShowJitsi(true);
+  
+  const currentSession = sessions.find(s => s.id === sessionId);
+  if (currentSession?.duration_minutes) {
+    setTimer(currentSession.duration_minutes * 60);
+    setTimerActive(true);
   }
 };
-
 
 
       const endCall = () => {
@@ -661,29 +562,31 @@ const getTouchPos = (e: React.TouchEvent) => {
             
             {/* MAIN AREA */}
             <div className="flex-1 flex">
-              {/* VIDEOS */}
-              <div className={`${showChat || showWhiteboard || showMaterials ? 'flex-[3]' : 'flex-1'} p-2 flex flex-col gap-2`}>
-                <div className="flex-1 grid grid-cols-2 gap-2" style={{ minHeight: '100%' }}>
-               <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
-                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
-                    <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">You</span>
-                  </div>
-                  <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
-                  <video 
-                  
-                    ref={(el) => {
-                      if (el) {
-                        el.srcObject = remoteStreamRef.current;
-                        el.play().catch(() => {});
-                      }
-                    }}
-                    autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover"
+          
+                {/* VIDEOS */}
+              <div className={`${showChat || showWhiteboard || showMaterials ? 'flex-[3]' : 'flex-1'} p-2`}>
+                {showJitsi && inCall ? (
+                  <iframe
+                    src={`https://meet.jit.si/sasl-${inCall}`}
+                    allow="camera; microphone; fullscreen; display-capture; autoplay"
+                    className="w-full h-full rounded-xl"
+                    style={{ border: 'none', minHeight: '100%' }}
                   />
-                    <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">Remote</span>
+                ) : (
+                  <div className="flex-1 grid grid-cols-2 gap-2" style={{ minHeight: '100%' }}>
+                    <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
+                      <video ref={localVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+                      <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">You</span>
+                    </div>
+                    <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
+                      <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+                      <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">Remote</span>
+                    </div>
                   </div>
-                </div>
-                               
+                )}
               </div>
+                               
+            
               
               {/* SIDE PANEL */}
               {(showChat || showWhiteboard || showMaterials) && (
