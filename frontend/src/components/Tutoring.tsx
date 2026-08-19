@@ -641,7 +641,7 @@ const getTouchPos = (e: React.TouchEvent) => {
                 {sessions.find(s => s.id === inCall)?.is_group_class ? (
                   // GROUP CLASS: Tutor fullscreen only
                   <div className="flex-1 relative h-full">
-                                        <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
+                                        <video ref={remoteVideoRef} autoPlay  playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
                       const v = e.currentTarget;
                       v.muted = !v.muted;
                       if (!v.muted) v.play().catch(() => {});
@@ -652,11 +652,11 @@ const getTouchPos = (e: React.TouchEvent) => {
                   // 1-ON-1: Split screen
                   <div className="flex-1 grid grid-cols-2 gap-2 h-full" style={{ minHeight: '100%' }}>
                     <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
-                      <video ref={localVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+                      <video ref={localVideoRef} autoPlay  playsInline className="absolute inset-0 w-full h-full object-cover" />
                       <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">You</span>
                     </div>
                     <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
-                                            <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
+                                            <video ref={remoteVideoRef} autoPlay  playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
                         const v = e.currentTarget;
                         v.muted = !v.muted;
                         if (!v.muted) v.play().catch(() => {});
