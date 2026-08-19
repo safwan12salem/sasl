@@ -369,10 +369,37 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
   console.log('🔴 START Sasl P2P call', sessionId, role);
   
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ 
+        const rawStream = await navigator.mediaDevices.getUserMedia({ 
       video: { width: 640, height: 480, facingMode: 'user' }, 
       audio: true 
     });
+    
+    // Force-unmute the VIDEO track — replace with canvas capture
+    const videoTrack = rawStream.getVideoTracks()[0];
+    const canvas = document.createElement('canvas');
+    canvas.width = 640;
+    canvas.height = 480;
+    const ctx = canvas.getContext('2d')!;
+    const video = document.createElement('video');
+    video.srcObject = new MediaStream([videoTrack]);
+    video.muted = true;
+    await video.play();
+    
+    const drawFrame = () => {
+      ctx.drawImage(video, 0, 0, 640, 480);
+      requestAnimationFrame(drawFrame);
+    };
+    drawFrame();
+    
+    const canvasStream = canvas.captureStream(30);
+    const unmutedVideoTrack = canvasStream.getVideoTracks()[0];
+    
+    // Create the final stream with unmuted video + original audio
+    const stream = new MediaStream();
+    stream.addTrack(unmutedVideoTrack);
+    rawStream.getAudioTracks().forEach(track => stream.addTrack(track));
+    
+    console.log('✅ Final video track muted:', unmutedVideoTrack.muted);
     
     // Set local video
     pendingStreamRef.current = stream;
