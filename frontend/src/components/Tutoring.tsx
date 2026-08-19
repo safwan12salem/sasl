@@ -379,6 +379,14 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       audio: true 
     });
     
+   stream.getAudioTracks().forEach(track => {
+      track.enabled = true;
+      console.log('🎤 Audio track enabled:', track.enabled);
+    });
+    stream.getVideoTracks().forEach(track => {
+      track.enabled = true;
+    });
+
     pendingStreamRef.current = stream;
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = stream;
