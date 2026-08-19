@@ -1,3 +1,11 @@
 const { PeerServer } = require('peer');
-const server = PeerServer({ port: 9000, path: '/peerjs' });
-console.log('PeerJS server running on port 9000');
+const port = process.env.PORT || 9000;
+
+const server = PeerServer({
+  port,
+  path: '/sasl-peerjs',
+  allow_discovery: true,
+  proxied: true
+});
+
+console.log(`PeerJS server running on port ${port}`);

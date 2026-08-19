@@ -362,46 +362,17 @@ useEffect(() => {
   };
 
 
-
 const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
   if (callingRef.current) return;
   callingRef.current = true;
-  console.log('🔴 START Sasl P2P call', sessionId, role);
+  console.log('🔴 START Sasl PeerJS call', sessionId, role);
   
   try {
-        const rawStream = await navigator.mediaDevices.getUserMedia({ 
+    const stream = await navigator.mediaDevices.getUserMedia({ 
       video: { width: 640, height: 480, facingMode: 'user' }, 
       audio: true 
     });
     
-    // Force-unmute the VIDEO track — replace with canvas capture
-    const videoTrack = rawStream.getVideoTracks()[0];
-    const canvas = document.createElement('canvas');
-    canvas.width = 640;
-    canvas.height = 480;
-    const ctx = canvas.getContext('2d')!;
-    const video = document.createElement('video');
-    video.srcObject = new MediaStream([videoTrack]);
-    video.muted = true;
-    await video.play();
-    
-    const drawFrame = () => {
-      ctx.drawImage(video, 0, 0, 640, 480);
-      requestAnimationFrame(drawFrame);
-    };
-    drawFrame();
-    
-    const canvasStream = canvas.captureStream(30);
-    const unmutedVideoTrack = canvasStream.getVideoTracks()[0];
-    
-    // Create the final stream with unmuted video + original audio
-    const stream = new MediaStream();
-    stream.addTrack(unmutedVideoTrack);
-    rawStream.getAudioTracks().forEach(track => stream.addTrack(track));
-    
-    console.log('✅ Final video track muted:', unmutedVideoTrack.muted);
-    
-    // Set local video
     pendingStreamRef.current = stream;
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = stream;
@@ -409,67 +380,47 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       localVideoRef.current.play().catch(() => {});
     }
     
-    const peerId = `sasl-${sessionId}-${role}`;
-    const otherPeerId = role === 'tutor' ? `sasl-${sessionId}-student` : `sasl-${sessionId}-tutor`;
-    
-    // Connect to YOUR Render signaling server
-    const ws = new WebSocket(`wss://sasl-api-i34r.onrender.com/ws/peer/${sessionId}/${peerId}/`);
-    wsRef.current = ws;
-    
-    const pc = new RTCPeerConnection({
-      iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+    const { Peer } = await import('peerjs');
+    const peer = new Peer(`sasl-${sessionId}-${role}`, {
+      host: 'sasl-peerjs.onrender.com',
+      port: 443,
+      path: '/sasl-peerjs',
+      secure: true
     });
-    pcRef.current = pc;
     
-    stream.getTracks().forEach(track => pc.addTrack(track, stream));
+    peer.on('open', () => {
+      console.log('🟢 PeerJS connected:', peer.id);
+      setInCall(sessionId);
+    });
     
-    pc.ontrack = (event) => {
-      console.log('🎥 Remote track:', event.track.kind);
-      if (remoteVideoRef.current) {
-        if (!remoteVideoRef.current.srcObject) {
-          remoteVideoRef.current.srcObject = new MediaStream();
+    peer.on('call', (call) => {
+      console.log('📞 Incoming call, answering');
+      call.answer(stream);
+      call.on('stream', (remoteStream) => {
+        console.log('🎥 Remote stream received');
+        remoteStreamRef.current = remoteStream;
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = remoteStream;
+          remoteVideoRef.current.play().catch(() => {});
         }
-        (remoteVideoRef.current.srcObject as MediaStream).addTrack(event.track);
-        remoteVideoRef.current.play().catch(() => {});
-      }
-    };
+      });
+    });
     
-    pc.onicecandidate = (event) => {
-      if (event.candidate && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ to: otherPeerId, data: { type: 'candidate', candidate: event.candidate } }));
-      }
-    };
-    
-    ws.onmessage = async (event) => {
-      const msg = JSON.parse(event.data);
-      console.log('📩 Signal:', msg.type);
-      
-      if (msg.type === 'peer-joined') {
-        if (role === 'tutor') {
-          const offer = await pc.createOffer();
-          await pc.setLocalDescription(offer);
-          ws.send(JSON.stringify({ to: msg.peer_id, data: { type: 'offer', offer: pc.localDescription } }));
-        }
-      }
-      else if (msg.type === 'signal') {
-        const sig = msg.data;
-        if (sig.type === 'offer') {
-          await pc.setRemoteDescription(new RTCSessionDescription(sig.offer));
-          const answer = await pc.createAnswer();
-          await pc.setLocalDescription(answer);
-          ws.send(JSON.stringify({ to: msg.from, data: { type: 'answer', answer: pc.localDescription } }));
-        }
-        else if (sig.type === 'answer') {
-          await pc.setRemoteDescription(new RTCSessionDescription(sig.answer));
-        }
-        else if (sig.type === 'candidate') {
-          try { await pc.addIceCandidate(new RTCIceCandidate(sig.candidate)); } catch {}
-        }
-      }
-    };
-    
-    setInCall(sessionId);
-    setShowJitsi(false);
+    if (role === 'tutor') {
+      console.log('🟡 Tutor waiting for student to call');
+    } else {
+      setTimeout(() => {
+        const call = peer.call(`sasl-${sessionId}-tutor`, stream);
+        call.on('stream', (remoteStream) => {
+          console.log('🎥 Tutor stream received');
+          remoteStreamRef.current = remoteStream;
+          if (remoteVideoRef.current) {
+            remoteVideoRef.current.srcObject = remoteStream;
+            remoteVideoRef.current.play().catch(() => {});
+          }
+        });
+      }, 2000);
+    }
     
     const currentSession = sessions.find(s => s.id === sessionId);
     if (currentSession?.duration_minutes) {
@@ -477,7 +428,7 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       setTimerActive(true);
     }
   } catch (err: any) {
-    console.log('🔴 P2P error:', err);
+    console.log('🔴 PeerJS error:', err);
     toast.error(err.message || 'Failed to start call');
     callingRef.current = false;
   }
