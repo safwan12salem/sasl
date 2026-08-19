@@ -374,14 +374,15 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
   console.log('🔴 START Sasl PeerJS call', sessionId, role);
   
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ 
+       const stream = await navigator.mediaDevices.getUserMedia({ 
       video: { width: 640, height: 480, facingMode: 'user' }, 
       audio: true 
     });
     
-   stream.getAudioTracks().forEach(track => {
+    // ENSURE AUDIO TRACK IS ENABLED
+    stream.getAudioTracks().forEach(track => {
       track.enabled = true;
-      console.log('🎤 Audio track enabled:', track.enabled);
+      console.log('🎤 Audio track enabled:', track.enabled, 'muted:', track.muted);
     });
     stream.getVideoTracks().forEach(track => {
       track.enabled = true;
