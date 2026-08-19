@@ -362,7 +362,7 @@ useEffect(() => {
   };
 
 
-  
+
 const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
   if (callingRef.current) return;
   callingRef.current = true;
@@ -643,30 +643,19 @@ const getTouchPos = (e: React.TouchEvent) => {
             {/* MAIN AREA */}
             <div className="flex-1 flex">
           
-                {/* VIDEOS */}
+                            {/* VIDEOS — Sasl Split Screen */}
               <div className={`${showChat || showWhiteboard || showMaterials ? 'flex-[3]' : 'flex-1'} p-2`}>
-                {showJitsi && inCall ? (
-                  <iframe
-                    src={`https://meet.jit.si/sasl-${inCall}`}
-                    allow="camera; microphone; fullscreen; display-capture; autoplay"
-                    className="w-full h-full rounded-xl"
-                    style={{ border: 'none', minHeight: '100%' }}
-                  />
-                ) : (
-                  <div className="flex-1 grid grid-cols-2 gap-2" style={{ minHeight: '100%' }}>
-                    <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
-                      <video ref={localVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
-                      <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">You</span>
-                    </div>
-                    <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
-                      <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
-                      <span className="absolute bottom-2 left-2 bg-black/60 text-white px-3 py-1 rounded-full text-sm">Remote</span>
-                    </div>
+                <div className="flex-1 grid grid-cols-2 gap-2 h-full" style={{ minHeight: '100%' }}>
+                  <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
+                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+                    <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">You</span>
                   </div>
-                )}
+                  <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
+                    <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+                    <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Remote</span>
+                  </div>
+                </div>
               </div>
-                               
-            
               
               {/* SIDE PANEL */}
               {(showChat || showWhiteboard || showMaterials) && (
