@@ -184,6 +184,12 @@ const STATUS_COLORS: Record<string, string> = {
       else if (activeTab === 'completed') data = data.filter((s: any) => s.status === 'completed');
       else if (activeTab === 'upcoming') data = data.filter((s: any) => ['open', 'scheduled', 'pending_confirmation'].includes(s.status));
       setSessions(data);
+            // Update stats
+      const totalSessions = data.length;
+      const completedSessions = data.filter((s: any) => s.status === 'completed').length;
+      const totalEarned = data.filter((s: any) => s.status === 'completed' && s.tutor?.username === user?.username).reduce((sum: number, s: any) => sum + parseFloat(s.price || '0'), 0);
+      const totalLearned = data.filter((s: any) => s.status === 'completed' && s.student?.username === user?.username).reduce((sum: number, s: any) => sum + parseFloat(s.price || '0'), 0);
+      setStats({ totalSessions, completedSessions, totalEarned: totalEarned.toFixed(2), totalLearned: totalLearned.toFixed(2) });
     } catch (err) {
       setError(t('Failed to load sessions.'));
     } finally {
@@ -621,20 +627,38 @@ const getTouchPos = (e: React.TouchEvent) => {
             {/* MAIN AREA */}
             <div className="flex-1 flex">
           
-                            {/* VIDEOS — Sasl Split Screen */}
+                                  {/* VIDEOS — Sasl */}
               <div className={`${showChat || showWhiteboard || showMaterials ? 'flex-[3]' : 'flex-1'} p-2`}>
-                <div className="flex-1 grid grid-cols-2 gap-2 h-full" style={{ minHeight: '100%' }}>
-                  <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
-                    <video ref={localVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
-                    <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">You</span>
+                {sessions.find(s => s.id === inCall)?.is_group_class ? (
+                  // GROUP CLASS: Tutor fullscreen only
+                  <div className="flex-1 relative h-full">
+                                        <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
+                      const v = e.currentTarget;
+                      v.muted = !v.muted;
+                      if (!v.muted) v.play().catch(() => {});
+                    }} />
+                    <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor</span>
                   </div>
-                  <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
-                    <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
-                    <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Remote</span>
+                ) : (
+                  // 1-ON-1: Split screen
+                  <div className="flex-1 grid grid-cols-2 gap-2 h-full" style={{ minHeight: '100%' }}>
+                    <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
+                      <video ref={localVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" />
+                      <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">You</span>
+                    </div>
+                    <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
+                                            <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
+                        const v = e.currentTarget;
+                        v.muted = !v.muted;
+                        if (!v.muted) v.play().catch(() => {});
+                      }} />
+                      <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Remote</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
-              
+
+
               {/* SIDE PANEL */}
               {(showChat || showWhiteboard || showMaterials) && (
                 <div className="w-80 border-l border-gray-700 bg-gray-800 flex flex-col">
