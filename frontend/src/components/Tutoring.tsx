@@ -407,13 +407,46 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       path: '/sasl-peerjs',
       secure: true
     });
-    peerRef.current = peer;
+        peerRef.current = peer;
     
     peer.on('open', () => {
       console.log('🟢 PeerJS connected:', peer.id);
       setInCall(sessionId);
+      
+      // Set up data connection for hand raise
+      if (role === 'student') {
+        const conn = peer.connect(`sasl-${sessionId}-tutor`, { reliable: true });
+        conn.on('open', () => {
+          console.log('📡 Data connection open');
+        });
+        conn.on('data', (data: any) => {
+          if (data && data.type === 'hand-raise') {
+            setRaisedHands(prev => {
+              const existing = prev.find(h => h.username === data.username);
+              if (data.raised && !existing) return [...prev, { username: data.username, peerId: data.peerId }];
+              if (!data.raised && existing) return prev.filter(h => h.username !== data.username);
+              return prev;
+            });
+          }
+        });
+      }
     });
     
+    // Tutor receives data connections
+    peer.on('connection', (conn: any) => {
+      conn.on('data', (data: any) => {
+        if (data && data.type === 'hand-raise') {
+          console.log('✋ Hand raise received:', data);
+          setRaisedHands(prev => {
+            const existing = prev.find(h => h.username === data.username);
+            if (data.raised && !existing) return [...prev, { username: data.username, peerId: data.peerId }];
+            if (!data.raised && existing) return prev.filter(h => h.username !== data.username);
+            return prev;
+          });
+        }
+      });
+    });
+
     peer.on('call', (call) => {
       console.log('📞 Incoming call, answering');
       call.answer(stream);
