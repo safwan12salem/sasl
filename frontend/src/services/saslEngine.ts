@@ -23,7 +23,7 @@ export const PREMIUM_PRICE = '$4.99/month';
 // Groq configuration (FREE — no credit card needed)
 const OPENROUTER_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const OPENROUTER_KEY = process.env.REACT_APP_GROQ_API_KEY || '';
-const OPENROUTER_MODEL = 'llama-3.3-70b-versatile';
+const OPENROUTER_MODEL = 'llama-3.3-70b-specdec';
 const SITE_URL = 'https://sasl.vercel.app';
 const SITE_NAME = 'Sasl';
 
@@ -340,23 +340,37 @@ export async function askSaslEngine(question: string): Promise<string> {
     incrementUsage();
   }
 
-  // ---- TIER 1: OpenRouter GPT-4o (Primary) ----
+    // ---- TIER 1: OpenRouter GPT-4o (Primary) ----
   const gptAnswer = await askGPT4o(msg);
-  if (gptAnswer) return gptAnswer;
+  if (gptAnswer) {
+    addToConversation('user', msg);
+    addToConversation('assistant', gptAnswer);
+    return gptAnswer;
+  }
 
   // ---- TIER 2: Premium Backend (if subscribed) ----
   if (premium) {
     const backendAnswer = await tryPremiumBackend(msg);
-    if (backendAnswer) return backendAnswer;
+    if (backendAnswer) {
+      addToConversation('user', msg);
+      addToConversation('assistant', backendAnswer);
+      return backendAnswer;
+    }
   }
 
   // ---- TIER 3: Wikipedia (free knowledge) ----
   const wikiAnswer = await searchWikipedia(msg);
-  if (wikiAnswer) return wikiAnswer;
+  if (wikiAnswer) {
+    addToConversation('user', msg);
+    addToConversation('assistant', wikiAnswer);
+    return wikiAnswer;
+  }
 
   // ---- TIER 4: Smart Fallback ----
-  return smartFallback(msg);
-}
+  const fallback = smartFallback(msg);
+  addToConversation('user', msg);
+  addToConversation('assistant', fallback);
+  return fallback;
 
 // ============================================================
 // PREMIUM FEATURES
