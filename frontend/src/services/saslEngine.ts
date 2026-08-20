@@ -372,6 +372,8 @@ export async function askSaslEngine(question: string): Promise<string> {
   addToConversation('assistant', fallback);
   return fallback;
 
+
+}
 // ============================================================
 // PREMIUM FEATURES
 // ============================================================
