@@ -393,11 +393,16 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       track.enabled = true;
     });
 
-        // In group class, students are muted by default
+            // In group class, students are muted by default. Tutor is ALWAYS unmuted.
     const session = sessions.find(s => s.id === sessionId);
-    if (session?.is_group_class && role === 'student') {
-      stream.getAudioTracks().forEach(track => track.enabled = false);
-      console.log('🔇 Student muted in group class');
+    if (session?.is_group_class) {
+      if (role === 'student') {
+        stream.getAudioTracks().forEach(track => track.enabled = false);
+        console.log('🔇 Student muted in group class');
+      } else {
+        stream.getAudioTracks().forEach(track => track.enabled = true);
+        console.log('🎤 Tutor audio ENABLED');
+      }
     }
 
     pendingStreamRef.current = stream;
