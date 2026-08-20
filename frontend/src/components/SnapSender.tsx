@@ -19,6 +19,8 @@ import { Sound } from '../services/soundLibrary';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { uploadFile } from '../services/uploadService';
+import { db } from '../services/offlineDB';
+
 
 interface Snap {
   id: string;
@@ -175,6 +177,11 @@ export default function SnapSender() {
         });
         toast.success(t(`Snap sent to group! 📸`));
       } else {
+              if (!navigator.onLine) {
+        await db.offlineActions.put({ type: 'create_snap', data: { receiver, caption }, created_at: Date.now() });
+        toast.success('📦 Snap saved offline — will send when online');
+        return;
+      }
         await api.post('/snaps/snaps/', {
           media_url: mediaUrl,
           receiver_username: receiver,

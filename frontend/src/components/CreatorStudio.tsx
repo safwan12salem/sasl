@@ -13,7 +13,7 @@ import { useMesh } from '../hooks/useMesh';
 import { db } from '../services/offlineDB';
 
 import { uploadFile } from '../services/uploadService';
-
+import { queueOfflineAction } from '../services/offlineSync';
 
 export default function CreatorStudio() {
   const { user } = useAuth();
@@ -157,6 +157,7 @@ export default function CreatorStudio() {
       return;
     }
     try {
+      
       await api.post('/monetization/ads/create_campaign/', {
         title: adTitle, content: adDesc, link: adLink,
         budget: parseFloat(adBudget), cpc: parseFloat(adCPC) || 0.01, image: adImageUrl,

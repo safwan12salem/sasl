@@ -18,6 +18,8 @@ import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 import AdBanner from './AdBanner';
 
+
+
 interface Product {
   id: string;
   title: string;

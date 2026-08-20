@@ -15,6 +15,9 @@ import PaymentModal from './PaymentModal';
 import SoundUploader from './SoundUploader';
 import { uploadLargeVideo } from '../services/videoUploader';
 import { motion, AnimatePresence } from 'framer-motion';
+import { db } from '../services/offlineDB';
+
+
 
 interface Reel {
   id: string;
@@ -191,6 +194,11 @@ export default function Reels() {
       const extraFields: Record<string, string> = { caption: reelCaption };
       if (reelSound) extraFields.sound_track = reelSound;
       if (reelSoundUrl) extraFields.sound_url = reelSoundUrl;
+            if (!navigator.onLine) {
+        await db.offlineActions.put({ type: 'create_reel', data: { caption: reelCaption, sound: reelSound }, created_at: Date.now() });
+        toast.success('📦 Reel saved offline');
+        return;
+      }
       const res = await uploadLargeVideo(reelFile, '/content/reels/', extraFields);
       setReels(prev => [res, ...prev]);
       setShowUpload(false); setReelFile(null); setReelCaption('');

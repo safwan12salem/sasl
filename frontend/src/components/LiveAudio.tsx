@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 import { uploadFile } from '../services/uploadService';
-
+import { db } from '../services/offlineDB';
 
 interface AudioRoom {
   id: string;
@@ -128,6 +128,11 @@ const [chatInput, setChatInput] = useState('');
     const createRoom = async () => {
     if (!roomTitle.trim()) return toast.error(t('enter_room_title'));
     try {
+               if (!navigator.onLine) {
+  await db.offlineActions.put({ type: 'create_audio_room', data: { title: roomTitle, topics: roomTopics }, created_at: Date.now() });
+  toast.success('📦 Room saved offline');
+  return;
+}
       await api.post('/liveaudio/rooms/', {
         title: roomTitle, description: roomDesc, topics: roomTopics,
         is_public: isPublic, max_listeners: parseInt(maxListeners),
@@ -262,7 +267,7 @@ const [chatInput, setChatInput] = useState('');
             if (localStream) {
               localStream.getTracks().forEach(track => newPC.addTrack(track, localStream));
             }
-                       newPC.ontrack = (event) => {
+            newPC.ontrack = (event) => {
               console.log('🎵 ONTRACK from:', data.username);
               const remoteStream = event.streams[0];
               

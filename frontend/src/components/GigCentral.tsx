@@ -18,6 +18,10 @@ import GigChat from './GigChat';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 import AdBanner from './AdBanner';
+import { db } from '../services/offlineDB';
+
+
+
 
 interface Gig {
   id: string;
@@ -179,6 +183,11 @@ export default function GigCentral() {
 
       const startNegotiation = async (workerId: string, workerName: string) => {
     try {
+           if (!navigator.onLine) {
+  await db.offlineActions.put({ type: 'create_gig', data: { title: newTitle, budget: newBudget }, created_at: Date.now() });
+  toast.success('📦 Gig saved offline');
+  return;
+}
       const res = await api.post('/gigs/gigs/', {
         title: `Chat with @${workerName}`,
         description: 'Direct negotiation',

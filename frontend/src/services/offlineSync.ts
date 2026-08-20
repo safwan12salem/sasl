@@ -32,6 +32,9 @@ export async function syncOfflineQueue(token: string) {
         case 'create_audio_room':
           await axios.post('/api/liveaudio/rooms/', item.data, { headers: { Authorization: `Bearer ${token}` } });
           break;
+                  case 'create_reel':
+          await axios.post('/content/reels/', item.data, { headers: { Authorization: `Bearer ${token}` } });
+          break;
         case 'react_audio':
           await axios.post(`/api/liveaudio/rooms/${item.data.roomId}/react/`, item.data, { headers: { Authorization: `Bearer ${token}` } });
           break;

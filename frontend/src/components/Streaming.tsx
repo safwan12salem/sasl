@@ -4,6 +4,7 @@
  * VIRAL EDITION: Live chat overlay, floating comments, donation animations, viewer avatars,
  * stream previews, schedule countdown, notifications, mobile-optimized viewer
  */
+
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
@@ -19,6 +20,10 @@ import { WebRTCConnection } from '../services/webrtc';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 import AdBanner from './AdBanner';
+import { db } from '../services/offlineDB';
+
+
+
 interface Stream {
   id: string;
   streamer: { username: string; avatar_url?: string };
@@ -445,7 +450,11 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
       formData.append('category', category);
       formData.append('tags', JSON.stringify(tags.split(',').map(t => t.trim()).filter(Boolean)));
       if (thumbnailFile) formData.append('thumbnail', thumbnailFile);
-
+              if (!navigator.onLine) {
+  await db.offlineActions.put({ type: 'create_stream', data: { title }, created_at: Date.now() });
+  toast.success('📦 Stream saved offline');
+  return;
+}
             const res = await api.post('/streaming/streams/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });

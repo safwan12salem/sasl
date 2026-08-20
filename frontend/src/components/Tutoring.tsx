@@ -21,6 +21,9 @@ import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 import AdBanner from './AdBanner';
 import { uploadFile as uploadToCloud } from '../services/uploadService';
+import { db } from '../services/offlineDB';
+
+
 
 interface Session {
   id: string;
@@ -291,6 +294,11 @@ useEffect(() => {
     try {
       // Convert datetime-local to ISO 8601 with timezone
       const scheduledISO = new Date(scheduledAt).toISOString();
+            if (!navigator.onLine) {
+        await db.offlineActions.put({ type: 'create_tutoring_session', data: { subject, description, price: parseFloat(price), scheduled_at: scheduledISO, is_group_class: isGroupClass }, created_at: Date.now() });
+        toast.success('📦 Session saved offline');
+        return;
+      }
             await api.post('/tutoring/sessions/', {
         subject,
         description,
