@@ -140,7 +140,7 @@ const STATUS_COLORS: Record<string, string> = {
     const peerRef = useRef<any>(null);
   const rtcRef = useRef<WebRTCConnection | null>(null);
   const token = localStorage.getItem('sasl_token');
-
+const [remoteMuted, setRemoteMuted] = useState(true);
   // Whiteboard
   const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [whiteboardData, setWhiteboardData] = useState<WhiteboardData | null>(null);
@@ -458,7 +458,8 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
           });
         }
                 if (data && data.type === 'unmute-student' && data.username === user?.username) {
-          pendingStreamRef.current?.getAudioTracks().forEach(track => track.enabled = true);
+                   const stream = pendingStreamRef.current || (localVideoRef.current?.srcObject as MediaStream);
+stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('🎤 Student unmuted'); });
           console.log('🎤 Unmuted by tutor');
         }
       });
@@ -763,25 +764,31 @@ if (conn) {
                   // SPLIT SCREEN: Tutor + Selected Student
                     <div className="flex-1 grid grid-cols-2 gap-2 h-full">
                       <div className="relative rounded-xl overflow-hidden bg-black">
-                        <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
-                          const v = e.currentTarget;
-                          v.muted = !v.muted;
-                          if (!v.muted) v.play().catch(() => {});
-                        }} />
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-  <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
-    👆 Tap to Unmute
-  </span>
-</div>
+                        <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover"
+                        onClick={(e) => {
+                        const v = e.currentTarget;
+                        v.muted = !v.muted;
+                        setRemoteMuted(v.muted);
+                        if (!v.muted) v.play().catch(() => {});
+                        }}
+                        />{remoteMuted && (
+                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                       <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
+                                          👆 Tap to Unmute
+                       </span>
+                       </div>
+                         )}
                         <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor</span>
                       </div>
                       <div className="relative rounded-xl overflow-hidden bg-black">
                         <video ref={localVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-  <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
-    👆 Tap to Unmute
-  </span>
-</div>
+                        {remoteMuted && (
+                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                         <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
+                                👆 Tap to Unmute
+                         </span>
+                          </div>
+                             )}
                         <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">@{selectedStudent.username}</span>
                       </div>
                     </div>
@@ -789,15 +796,18 @@ if (conn) {
                     // TUTOR FULLSCREEN ONLY
                     <div className="flex-1 relative h-full">
                       <video ref={remoteVideoRef} autoPlay muted   playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
-                        const v = e.currentTarget;
-                        v.muted = !v.muted;
-                        if (!v.muted) v.play().catch(() => {});
-                      }} />
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-  <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
-    👆 Tap to Unmute
-  </span>
-</div>
+                      const v = e.currentTarget;
+                      v.muted = !v.muted;
+                      setRemoteMuted(v.muted);
+                      if (!v.muted) v.play().catch(() => {});
+                       }}/>
+                     {remoteMuted && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                     <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
+                           👆 Tap to Unmute
+                      </span>
+                      </div>
+                         )}
                       <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor</span>
                     </div>
                   )
@@ -806,19 +816,22 @@ if (conn) {
                   <div className="flex-1 grid grid-cols-2 gap-2 h-full" style={{ minHeight: '100%' }}>
                     <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
                       <video ref={localVideoRef} autoPlay  playsInline className="absolute inset-0 w-full h-full object-cover" />
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-  <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
-    👆 Tap to Unmute
-  </span>
-</div>
+                     {remoteMuted && (
+                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                     <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
+                               👆 Tap to Unmute
+                      </span>
+                      </div>
+                        )}
                       <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">You</span>
                     </div>
                     <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
-                                            <video ref={remoteVideoRef} autoPlay  playsInline muted className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
-                        const v = e.currentTarget;
-                        v.muted = !v.muted;
-                        if (!v.muted) v.play().catch(() => {});
-                      }} />
+                        <video ref={remoteVideoRef} autoPlay  playsInline muted className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
+                         const v = e.currentTarget;
+                          v.muted = !v.muted;
+                          setRemoteMuted(v.muted);
+                          if (!v.muted) v.play().catch(() => {});
+                            }}/>
                       <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Remote</span>
                     </div>
                   </div>
