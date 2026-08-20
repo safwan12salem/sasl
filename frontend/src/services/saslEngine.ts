@@ -23,7 +23,7 @@ export const PREMIUM_PRICE = '$4.99/month';
 // Groq configuration (FREE — no credit card needed)
 const OPENROUTER_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const OPENROUTER_KEY = process.env.REACT_APP_GROQ_API_KEY || '';
-const OPENROUTER_MODEL = 'llama-3.3-70b-specdec';
+const OPENROUTER_MODEL = 'openai/gpt-oss-120b';
 const SITE_URL = 'https://sasl.vercel.app';
 const SITE_NAME = 'Sasl';
 
