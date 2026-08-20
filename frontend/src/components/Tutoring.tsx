@@ -164,7 +164,8 @@ const STATUS_COLORS: Record<string, string> = {
   const [showJitsi, setShowJitsi] = useState(false);
   const [handRaised, setHandRaised] = useState(false);
 const [raisedHands, setRaisedHands] = useState<{username: string; peerId: string}[]>([]);
-const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+const [selectedStudent, setSelectedStudent] = useState<{username: string} | null>(null);
+
   // Stats
   const [stats, setStats] = useState({ totalSessions: 0, completedSessions: 0, totalEarned: '0', totalLearned: '0' });
 
@@ -638,7 +639,11 @@ const getTouchPos = (e: React.TouchEvent) => {
                 {sessions.find(s => s.id === inCall)?.is_group_class && user?.username !== sessions.find(s => s.id === inCall)?.tutor?.username && (
                   <button onClick={() => {
                     setHandRaised(!handRaised);
-                    peerRef.current?.send({ type: 'hand-raise', username: user?.username, raised: !handRaised });
+                    // Send via the first data connection
+const conn = (peerRef.current as any)?.connections?.[Object.keys((peerRef.current as any)?.connections || {})[0]]?.[0];
+if (conn) {
+  conn.send({ type: 'hand-raise', username: user?.username, raised: !handRaised });
+}
                     toast(handRaised ? 'Hand lowered' : '✋ Hand raised');
                   }}
                   className={`px-3 py-1.5 rounded-full text-sm flex items-center gap-1 ${handRaised ? 'bg-yellow-500 text-black' : 'bg-gray-700 hover:bg-gray-600 text-white'}`}>
@@ -646,10 +651,31 @@ const getTouchPos = (e: React.TouchEvent) => {
                   </button>
                 )}
                 
-                {/* Raised hands indicator — Tutor view */}
+                                {/* Raised hands list — Tutor can pick student */}
                 {sessions.find(s => s.id === inCall)?.is_group_class && user?.username === sessions.find(s => s.id === inCall)?.tutor?.username && raisedHands.length > 0 && (
-                  <div className="bg-yellow-500 text-black px-3 py-1.5 rounded-full text-sm font-semibold">
-                    ✋ {raisedHands.length} raised
+                  <div className="flex items-center gap-1">
+                    {raisedHands.map(h => (
+                      <button key={h.username} onClick={() => {
+                        setSelectedStudent(h);
+                        toast.success(`🎤 ${h.username} is now speaking!`);
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 ${
+                        selectedStudent?.username === h.username ? 'bg-green-500 text-white' : 'bg-yellow-500 text-black hover:bg-yellow-400'
+                      }`}>
+                        ✋ @{h.username}
+                      </button>
+                    ))}
+                                    
+                {/* End Turn button */}
+                {selectedStudent && (
+                  <button onClick={() => {
+                    setSelectedStudent(null);
+                    toast.success('Student returned to chat mode');
+                  }}
+                  className="px-3 py-1.5 rounded-full bg-purple-500 text-white text-sm font-semibold">
+                    ⏹ End @{selectedStudent.username}'s Turn
+                  </button>
+                )}
                   </div>
                 )}
                 <button onClick={() => { setShowWhiteboard(!showWhiteboard); if (!showWhiteboard && inCall) fetchWhiteboard(inCall); }}
@@ -675,16 +701,34 @@ const getTouchPos = (e: React.TouchEvent) => {
           
                                   {/* VIDEOS — Sasl */}
               <div className={`${showChat || showWhiteboard || showMaterials ? 'flex-[3]' : 'flex-1'} p-2`}>
-                {sessions.find(s => s.id === inCall)?.is_group_class ? (
-                  // GROUP CLASS: Tutor fullscreen only
-                  <div className="flex-1 relative h-full">
-                                        <video ref={remoteVideoRef} autoPlay  playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
-                      const v = e.currentTarget;
-                      v.muted = !v.muted;
-                      if (!v.muted) v.play().catch(() => {});
-                    }} />
-                    <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor</span>
-                  </div>
+                               {sessions.find(s => s.id === inCall)?.is_group_class ? (
+                  selectedStudent ? (
+                    // SPLIT SCREEN: Tutor + Selected Student
+                    <div className="flex-1 grid grid-cols-2 gap-2 h-full">
+                      <div className="relative rounded-xl overflow-hidden bg-black">
+                        <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
+                          const v = e.currentTarget;
+                          v.muted = !v.muted;
+                          if (!v.muted) v.play().catch(() => {});
+                        }} />
+                        <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor</span>
+                      </div>
+                      <div className="relative rounded-xl overflow-hidden bg-black">
+                        <video ref={localVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
+                        <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">@{selectedStudent.username}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    // TUTOR FULLSCREEN ONLY
+                    <div className="flex-1 relative h-full">
+                      <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
+                        const v = e.currentTarget;
+                        v.muted = !v.muted;
+                        if (!v.muted) v.play().catch(() => {});
+                      }} />
+                      <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor</span>
+                    </div>
+                  )
                 ) : (
                   // 1-ON-1: Split screen
                   <div className="flex-1 grid grid-cols-2 gap-2 h-full" style={{ minHeight: '100%' }}>
