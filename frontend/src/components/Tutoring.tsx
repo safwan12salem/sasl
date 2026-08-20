@@ -466,24 +466,9 @@ stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('�
     });
 
 
-
     peer.on('call', (call) => {
       console.log('📞 Incoming call, answering');
       call.answer(stream);
-      // Use peer-level data connection for hand raise
-      (peer as any).on('connection', (conn: any) => {
-        conn.on('data', (data: any) => {
-          if (data && data.type === 'hand-raise') {
-            console.log('✋ Hand raise:', data);
-            setRaisedHands(prev => {
-              const existing = prev.find(h => h.username === data.username);
-              if (data.raised && !existing) return [...prev, { username: data.username, peerId: data.peerId }];
-              if (!data.raised && existing) return prev.filter(h => h.username !== data.username);
-              return prev;
-            });
-          }
-        });
-      });
       call.on('stream', (remoteStream) => {
         console.log('🎥 Remote stream received');
         remoteStreamRef.current = remoteStream;
