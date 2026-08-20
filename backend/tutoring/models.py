@@ -127,3 +127,14 @@ class TutoringChatMessage(models.Model):
 
     class Meta:
         ordering = ['created_at']
+
+
+class SessionEnrollment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    session = models.ForeignKey(TutoringSession, on_delete=models.CASCADE, related_name='enrollments')
+    student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default='enrolled')
+    
+    class Meta:
+        unique_together = ['session', 'student']        

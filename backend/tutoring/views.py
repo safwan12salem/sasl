@@ -68,6 +68,38 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def request_booking(self, request, pk=None):
         session = self.get_object()
+        
+        if session.is_group_class:
+            # Group class: multiple students
+            if session.enrollments.count() >= session.max_students:
+                return Response({'error': 'Class is full'}, status=400)
+            
+            enrollment, created = SessionEnrollment.objects.get_or_create(
+                session=session, student=request.user
+            )
+            
+            if created:
+                create_notification(
+                    recipient=session.tutor,
+                    actor=request.user,
+                    notification_type='booking_request',
+                    message=f'{request.user.username} joined your group class "{session.subject}"'
+                )
+            
+            # Process payment
+            valid, error_response = validate_tutoring_payment(
+                request.user, session.tutor, session.price, session.subject
+            )
+            if not valid:
+                return error_response
+            
+            success = process_tutoring_payment(request.user, session.tutor, session.price, session.subject)
+            if not success:
+                return Response({'error': 'Payment failed'}, status=402)
+            
+            return Response({'status': 'enrolled', 'enrolled_count': session.enrollments.count()})
+        
+        # 1-on-1: existing flow
         if session.student:
             return Response({'error': 'Session already has a student'}, status=400)
         if session.tutor == request.user:
