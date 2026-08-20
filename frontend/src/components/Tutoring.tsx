@@ -137,6 +137,7 @@ const STATUS_COLORS: Record<string, string> = {
   const remoteStreamRef = useRef<MediaStream | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
     const pcRef = useRef<RTCPeerConnection | null>(null);
+    const peerRef = useRef<any>(null);
   const rtcRef = useRef<WebRTCConnection | null>(null);
   const token = localStorage.getItem('sasl_token');
 
@@ -161,6 +162,9 @@ const STATUS_COLORS: Record<string, string> = {
   // Chat
   const [showChat, setShowChat] = useState(false);
   const [showJitsi, setShowJitsi] = useState(false);
+  const [handRaised, setHandRaised] = useState(false);
+const [raisedHands, setRaisedHands] = useState<{username: string; peerId: string}[]>([]);
+const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
   // Stats
   const [stats, setStats] = useState({ totalSessions: 0, completedSessions: 0, totalEarned: '0', totalLearned: '0' });
 
@@ -402,6 +406,7 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       path: '/sasl-peerjs',
       secure: true
     });
+    peerRef.current = peer;
     
     peer.on('open', () => {
       console.log('🟢 PeerJS connected:', peer.id);
@@ -411,6 +416,20 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
     peer.on('call', (call) => {
       console.log('📞 Incoming call, answering');
       call.answer(stream);
+      // Use peer-level data connection for hand raise
+      (peer as any).on('connection', (conn: any) => {
+        conn.on('data', (data: any) => {
+          if (data && data.type === 'hand-raise') {
+            console.log('✋ Hand raise:', data);
+            setRaisedHands(prev => {
+              const existing = prev.find(h => h.username === data.username);
+              if (data.raised && !existing) return [...prev, { username: data.username, peerId: data.peerId }];
+              if (!data.raised && existing) return prev.filter(h => h.username !== data.username);
+              return prev;
+            });
+          }
+        });
+      });
       call.on('stream', (remoteStream) => {
         console.log('🎥 Remote stream received');
         remoteStreamRef.current = remoteStream;
@@ -615,6 +634,24 @@ const getTouchPos = (e: React.TouchEvent) => {
                 </span>
               )}
               <div className="flex items-center gap-2 flex-wrap relative z-50">
+                                {/* Raise Hand — Student only in group class */}
+                {sessions.find(s => s.id === inCall)?.is_group_class && user?.username !== sessions.find(s => s.id === inCall)?.tutor?.username && (
+                  <button onClick={() => {
+                    setHandRaised(!handRaised);
+                    peerRef.current?.send({ type: 'hand-raise', username: user?.username, raised: !handRaised });
+                    toast(handRaised ? 'Hand lowered' : '✋ Hand raised');
+                  }}
+                  className={`px-3 py-1.5 rounded-full text-sm flex items-center gap-1 ${handRaised ? 'bg-yellow-500 text-black' : 'bg-gray-700 hover:bg-gray-600 text-white'}`}>
+                    ✋ {handRaised ? 'Lower Hand' : 'Raise Hand'}
+                  </button>
+                )}
+                
+                {/* Raised hands indicator — Tutor view */}
+                {sessions.find(s => s.id === inCall)?.is_group_class && user?.username === sessions.find(s => s.id === inCall)?.tutor?.username && raisedHands.length > 0 && (
+                  <div className="bg-yellow-500 text-black px-3 py-1.5 rounded-full text-sm font-semibold">
+                    ✋ {raisedHands.length} raised
+                  </div>
+                )}
                 <button onClick={() => { setShowWhiteboard(!showWhiteboard); if (!showWhiteboard && inCall) fetchWhiteboard(inCall); }}
                   className="px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-sm flex items-center gap-1">
                   <PenTool size={14} /> Whiteboard
