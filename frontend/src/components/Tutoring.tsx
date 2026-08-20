@@ -263,14 +263,14 @@ useEffect(() => {
 }, [inCall, remoteStreamRef.current]);
 
 
-
 useEffect(() => {
   if (remoteStreamRef.current && remoteVideoRef.current) {
     console.log('🔗 Attaching remote stream');
     remoteVideoRef.current.srcObject = remoteStreamRef.current;
     remoteVideoRef.current.play().catch(() => {});
   }
-}, [inCall, remoteReady]);
+}, [inCall, remoteReady, selectedStudent]);
+
 
 
 useEffect(() => {
@@ -279,7 +279,7 @@ useEffect(() => {
     localVideoRef.current.muted = true;
     localVideoRef.current.play().catch(() => {});
   }
-}, [inCall]);
+}, [inCall, selectedStudent]);
 
   // ============================================================
   // ACTIONS
@@ -393,6 +393,13 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       track.enabled = true;
     });
 
+        // In group class, students are muted by default
+    const session = sessions.find(s => s.id === sessionId);
+    if (session?.is_group_class && role === 'student') {
+      stream.getAudioTracks().forEach(track => track.enabled = false);
+      console.log('🔇 Student muted in group class');
+    }
+
     pendingStreamRef.current = stream;
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = stream;
@@ -437,6 +444,7 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       conn.on('data', (data: any) => {
         if (data && data.type === 'hand-raise') {
           console.log('✋ Hand raise received:', data);
+
           setRaisedHands(prev => {
             const existing = prev.find(h => h.username === data.username);
             if (data.raised && !existing) return [...prev, { username: data.username, peerId: data.peerId }];
@@ -444,8 +452,14 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
             return prev;
           });
         }
+                if (data && data.type === 'unmute-student' && data.username === user?.username) {
+          pendingStreamRef.current?.getAudioTracks().forEach(track => track.enabled = true);
+          console.log('🎤 Unmuted by tutor');
+        }
       });
     });
+
+
 
     peer.on('call', (call) => {
       console.log('📞 Incoming call, answering');
@@ -690,6 +704,11 @@ if (conn) {
                     {raisedHands.map(h => (
                       <button key={h.username} onClick={() => {
                         setSelectedStudent(h);
+                                                // Send unmute signal to selected student
+                        const conn = (peerRef.current as any)?.connections?.[Object.keys((peerRef.current as any)?.connections || {})[0]]?.[0];
+                        if (conn) {
+                          conn.send({ type: 'unmute-student', username: h.username });
+                        }
                         toast.success(`🎤 ${h.username} is now speaking!`);
                       }}
                       className={`px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 ${
@@ -734,9 +753,9 @@ if (conn) {
           
                                   {/* VIDEOS — Sasl */}
               <div className={`${showChat || showWhiteboard || showMaterials ? 'flex-[3]' : 'flex-1'} p-2`}>
-                               {sessions.find(s => s.id === inCall)?.is_group_class ? (
-                  selectedStudent ? (
-                    // SPLIT SCREEN: Tutor + Selected Student
+                                              {sessions.find(s => s.id === inCall)?.is_group_class ? (
+                  selectedStudent && user?.username === sessions.find(s => s.id === inCall)?.tutor?.username ? (
+                  // SPLIT SCREEN: Tutor + Selected Student
                     <div className="flex-1 grid grid-cols-2 gap-2 h-full">
                       <div className="relative rounded-xl overflow-hidden bg-black">
                         <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
