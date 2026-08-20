@@ -768,10 +768,20 @@ if (conn) {
                           v.muted = !v.muted;
                           if (!v.muted) v.play().catch(() => {});
                         }} />
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+  <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
+    👆 Tap to Unmute
+  </span>
+</div>
                         <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor</span>
                       </div>
                       <div className="relative rounded-xl overflow-hidden bg-black">
                         <video ref={localVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+  <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
+    👆 Tap to Unmute
+  </span>
+</div>
                         <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">@{selectedStudent.username}</span>
                       </div>
                     </div>
@@ -783,6 +793,11 @@ if (conn) {
                         v.muted = !v.muted;
                         if (!v.muted) v.play().catch(() => {});
                       }} />
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+  <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
+    👆 Tap to Unmute
+  </span>
+</div>
                       <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor</span>
                     </div>
                   )
@@ -791,6 +806,11 @@ if (conn) {
                   <div className="flex-1 grid grid-cols-2 gap-2 h-full" style={{ minHeight: '100%' }}>
                     <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
                       <video ref={localVideoRef} autoPlay  playsInline className="absolute inset-0 w-full h-full object-cover" />
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+  <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
+    👆 Tap to Unmute
+  </span>
+</div>
                       <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">You</span>
                     </div>
                     <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
