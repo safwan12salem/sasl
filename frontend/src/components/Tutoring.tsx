@@ -23,7 +23,7 @@ import AdBanner from './AdBanner';
 import { uploadFile as uploadToCloud } from '../services/uploadService';
 import { db } from '../services/offlineDB';
 
-
+import DiscussionBoard from './DiscussionBoard';
 
 interface Session {
   id: string;
@@ -922,9 +922,17 @@ if (conn) {
 />
                     </div>
                   )}
-                  {showChat && (
+                                   {showChat && (
                     <div className="flex-1 overflow-hidden">
-                      <TutoringChat roomId={inCall!} onClose={() => setShowChat(false)} />
+                      {sessions.find(s => s.id === inCall)?.is_group_class ? (
+                        <DiscussionBoard 
+                          sessionId={inCall!} 
+                          isTutor={user?.username === sessions.find(s => s.id === inCall)?.tutor?.username}
+                          onClose={() => setShowChat(false)} 
+                        />
+                      ) : (
+                        <TutoringChat roomId={inCall!} onClose={() => setShowChat(false)} />
+                      )}
                     </div>
                   )}
                   {showMaterials && (
