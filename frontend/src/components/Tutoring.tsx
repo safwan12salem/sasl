@@ -410,6 +410,21 @@ const respondBooking = async (sessionId: string, enrollmentId: string, action: '
   }
 };
 
+
+
+const [bookingMessage, setBookingMessage] = useState('');
+
+const requestBookingWithMessage = async (id: string) => {
+  try {
+    await api.post(`/tutoring/sessions/${id}/request_booking/`, { message: bookingMessage });
+    toast.success(t('Booking requested!'));
+    setBookingMessage('');
+    fetchSessions();
+  } catch (err: any) {
+    toast.error(err.response?.data?.error || t('Failed to request booking'));
+  }
+};
+
 const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
   if (callingRef.current) return;
   callingRef.current = true;
@@ -450,7 +465,8 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
     }
     
     const { Peer } = await import('peerjs');
-    const peer = new Peer(`sasl-${sessionId}-${role}`, {
+   const uniqueId = `sasl-${sessionId}-${role}-${user?.username}`;
+const peer = new Peer(uniqueId, {
       host: 'sasl-peerjs.onrender.com',
       port: 443,
       path: '/sasl-peerjs',
@@ -520,7 +536,7 @@ stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('�
       console.log('🟡 Tutor waiting for student to call');
     } else {
       setTimeout(() => {
-        const call = peer.call(`sasl-${sessionId}-tutor`, stream);
+        const call = peer.call(`sasl-${sessionId}-tutor-${sessions.find(s => s.id === sessionId)?.tutor?.username}`, stream);
         call.on('stream', (remoteStream) => {
           console.log('🎥 Tutor stream received');
           remoteStreamRef.current = remoteStream;
@@ -933,7 +949,7 @@ if (conn) {
           <button onClick={() => { setShowTutors(!showTutors); fetchTutors(); }} className="btn-ghost text-sm flex items-center gap-1">
             <Users size={16} /> {t('Find Tutors')}
           </button>
-          {user?.is_teacher && (
+          {(user?.is_teacher || sessions.some(s => s.tutor?.username === user?.username)) && (
   <button onClick={() => setShowProfileEdit(true)} className="btn-ghost text-sm flex items-center gap-1">
     <Award size={16} /> Edit Profile
   </button>
@@ -1306,11 +1322,18 @@ if (conn) {
         </>
       ) : (
         <>
-          {session.status === 'open' && (
-            <button onClick={(e) => { e.stopPropagation(); requestBooking(session.id); }}
-              className="bg-gradient-to-r from-green-500 to-orange-500 text-white px-4 py-2 rounded-full text-xs font-bold hover:shadow-lg hover:shadow-orange-500/30 transition">
-              🎯 Request to Book
-            </button>
+                  {session.status === 'open' && (
+            <div className="flex items-center gap-2 flex-wrap" onClick={e => e.stopPropagation()}>
+              <input 
+                placeholder="✉️ Message to tutor..." 
+                className="bg-gray-700/50 text-white text-xs rounded-full px-3 py-1.5 border border-gray-600/30 w-40"
+                onChange={e => setBookingMessage(e.target.value)}
+              />
+              <button onClick={(e) => { e.stopPropagation(); requestBookingWithMessage(session.id); }}
+                className="bg-gradient-to-r from-green-500 to-orange-500 text-white px-4 py-2 rounded-full text-xs font-bold hover:shadow-lg hover:shadow-orange-500/30 transition">
+                🎯 Request
+              </button>
+            </div>
           )}
           {session.status === 'ongoing' && (
             <button onClick={(e) => { e.stopPropagation(); startVideoCall(session.id, 'student'); }}
