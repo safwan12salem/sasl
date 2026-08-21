@@ -43,7 +43,19 @@ class TutorProfileViewSet(viewsets.ModelViewSet):
         ).order_by('-rating')[:10]
         return Response(TutorProfileSerializer(tutors, many=True, context={'request': request}).data)
 
+     
 
+    @action(detail=False, methods=['patch'])
+    def me(self, request):
+        profile, created = TutorProfile.objects.get_or_create(user=request.user)
+        profile.bio = request.data.get('bio', profile.bio)
+        profile.certifications = request.data.get('certifications', profile.certifications)
+        profile.linkedin_url = request.data.get('linkedin_url', profile.linkedin_url)
+        profile.website_url = request.data.get('website_url', profile.website_url)
+        profile.save()
+        return Response(TutorProfileSerializer(profile).data)
+
+     
 class TutoringSessionViewSet(viewsets.ModelViewSet):
     queryset = TutoringSession.objects.select_related(
         'tutor', 'student'

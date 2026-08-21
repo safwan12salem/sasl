@@ -146,6 +146,7 @@ const STATUS_COLORS: Record<string, string> = {
   const wsRef = useRef<WebSocket | null>(null);
     const pcRef = useRef<RTCPeerConnection | null>(null);
     const peerRef = useRef<any>(null);
+    const studentStreams = useRef<Map<string, MediaStream>>(new Map());
   const rtcRef = useRef<WebRTCConnection | null>(null);
   const token = localStorage.getItem('sasl_token');
 const [remoteMuted, setRemoteMuted] = useState(true);
@@ -179,7 +180,8 @@ const [profileBio, setProfileBio] = useState('');
 const [profileCertifications, setProfileCertifications] = useState('');
 const [profileLinkedin, setProfileLinkedin] = useState('');
 const [profileWebsite, setProfileWebsite] = useState('');
-
+const [profileEmail, setProfileEmail] = useState('');
+const [profilePhone, setProfilePhone] = useState('');
   // Stats
   const [stats, setStats] = useState({ totalSessions: 0, completedSessions: 0, totalEarned: '0', totalLearned: '0' });
 
@@ -534,9 +536,11 @@ stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('�
     
     if (role === 'tutor') {
       console.log('🟡 Tutor waiting for student to call');
-    } else {
+    
+        } else {
       setTimeout(() => {
-        const call = peer.call(`sasl-${sessionId}-tutor-${sessions.find(s => s.id === sessionId)?.tutor?.username}`, stream);
+        const tutorUsername = sessions.find(s => s.id === sessionId)?.tutor?.username;
+        const call = peer.call(`sasl-${sessionId}-tutor-${tutorUsername}`, stream);
         call.on('stream', (remoteStream) => {
           console.log('🎥 Tutor stream received');
           remoteStreamRef.current = remoteStream;
@@ -1112,8 +1116,20 @@ if (conn) {
               <h3 className="font-bold text-xl mb-4 text-transparent bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text">🏆 Your Expert Profile</h3>
               <textarea className="input-field mb-3" placeholder="Bio — tell students about your expertise..." value={profileBio} onChange={e => setProfileBio(e.target.value)} rows={3} />
               <textarea className="input-field mb-3" placeholder="Certifications (one per line)..." value={profileCertifications} onChange={e => setProfileCertifications(e.target.value)} rows={3} />
+                <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-400 hover:text-gray-300 mb-3">
+  <Upload size={16} />
+  Upload Certification (PDF/Image)
+  <input type="file" accept=".pdf,.jpg,.png" className="hidden" onChange={async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const url = await uploadToCloud(file, 'certifications');
+    if (url) setProfileCertifications(prev => prev ? prev + '\n' + url : url);
+  }} />
+</label>
               <input className="input-field mb-3" placeholder="LinkedIn URL" value={profileLinkedin} onChange={e => setProfileLinkedin(e.target.value)} />
               <input className="input-field mb-4" placeholder="Website URL" value={profileWebsite} onChange={e => setProfileWebsite(e.target.value)} />
+              <input className="input-field mb-3" placeholder="Email" value={profileEmail} onChange={e => setProfileEmail(e.target.value)} />
+<input className="input-field mb-3" placeholder="Phone/WhatsApp" value={profilePhone} onChange={e => setProfilePhone(e.target.value)} />
               <button onClick={saveProfile}
                 className="w-full py-3 bg-gradient-to-r from-green-500 to-orange-500 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-orange-500/30 transition">
                 💾 Save Profile
