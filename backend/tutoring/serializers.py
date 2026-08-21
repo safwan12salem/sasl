@@ -12,9 +12,9 @@ class TutorProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = TutorProfile
-        fields = ['id', 'user', 'hourly_rate', 'subjects', 'rating', 'is_available', 'total_sessions', 'total_students']
+        fields = ['id', 'user', 'hourly_rate', 'subjects', 'rating', 'is_available', 'total_sessions', 'total_students', 'bio', 'certifications', 'experience_years', 'linkedin_url', 'website_url']
 
-
+        
 class SessionMaterialSerializer(serializers.ModelSerializer):
     class Meta:
         model = SessionMaterial
