@@ -171,8 +171,14 @@ const [remoteMuted, setRemoteMuted] = useState(true);
   const [showChat, setShowChat] = useState(false);
   const [showJitsi, setShowJitsi] = useState(false);
   const [handRaised, setHandRaised] = useState(false);
-const [raisedHands, setRaisedHands] = useState<{username: string; peerId: string}[]>([]);
-const [selectedStudent, setSelectedStudent] = useState<{username: string} | null>(null);
+  const [raisedHands, setRaisedHands] = useState<{username: string; peerId: string}[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<{username: string} | null>(null);
+  const [bookingRequests, setBookingRequests] = useState<Record<string, any[]>>({});
+const [showProfileEdit, setShowProfileEdit] = useState(false);
+const [profileBio, setProfileBio] = useState('');
+const [profileCertifications, setProfileCertifications] = useState('');
+const [profileLinkedin, setProfileLinkedin] = useState('');
+const [profileWebsite, setProfileWebsite] = useState('');
 
   // Stats
   const [stats, setStats] = useState({ totalSessions: 0, completedSessions: 0, totalEarned: '0', totalLearned: '0' });
@@ -221,6 +227,13 @@ const [selectedStudent, setSelectedStudent] = useState<{username: string} | null
     }
   };
 
+   const fetchBookingRequests = async (sessionId: string) => {
+  try {
+    const res = await api.get(`/tutoring/sessions/${sessionId}/booking_requests/`);
+    setBookingRequests(prev => ({ ...prev, [sessionId]: res.data }));
+  } catch {}
+};
+    
   const fetchCertificates = async () => {
     try {
       const res = await api.get('/tutoring/sessions/my_certificates/');
@@ -386,6 +399,17 @@ useEffect(() => {
   };
 
 
+const respondBooking = async (sessionId: string, enrollmentId: string, action: 'accept' | 'reject') => {
+  try {
+    await api.post(`/tutoring/sessions/${sessionId}/respond_booking/`, { enrollment_id: enrollmentId, action });
+    toast.success(action === 'accept' ? '✅ Student accepted!' : '❌ Student rejected');
+    fetchBookingRequests(sessionId);
+    fetchSessions();
+  } catch (err: any) {
+    toast.error(err.response?.data?.error || 'Action failed');
+  }
+};
+
 const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
   if (callingRef.current) return;
   callingRef.current = true;
@@ -521,6 +545,9 @@ stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('�
 };
 
 
+
+
+
       const endCall = () => {
     rtcRef.current?.disconnect();
     wsRef.current?.close();
@@ -541,6 +568,23 @@ stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('�
     }
   };
 
+
+
+   const saveProfile = async () => {
+  try {
+    await api.patch('/tutoring/profiles/me/', {
+      bio: profileBio,
+      certifications: profileCertifications,
+      linkedin_url: profileLinkedin,
+      website_url: profileWebsite
+    });
+    toast.success('Profile updated!');
+    setShowProfileEdit(false);
+    fetchTutors();
+  } catch {
+    toast.error('Failed to update profile');
+  }
+};
 
   // ============================================================
   // WHITEBOARD
@@ -889,6 +933,11 @@ if (conn) {
           <button onClick={() => { setShowTutors(!showTutors); fetchTutors(); }} className="btn-ghost text-sm flex items-center gap-1">
             <Users size={16} /> {t('Find Tutors')}
           </button>
+          {user?.is_teacher && (
+  <button onClick={() => setShowProfileEdit(true)} className="btn-ghost text-sm flex items-center gap-1">
+    <Award size={16} /> Edit Profile
+  </button>
+)}
           <button onClick={() => setShowCertificates(!showCertificates)} className="btn-ghost text-sm flex items-center gap-1">
             <Award size={16} /> {t('Certificates')}
           </button>
@@ -1037,6 +1086,27 @@ if (conn) {
         )}
       </AnimatePresence>
 
+            {/* Tutor Profile Edit Modal */}
+      <AnimatePresence>
+        {showProfileEdit && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full shadow-2xl">
+              <h3 className="font-bold text-xl mb-4 text-transparent bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text">🏆 Your Expert Profile</h3>
+              <textarea className="input-field mb-3" placeholder="Bio — tell students about your expertise..." value={profileBio} onChange={e => setProfileBio(e.target.value)} rows={3} />
+              <textarea className="input-field mb-3" placeholder="Certifications (one per line)..." value={profileCertifications} onChange={e => setProfileCertifications(e.target.value)} rows={3} />
+              <input className="input-field mb-3" placeholder="LinkedIn URL" value={profileLinkedin} onChange={e => setProfileLinkedin(e.target.value)} />
+              <input className="input-field mb-4" placeholder="Website URL" value={profileWebsite} onChange={e => setProfileWebsite(e.target.value)} />
+              <button onClick={saveProfile}
+                className="w-full py-3 bg-gradient-to-r from-green-500 to-orange-500 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-orange-500/30 transition">
+                💾 Save Profile
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Search & Tabs */}
       <div className="flex flex-col md:flex-row gap-3 mb-4">
         <div className="relative flex-1">
@@ -1083,7 +1153,7 @@ if (conn) {
          <motion.div key={session.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
   className={`rounded-3xl overflow-hidden transition-all duration-300 ${
     expandedSession === session.id ? 'ring-2 ring-green-400 shadow-2xl shadow-green-500/20' : 'hover:shadow-xl hover:shadow-orange-500/10'
-  } ${session.background_image ? 'bg-cover bg-center' : 'bg-gradient-to-br from-gray-800 to-gray-900'}`}
+  } ${session.background_image ? 'bg-cover bg-center' : 'bg-gradient-to-br : from-gray-50 to-white dark:from-gray-800 dark:to-gray-900'}`}
   style={session.background_image ? {
     backgroundImage: `linear-gradient(rgba(17,24,39,0.92), rgba(17,24,39,0.92)), url(${session.background_image})`,
     backgroundSize: 'cover',
@@ -1098,6 +1168,9 @@ if (conn) {
     if (isOpening) {
       setSessions(prev => prev.map(s => s.id === session.id ? { ...s, views: (s.views || 0) + 1 } : s));
     }
+    if (isOpening && session.tutor?.username === user?.username) {
+  fetchBookingRequests(session.id);
+}
   }}>
     
     {/* TOP ROW: Avatar + Subject + Status */}
@@ -1174,6 +1247,37 @@ if (conn) {
             )}
           </div>
         </div>
+      </div>
+    )}
+
+         {/* BOOKING REQUESTS — Tutor only */}
+    {expandedSession === session.id && session.tutor?.username === user?.username && (
+      <div className="mb-3 border-t border-gray-300 dark:border-gray-700 pt-3" onClick={e => e.stopPropagation()}>
+        <h4 className="text-sm font-bold text-green-600 mb-2 flex items-center gap-1">
+          <Users size={14} /> Booking Requests
+        </h4>
+        {bookingRequests[session.id]?.length > 0 ? (
+          bookingRequests[session.id].map((req: any) => (
+            <div key={req.id} className="flex items-center justify-between mb-2 bg-gray-50 dark:bg-gray-800 rounded-xl p-2.5">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-bold text-green-700 dark:text-green-400">@{req.student_username}</p>
+                {req.message && <p className="text-xs text-gray-500 mt-0.5 italic">"{req.message}"</p>}
+              </div>
+              <div className="flex gap-1.5 flex-shrink-0">
+                <button onClick={(e) => { e.stopPropagation(); respondBooking(session.id, req.id, 'accept'); }}
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:shadow-lg transition">
+                  ✅ Accept
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); respondBooking(session.id, req.id, 'reject'); }}
+                  className="bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1.5 rounded-full text-xs font-bold hover:shadow-lg transition">
+                  ❌ Reject
+                </button>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-xs text-gray-500">No pending requests.</p>
+        )}
       </div>
     )}
 

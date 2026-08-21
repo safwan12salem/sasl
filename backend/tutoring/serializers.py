@@ -14,7 +14,7 @@ class TutorProfileSerializer(serializers.ModelSerializer):
         model = TutorProfile
         fields = ['id', 'user', 'hourly_rate', 'subjects', 'rating', 'is_available', 'total_sessions', 'total_students', 'bio', 'certifications', 'experience_years', 'linkedin_url', 'website_url']
 
-        
+
 class SessionMaterialSerializer(serializers.ModelSerializer):
     class Meta:
         model = SessionMaterial
@@ -54,8 +54,9 @@ class TutoringSessionSerializer(serializers.ModelSerializer):
     
     def get_students_enrolled(self, obj):
         if obj.is_group_class:
-            return obj.enrollments.count()
+            return obj.enrollments.filter(status='accepted').count()
         return 1 if obj.student else 0
+    
 class TutoringChatMessageSerializer(serializers.ModelSerializer):
     sender_name = serializers.ReadOnlyField(source='sender.username')
     
