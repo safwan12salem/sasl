@@ -135,42 +135,49 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Only tutor can respond'}, status=403)
         
         enrollment_id = request.data.get('enrollment_id')
-        action = request.data.get('action')  # 'accept' or 'reject'
+        action = request.data.get('action')
         
         try:
             enrollment = SessionEnrollment.objects.get(id=enrollment_id, session=session)
         except SessionEnrollment.DoesNotExist:
             return Response({'error': 'Request not found'}, status=404)
         
-        
-            # Don't overwrite session.student — keep first student for 1-on-1
-            # For group class, just mark enrollment accepted
         if action == 'accept':
             enrollment.status = 'accepted'
             enrollment.save()
-            # Don't overwrite session.student — keep first student for 1-on-1
-            # For group class, just mark enrollment accepted
-        if not session.is_group_class:
-            session.student = enrollment.student
-            session.status = 'ongoing'
+            
+            # For 1-on-1: set student immediately
+            if not session.is_group_class:
+                session.student = enrollment.student
+                session.status = 'ongoing'
+            else:
+                # For group class: check if full
+                accepted_count = session.enrollments.filter(status='accepted').count()
+                if accepted_count >= session.max_students:
+                    session.status = 'ongoing'
+            
             session.save()
-            create_notification(
-                recipient=enrollment.student,
-                actor=request.user,
-                notification_type='booking_accepted',
-                message=f'Your booking for "{session.subject}" was accepted!'
-            )
+            
+            # If session is now ongoing, notify ALL accepted students
+            if session.status == 'ongoing':
+                for e in session.enrollments.filter(status='accepted'):
+                    create_notification(
+                        recipient=e.student,
+                        actor=session.tutor,
+                        notification_type='session_starting',
+                        message=f'🎉 Your session "{session.subject}" is now LIVE! Join now!'
+                    )
+            
+            return Response({'status': 'accepted', 'session_status': session.status})
+        
         elif action == 'reject':
             enrollment.status = 'rejected'
             enrollment.save()
-            create_notification(
-                recipient=enrollment.student,
-                actor=request.user,
-                notification_type='booking_rejected',
-                message=f'Your booking for "{session.subject}" was rejected.'
-            )
+            return Response({'status': 'rejected'})
         
-        return Response({'status': action})
+        return Response({'error': 'Invalid action'}, status=400)
+
+    
     def perform_create(self, serializer):
         serializer.save(
             tutor=self.request.user,
