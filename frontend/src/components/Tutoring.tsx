@@ -1284,11 +1284,24 @@ if (conn) {
           🏆 Tutor Excellence
         </h4>
         <div className="max-h-40 overflow-y-auto pr-2 space-y-1.5 scrollbar-thin">
-          {tutors.find(t => t.user?.username === session.tutor?.username)?.certifications ? (
-            <p className="text-xs text-gray-400">{tutors.find(t => t.user?.username === session.tutor?.username)?.certifications}</p>
-          ) : (
-            <p className="text-xs text-gray-500">No certifications listed yet.</p>
-          )}
+                   {(() => {
+            const certs = tutors.find(t => t.user?.username === session.tutor?.username)?.certifications;
+            if (!certs) return <p className="text-xs text-gray-500">No certifications listed yet.</p>;
+            const certList = certs.split('\n').filter(Boolean);
+            return (
+              <div className="space-y-2">
+                {certList.map((cert, i) => (
+                  cert.startsWith('http') ? (
+                    <img key={i} src={cert} alt={`Certification ${i + 1}`} className="w-full max-w-[180px] rounded-xl object-cover border border-green-200 dark:border-green-800" />
+                  ) : (
+                    <p key={i} className="text-xs text-gray-400 flex items-center gap-1">
+                      <Award size={12} className="text-green-500" /> {cert}
+                    </p>
+                  )
+                ))}
+              </div>
+            );
+          })()}
           {tutors.find(t => t.user?.username === session.tutor?.username)?.bio && (
             <p className="text-xs text-gray-400">{tutors.find(t => t.user?.username === session.tutor?.username)?.bio}</p>
           )}

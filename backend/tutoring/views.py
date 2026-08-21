@@ -142,9 +142,15 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         except SessionEnrollment.DoesNotExist:
             return Response({'error': 'Request not found'}, status=404)
         
+        
+            # Don't overwrite session.student — keep first student for 1-on-1
+            # For group class, just mark enrollment accepted
         if action == 'accept':
             enrollment.status = 'accepted'
             enrollment.save()
+            # Don't overwrite session.student — keep first student for 1-on-1
+            # For group class, just mark enrollment accepted
+        if not session.is_group_class:
             session.student = enrollment.student
             session.status = 'ongoing'
             session.save()
