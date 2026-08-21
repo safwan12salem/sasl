@@ -65,49 +65,34 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
             qs = qs.filter(Q(tutor=self.request.user) | Q(student=self.request.user))
         
         return qs
+    
+
     @action(detail=True, methods=['post'])
     def request_booking(self, request, pk=None):
         session = self.get_object()
+        message = request.data.get('message', '')
         
-        if session.is_group_class:
-            # Group class: multiple students
-            if session.enrollments.count() >= session.max_students:
-                return Response({'error': 'Class is full'}, status=400)
-            
-            enrollment, created = SessionEnrollment.objects.get_or_create(
-                session=session, student=request.user
-            )
-            
-            if created:
-                create_notification(
-                    recipient=session.tutor,
-                    actor=request.user,
-                    notification_type='booking_request',
-                    message=f'{request.user.username} joined your group class "{session.subject}"'
-                )
-            
-            # Process payment
-            valid, error_response = validate_tutoring_payment(
-                request.user, session.tutor, session.price, session.subject
-            )
-            if not valid:
-                return error_response
-            
-            success = process_tutoring_payment(request.user, session.tutor, session.price, session.subject)
-            if not success:
-                return Response({'error': 'Payment failed'}, status=402)
-            
-            return Response({'status': 'enrolled', 'enrolled_count': session.enrollments.count()})
-        
-        # 1-on-1: existing flow
-        if session.student:
-            return Response({'error': 'Session already has a student'}, status=400)
         if session.tutor == request.user:
             return Response({'error': 'Cannot book your own session'}, status=400)
         
-        session.student = request.user
-        session.status = 'pending_confirmation'
-        session.save()
+        if session.is_group_class:
+            if session.enrollments.filter(status='accepted').count() >= session.max_students:
+                return Response({'error': 'Class is full'}, status=400)
+            
+            enrollment, created = SessionEnrollment.objects.get_or_create(
+                session=session, student=request.user,
+                defaults={'message': message, 'status': 'pending'}
+            )
+        else:
+            if session.student:
+                return Response({'error': 'Session already has a student'}, status=400)
+            
+            session.student = request.user
+            session.status = 'pending_confirmation'
+            session.save()
+            enrollment = SessionEnrollment.objects.create(
+                session=session, student=request.user, message=message, status='pending'
+            )
         
         create_notification(
             recipient=session.tutor,
@@ -115,7 +100,59 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
             notification_type='booking_request',
             message=f'{request.user.username} requested to book your session "{session.subject}"'
         )
-        return Response({'status': 'requested'})
+        return Response({'status': 'pending', 'message': message})
+
+    @action(detail=True, methods=['get'])
+    def booking_requests(self, request, pk=None):
+        session = self.get_object()
+        if session.tutor != request.user:
+            return Response({'error': 'Only tutor can view requests'}, status=403)
+        
+        enrollments = session.enrollments.filter(status='pending')
+        return Response([{
+            'id': str(e.id),
+            'student_username': e.student.username,
+            'message': e.message,
+            'created_at': e.created_at.isoformat()
+        } for e in enrollments])
+    
+    @action(detail=True, methods=['post'])
+    def respond_booking(self, request, pk=None):
+        session = self.get_object()
+        if session.tutor != request.user:
+            return Response({'error': 'Only tutor can respond'}, status=403)
+        
+        enrollment_id = request.data.get('enrollment_id')
+        action = request.data.get('action')  # 'accept' or 'reject'
+        
+        try:
+            enrollment = SessionEnrollment.objects.get(id=enrollment_id, session=session)
+        except SessionEnrollment.DoesNotExist:
+            return Response({'error': 'Request not found'}, status=404)
+        
+        if action == 'accept':
+            enrollment.status = 'accepted'
+            enrollment.save()
+            session.student = enrollment.student
+            session.status = 'ongoing'
+            session.save()
+            create_notification(
+                recipient=enrollment.student,
+                actor=request.user,
+                notification_type='booking_accepted',
+                message=f'Your booking for "{session.subject}" was accepted!'
+            )
+        elif action == 'reject':
+            enrollment.status = 'rejected'
+            enrollment.save()
+            create_notification(
+                recipient=enrollment.student,
+                actor=request.user,
+                notification_type='booking_rejected',
+                message=f'Your booking for "{session.subject}" was rejected.'
+            )
+        
+        return Response({'status': action})
     def perform_create(self, serializer):
         serializer.save(
             tutor=self.request.user,

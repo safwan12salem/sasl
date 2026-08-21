@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 import uuid
 
-
 class TutorProfile(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tutor_profile')
@@ -12,10 +11,14 @@ class TutorProfile(models.Model):
     is_available = models.BooleanField(default=True)
     total_sessions = models.PositiveIntegerField(default=0)
     total_students = models.PositiveIntegerField(default=0)
+    bio = models.TextField(blank=True, default='')
+    certifications = models.TextField(blank=True, default='')
+    experience_years = models.PositiveIntegerField(default=0)
+    linkedin_url = models.URLField(blank=True, default='')
+    website_url = models.URLField(blank=True, default='')
 
     def __str__(self):
         return f"Tutor: {self.user.username}"
-
 
 class TutoringSession(models.Model):
     STATUS_CHOICES = (
@@ -125,6 +128,6 @@ class SessionEnrollment(models.Model):
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=20, default='enrolled')
-    
+    message = models.TextField(blank=True, default='')
     class Meta:
         unique_together = ['session', 'student']        
