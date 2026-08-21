@@ -11,7 +11,7 @@ from django.db.models import Q, Avg
 from django.utils import timezone
 from .models import (
     TutorProfile, TutoringSession, SessionMaterial,
-    WhiteboardSession, Certificate, TutoringChatMessage
+    WhiteboardSession, Certificate, TutoringChatMessage, SessionEnrollment
 )
 from .serializers import (
     TutorProfileSerializer, TutoringSessionSerializer,
