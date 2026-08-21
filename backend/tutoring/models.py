@@ -118,16 +118,6 @@ class TutoringChatMessage(models.Model):
 
 
 
-class TutoringChatMessage(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    session = models.ForeignKey('TutoringSession', on_delete=models.CASCADE, related_name='chat_messages')
-    sender = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    text = models.TextField(blank=True, default='')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['created_at']
-
 
 class SessionEnrollment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
