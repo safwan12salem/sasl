@@ -122,40 +122,44 @@ class TutoringChatConsumer(AsyncWebsocketConsumer):
         }))
 
 
-
-
-
 class DiscussionConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.session_id = self.scope['url_route']['kwargs']['session_id']
-        self.room_group_name = f'discussion_{self.session_id}'
+        self.room_id = self.scope['url_route']['kwargs']['room_id']
+        self.room_group_name = f'discussion_{self.room_id}'
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
-        print(f"💬 Discussion connected: {self.session_id}")
-    
+        await self.channel_layer.group_send(
+            self.room_group_name,
+            {'type': 'user_joined', 'username': self.scope['user'].username}
+        )
+
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-    
+
     async def receive(self, text_data):
         data = json.loads(text_data)
+        message_type = data.get('type', 'message')
+        
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'discussion_message',
-                'message': data.get('message', ''),
-                'sender': self.scope['user'].username,
-                'avatar': data.get('avatar', ''),
-                'reply_to': data.get('reply_to', None),
-                'timestamp': data.get('timestamp', ''),
+                'type': 'relay_message',
+                'message': {
+                    'id': str(uuid.uuid4()),
+                    'type': message_type,
+                    'username': self.scope['user'].username,
+                    'text': data.get('text', ''),
+                    'created_at': datetime.now().isoformat(),
+                }
             }
         )
-    
-    async def discussion_message(self, event):
+
+    async def relay_message(self, event):
+        await self.send(text_data=json.dumps(event['message']))
+
+    async def user_joined(self, event):
         await self.send(text_data=json.dumps({
-            'type': 'discussion',
-            'message': event['message'],
-            'sender': event['sender'],
-            'avatar': event['avatar'],
-            'reply_to': event['reply_to'],
-            'timestamp': event['timestamp'],
+            'type': 'system',
+            'text': f"👋 {event['username']} joined",
         }))
+

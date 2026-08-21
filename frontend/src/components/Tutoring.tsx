@@ -428,8 +428,22 @@ const requestBookingWithMessage = async (id: string) => {
 };
 
 const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
-  if (callingRef.current) return;
-  callingRef.current = true;
+    if (callingRef.current) { console.log('⚠️ Already connecting'); return; }
+    
+    // STUDENT GUARD: Only accepted students can join
+    const session = sessions.find(s => s.id === sessionId);
+    if (role === 'student' && session && session.tutor?.username !== user?.username) {
+      const isEnrolled = session.enrollments?.some((e: any) => 
+        e.student === user?.id && e.status === 'accepted'
+      ) || session.student?.username === user?.username;
+      
+      if (!isEnrolled) {
+        toast.error('⛔ Only accepted students can join. Wait for tutor confirmation.');
+        return;
+      }
+    }
+    
+    callingRef.current = true;
   console.log('🔴 START Sasl PeerJS call', sessionId, role);
   
   try {
