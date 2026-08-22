@@ -438,17 +438,11 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
   if (studentCallingRef.current) { console.log('⚠️ Student already connecting'); return; }
   studentCallingRef.current = true;
 }
-    // STUDENT GUARD: Only accepted students can join
+      // STUDENT GUARD: Session must be ongoing (tutor accepted all students)
     const session = sessions.find(s => s.id === sessionId);
-    if (role === 'student' && session && session.tutor?.username !== user?.username) {
-      const isEnrolled = session.enrollments?.some((e: any) => 
-        e.student === user?.id && e.status === 'accepted'
-      ) || session.student?.username === user?.username;
-      
-      if (!isEnrolled) {
-        toast.error('⛔ Only accepted students can join. Wait for tutor confirmation.');
-        return;
-      }
+    if (role === 'student' && session && session.status !== 'ongoing' && session.status !== 'in_progress') {
+      toast.error('⛔ Session has not started yet. Wait for tutor to start it.');
+      return;
     }
     
       console.log('🔴 START Sasl PeerJS call', sessionId, role);
