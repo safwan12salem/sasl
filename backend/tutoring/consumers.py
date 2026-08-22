@@ -4,6 +4,9 @@ ISOLATED - uses /ws/tutoring/{room_id}/
 """
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from .models import TutoringSession, TutoringChatMessage
+import uuid
+from datetime import datetime
 
 
 class PeerSignalConsumer(AsyncWebsocketConsumer):
@@ -95,9 +98,8 @@ class TutoringVideoConsumer(AsyncWebsocketConsumer):
 
 class TutoringChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_id = self.scope['url_route']['kwargs']['room_id']
-        self.room_group_name = f'tutoring_chat_{self.room_id}'
-
+        self.room_id = self.scope['url_route']['kwargs']['session_id']  # Changed from room_id
+        self.room_group_name = f'discussion_{self.room_id}'
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
@@ -106,15 +108,36 @@ class TutoringChatConsumer(AsyncWebsocketConsumer):
 
     async def receive(self, text_data):
         data = json.loads(text_data)
+        message_type = data.get('type', 'message')
+        
+        # Save to database for persistence
+        from .models import TutoringChatMessage
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        try:
+            session = TutoringSession.objects.get(id=self.room_id)
+            TutoringChatMessage.objects.create(
+                session=session,
+                sender=self.scope['user'],
+                text=data.get('text', '')
+            )
+        except Exception as e:
+            print(f"Failed to save discussion message: {e}")
+        
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'chat_message',
-                'text': data.get('text', ''),
-                'sender': self.scope['user'].username,
+                'type': 'relay_message',
+                'message': {
+                    'id': str(uuid.uuid4()),
+                    'type': message_type,
+                    'username': self.scope['user'].username,
+                    'text': data.get('text', ''),
+                    'created_at': datetime.now().isoformat(),
+                }
             }
         )
-
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
             'type': 'chat',
@@ -124,7 +147,7 @@ class TutoringChatConsumer(AsyncWebsocketConsumer):
 
 class DiscussionConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_id = self.scope['url_route']['kwargs']['room_id']
+        self.room_id = self.scope['url_route']['kwargs']['session_id']
         self.room_group_name = f'discussion_{self.room_id}'
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
@@ -139,6 +162,17 @@ class DiscussionConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         data = json.loads(text_data)
         message_type = data.get('type', 'message')
+        
+        # Save to database for persistence
+        try:
+            session = TutoringSession.objects.get(id=self.room_id)
+            TutoringChatMessage.objects.create(
+                session=session,
+                sender=self.scope['user'],
+                text=data.get('text', '')
+            )
+        except Exception as e:
+            print(f"Failed to save discussion message: {e}")
         
         await self.channel_layer.group_send(
             self.room_group_name,

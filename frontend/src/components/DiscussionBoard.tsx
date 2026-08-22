@@ -21,7 +21,7 @@ export default function DiscussionBoard({ sessionId, isTutor, onClose }: {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const ws = new WebSocket(`wss://sasl-api-i34r.onrender.com/ws/discussion/${sessionId}/?token=${token}`);
+    const ws = new WebSocket(`wss://sasl-api-i34r.onrender.com/ws/tutoring-discussion/${sessionId}/?token=${token}`);
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -45,10 +45,24 @@ export default function DiscussionBoard({ sessionId, isTutor, onClose }: {
   }, [sessionId]);
 
   const sendMessage = () => {
-    if (!input.trim() || !wsRef.current) return;
-    wsRef.current.send(JSON.stringify({ type: 'message', text: input }));
-    setInput('');
-  };
+  if (!input.trim() || !wsRef.current) return;
+  const text = input;
+  wsRef.current.send(JSON.stringify({ type: 'message', text }));
+  
+  // Also save to backend for persistence
+  try {
+    const token = localStorage.getItem('token');
+    fetch(`https://sasl-api-i34r.onrender.com/api/tutoring/discussion/${sessionId}/send/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ text })
+    });
+  } catch {}
+  
+  setInput('');
+};
+
+
 
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden">

@@ -138,6 +138,8 @@ const STATUS_COLORS: Record<string, string> = {
   const [remoteReady, setRemoteReady] = useState(false);
     const [timer, setTimer] = useState<number>(0);
   const [timerActive, setTimerActive] = useState(false);
+  const [tutorInCall, setTutorInCall] = useState(false);
+
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -180,10 +182,12 @@ const STATUS_COLORS: Record<string, string> = {
 const [showProfileEdit, setShowProfileEdit] = useState(false);
 const [profileBio, setProfileBio] = useState('');
 const [profileCertifications, setProfileCertifications] = useState('');
+const [fullscreenCert, setFullscreenCert] = useState<string | null>(null);
 const [profileLinkedin, setProfileLinkedin] = useState('');
 const [profileWebsite, setProfileWebsite] = useState('');
 const [profileEmail, setProfileEmail] = useState('');
 const [profilePhone, setProfilePhone] = useState('');
+
   // Stats
   const [stats, setStats] = useState({ totalSessions: 0, completedSessions: 0, totalEarned: '0', totalLearned: '0' });
 
@@ -444,7 +448,10 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       toast.error('⛔ Session has not started yet. Wait for tutor to start it.');
       return;
     }
-    
+   if (role === 'student' && !tutorInCall) {
+      toast.error('⏳ Wait for the tutor to join first.');
+      return;
+    }
       console.log('🔴 START Sasl PeerJS call', sessionId, role);
   try {
        const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -492,6 +499,9 @@ const peer = new Peer(uniqueId, {
     
     peer.on('open', () => {
       console.log('🟢 PeerJS connected:', peer.id);
+            if (role === 'tutor') {
+        setTutorInCall(true);
+      }
       setInCall(sessionId);
       
       // Set up data connection for hand raise
@@ -575,6 +585,7 @@ stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('�
     console.log('🔴 PeerJS error:', err);
     toast.error(err.message || 'Failed to start call');
     callingRef.current = false;
+    setTutorInCall(false);
     studentCallingRef.current = false;
   }
 };
@@ -600,6 +611,7 @@ stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('�
       stream.getTracks().forEach(t => t.stop());
       remoteVideoRef.current.srcObject = null;
       callingRef.current = false;
+      setTutorInCall(false); 
     }
   };
 
@@ -1139,14 +1151,15 @@ if (conn) {
               <h3 className="font-bold text-xl mb-4 text-transparent bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text">🏆 Your Expert Profile</h3>
               <textarea className="input-field mb-3" placeholder="Bio — tell students about your expertise..." value={profileBio} onChange={e => setProfileBio(e.target.value)} rows={3} />
               <textarea className="input-field mb-3" placeholder="Certifications (one per line)..." value={profileCertifications} onChange={e => setProfileCertifications(e.target.value)} rows={3} />
-                <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-400 hover:text-gray-300 mb-3">
+                               <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-400 hover:text-gray-300 mb-3">
   <Upload size={16} />
-  Upload Certification (PDF/Image)
-  <input type="file" accept=".pdf,.jpg,.png" className="hidden" onChange={async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const url = await uploadToCloud(file, 'certifications');
-    if (url) setProfileCertifications(prev => prev ? prev + '\n' + url : url);
+  Upload Certifications (Multiple)
+  <input type="file" accept=".pdf,.jpg,.png,image/*" multiple className="hidden" onChange={async (e) => {
+    const files = Array.from(e.target.files || []);
+    for (const file of files) {
+      const url = await uploadToCloud(file, 'certifications');
+      if (url) setProfileCertifications(prev => prev ? prev + '\n' + url : url);
+    }
   }} />
 </label>
               <input className="input-field mb-3" placeholder="LinkedIn URL" value={profileLinkedin} onChange={e => setProfileLinkedin(e.target.value)} />
@@ -1161,7 +1174,19 @@ if (conn) {
           </motion.div>
         )}
       </AnimatePresence>
+               {/* Fullscreen Certificate Modal */}
+      <AnimatePresence>
+        {fullscreenCert && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/90 z-[999] flex items-center justify-center p-4" onClick={() => setFullscreenCert(null)}>
+            <motion.img src={fullscreenCert} initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }}
+              className="max-w-full max-h-full object-contain rounded-xl" />
+            <button onClick={() => setFullscreenCert(null)} className="absolute top-5 right-5 text-white/70 hover:text-white text-3xl">✕</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
+      
       {/* Search & Tabs */}
       <div className="flex flex-col md:flex-row gap-3 mb-4">
         <div className="relative flex-1">
@@ -1293,7 +1318,7 @@ if (conn) {
               <div className="space-y-2">
                 {certList.map((cert, i) => (
                   cert.startsWith('http') ? (
-                    <img key={i} src={cert} alt={`Certification ${i + 1}`} className="w-full max-w-[180px] rounded-xl object-cover border border-green-200 dark:border-green-800" />
+                <img key={i} src={cert} alt={`Certification ${i + 1}`} onClick={(e) => { e.stopPropagation(); setFullscreenCert(cert); }} className="w-full max-w-[180px] rounded-xl object-cover border border-green-200 dark:border-green-800 cursor-pointer hover:ring-2 hover:ring-green-400 transition" />
                   ) : (
                     <p key={i} className="text-xs text-gray-400 flex items-center gap-1">
                       <Award size={12} className="text-green-500" /> {cert}
