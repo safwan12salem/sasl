@@ -38,11 +38,12 @@ interface Session {
   max_students?: number;
   students_enrolled?: number;
   duration_minutes?: number;
-    background_image?: string;
+  background_image?: string;
   is_offline?: boolean;
   materials?: Material[];
   average_rating?: number;
-   views?: number;
+  views?: number;
+  enrollments?: { student: string; status: string }[];
 }
 
 interface Material {
@@ -142,14 +143,15 @@ const STATUS_COLORS: Record<string, string> = {
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const pendingStreamRef = useRef<MediaStream | null>(null);
   const callingRef = useRef(false);
+  const studentCallingRef = useRef(false);
   const remoteStreamRef = useRef<MediaStream | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
-    const pcRef = useRef<RTCPeerConnection | null>(null);
-    const peerRef = useRef<any>(null);
-    const studentStreams = useRef<Map<string, MediaStream>>(new Map());
+  const pcRef = useRef<RTCPeerConnection | null>(null);
+  const peerRef = useRef<any>(null);
+  const studentStreams = useRef<Map<string, MediaStream>>(new Map());
   const rtcRef = useRef<WebRTCConnection | null>(null);
   const token = localStorage.getItem('sasl_token');
-const [remoteMuted, setRemoteMuted] = useState(true);
+  const [remoteMuted, setRemoteMuted] = useState(true);
   // Whiteboard
   const [showWhiteboard, setShowWhiteboard] = useState(false);
   const [whiteboardData, setWhiteboardData] = useState<WhiteboardData | null>(null);
@@ -428,8 +430,14 @@ const requestBookingWithMessage = async (id: string) => {
 };
 
 const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'student') => {
-    if (callingRef.current) { console.log('⚠️ Already connecting'); return; }
-    
+    if (role === 'tutor') {
+  if (callingRef.current) { console.log('⚠️ Tutor already connecting'); return; }
+  callingRef.current = true;
+} else {
+  // Students can join independently — don't block on tutor's callingRef
+  if (studentCallingRef.current) { console.log('⚠️ Student already connecting'); return; }
+  studentCallingRef.current = true;
+}
     // STUDENT GUARD: Only accepted students can join
     const session = sessions.find(s => s.id === sessionId);
     if (role === 'student' && session && session.tutor?.username !== user?.username) {
@@ -443,9 +451,7 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       }
     }
     
-    callingRef.current = true;
-  console.log('🔴 START Sasl PeerJS call', sessionId, role);
-  
+      console.log('🔴 START Sasl PeerJS call', sessionId, role);
   try {
        const stream = await navigator.mediaDevices.getUserMedia({ 
       video: { width: 640, height: 480, facingMode: 'user' }, 
@@ -575,6 +581,7 @@ stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('�
     console.log('🔴 PeerJS error:', err);
     toast.error(err.message || 'Failed to start call');
     callingRef.current = false;
+    studentCallingRef.current = false;
   }
 };
 
