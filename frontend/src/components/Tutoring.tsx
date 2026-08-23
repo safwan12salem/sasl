@@ -138,8 +138,7 @@ const STATUS_COLORS: Record<string, string> = {
   const [remoteReady, setRemoteReady] = useState(false);
     const [timer, setTimer] = useState<number>(0);
   const [timerActive, setTimerActive] = useState(false);
-  const [tutorInCall, setTutorInCall] = useState(false);
-
+  
 
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
@@ -448,10 +447,7 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       toast.error('⛔ Session has not started yet. Wait for tutor to start it.');
       return;
     }
-   if (role === 'student' && !tutorInCall) {
-      toast.error('⏳ Wait for the tutor to join first.');
-      return;
-    }
+  
       console.log('🔴 START Sasl PeerJS call', sessionId, role);
   try {
        const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -500,7 +496,7 @@ const peer = new Peer(uniqueId, {
     peer.on('open', () => {
       console.log('🟢 PeerJS connected:', peer.id);
             if (role === 'tutor') {
-        setTutorInCall(true);
+      
       }
       setInCall(sessionId);
       
@@ -585,7 +581,7 @@ stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('�
     console.log('🔴 PeerJS error:', err);
     toast.error(err.message || 'Failed to start call');
     callingRef.current = false;
-    setTutorInCall(false);
+  
     studentCallingRef.current = false;
   }
 };
