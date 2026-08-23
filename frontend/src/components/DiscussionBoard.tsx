@@ -20,27 +20,7 @@ export default function DiscussionBoard({ sessionId, isTutor, onClose }: {
   const wsRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch history on mount
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const res = await api.get(`/tutoring/chat/?room_id=${sessionId}`);
-        const data = res.data;
-        if (Array.isArray(data)) {
-          setMessages(data.map((m: any) => ({
-            id: m.id,
-            type: 'message',
-            username: m.sender_name || m.sender?.username || m.sender || 'User',
-            text: m.text || m.content || '',
-            created_at: m.created_at
-          })));
-        }
-      } catch (err) {
-        console.log('No history or unauthorized:', err);
-      }
-    };
-    fetchHistory();
-  }, [sessionId]);
+  
 
   // WebSocket for live messages
   useEffect(() => {
