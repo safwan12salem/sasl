@@ -176,6 +176,7 @@ const STATUS_COLORS: Record<string, string> = {
   const [showChat, setShowChat] = useState(false);
   const [showJitsi, setShowJitsi] = useState(false);
   const [handRaised, setHandRaised] = useState(false);
+  const [tutorJoined, setTutorJoined] = useState(false);
   const [raisedHands, setRaisedHands] = useState<{username: string; peerId: string}[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<{username: string} | null>(null);
   const [bookingRequests, setBookingRequests] = useState<Record<string, any[]>>({});
@@ -515,9 +516,18 @@ const peer = new Peer(uniqueId, {
       
       }
       setInCall(sessionId);
+
+      if (role === 'student') {
+        setSelectedStudent(null);  // Students always see tutor fullscreen
+        setRemoteReady(false);     // Reset remote video
+      }
       
       if (role === 'tutor') {
-                api.post(`/tutoring/sessions/${sessionId}/tutor_join/`).catch(() => {});
+                        api.post(`/tutoring/sessions/${sessionId}/tutor_join/`).catch((err) => {
+          console.log('tutor_join failed, continuing anyway:', err);
+        });
+        // Don't let API failure block the call
+        setTutorJoined(true);
       }
       // Set up data connection for hand raise
       if (role === 'student') {
@@ -553,10 +563,37 @@ const peer = new Peer(uniqueId, {
             return prev;
           });
         }
-                if (data && data.type === 'unmute-student' && data.username === user?.username) {
+                             if (data && data.type === 'unmute-student' && data.username === user?.username) {
                    const stream = pendingStreamRef.current || (localVideoRef.current?.srcObject as MediaStream);
-stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('🎤 Student unmuted'); });
-          console.log('🎤 Unmuted by tutor');
+                   if (stream) {
+                     // Clone audio track to force unmuted state
+                     const audioTrack = stream.getAudioTracks()[0];
+                     if (audioTrack) {
+                       audioTrack.enabled = true;
+                       // Replace the track in the stream
+                       const newStream = new MediaStream();
+                       stream.getVideoTracks().forEach(t => newStream.addTrack(t));
+                       const clonedAudio = audioTrack.clone();
+                       clonedAudio.enabled = true;
+                       newStream.addTrack(clonedAudio);
+                       
+                       // Update refs
+                       pendingStreamRef.current = newStream;
+                       if (localVideoRef.current) localVideoRef.current.srcObject = newStream;
+                       
+                       // Re-send to all existing calls
+                       const allCalls = (peerRef.current as any)?.connections?.[Object.keys((peerRef.current as any)?.connections || {})[0]] || [];
+                       allCalls.forEach((c: any) => {
+                         if (c.open && c.peerConnection) {
+                           try {
+                             const sender = c.peerConnection.getSenders().find((s: any) => s.track?.kind === 'audio');
+                             if (sender) sender.replaceTrack(clonedAudio);
+                           } catch {}
+                         }
+                       });
+                       console.log('🎤 Student audio track cloned and unmuted');
+                     }
+                   }
         }
       });
     });
