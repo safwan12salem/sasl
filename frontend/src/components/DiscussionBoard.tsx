@@ -18,7 +18,7 @@ export default function DiscussionBoard({ sessionId, isTutor, onClose }: {
   const [messages, setMessages] = useState<DiscussionMessage[]>([]);
   const [input, setInput] = useState('');
   const wsRef = useRef<WebSocket | null>(null);
-
+      const messagesEndRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const token = localStorage.getItem('token');
     const ws = new WebSocket(`wss://sasl-api-i34r.onrender.com/ws/tutoring-discussion/${sessionId}/?token=${token}`);
@@ -48,23 +48,38 @@ export default function DiscussionBoard({ sessionId, isTutor, onClose }: {
   if (!input.trim() || !wsRef.current) return;
   const text = input;
   wsRef.current.send(JSON.stringify({ type: 'message', text }));
-  
-  // Also save to backend for persistence
-  try {
-    const token = localStorage.getItem('token');
-    fetch(`https://sasl-api-i34r.onrender.com/api/tutoring/discussion/${sessionId}/send/`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ text })
-    });
-  } catch {}
-  
   setInput('');
 };
 
 
+useEffect(() => {
+  const fetchHistory = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`https://sasl-api-i34r.onrender.com/api/tutoring/chat/?room_id=${sessionId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        setMessages(data.map((m: any) => ({
+          id: m.id,
+          type: 'message',
+          username: m.sender_name || m.sender?.username || 'User',
+          text: m.text || m.content || '',
+          created_at: m.created_at
+        })));
+      }
+    } catch {}
+  };
+  fetchHistory();
+}, [sessionId]);
 
-  return (
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+    return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden">
       <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-green-500 to-orange-500">
         <h3 className="text-white font-bold text-sm">💬 Discussion Board</h3>
@@ -73,16 +88,21 @@ export default function DiscussionBoard({ sessionId, isTutor, onClose }: {
       
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.map((msg, i) => (
-          <div key={msg.id || i} className={`flex flex-col ${msg.username === user?.username ? 'items-end' : 'items-start'}`}>
+          <div key={msg.id || i} className={`flex items-end gap-2 ${msg.username === user?.username ? 'flex-row-reverse' : ''}`}>
+            {/* Avatar */}
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-orange-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              {msg.username[0]?.toUpperCase() || 'U'}
+            </div>
+            
             {msg.type === 'system' ? (
-              <div className="text-center text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-full px-3 py-1">
+              <div className="text-center text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-full px-3 py-1 flex-1">
                 {msg.text}
               </div>
             ) : (
-              <div className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+              <div className={`max-w-[75%] rounded-2xl px-4 py-2 ${
                 msg.username === user?.username 
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white' 
-                  : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700'
+                  ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-br-sm' 
+                  : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-bl-sm'
               }`}>
                 <p className={`text-xs font-bold mb-0.5 ${msg.username === user?.username ? 'text-white/80' : 'text-green-600'}`}>
                   {msg.username === user?.username ? 'You' : `@${msg.username}`}
@@ -92,6 +112,8 @@ export default function DiscussionBoard({ sessionId, isTutor, onClose }: {
             )}
           </div>
         ))}
+        {/* Auto-scroll anchor */}
+        <div ref={messagesEndRef} />
       </div>
 
       <div className="flex items-center gap-2 px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">

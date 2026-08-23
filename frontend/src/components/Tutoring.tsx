@@ -502,7 +502,7 @@ const peer = new Peer(uniqueId, {
       
       // Set up data connection for hand raise
       if (role === 'student') {
-        const conn = peer.connect(`sasl-${sessionId}-tutor`, { reliable: true });
+        const conn = peer.connect(`sasl-${sessionId}-tutor-${sessions.find(s => s.id === sessionId)?.tutor?.username}`, { reliable: true });
         conn.on('open', () => {
           console.log('📡 Data connection open');
         });
@@ -607,7 +607,7 @@ stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('�
       stream.getTracks().forEach(t => t.stop());
       remoteVideoRef.current.srcObject = null;
       callingRef.current = false;
-      setTutorInCall(false); 
+      
     }
   };
 
@@ -780,7 +780,12 @@ const getTouchPos = (e: React.TouchEvent) => {
                     // Send via the first data connection
 const conn = (peerRef.current as any)?.connections?.[Object.keys((peerRef.current as any)?.connections || {})[0]]?.[0];
 if (conn) {
-  conn.send({ type: 'hand-raise', username: user?.username, raised: !handRaised });
+   const dataConnection = (peerRef.current as any)?.connections?.[Object.keys((peerRef.current as any)?.connections || {})[0]]?.[0];
+  if (dataConnection) {
+    dataConnection.send({ type: 'hand-raise', username: user?.username, raised: !handRaised });
+  } else {
+    toast.error('Connection not ready. Try again.');
+  }
 }
                     toast(handRaised ? 'Hand lowered' : '✋ Hand raised');
                   }}

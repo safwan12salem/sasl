@@ -163,30 +163,19 @@ class DiscussionConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         message_type = data.get('type', 'message')
         
-        # Save to database for persistence
+        from asgiref.sync import sync_to_async
+        
         try:
-            session = TutoringSession.objects.get(id=self.room_id)
-            TutoringChatMessage.objects.create(
+            session = await sync_to_async(TutoringSession.objects.get)(id=self.room_id)
+            await sync_to_async(TutoringChatMessage.objects.create)(
                 session=session,
                 sender=self.scope['user'],
                 text=data.get('text', '')
-            )
+             )
         except Exception as e:
-            print(f"Failed to save discussion message: {e}")
-        
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'relay_message',
-                'message': {
-                    'id': str(uuid.uuid4()),
-                    'type': message_type,
-                    'username': self.scope['user'].username,
-                    'text': data.get('text', ''),
-                    'created_at': datetime.now().isoformat(),
-                }
-            }
-        )
+          print(f"Failed to save discussion message: {e}")
+
+
 
     async def relay_message(self, event):
         await self.send(text_data=json.dumps(event['message']))
