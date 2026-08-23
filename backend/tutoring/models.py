@@ -36,6 +36,7 @@ class TutoringSession(models.Model):
     is_offline = models.BooleanField(default=True)
     is_group_class = models.BooleanField(default=False)
     max_students = models.PositiveIntegerField(default=10)
+    tutor_joined = models.BooleanField(default=False)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     scheduled_at = models.DateTimeField()
     duration_minutes = models.PositiveIntegerField(default=60)

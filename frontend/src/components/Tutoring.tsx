@@ -37,6 +37,7 @@ interface Session {
   is_group_class?: boolean;
   max_students?: number;
   students_enrolled?: number;
+  active_students?: number;
   duration_minutes?: number;
   background_image?: string;
   is_offline?: boolean;
@@ -443,11 +444,26 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
 }
       // STUDENT GUARD: Session must be ongoing (tutor accepted all students)
     const session = sessions.find(s => s.id === sessionId);
-    if (role === 'student' && session && session.status !== 'ongoing' && session.status !== 'in_progress') {
-      toast.error('⛔ Session has not started yet. Wait for tutor to start it.');
-      return;
+   
+        if (role === 'student' && session) {
+      // Session must be ongoing
+      if (session.status !== 'ongoing' && session.status !== 'in_progress') {
+        toast.error('⛔ Session has not started yet. Wait for all seats to fill.');
+        return;
+      }
+      
+      // Tutor must have joined (check via API)
+      try {
+        const tutorRes = await api.get(`/tutoring/sessions/${sessionId}/tutor_presence/`);
+        if (!tutorRes.data?.tutor_joined) {
+          toast.error('⏳ Wait for the tutor to join the class.');
+          return;
+        }
+      } catch {
+        // If endpoint fails, allow join (don't block)
+      }
     }
-  
+
       console.log('🔴 START Sasl PeerJS call', sessionId, role);
   try {
        const stream = await navigator.mediaDevices.getUserMedia({ 
@@ -500,6 +516,9 @@ const peer = new Peer(uniqueId, {
       }
       setInCall(sessionId);
       
+      if (role === 'tutor') {
+                api.post(`/tutoring/sessions/${sessionId}/tutor_join/`).catch(() => {});
+      }
       // Set up data connection for hand raise
       if (role === 'student') {
         const conn = peer.connect(`sasl-${sessionId}-tutor-${sessions.find(s => s.id === sessionId)?.tutor?.username}`, { reliable: true });
@@ -521,6 +540,8 @@ const peer = new Peer(uniqueId, {
     
     // Tutor receives data connections
     peer.on('connection', (conn: any) => {
+            // Reset selected student when a new student joins
+      setSelectedStudent(null);
       conn.on('data', (data: any) => {
         if (data && data.type === 'hand-raise') {
           console.log('✋ Hand raise received:', data);
@@ -1296,6 +1317,12 @@ if (conn) {
       </div>
       <div className="flex items-center gap-1.5 text-xs text-orange-300 bg-orange-500/10 rounded-lg px-2.5 py-1.5 border border-orange-400/30">
         <Users size={13} /> {session.students_enrolled || 0}/{session.max_students || '∞'}
+                
+                {session.active_students ? (
+          <span className="text-xs text-green-500 font-bold flex items-center gap-1">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" /> {session.active_students} active
+          </span>
+        ) : null}
       </div>
     </div>
 
@@ -1351,11 +1378,20 @@ if (conn) {
           <Users size={14} /> Booking Requests
         </h4>
         {bookingRequests[session.id]?.length > 0 ? (
-          bookingRequests[session.id].map((req: any) => (
+                    bookingRequests[session.id].map((req: any) => (
             <div key={req.id} className="flex items-center justify-between mb-2 bg-gray-50 dark:bg-gray-800 rounded-xl p-2.5">
-              <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-green-700 dark:text-green-400">@{req.student_username}</p>
-                {req.message && <p className="text-xs text-gray-500 mt-0.5 italic">"{req.message}"</p>}
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                {req.student_avatar ? (
+                  <img src={req.student_avatar} className="w-8 h-8 rounded-full object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-orange-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    {req.student_username?.[0]?.toUpperCase()}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-green-700 dark:text-green-400">@{req.student_username}</p>
+                  {req.message && <p className="text-xs text-gray-500 mt-0.5 italic">"{req.message}"</p>}
+                </div>
               </div>
               <div className="flex gap-1.5 flex-shrink-0">
                 <button onClick={(e) => { e.stopPropagation(); respondBooking(session.id, req.id, 'accept'); }}

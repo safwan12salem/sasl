@@ -124,6 +124,7 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         return Response([{
             'id': str(e.id),
             'student_username': e.student.username,
+            'student_avatar': e.student.avatar_url if hasattr(e.student, 'avatar_url') else None,
             'message': e.message,
             'created_at': e.created_at.isoformat()
         } for e in enrollments])
@@ -177,6 +178,12 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         
         return Response({'error': 'Invalid action'}, status=400)
 
+    @action(detail=True, methods=['get'])
+    def active_students(self, request, pk=None):
+        session = self.get_object()
+        count = session.enrollments.filter(status='accepted').count()
+        return Response({'active_students': count})
+
     
     def perform_create(self, serializer):
         serializer.save(
@@ -194,6 +201,32 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         session.save()
         return Response({'status': 'ongoing'})
 
+
+
+    @action(detail=True, methods=['post'])
+    def tutor_join(self, request, pk=None):
+        session = self.get_object()
+        if session.tutor != request.user:
+            return Response({'error': 'Only tutor can start'}, status=403)
+        
+        session.tutor_joined = True
+        session.save()
+        
+        # Notify all accepted students
+        for e in session.enrollments.filter(status='accepted'):
+            create_notification(
+                recipient=e.student,
+                actor=session.tutor,
+                notification_type='session_starting',
+                message=f'📢 Your session "{session.subject}" has STARTED! Join now!'
+            )
+        
+        return Response({'status': 'started'})
+    
+    @action(detail=True, methods=['get'])
+    def tutor_presence(self, request, pk=None):
+        session = self.get_object()
+        return Response({'tutor_joined': session.tutor_joined})
 
     @action(detail=True, methods=['post'])
     def complete(self, request, pk=None):
