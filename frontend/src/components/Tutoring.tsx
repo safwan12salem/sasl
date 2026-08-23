@@ -242,7 +242,15 @@ const [profilePhone, setProfilePhone] = useState('');
     setBookingRequests(prev => ({ ...prev, [sessionId]: res.data }));
   } catch {}
 };
-    
+
+
+  const fetchActiveStudents = async (sessionId: string) => {
+    try {
+      const res = await api.get(`/tutoring/sessions/${sessionId}/active_students/`);
+      setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, active_students: res.data.active_students } : s));
+    } catch {}
+  };
+  
   const fetchCertificates = async () => {
     try {
       const res = await api.get('/tutoring/sessions/my_certificates/');
@@ -471,6 +479,13 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       video: { width: 640, height: 480, facingMode: 'user' }, 
       audio: true 
     });
+
+
+      // ALWAYS unmute audio tracks — muting happens on receiver side
+    stream.getAudioTracks().forEach(track => {
+      track.enabled = true;
+      console.log('🎤 Audio track enabled:', track.enabled, 'muted:', track.muted);
+    });  
     
     // ENSURE AUDIO TRACK IS ENABLED
     stream.getAudioTracks().forEach(track => {
@@ -551,7 +566,7 @@ const peer = new Peer(uniqueId, {
     // Tutor receives data connections
     peer.on('connection', (conn: any) => {
             // Reset selected student when a new student joins
-      setSelectedStudent(null);
+      
       conn.on('data', (data: any) => {
         if (data && data.type === 'hand-raise') {
           console.log('✋ Hand raise received:', data);
@@ -861,8 +876,7 @@ if (conn) {
                   <div className="flex items-center gap-1">
                     {raisedHands.map(h => (
                       <button key={h.username} onClick={() => {
-                        setSelectedStudent(h);
-                                                // Send unmute signal to selected student
+                                                setSelectedStudent(prev => prev?.username === h.username ? null : h);           
                         const conn = (peerRef.current as any)?.connections?.[Object.keys((peerRef.current as any)?.connections || {})[0]]?.[0];
                         if (conn) {
                           conn.send({ type: 'unmute-student', username: h.username });
@@ -1308,11 +1322,18 @@ if (conn) {
       try { await api.post(`/tutoring/sessions/${session.id}/increment_view/`); } catch {}
     }
     setExpandedSession(isOpening ? session.id : null);
+        if (isOpening) {
+      fetchActiveStudents(session.id);
+    }
     if (isOpening) {
       setSessions(prev => prev.map(s => s.id === session.id ? { ...s, views: (s.views || 0) + 1 } : s));
     }
     if (isOpening && session.tutor?.username === user?.username) {
   fetchBookingRequests(session.id);
+
+      if (isOpening) {
+      fetchActiveStudents(session.id);
+    }
 }
   }}>
     
