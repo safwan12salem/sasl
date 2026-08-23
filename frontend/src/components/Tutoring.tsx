@@ -565,13 +565,17 @@ stream?.getAudioTracks().forEach(track => { track.enabled = true; console.log('�
     peer.on('call', (call) => {
       console.log('📞 Incoming call, answering');
       call.answer(stream);
-      call.on('stream', (remoteStream) => {
+           call.on('stream', (remoteStream) => {
         console.log('🎥 Remote stream received');
         remoteStreamRef.current = remoteStream;
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
           remoteVideoRef.current.play().catch(() => {});
         }
+        // Play audio from picked student on tutor side
+        const audio = new Audio();
+        audio.srcObject = remoteStream;
+        audio.play().catch(() => {});
       });
     });
     

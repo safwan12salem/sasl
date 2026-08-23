@@ -63,8 +63,8 @@ export default function DiscussionBoard({ sessionId, isTutor, onClose }: {
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.map((msg, i) => (
           <div key={msg.id || i} className={`flex items-end gap-2 ${msg.username === user?.username ? 'flex-row-reverse' : ''}`}>
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-orange-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-              {msg.username?.[0]?.toUpperCase() || 'U'}
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-orange-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              {msg.username && msg.username !== 'system' ? msg.username[0]?.toUpperCase() : '👤'}
             </div>
             {msg.type === 'system' ? (
               <div className="text-center text-xs text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-full px-3 py-1 flex-1">
@@ -76,8 +76,8 @@ export default function DiscussionBoard({ sessionId, isTutor, onClose }: {
                   ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-br-sm' 
                   : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-bl-sm'
               }`}>
-                <p className={`text-xs font-bold mb-0.5 ${msg.username === user?.username ? 'text-white/80' : 'text-green-600'}`}>
-                  {msg.username === user?.username ? 'You' : `@${msg.username}`}
+               <p className={`text-xs font-bold mb-0.5 ${msg.username === user?.username ? 'text-white/80' : 'text-green-600'}`}>
+                  {msg.username === user?.username ? 'You' : msg.username === 'system' ? '' : `@${msg.username}`}
                 </p>
                 <p className="text-sm">{msg.text}</p>
               </div>
