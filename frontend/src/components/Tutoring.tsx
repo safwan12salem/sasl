@@ -326,25 +326,28 @@ useEffect(() => {
 }, [inCall]);
 
 
-
-// Save inCall to localStorage on join
+// Save inCall + role to localStorage on join
 useEffect(() => {
   if (inCall) {
-    localStorage.setItem('sasl_in_call', inCall);
-  } else {
-    localStorage.removeItem('sasl_in_call');
+    localStorage.setItem('sasl_in_call_session', inCall);
+    const currentSession = sessions.find(s => s.id === inCall);
+    localStorage.setItem('sasl_in_call_role', user?.username === currentSession?.tutor?.username ? 'tutor' : 'student');
   }
 }, [inCall]);
 
-// Restore on mount
+// Auto-rejoin on mount
 useEffect(() => {
-  const saved = localStorage.getItem('sasl_in_call');
-  if (saved) {
-    toast('📞 You were in a call. Rejoin to continue.');
-    localStorage.removeItem('sasl_in_call');
+  const savedSession = localStorage.getItem('sasl_in_call_session');
+  const savedRole = localStorage.getItem('sasl_in_call_role');
+  if (savedSession && savedRole) {
+    toast('📞 Rejoining session...');
+    setTimeout(() => {
+      startVideoCall(savedSession, savedRole as 'tutor' | 'student');
+    }, 1000);
+    localStorage.removeItem('sasl_in_call_session');
+    localStorage.removeItem('sasl_in_call_role');
   }
 }, []);
-
   // ============================================================
   // ACTIONS
   // ============================================================
@@ -837,7 +840,15 @@ const submitNote = async () => {
 const fetchNotes = async () => {
   try {
     const res = await api.get(`/tutoring/sessions/${inCall}/student_notes/`);
-    setNoteSheets(res.data || []);
+    const newNotes = res.data || [];
+    if (newNotes.length > noteSheets.length) {
+      toast('📝 New student note received!', { icon: '📝' });
+      try {
+        const audio = new Audio('/notification.mp3');
+        audio.play().catch(() => {});
+      } catch {}
+    }
+    setNoteSheets(newNotes);
   } catch {}
 };
   // ============================================================

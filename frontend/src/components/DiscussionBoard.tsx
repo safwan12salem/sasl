@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 import { Send, X } from 'lucide-react';
 import api from '../services/api';
 
@@ -27,16 +28,21 @@ export default function DiscussionBoard({ sessionId, isTutor, onClose }: {
     const token = localStorage.getItem('token');
     const ws = new WebSocket(`wss://sasl-api-i34r.onrender.com/ws/tutoring-discussion/${sessionId}/?token=${token}`);
     wsRef.current = ws;
-
-    ws.onopen = () => console.log('💬 Discussion connected');
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'system') {
         setMessages(prev => [...prev, { id: `sys_${Date.now()}`, type: 'system', username: 'system', text: data.text, created_at: new Date().toISOString() }]);
       } else {
         setMessages(prev => [...prev, data]);
+        // Notify tutor if not the sender
+        if (data.username && data.username !== user?.username) {
+          toast(`💬 @${data.username}: ${data.text?.substring(0, 30)}...`, { icon: '💬' });
+        }
       }
     };
+
+
+
     ws.onclose = () => console.log('💬 Discussion closed');
 
     return () => { ws.close(); };
@@ -77,7 +83,7 @@ export default function DiscussionBoard({ sessionId, isTutor, onClose }: {
                   : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-bl-sm'
               }`}>
                <p className={`text-xs font-bold mb-0.5 ${msg.username === user?.username ? 'text-white/80' : 'text-green-600'}`}>
-                  {msg.username === user?.username ? 'You' : msg.username === 'system' ? '' : `@${msg.username}`}
+                 {msg.username && msg.username === user?.username ? 'You' : msg.username && msg.username !== 'system' ? `@${msg.username}` : ''}
                 </p>
                 <p className="text-sm">{msg.text}</p>
               </div>
