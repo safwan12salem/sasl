@@ -326,6 +326,25 @@ useEffect(() => {
 }, [inCall]);
 
 
+
+// Save inCall to localStorage on join
+useEffect(() => {
+  if (inCall) {
+    localStorage.setItem('sasl_in_call', inCall);
+  } else {
+    localStorage.removeItem('sasl_in_call');
+  }
+}, [inCall]);
+
+// Restore on mount
+useEffect(() => {
+  const saved = localStorage.getItem('sasl_in_call');
+  if (saved) {
+    toast('📞 You were in a call. Rejoin to continue.');
+    localStorage.removeItem('sasl_in_call');
+  }
+}, []);
+
   // ============================================================
   // ACTIONS
   // ============================================================
