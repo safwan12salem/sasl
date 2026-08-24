@@ -179,7 +179,7 @@ const STATUS_COLORS: Record<string, string> = {
   const [tutorJoined, setTutorJoined] = useState(false);
 
   const [bookingRequests, setBookingRequests] = useState<Record<string, any[]>>({});
-   
+   const [sessionTimeline, setSessionTimeline] = useState<{time: number; label: string}[]>([]);
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [profileBio, setProfileBio] = useState('');
   const [profileCertifications, setProfileCertifications] = useState('');
@@ -509,7 +509,20 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
       // ALL audio is ALWAYS live. Muting happens on receiver side only.
     console.log('🎤 All audio tracks LIVE');
 
+        // Create clean stream with unmuted tracks for sending
+    const cleanStream = new MediaStream();
+
+    stream.getVideoTracks().forEach(t => cleanStream.addTrack(t));
+    stream.getAudioTracks().forEach(t => {
+      const clone = t.clone();
+      clone.enabled = true;
+      cleanStream.addTrack(clone);
+    });
+
     pendingStreamRef.current = stream;
+
+    
+
     if (localVideoRef.current) {
       localVideoRef.current.srcObject = stream;
       localVideoRef.current.muted = true;
@@ -564,7 +577,7 @@ const peer = new Peer(uniqueId, {
 
     peer.on('call', (call) => {
       console.log('📞 Incoming call, answering');
-      call.answer(stream);
+      call.answer(cleanStream);
       call.on('stream', (remoteStream) => {
         console.log('🎥 Remote stream received');
         remoteStreamRef.current = remoteStream;
@@ -597,7 +610,7 @@ const peer = new Peer(uniqueId, {
         } else {
       setTimeout(() => {
         const tutorUsername = sessions.find(s => s.id === sessionId)?.tutor?.username;
-        const call = peer.call(`sasl-${sessionId}-tutor-${tutorUsername}`, stream);
+        const call = peer.call(`sasl-${sessionId}-tutor-${tutorUsername}`, cleanStream);
         call.on('stream', (remoteStream) => {
           console.log('🎥 Tutor stream received');
           remoteStreamRef.current = remoteStream;
@@ -818,10 +831,31 @@ const submitNote = async () => {
               <h3 className="font-bold flex items-center gap-2">
                 <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" /> Live Class
               </h3>
-              {timer > 0 && (
-                <span className={`font-mono font-bold text-xl ${timer <= 60 ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
-                  {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
-                </span>
+                            {/* Timeline + Timer */}
+              <div className="flex-1 mx-4 flex items-center gap-3">
+                <div className="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-green-500 to-orange-500 transition-all duration-1000" 
+                    style={{ width: `${timer > 0 ? (((sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60 - timer) / ((sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60)) * 100 : 0}%` }}/>
+                </div>
+                {timer > 0 && (
+                  <span className={`font-mono font-bold text-lg whitespace-nowrap ${timer <= 60 ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
+                    {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
+                  </span>
+                )}
+              </div>
+                            {/* Seek slider for students */}
+              {sessions.find(s => s.id === inCall)?.is_group_class && user?.username !== sessions.find(s => s.id === inCall)?.tutor?.username && (
+                <input
+                  type="range"
+                  min="0"
+                max={(sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60}
+value={(sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60 - timer}
+onChange={(e) => {
+  const seekTo = parseInt(e.target.value);
+  setTimer((sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60 - seekTo);
+}}
+                  className="w-32 h-1.5 bg-gray-600 rounded-full appearance-none cursor-pointer"
+                />
               )}
               <div className="flex items-center gap-2 flex-wrap relative z-50">
                    
@@ -866,7 +900,7 @@ const submitNote = async () => {
                                                                             {sessions.find(s => s.id === inCall)?.is_group_class ? (
                     // GROUP CLASS: Tutor fullscreen for everyone
                     <div className="flex-1 relative h-full">
-                     <video ref={localVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
+                     <video ref={localVideoRef} autoPlay  muted  playsInline className="absolute inset-0 w-full h-full object-cover" />
                       <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor (You)</span>
                     </div>
                 ) : (     

@@ -188,14 +188,14 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
             session=session,
             sender=request.user,
             text=content,
-            message_type='note'
+        
         )
         return Response({'status': 'submitted'})
 
     @action(detail=True, methods=['get'])
     def student_notes(self, request, pk=None):
         session = self.get_object()
-        notes = TutoringChatMessage.objects.filter(session=session, message_type='note').order_by('created_at')
+        notes = TutoringChatMessage.objects.filter(session=session, text__startswith='📝 NOTE:').order_by('created_at')
         return Response([{
             'id': str(n.id),
             'student_username': n.sender.username,
