@@ -35,6 +35,7 @@ interface Session {
   scheduled_at: string;
   status: string;
   is_group_class?: boolean;
+  topic_detail?: string;
   max_students?: number;
   students_enrolled?: number;
   active_students?: number;
@@ -119,6 +120,7 @@ const STATUS_COLORS: Record<string, string> = {
   // Create session form
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [subject, setSubject] = useState('');
+    const [topicDetail, setTopicDetail] = useState('');
   const [price, setPrice] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [maxStudents, setMaxStudents] = useState('10');
@@ -346,12 +348,12 @@ useEffect(() => {
     try {
       // Convert datetime-local to ISO 8601 with timezone
       const scheduledISO = new Date(scheduledAt).toISOString();
-            if (!navigator.onLine) {
+      if (!navigator.onLine) {
         await db.offlineActions.put({ type: 'create_tutoring_session', data: { subject, description, price: parseFloat(price), scheduled_at: scheduledISO, is_group_class: isGroupClass }, created_at: Date.now() });
         toast.success('📦 Session saved offline');
         return;
       }
-            await api.post('/tutoring/sessions/', {
+        await api.post('/tutoring/sessions/', {
         subject,
         description,
         price: parseFloat(price),
@@ -359,6 +361,7 @@ useEffect(() => {
         is_offline: isOffline,
         duration_minutes: parseInt(duration),
         max_students: parseInt(maxStudents),
+        topic_detail: topicDetail,
         is_group_class: isGroupClass,
         background_image: bgImageUrl || null,
       });
@@ -914,7 +917,12 @@ if (conn) {
                       className={`px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 ${
                         selectedStudent?.username === h.username ? 'bg-green-500 text-white' : 'bg-yellow-500 text-black hover:bg-yellow-400'
                       }`}>
-                        ✋ @{h.username}
+                                              #{idx + 1} ✋ @{h.username}
+                        {selectedStudent?.username === h.username && turnTimeLeft !== null && (
+                          <span className="ml-1 bg-black/20 px-1.5 py-0.5 rounded-full text-[10px]">
+                            ⏱️ {Math.floor(turnTimeLeft / 60)}:{(turnTimeLeft % 60).toString().padStart(2, '0')}
+                          </span>
+                        )}
                       </button>
                     ))}
                                     
@@ -960,7 +968,7 @@ if (conn) {
                   // SPLIT SCREEN: Tutor + Selected Student
                     <div className="flex-1 grid grid-cols-2 gap-2 h-full">
                       <div className="relative rounded-xl overflow-hidden bg-black">
-                        <video ref={remoteVideoRef} autoPlay muted playsInline className="absolute inset-0 w-full h-full object-cover"
+                        <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover"
                         onClick={(e) => {
                         const v = e.currentTarget;
                         v.muted = !v.muted;
@@ -991,7 +999,7 @@ if (conn) {
                   ) : (
                     // TUTOR FULLSCREEN ONLY
                     <div className="flex-1 relative h-full">
-                      <video ref={remoteVideoRef} autoPlay muted   playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
+                     <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
                       const v = e.currentTarget;
                       v.muted = !v.muted;
                       setRemoteMuted(v.muted);
@@ -1022,7 +1030,7 @@ if (conn) {
                       <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">You</span>
                     </div>
                     <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
-                        <video ref={remoteVideoRef} autoPlay  playsInline muted className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
+                     <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
                          const v = e.currentTarget;
                           v.muted = !v.muted;
                           setRemoteMuted(v.muted);
@@ -1201,13 +1209,14 @@ if (conn) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <select className="input-field" value={subject} onChange={e => setSubject(e.target.value)}>
-                <option value=""> {t('Select Subject *')}</option>
-                {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+                           <input className="input-field" list="subjects-list" placeholder={t('Subject * (type or select)')} value={subject} onChange={e => setSubject(e.target.value)} />
+              <datalist id="subjects-list">
+                {SUBJECTS.map(s => <option key={s} value={s} />)}
+              </datalist>
               <input className="input-field" type="number" placeholder={t('Price ($) *')} value={price} onChange={e => setPrice(e.target.value)} />
             </div>
             <textarea className="input-field" placeholder={t('Description...')} value={description} onChange={e => setDescription(e.target.value)} rows={2} />
+                          <input className="input-field" placeholder={t('What specific topic will you teach? (optional)')} value={topicDetail} onChange={e => setTopicDetail(e.target.value)} />
                        
                         <div>
               <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-500 hover:text-gray-700">
@@ -1379,6 +1388,9 @@ if (conn) {
       <div className="flex-1 min-w-0">
         <h3 className="font-bold text-base sm:text-lg flex items-center gap-2 flex-wrap text-white">
           <span className="truncate bg-gradient-to-r from-green-300 to-orange-300 bg-clip-text text-transparent">{session.subject}</span>
+                    {session.topic_detail && (
+            <span className="text-xs text-orange-400 mt-0.5 truncate">📌 {session.topic_detail}</span>
+          )}
           <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold whitespace-nowrap ${
             session.status === 'ongoing' ? 'bg-green-500 text-white' :
             session.status === 'completed' ? 'bg-gray-500 text-white' :

@@ -32,6 +32,7 @@ class TutoringSession(models.Model):
     tutor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tutoring_given')
     student = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='tutoring_taken')
     subject = models.CharField(max_length=200)
+    topic_detail = models.TextField(blank=True, default='')
     description = models.TextField(blank=True, default='')
     is_offline = models.BooleanField(default=True)
     is_group_class = models.BooleanField(default=False)
@@ -43,7 +44,6 @@ class TutoringSession(models.Model):
     background_image = models.URLField(blank=True, null=True, help_text="URL for session background image")
     views_count = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=20, default='scheduled', choices=STATUS_CHOICES)
-   
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
