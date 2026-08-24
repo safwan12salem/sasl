@@ -550,69 +550,17 @@ const peer = new Peer(uniqueId, {
         conn.on('open', () => {
           console.log('📡 Data connection open');
         });
-        conn.on('data', (data: any) => {
-          if (data && data.type === 'hand-raise') {
-            setRaisedHands(prev => {
-              const existing = prev.find(h => h.username === data.username);
-                           if (data.raised && !existing) return [...prev, { username: data.username, peerId: data.peerId, timestamp: Date.now() }];
-              if (!data.raised && existing) return prev.filter(h => h.username !== data.username);
-              return prev;
-            });
-          }
-        });
-      }
+            }
     });
+      
     
     // Tutor receives data connections
     peer.on('connection', (conn: any) => {
-            // Reset selected student when a new student joins
-      
-      conn.on('data', (data: any) => {
-        if (data && data.type === 'hand-raise') {
-          console.log('✋ Hand raise received:', data);
-
-          setRaisedHands(prev => {
-            const existing = prev.find(h => h.username === data.username);
-                        if (data.raised && !existing) return [...prev, { username: data.username, peerId: data.peerId, timestamp: Date.now() }];
-            if (!data.raised && existing) return prev.filter(h => h.username !== data.username);
-            return prev;
-          });
-        }
-                             if (data && data.type === 'unmute-student' && data.username === user?.username) {
-                   const stream = pendingStreamRef.current || (localVideoRef.current?.srcObject as MediaStream);
-                   if (stream) {
-                     // Clone audio track to force unmuted state
-                     const audioTrack = stream.getAudioTracks()[0];
-                     if (audioTrack) {
-                       audioTrack.enabled = true;
-                       // Replace the track in the stream
-                       const newStream = new MediaStream();
-                       stream.getVideoTracks().forEach(t => newStream.addTrack(t));
-                       const clonedAudio = audioTrack.clone();
-                       clonedAudio.enabled = true;
-                       newStream.addTrack(clonedAudio);
-                       
-                       // Update refs
-                       pendingStreamRef.current = newStream;
-                       if (localVideoRef.current) localVideoRef.current.srcObject = newStream;
-                       
-                       // Re-send to all existing calls
-                       const allCalls = (peerRef.current as any)?.connections?.[Object.keys((peerRef.current as any)?.connections || {})[0]] || [];
-                       allCalls.forEach((c: any) => {
-                         if (c.open && c.peerConnection) {
-                           try {
-                             const sender = c.peerConnection.getSenders().find((s: any) => s.track?.kind === 'audio');
-                             if (sender) sender.replaceTrack(clonedAudio);
-                           } catch {}
-                         }
-                       });
-                       console.log('🎤 Student audio track cloned and unmuted');
-                     }
-                   }
-        }
-      });
+      // No data handling needed — Notebook Sheets replace hand-raise
     });
 
+
+    
 
     peer.on('call', (call) => {
       console.log('📞 Incoming call, answering');
