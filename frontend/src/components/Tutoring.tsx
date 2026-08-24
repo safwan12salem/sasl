@@ -176,12 +176,10 @@ const STATUS_COLORS: Record<string, string> = {
   // Chat
   const [showChat, setShowChat] = useState(false);
   const [showJitsi, setShowJitsi] = useState(false);
-  const [handRaised, setHandRaised] = useState(false);
   const [tutorJoined, setTutorJoined] = useState(false);
-  const [raisedHands, setRaisedHands] = useState<{username: string; peerId: string; timestamp: number}[]>([]);
-  const [selectedStudent, setSelectedStudent] = useState<{username: string} | null>(null);
+
   const [bookingRequests, setBookingRequests] = useState<Record<string, any[]>>({});
-    const [turnTimeLeft, setTurnTimeLeft] = useState<number | null>(null);
+   
   const [showProfileEdit, setShowProfileEdit] = useState(false);
   const [profileBio, setProfileBio] = useState('');
   const [profileCertifications, setProfileCertifications] = useState('');
@@ -191,6 +189,12 @@ const STATUS_COLORS: Record<string, string> = {
   const [profileEmail, setProfileEmail] = useState('');
   const [profilePhone, setProfilePhone] = useState('');
 
+
+const [noteSheets, setNoteSheets] = useState<any[]>([]);
+const [showNoteSheet, setShowNoteSheet] = useState(false);
+const [showNotesList, setShowNotesList] = useState(false);
+const [noteContent, setNoteContent] = useState('');
+const [remainingSheets, setRemainingSheets] = useState(4);
   // Stats
   const [stats, setStats] = useState({ totalSessions: 0, completedSessions: 0, totalEarned: '0', totalLearned: '0' });
 
@@ -309,7 +313,7 @@ useEffect(() => {
     remoteVideoRef.current.srcObject = remoteStreamRef.current;
     remoteVideoRef.current.play().catch(() => {});
   }
-}, [inCall, remoteReady, selectedStudent]);
+}, [inCall, remoteReady]);
 
 
 
@@ -319,24 +323,8 @@ useEffect(() => {
     localVideoRef.current.muted = true;
     localVideoRef.current.play().catch(() => {});
   }
-}, [inCall, selectedStudent]);
+}, [inCall]);
 
-
-  useEffect(() => {
-    if (turnTimeLeft === null || turnTimeLeft <= 0) return;
-    const timer = setTimeout(() => setTurnTimeLeft(turnTimeLeft - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [turnTimeLeft]);
-
-
-
-    useEffect(() => {
-    if (turnTimeLeft === 0) {
-      setSelectedStudent(null);
-      setTurnTimeLeft(null);
-      toast.success('⏱️ Turn ended automatically');
-    }
-  }, [turnTimeLeft]);
 
   // ============================================================
   // ACTIONS
@@ -546,8 +534,7 @@ const peer = new Peer(uniqueId, {
       setInCall(sessionId);
 
       if (role === 'student') {
-        setSelectedStudent(null);  // Students always see tutor fullscreen
-        setRemoteReady(false);     // Reset remote video
+           setRemoteReady(false);     // Reset remote video
       }
       
       if (role === 'tutor') {
@@ -852,6 +839,20 @@ const getTouchPos = (e: React.TouchEvent) => {
     });
   };
 
+
+const submitNote = async () => {
+  if (!noteContent.trim() || remainingSheets <= 0) return;
+  try {
+    await api.post(`/tutoring/sessions/${inCall}/submit_note/`, { content: noteContent });
+    toast.success('📤 Note submitted!');
+    setNoteContent('');
+    setRemainingSheets(prev => prev - 1);
+    setShowNoteSheet(false);
+  } catch {
+    toast.error('Failed to submit');
+  }
+};
+
   // ============================================================
   // RENDER
   // ============================================================
@@ -875,66 +876,7 @@ const getTouchPos = (e: React.TouchEvent) => {
                 </span>
               )}
               <div className="flex items-center gap-2 flex-wrap relative z-50">
-                                {/* Raise Hand — Student only in group class */}
-                {sessions.find(s => s.id === inCall)?.is_group_class && user?.username !== sessions.find(s => s.id === inCall)?.tutor?.username && (
-                  <button onClick={() => {
-                    setHandRaised(!handRaised);
-                    // Send via the first data connection
-const conn = (peerRef.current as any)?.connections?.[Object.keys((peerRef.current as any)?.connections || {})[0]]?.[0];
-if (conn) {
-   const dataConnection = (peerRef.current as any)?.connections?.[Object.keys((peerRef.current as any)?.connections || {})[0]]?.[0];
-  if (dataConnection) {
-    dataConnection.send({ type: 'hand-raise', username: user?.username, raised: !handRaised });
-  } else {
-    toast.error('Connection not ready. Try again.');
-  }
-}
-                    toast(handRaised ? 'Hand lowered' : '✋ Hand raised');
-                  }}
-                  className={`px-3 py-1.5 rounded-full text-sm flex items-center gap-1 ${handRaised ? 'bg-yellow-500 text-black' : 'bg-gray-700 hover:bg-gray-600 text-white'}`}>
-                    ✋ {handRaised ? 'Lower Hand' : 'Raise Hand'}
-                  </button>
-                )}
-                
-                                {/* Raised hands list — Tutor can pick student */}
-                {sessions.find(s => s.id === inCall)?.is_group_class && user?.username === sessions.find(s => s.id === inCall)?.tutor?.username && raisedHands.length > 0 && (
-                  <div className="flex items-center gap-1">
-                   {raisedHands.map((h, idx) => (
-                      <button key={h.username} onClick={() => {
-                          setSelectedStudent(prev => prev?.username === h.username ? null : h);
-                          setTurnTimeLeft(120);                             
-                        const conn = (peerRef.current as any)?.connections?.[Object.keys((peerRef.current as any)?.connections || {})[0]]?.[0];
-                        if (conn) {
-                          conn.send({ type: 'unmute-student', username: h.username });
-                        }
-                        toast.success(`🎤 ${h.username} is now speaking!`);
-                      }}
-                      className={`px-3 py-1.5 rounded-full text-sm font-semibold flex items-center gap-1 ${
-                        selectedStudent?.username === h.username ? 'bg-green-500 text-white' : 'bg-yellow-500 text-black hover:bg-yellow-400'
-                      }`}>
-                                              #{idx + 1} ✋ @{h.username}
-                        {selectedStudent?.username === h.username && turnTimeLeft !== null && (
-                          <span className="ml-1 bg-black/20 px-1.5 py-0.5 rounded-full text-[10px]">
-                            ⏱️ {Math.floor(turnTimeLeft / 60)}:{(turnTimeLeft % 60).toString().padStart(2, '0')}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                                    
-                {/* End Turn button */}
-                {selectedStudent && (
-                  <button onClick={() => {
-                    setSelectedStudent(null);
-                    setTurnTimeLeft(null);
-                    setRaisedHands(prev => prev.filter(h => h.username !== selectedStudent?.username));
-                    toast.success('Student returned to chat mode');
-                  }}
-                  className="px-3 py-1.5 rounded-full bg-purple-500 text-white text-sm font-semibold">
-                    ⏹ End @{selectedStudent.username}'s Turn
-                  </button>
-                )}
-                  </div>
-                )}
+                   
                 <button onClick={() => { setShowWhiteboard(!showWhiteboard); if (!showWhiteboard && inCall) fetchWhiteboard(inCall); }}
                   className="px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-sm flex items-center gap-1">
                   <PenTool size={14} /> Whiteboard
@@ -943,6 +885,21 @@ if (conn) {
                   className="px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-sm flex items-center gap-1">
                   <MessageCircle size={14} /> Chat
                 </button>
+
+                                                {/* Note to Tutor — Student only in group class */}
+                {sessions.find(s => s.id === inCall)?.is_group_class && user?.username !== sessions.find(s => s.id === inCall)?.tutor?.username && (
+                  <button onClick={() => setShowNoteSheet(true)}
+                    className="px-3 py-1.5 rounded-full text-sm flex items-center gap-1 bg-gray-700 hover:bg-gray-600 text-white">
+                    📝 Note to Tutor ({remainingSheets} left)
+                  </button>
+                )}
+                                {/* Tutor Notes button */}
+                {sessions.find(s => s.id === inCall)?.is_group_class && user?.username === sessions.find(s => s.id === inCall)?.tutor?.username && (
+                  <button onClick={() => setShowNotesList(!showNotesList)}
+                    className="px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-sm flex items-center gap-1">
+                    <FileText size={14} /> Notes
+                  </button>
+                )}
                 <button onClick={() => setShowMaterials(!showMaterials)}
                   className="px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-sm flex items-center gap-1">
                   <FileText size={14} /> Materials
@@ -958,49 +915,13 @@ if (conn) {
           
                                   {/* VIDEOS — Sasl */}
               <div className={`${showChat || showWhiteboard || showMaterials ? 'flex-[3]' : 'flex-1'} p-2`}>
-                                              {sessions.find(s => s.id === inCall)?.is_group_class ? (
-                  selectedStudent && user?.username === sessions.find(s => s.id === inCall)?.tutor?.username ? (
-                  // SPLIT SCREEN: Tutor + Selected Student
-                                      <div className="flex-1 grid grid-cols-2 gap-2 h-full">
-                      <div className="relative rounded-xl overflow-hidden bg-black">
-                        <video ref={localVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
-                        <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor (You)</span>
-                      </div>
-                      <div className="relative rounded-xl overflow-hidden bg-black">
-                        <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover"
-                        onClick={(e) => {
-                        const v = e.currentTarget;
-                        v.muted = !v.muted;
-                        setRemoteMuted(v.muted);
-                        if (!v.muted) v.play().catch(() => {});
-                        }}
-                        />{remoteMuted && (
-                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                       <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
-                                          👆 Tap to Unmute
-                       </span>
-                       </div>
-                         )}
-                        <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">@{selectedStudent?.username}</span>
-                      </div>
-                  {remoteMuted && (
-                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                         <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
-                                👆 Tap to Unmute
-                         </span>
-                          </div>
-                             )}
-                        <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">@{selectedStudent.username}</span>
-                      </div>
-              
-                  ) : (
-                                      // TUTOR FULLSCREEN ONLY — Tutor sees THEMSELVES
+                                                                            {sessions.find(s => s.id === inCall)?.is_group_class ? (
+                    // GROUP CLASS: Tutor fullscreen for everyone
                     <div className="flex-1 relative h-full">
                      <video ref={localVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
                       <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor (You)</span>
                     </div>
-                  )
-                ) : (
+                ) : (     
                   // 1-ON-1: Split screen
                   <div className="flex-1 grid grid-cols-2 gap-2 h-full" style={{ minHeight: '100%' }}>
                     <div className="relative rounded-xl overflow-hidden bg-black" style={{ minHeight: '100%', minWidth: '100%' }}>
@@ -1287,7 +1208,34 @@ if (conn) {
         )}
       </AnimatePresence>
 
-      
+      {/* Notebook Sheet Modal */}
+<AnimatePresence>
+  {showNoteSheet && (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+        className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full shadow-2xl">
+        <h3 className="font-bold text-xl mb-2">📝 Note to Tutor</h3>
+        <p className="text-xs text-gray-500 mb-4">{remainingSheets} sheets remaining</p>
+        <textarea
+          className="input-field mb-4"
+          placeholder="Write what you didn't understand, which part to re-explain..."
+          value={noteContent}
+          onChange={e => setNoteContent(e.target.value)}
+          rows={5}
+        />
+        <button
+          onClick={submitNote}
+          disabled={!noteContent.trim() || remainingSheets <= 0}
+          className="w-full py-3 bg-gradient-to-r from-green-500 to-orange-500 text-white rounded-xl font-bold hover:shadow-lg transition disabled:opacity-50">
+          📤 Submit to Tutor
+        </button>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
+
       {/* Search & Tabs */}
       <div className="flex flex-col md:flex-row gap-3 mb-4">
         <div className="relative flex-1">

@@ -178,6 +178,30 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         
         return Response({'error': 'Invalid action'}, status=400)
 
+
+
+    @action(detail=True, methods=['post'])
+    def submit_note(self, request, pk=None):
+        session = self.get_object()
+        content = request.data.get('content', '')
+        TutoringChatMessage.objects.create(
+            session=session,
+            sender=request.user,
+            text=content,
+            message_type='note'
+        )
+        return Response({'status': 'submitted'})
+
+    @action(detail=True, methods=['get'])
+    def student_notes(self, request, pk=None):
+        session = self.get_object()
+        notes = TutoringChatMessage.objects.filter(session=session, message_type='note').order_by('created_at')
+        return Response([{
+            'id': str(n.id),
+            'student_username': n.sender.username,
+            'content': n.text,
+            'created_at': n.created_at.isoformat()
+        } for n in notes])
     @action(detail=True, methods=['get'])
     def active_students(self, request, pk=None):
         session = self.get_object()
