@@ -844,11 +844,16 @@ const fetchNotes = async () => {
                   <div className="h-full bg-gradient-to-r from-green-500 to-orange-500 transition-all duration-1000" 
                     style={{ width: `${timer > 0 ? (((sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60 - timer) / ((sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60)) * 100 : 0}%` }}/>
                 </div>
-                {timer > 0 && (
+                               {timer > 0 && (
                   <span className={`font-mono font-bold text-lg whitespace-nowrap ${timer <= 60 ? 'text-red-400 animate-pulse' : 'text-green-400'}`}>
                     {Math.floor(timer / 60)}:{(timer % 60).toString().padStart(2, '0')}
                   </span>
                 )}
+                {/* Rewind 30 seconds */}
+                <button onClick={() => setTimer(prev => Math.min(prev + 30, (sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60))}
+                  className="text-xs bg-gray-700 hover:bg-gray-600 text-white px-2 py-1 rounded-full whitespace-nowrap">
+                  ⏪ 30s
+                </button>
               </div>
                       
               <div className="flex items-center gap-2 flex-wrap relative z-50">
