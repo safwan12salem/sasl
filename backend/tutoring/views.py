@@ -187,7 +187,7 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         TutoringChatMessage.objects.create(
             session=session,
             sender=request.user,
-            text=content,
+            text=f"📝 NOTE: {content}",
         
         )
         return Response({'status': 'submitted'})
