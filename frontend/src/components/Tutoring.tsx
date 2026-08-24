@@ -814,6 +814,13 @@ const submitNote = async () => {
   }
 };
 
+
+const fetchNotes = async () => {
+  try {
+    const res = await api.get(`/tutoring/sessions/${inCall}/student_notes/`);
+    setNoteSheets(res.data || []);
+  } catch {}
+};
   // ============================================================
   // RENDER
   // ============================================================
@@ -832,7 +839,7 @@ const submitNote = async () => {
                 <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse" /> Live Class
               </h3>
                             {/* Timeline + Timer */}
-              <div className="flex-1 mx-4 flex items-center gap-3">
+              <div className="hidden sm:flex items-center gap-2 w-40">
                 <div className="flex-1 h-1.5 bg-gray-700 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-green-500 to-orange-500 transition-all duration-1000" 
                     style={{ width: `${timer > 0 ? (((sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60 - timer) / ((sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60)) * 100 : 0}%` }}/>
@@ -843,20 +850,7 @@ const submitNote = async () => {
                   </span>
                 )}
               </div>
-                            {/* Seek slider for students */}
-              {sessions.find(s => s.id === inCall)?.is_group_class && user?.username !== sessions.find(s => s.id === inCall)?.tutor?.username && (
-                <input
-                  type="range"
-                  min="0"
-                max={(sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60}
-value={(sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60 - timer}
-onChange={(e) => {
-  const seekTo = parseInt(e.target.value);
-  setTimer((sessions.find(s => s.id === inCall)?.duration_minutes || 60) * 60 - seekTo);
-}}
-                  className="w-32 h-1.5 bg-gray-600 rounded-full appearance-none cursor-pointer"
-                />
-              )}
+                      
               <div className="flex items-center gap-2 flex-wrap relative z-50">
                    
                 <button onClick={() => { setShowWhiteboard(!showWhiteboard); if (!showWhiteboard && inCall) fetchWhiteboard(inCall); }}
@@ -877,7 +871,7 @@ onChange={(e) => {
                 )}
                                 {/* Tutor Notes button */}
                 {sessions.find(s => s.id === inCall)?.is_group_class && user?.username === sessions.find(s => s.id === inCall)?.tutor?.username && (
-                  <button onClick={() => setShowNotesList(!showNotesList)}
+                                    <button onClick={() => { setShowNotesList(!showNotesList); if (!showNotesList) fetchNotes(); }}
                     className="px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-sm flex items-center gap-1">
                     <FileText size={14} /> Notes
                   </button>
@@ -898,10 +892,12 @@ onChange={(e) => {
                                   {/* VIDEOS — Sasl */}
               <div className={`${showChat || showWhiteboard || showMaterials ? 'flex-[3]' : 'flex-1'} p-2`}>
                                                                             {sessions.find(s => s.id === inCall)?.is_group_class ? (
-                    // GROUP CLASS: Tutor fullscreen for everyone
+                                   // GROUP CLASS: Everyone sees TUTOR
                     <div className="flex-1 relative h-full">
-                     <video ref={localVideoRef} autoPlay  muted  playsInline className="absolute inset-0 w-full h-full object-cover" />
-                      <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor (You)</span>
+                     <video ref={user?.username === sessions.find(s => s.id === inCall)?.tutor?.username ? localVideoRef : remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
+                      <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                        {user?.username === sessions.find(s => s.id === inCall)?.tutor?.username ? 'Tutor (You)' : `@${sessions.find(s => s.id === inCall)?.tutor?.username}`}
+                      </span>
                     </div>
                 ) : (     
                   // 1-ON-1: Split screen
@@ -1217,6 +1213,30 @@ onChange={(e) => {
   )}
 </AnimatePresence>
 
+
+      {/* Tutor Notes List Modal */}
+      <AnimatePresence>
+        {showNotesList && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-md w-full shadow-2xl max-h-[80vh] overflow-y-auto">
+              <h3 className="font-bold text-xl mb-4">📝 Student Notes</h3>
+              {noteSheets.length === 0 ? (
+                <p className="text-gray-500 text-sm">No notes submitted yet.</p>
+              ) : (
+                noteSheets.map(note => (
+                  <div key={note.id} className="bg-gray-50 dark:bg-gray-700 rounded-xl p-3 mb-2">
+                    <p className="text-xs font-bold text-green-600">@{note.student_username}</p>
+                    <p className="text-sm mt-1">{note.content}</p>
+                  </div>
+                ))
+              )}
+              <button onClick={() => setShowNotesList(false)} className="w-full py-2 bg-gray-200 dark:bg-gray-600 rounded-xl mt-3">Close</button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Search & Tabs */}
       <div className="flex flex-col md:flex-row gap-3 mb-4">
