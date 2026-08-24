@@ -517,16 +517,9 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
     });
 
             // In group class, students are muted by default. Tutor is ALWAYS unmuted.
-    const session = sessions.find(s => s.id === sessionId);
-    if (session?.is_group_class) {
-      if (role === 'student') {
-        stream.getAudioTracks().forEach(track => track.enabled = false);
-        console.log('🔇 Student muted in group class');
-      } else {
-        stream.getAudioTracks().forEach(track => track.enabled = true);
-        console.log('🎤 Tutor audio ENABLED');
-      }
-    }
+    
+      // ALL audio is ALWAYS live. Muting happens on receiver side only.
+    console.log('🎤 All audio tracks LIVE');
 
     pendingStreamRef.current = stream;
     if (localVideoRef.current) {

@@ -98,7 +98,7 @@ class TutoringVideoConsumer(AsyncWebsocketConsumer):
 
 class TutoringChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.room_id = self.scope['url_route']['kwargs']['session_id']  # Changed from room_id
+        self.room_id = self.scope['url_route']['kwargs'].get('room_id', self.scope['url_route']['kwargs'].get('session_id', '')) # Changed from room_id
         self.room_group_name = f'discussion_{self.room_id}'
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
