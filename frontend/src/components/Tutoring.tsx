@@ -642,22 +642,24 @@ const peer = new Peer(uniqueId, {
         remoteStreamRef.current = remoteStream;
         
         // Unmute all audio tracks from picked student
-        remoteStream.getAudioTracks().forEach(track => {
+               remoteStream.getAudioTracks().forEach(track => {
           track.enabled = true;
           console.log('🎤 Remote audio track enabled:', track.enabled);
         });
         
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
-          remoteVideoRef.current.muted = false;  // FORCE UNMUTE
-          remoteVideoRef.current.play().catch(() => {});
+          remoteVideoRef.current.muted = false;
+          remoteVideoRef.current.volume = 1.0;
+          remoteVideoRef.current.play().then(() => {
+            console.log('🔊 Remote video playing WITH audio');
+          }).catch((e) => {
+            console.log('🔊 Play blocked, waiting for user gesture');
+            document.addEventListener('click', () => {
+              remoteVideoRef.current?.play().catch(() => {});
+            }, { once: true });
+          });
         }
-        
-        // Play audio from picked student on tutor side
-        const audio = new Audio();
-        audio.srcObject = remoteStream;
-        audio.muted = false;
-        audio.play().catch(() => {});
       });
     });
     
