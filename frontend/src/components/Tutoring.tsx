@@ -125,8 +125,8 @@ const STATUS_COLORS: Record<string, string> = {
   const [description, setDescription] = useState('');
   const [isGroupClass, setIsGroupClass] = useState(false);
   const [duration, setDuration] = useState('60');
-    const [bgImage, setBgImage] = useState<File | null>(null);
-        const [bgImageUrl, setBgImageUrl] = useState('');
+  const [bgImage, setBgImage] = useState<File | null>(null);
+  const [bgImageUrl, setBgImageUrl] = useState('');
   const [isOffline, setIsOffline] = useState(true);
 
   // Tutor profiles
@@ -137,10 +137,9 @@ const STATUS_COLORS: Record<string, string> = {
   // Video call
   const [inCall, setInCall] = useState<string | null>(null);
   const [remoteReady, setRemoteReady] = useState(false);
-    const [timer, setTimer] = useState<number>(0);
+  const [timer, setTimer] = useState<number>(0);
   const [timerActive, setTimerActive] = useState(false);
   
-
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const pendingStreamRef = useRef<MediaStream | null>(null);
@@ -177,17 +176,18 @@ const STATUS_COLORS: Record<string, string> = {
   const [showJitsi, setShowJitsi] = useState(false);
   const [handRaised, setHandRaised] = useState(false);
   const [tutorJoined, setTutorJoined] = useState(false);
-  const [raisedHands, setRaisedHands] = useState<{username: string; peerId: string}[]>([]);
+  const [raisedHands, setRaisedHands] = useState<{username: string; peerId: string; timestamp: number}[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<{username: string} | null>(null);
   const [bookingRequests, setBookingRequests] = useState<Record<string, any[]>>({});
-const [showProfileEdit, setShowProfileEdit] = useState(false);
-const [profileBio, setProfileBio] = useState('');
-const [profileCertifications, setProfileCertifications] = useState('');
-const [fullscreenCert, setFullscreenCert] = useState<string | null>(null);
-const [profileLinkedin, setProfileLinkedin] = useState('');
-const [profileWebsite, setProfileWebsite] = useState('');
-const [profileEmail, setProfileEmail] = useState('');
-const [profilePhone, setProfilePhone] = useState('');
+    const [turnTimeLeft, setTurnTimeLeft] = useState<number | null>(null);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [profileBio, setProfileBio] = useState('');
+  const [profileCertifications, setProfileCertifications] = useState('');
+  const [fullscreenCert, setFullscreenCert] = useState<string | null>(null);
+  const [profileLinkedin, setProfileLinkedin] = useState('');
+  const [profileWebsite, setProfileWebsite] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [profilePhone, setProfilePhone] = useState('');
 
   // Stats
   const [stats, setStats] = useState({ totalSessions: 0, completedSessions: 0, totalEarned: '0', totalLearned: '0' });
@@ -318,6 +318,23 @@ useEffect(() => {
     localVideoRef.current.play().catch(() => {});
   }
 }, [inCall, selectedStudent]);
+
+
+  useEffect(() => {
+    if (turnTimeLeft === null || turnTimeLeft <= 0) return;
+    const timer = setTimeout(() => setTurnTimeLeft(turnTimeLeft - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [turnTimeLeft]);
+
+
+
+    useEffect(() => {
+    if (turnTimeLeft === 0) {
+      setSelectedStudent(null);
+      setTurnTimeLeft(null);
+      toast.success('⏱️ Turn ended automatically');
+    }
+  }, [turnTimeLeft]);
 
   // ============================================================
   // ACTIONS
@@ -554,7 +571,7 @@ const peer = new Peer(uniqueId, {
           if (data && data.type === 'hand-raise') {
             setRaisedHands(prev => {
               const existing = prev.find(h => h.username === data.username);
-              if (data.raised && !existing) return [...prev, { username: data.username, peerId: data.peerId }];
+                           if (data.raised && !existing) return [...prev, { username: data.username, peerId: data.peerId, timestamp: Date.now() }];
               if (!data.raised && existing) return prev.filter(h => h.username !== data.username);
               return prev;
             });
@@ -573,7 +590,7 @@ const peer = new Peer(uniqueId, {
 
           setRaisedHands(prev => {
             const existing = prev.find(h => h.username === data.username);
-            if (data.raised && !existing) return [...prev, { username: data.username, peerId: data.peerId }];
+                        if (data.raised && !existing) return [...prev, { username: data.username, peerId: data.peerId, timestamp: Date.now() }];
             if (!data.raised && existing) return prev.filter(h => h.username !== data.username);
             return prev;
           });
@@ -617,16 +634,26 @@ const peer = new Peer(uniqueId, {
     peer.on('call', (call) => {
       console.log('📞 Incoming call, answering');
       call.answer(stream);
-           call.on('stream', (remoteStream) => {
+      call.on('stream', (remoteStream) => {
         console.log('🎥 Remote stream received');
         remoteStreamRef.current = remoteStream;
+        
+        // Unmute all audio tracks from picked student
+        remoteStream.getAudioTracks().forEach(track => {
+          track.enabled = true;
+          console.log('🎤 Remote audio track enabled:', track.enabled);
+        });
+        
         if (remoteVideoRef.current) {
           remoteVideoRef.current.srcObject = remoteStream;
+          remoteVideoRef.current.muted = false;  // FORCE UNMUTE
           remoteVideoRef.current.play().catch(() => {});
         }
+        
         // Play audio from picked student on tutor side
         const audio = new Audio();
         audio.srcObject = remoteStream;
+        audio.muted = false;
         audio.play().catch(() => {});
       });
     });
@@ -874,9 +901,10 @@ if (conn) {
                                 {/* Raised hands list — Tutor can pick student */}
                 {sessions.find(s => s.id === inCall)?.is_group_class && user?.username === sessions.find(s => s.id === inCall)?.tutor?.username && raisedHands.length > 0 && (
                   <div className="flex items-center gap-1">
-                    {raisedHands.map(h => (
+                   {raisedHands.map((h, idx) => (
                       <button key={h.username} onClick={() => {
-                                                setSelectedStudent(prev => prev?.username === h.username ? null : h);           
+                          setSelectedStudent(prev => prev?.username === h.username ? null : h);
+                          setTurnTimeLeft(120);                             
                         const conn = (peerRef.current as any)?.connections?.[Object.keys((peerRef.current as any)?.connections || {})[0]]?.[0];
                         if (conn) {
                           conn.send({ type: 'unmute-student', username: h.username });
@@ -894,6 +922,8 @@ if (conn) {
                 {selectedStudent && (
                   <button onClick={() => {
                     setSelectedStudent(null);
+                    setTurnTimeLeft(null);
+                    setRaisedHands(prev => prev.filter(h => h.username !== selectedStudent?.username));
                     toast.success('Student returned to chat mode');
                   }}
                   className="px-3 py-1.5 rounded-full bg-purple-500 text-white text-sm font-semibold">
