@@ -179,18 +179,7 @@ class DiscussionConsumer(AsyncWebsocketConsumer):
             }
         )
         
-        # Then save to DB (non-blocking)
-        try:
-            from asgiref.sync import sync_to_async
-            session = await sync_to_async(TutoringSession.objects.get)(id=self.room_id)
-            await sync_to_async(TutoringChatMessage.objects.create)(
-                session=session,
-                sender=self.scope['user'],
-                text=data.get('text', '')
-            )
-        except Exception as e:
-            print(f"Failed to save: {e}")
-
+       
 
     async def relay_message(self, event):
         await self.send(text_data=json.dumps(event['message']))

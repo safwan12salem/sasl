@@ -478,8 +478,7 @@ const startVideoCall = async (sessionId: string, role: 'tutor' | 'student' = 'st
   callingRef.current = true;
 } else {
   // Students can join independently — don't block on tutor's callingRef
-  if (studentCallingRef.current) { console.log('⚠️ Student already connecting'); return; }
-  studentCallingRef.current = true;
+   // Students can always join — no blocking
 }
       // STUDENT GUARD: Session must be ongoing (tutor accepted all students)
     const session = sessions.find(s => s.id === sessionId);
@@ -851,6 +850,8 @@ const fetchNotes = async () => {
     setNoteSheets(newNotes);
   } catch {}
 };
+
+
   // ============================================================
   // RENDER
   // ============================================================
