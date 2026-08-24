@@ -968,7 +968,11 @@ if (conn) {
                                               {sessions.find(s => s.id === inCall)?.is_group_class ? (
                   selectedStudent && user?.username === sessions.find(s => s.id === inCall)?.tutor?.username ? (
                   // SPLIT SCREEN: Tutor + Selected Student
-                    <div className="flex-1 grid grid-cols-2 gap-2 h-full">
+                                      <div className="flex-1 grid grid-cols-2 gap-2 h-full">
+                      <div className="relative rounded-xl overflow-hidden bg-black">
+                        <video ref={localVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
+                        <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor (You)</span>
+                      </div>
                       <div className="relative rounded-xl overflow-hidden bg-black">
                         <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover"
                         onClick={(e) => {
@@ -984,11 +988,9 @@ if (conn) {
                        </span>
                        </div>
                          )}
-                        <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor</span>
+                        <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">@{selectedStudent?.username}</span>
                       </div>
-                      <div className="relative rounded-xl overflow-hidden bg-black">
-                        <video ref={localVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
-                        {remoteMuted && (
+                  {remoteMuted && (
                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                          <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
                                 👆 Tap to Unmute
@@ -997,24 +999,12 @@ if (conn) {
                              )}
                         <span className="absolute bottom-2 left-2 bg-green-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">@{selectedStudent.username}</span>
                       </div>
-                    </div>
+              
                   ) : (
-                    // TUTOR FULLSCREEN ONLY
+                                      // TUTOR FULLSCREEN ONLY — Tutor sees THEMSELVES
                     <div className="flex-1 relative h-full">
-                     <video ref={remoteVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" onClick={(e) => {
-                      const v = e.currentTarget;
-                      v.muted = !v.muted;
-                      setRemoteMuted(v.muted);
-                      if (!v.muted) v.play().catch(() => {});
-                       }}/>
-                     {remoteMuted && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                     <span className="bg-green-500/90 text-white px-4 py-2 rounded-full text-sm font-bold animate-pulse">
-                           👆 Tap to Unmute
-                      </span>
-                      </div>
-                         )}
-                      <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor</span>
+                     <video ref={localVideoRef} autoPlay playsInline className="absolute inset-0 w-full h-full object-cover" />
+                      <span className="absolute bottom-2 left-2 bg-orange-500/80 text-white px-3 py-1 rounded-full text-sm font-semibold">Tutor (You)</span>
                     </div>
                   )
                 ) : (
@@ -1223,7 +1213,7 @@ if (conn) {
                         <div>
               <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-500 hover:text-gray-700">
                 <Image size={16} />
-                {bgImage ? bgImage.name : 'Session background image (optional)'}
+               {bgImage?.name || 'Session background image (optional)'}
                 <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                   const file = e.target.files?.[0];
                   if (!file) return;
@@ -1297,7 +1287,7 @@ if (conn) {
         {fullscreenCert && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/90 z-[999] flex items-center justify-center p-4" onClick={() => setFullscreenCert(null)}>
-            <motion.img src={fullscreenCert} initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }}
+             <motion.img src={fullscreenCert || ''} initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }}
               className="max-w-full max-h-full object-contain rounded-xl" />
             <button onClick={() => setFullscreenCert(null)} className="absolute top-5 right-5 text-white/70 hover:text-white text-3xl">✕</button>
           </motion.div>
