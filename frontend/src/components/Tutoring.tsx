@@ -25,6 +25,9 @@ import { db } from '../services/offlineDB';
 
 import DiscussionBoard from './DiscussionBoard';
 
+import { useOfflineSync } from '../services/useOfflineSync';
+import { cacheFeatureData, loadCachedFeature, queueOfflineAction } from '../services/offlineDB';
+
 interface Session {
   id: string;
   tutor: { username: string; avatar_url?: string };
@@ -208,6 +211,16 @@ const [remainingSheets, setRemainingSheets] = useState(4);
     setLoading(true);
     setError(null);
     try {
+
+      if (!navigator.onLine) {
+        const cached = await loadCachedFeature('tutoring_sessions');
+        if (cached) {
+          setSessions(cached);
+          setLoading(false);
+          return;
+        }
+      }
+
       const params = new URLSearchParams();
       if (activeTab === 'mine') params.set('mine', 'true');
       // Don't filter by status for upcoming — show all non-completed
@@ -219,6 +232,8 @@ const [remainingSheets, setRemainingSheets] = useState(4);
       else if (activeTab === 'completed') data = data.filter((s: any) => s.status === 'completed');
       else if (activeTab === 'upcoming') data = data.filter((s: any) => ['open', 'scheduled', 'pending_confirmation'].includes(s.status));
       setSessions(data);
+
+      await cacheFeatureData('tutoring_sessions', data);
             // Update stats
       const totalSessions = data.length;
       const completedSessions = data.filter((s: any) => s.status === 'completed').length;
@@ -388,9 +403,14 @@ useEffect(() => {
     if (!subject || !price || !scheduledAt) return toast.error(t('Fill all required fields'));
     try {
       // Convert datetime-local to ISO 8601 with timezone
-      const scheduledISO = new Date(scheduledAt).toISOString();
+            const scheduledISO = new Date(scheduledAt).toISOString();
       if (!navigator.onLine) {
-        await db.offlineActions.put({ type: 'create_tutoring_session', data: { subject, description, price: parseFloat(price), scheduled_at: scheduledISO, is_group_class: isGroupClass }, created_at: Date.now() });
+        await queueOfflineAction('create_tutoring_session', {
+          subject, description, price: parseFloat(price), scheduled_at: scheduledISO,
+          is_offline: isOffline, duration_minutes: parseInt(duration),
+          max_students: parseInt(maxStudents), topic_detail: topicDetail,
+          is_group_class: isGroupClass, background_image: bgImageUrl || null,
+        });
         toast.success('📦 Session saved offline');
         return;
       }
