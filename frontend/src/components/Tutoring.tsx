@@ -742,6 +742,18 @@ const peer = new Peer(uniqueId, {
     try {
       const res = await api.get(`/tutoring/sessions/${sessionId}/whiteboard/`);
       setWhiteboardData(res.data);
+            // Draw fetched data onto canvas
+      if (res.data?.data && canvasRef.current) {
+      const img = new window.Image();
+        img.onload = () => {
+          const ctx = canvasRef.current?.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, canvasRef.current!.width, canvasRef.current!.height);
+            ctx.drawImage(img, 0, 0);
+          }
+        };
+        img.src = res.data.data;
+      }
             localStorage.setItem('sasl_whiteboard', JSON.stringify(res.data));
     } catch (err) {
       setError(t('Failed to load whiteboard data.'));
@@ -1055,17 +1067,26 @@ useEffect(() => {
                       )}
                     </div>
                   )}
-                                   {showMaterials && (
+                                                      {showMaterials && (
                     <div className="p-3 text-white">
                       <h4 className="font-bold text-sm mb-2">Materials</h4>
-                      <input type="file" onChange={async (e) => {
-                        setUploadFile(e.target.files?.[0] || null);
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        await uploadMaterial(inCall!);
-                      }} className="text-xs mb-3" />
+                      <input 
+                        placeholder="Title (required)" 
+                        value={materialTitle}
+                        onChange={e => setMaterialTitle(e.target.value)}
+                        className="w-full bg-gray-700 text-white text-xs rounded px-2 py-1.5 mb-2"
+                      />
+                      <input type="file" onChange={(e) => setUploadFile(e.target.files?.[0] || null)} 
+                        className="text-xs mb-2 w-full" />
+                      <button 
+                        onClick={() => uploadMaterial(inCall!)}
+                        disabled={!uploadFile || !materialTitle}
+                        className="w-full py-1.5 bg-gradient-to-r from-green-500 to-orange-500 text-white rounded-lg text-xs font-bold disabled:opacity-50 mb-3">
+                        📤 Upload Material
+                      </button>
                       {sessions.find(s => s.id === inCall)?.materials?.map(m => (
-                        <a key={m.id} href={m.file_url} target="_blank" className="block text-xs text-green-400 hover:text-green-300 mb-1">
+                        <a key={m.id} href={m.file_url} target="_blank" 
+                          className="block text-xs text-green-400 hover:text-green-300 mb-1">
                           📄 {m.title}
                         </a>
                       ))}
