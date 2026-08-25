@@ -291,6 +291,8 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         return Response({'error': 'Not authorized'}, status=403)
 
 
+    
+    @action(detail=True, methods=['post'])
     def upload_material(self, request, pk=None):
         session = self.get_object()
         if session.tutor != request.user:
