@@ -300,6 +300,17 @@ const [remainingSheets, setRemainingSheets] = useState(4);
   }, [timerActive, timer]);
 
 
+
+// Auto-refresh whiteboard every 5s for students
+useEffect(() => {
+  if (!inCall || !showWhiteboard) return;
+  const interval = setInterval(() => {
+    fetchWhiteboard(inCall);
+  }, 5000);
+  return () => clearInterval(interval);
+}, [inCall, showWhiteboard]);
+
+
 useEffect(() => {
   if (remoteStreamRef.current && remoteVideoRef.current) {
     remoteVideoRef.current.srcObject = remoteStreamRef.current;
@@ -1020,10 +1031,20 @@ useEffect(() => {
                       )}
                     </div>
                   )}
-                  {showMaterials && (
+                                   {showMaterials && (
                     <div className="p-3 text-white">
                       <h4 className="font-bold text-sm mb-2">Materials</h4>
-                      <p className="text-gray-400 text-sm">Materials panel</p>
+                      <input type="file" onChange={async (e) => {
+                        setUploadFile(e.target.files?.[0] || null);
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        await uploadMaterial(inCall!);
+                      }} className="text-xs mb-3" />
+                      {sessions.find(s => s.id === inCall)?.materials?.map(m => (
+                        <a key={m.id} href={m.file_url} target="_blank" className="block text-xs text-green-400 hover:text-green-300 mb-1">
+                          📄 {m.title}
+                        </a>
+                      ))}
                     </div>
                   )}
                 </div>
