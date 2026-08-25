@@ -5,6 +5,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import toast from 'react-hot-toast';
 import SplashScreen from './components/SplashScreen';
 import Layout from './components/Layout';
 import Feed from './components/Feed';
@@ -42,6 +43,8 @@ import ReportPage from './components/ReportPage';
 import AppealPage from './components/AppealPage';
 import SupportPage from './components/SupportPage';
 import PlatformDashboard from './components/PlatformDashboard';
+import { preCacheAllFeatures } from './services/preCache';
+
 
 // ✅ FIXED: Added loading check
 function PrivateRoute({ children }: { children: JSX.Element }) {
@@ -102,7 +105,37 @@ function AppContent() {
     return () => window.removeEventListener('sasl_logout', handleLogout);
   }, []);
   
+
+useEffect(() => {
+  const handleOnline = async () => {
+    const { getPendingActions, clearOfflineAction } = await import('./services/offlineDB');
+    const api = (await import('./services/api')).default;
+    const actions = await getPendingActions();
+    for (const action of actions) {
+      try {
+        switch (action.type) {
+          case 'create_tutoring_session': await api.post('/tutoring/sessions/', action.data); break;
+          case 'create_stream': await api.post('/streaming/streams/', action.data); break;
+          case 'create_gig': await api.post('/gigs/gigs/', action.data); break;
+          case 'create_audio_room': await api.post('/liveaudio/rooms/', action.data); break;
+          case 'create_reel': await api.post('/content/reels/', action.data); break;
+          case 'create_campaign': await api.post('/creatorstudio/campaigns/', action.data); break;
+        }
+        if (action.id) await clearOfflineAction(action.id);
+      } catch {}
+    }
+    toast.success('📦 Offline actions synced!');
+  };
   
+  window.addEventListener('online', handleOnline);
+  return () => window.removeEventListener('online', handleOnline);
+}, []);
+
+  useEffect(() => {
+  preCacheAllFeatures();
+}, []);
+
+
     if (!splashDone) {
     return <SplashScreen onFinish={handleSplashFinish} />;
   }

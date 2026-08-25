@@ -99,6 +99,12 @@ export default function CreatorStudio() {
 
   const loadData = async () => {
     try {
+
+            if (!navigator.onLine) {
+        const cached = await loadCachedFeature('creator_studio');
+        if (cached) { setCampaigns(cached); return; }
+      } 
+
       const [p, c, m, e] = await Promise.all([
         api.get('/creatorstudio/profiles/my_profile/'),
         api.get('/creatorstudio/campaigns/'),

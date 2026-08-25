@@ -103,7 +103,12 @@ export default function Marketplace() {
   
   const fetchProducts = useCallback(async () => {
 
-      
+          if (!navigator.onLine) {
+      const cached = await loadCachedFeature('products');
+      if (cached) { setProducts(cached); return; }
+    }
+
+    
     setLoading(true);
     setError(null);
     try {
