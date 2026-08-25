@@ -836,6 +836,8 @@ const submitNote = async () => {
 };
 
 
+
+
 const fetchNotes = async () => {
   try {
     const res = await api.get(`/tutoring/sessions/${inCall}/student_notes/`);
@@ -851,6 +853,27 @@ const fetchNotes = async () => {
   } catch {}
 };
 
+
+// Auto-poll notes every 5s when tutor is in a group class call
+useEffect(() => {
+  if (!inCall) return;
+  const isTutor = user?.username === sessions.find(s => s.id === inCall)?.tutor?.username;
+  const isGroup = sessions.find(s => s.id === inCall)?.is_group_class;
+  if (!isTutor || !isGroup) return;
+  
+  const interval = setInterval(async () => {
+    try {
+      const res = await api.get(`/tutoring/sessions/${inCall}/student_notes/`);
+      const newNotes = res.data || [];
+      if (newNotes.length > noteSheets.length) {
+        toast(`📝 ${newNotes.length - noteSheets.length} new note(s) from students!`, { icon: '📝' });
+      }
+      setNoteSheets(newNotes);
+    } catch {}
+  }, 5000);
+  
+  return () => clearInterval(interval);
+}, [inCall, noteSheets.length, user?.username, sessions]);
 
   // ============================================================
   // RENDER
