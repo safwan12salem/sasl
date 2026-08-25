@@ -17,6 +17,7 @@ import MarketplaceChat from './MarketplaceChat';
 import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 import AdBanner from './AdBanner';
+import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
 
 
 
@@ -98,16 +99,15 @@ export default function Marketplace() {
   const [paymentAmount, setPaymentAmount] = useState(0);
     const [activeTab, setActiveTab] = useState<'shop' | 'orders'>('shop');
   const [orders, setOrders] = useState<any[]>([]);
+  
+  
   const fetchProducts = useCallback(async () => {
+
+      
     setLoading(true);
     setError(null);
     try {
-      if (!isOnline) {
-        const cached = await db.products.toArray();
-        setProducts(cached as any);
-        setLoading(false);
-        return;
-      }
+     
       const params = new URLSearchParams();
       if (searchQuery) params.set('search', searchQuery);
       if (selectedCategory) params.set('category', selectedCategory);
@@ -118,13 +118,14 @@ export default function Marketplace() {
       const res = await api.get(`/marketplace/products/?${params.toString()}`);
       const results = res.data.results || [];
       await db.products.clear();
-      for (const p of results) {
+           for (const p of results) {
         await db.products.put({ id: p.id, title: p.title, price: p.price, seller: p.seller_name, image_url: p.image_url, stock: p.stock });
       }
       setProducts(results);
+      await cacheFeatureData('products', results);
     } catch { setError('Could not load marketplace.'); }
     finally { setLoading(false); }
-  }, [isOnline, searchQuery, selectedCategory, sortBy, minPrice, maxPrice, inStockOnly]);
+  }, [searchQuery, selectedCategory, sortBy, minPrice, maxPrice, inStockOnly]);
 
   const fetchOrders = async () => {
     try {

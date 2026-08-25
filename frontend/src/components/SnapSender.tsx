@@ -21,6 +21,9 @@ import { useTranslation } from 'react-i18next';
 import { uploadFile } from '../services/uploadService';
 import { db } from '../services/offlineDB';
 
+import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
+
+
 
 interface Snap {
   id: string;
@@ -199,7 +202,15 @@ export default function SnapSender() {
 
   // Fetch functions
   const fetchSnaps = async () => {
-    try { const res = await api.get('/snaps/snaps/inbox/'); setSnaps(res.data?.received || []); setSentSnaps(res.data?.sent || []); } catch {}
+
+
+        if (!navigator.onLine) {
+      const cached = await loadCachedFeature('snaps');
+      if (cached) { setSnaps(cached); return; }
+    }
+
+
+    try { const res = await api.get('/snaps/snaps/inbox/'); setSnaps(res.data?.received || []);await cacheFeatureData('snaps', res.data.results || res.data || []);   setSentSnaps(res.data?.sent || []); } catch {}
   };
   const fetchStreaks = async () => {
     try { const res = await api.get('/snaps/snaps/streaks/'); setStreaks(res.data || []); } catch {}

@@ -16,7 +16,7 @@ import SoundUploader from './SoundUploader';
 import { uploadLargeVideo } from '../services/videoUploader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../services/offlineDB';
-
+import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
 
 
 interface Reel {
@@ -80,6 +80,12 @@ export default function Reels() {
   };
 
   const fetchReels = useCallback(async () => {
+
+        if (!navigator.onLine) {
+      const cached = await loadCachedFeature('reels');
+      if (cached) { setReels(cached); return; }
+    }
+
     setLoading(true); setError(null);
     try {
       const res = await api.get('/content/reels/');
@@ -100,6 +106,7 @@ export default function Reels() {
         });
       }
       setReels(videoReels);
+      await cacheFeatureData('reels', videoReels);
     } catch (err) { setError(t('Could not load reels.')); }
     finally { setLoading(false); }
   }, [t]);

@@ -27,6 +27,8 @@ import DiscussionBoard from './DiscussionBoard';
 
 import { useOfflineSync } from '../services/useOfflineSync';
 import { cacheFeatureData, loadCachedFeature, queueOfflineAction } from '../services/offlineDB';
+import { getPendingActions, clearOfflineAction } from '../services/offlineDB';
+
 
 interface Session {
   id: string;
@@ -391,6 +393,31 @@ useEffect(() => {
   }, 3000);
   return () => clearInterval(interval);
 }, [inCall, showWhiteboard]);
+
+
+
+
+// Sync offline actions when back online
+useEffect(() => {
+  const handleOnline = async () => {
+    const actions = await getPendingActions();
+    for (const action of actions) {
+      try {
+        if (action.type === 'create_tutoring_session') {
+          await api.post('/tutoring/sessions/', action.data);
+          toast.success('📦 Offline session synced!');
+        }
+        if (action.id) await clearOfflineAction(action.id);
+      } catch {}
+    }
+    fetchSessions();
+  };
+  
+  window.addEventListener('online', handleOnline);
+  return () => window.removeEventListener('online', handleOnline);
+}, []);
+
+
   // ============================================================
   // ACTIONS
   // ============================================================

@@ -19,6 +19,7 @@ import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 import AdBanner from './AdBanner';
 import { db } from '../services/offlineDB';
+import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
 
 
 
@@ -150,6 +151,13 @@ export default function GigCentral() {
   const [paymentAmount, setPaymentAmount] = useState(0);
   
   const fetchGigs = useCallback(async () => {
+
+
+        if (!navigator.onLine) {
+      const cached = await loadCachedFeature('gigs');
+      if (cached) { setGigs(cached); return; }
+    }
+
     setLoading(true); setError(null);
     try {
       const params = new URLSearchParams();
@@ -159,6 +167,7 @@ export default function GigCentral() {
       const res = await api.get(`/gigs/gigs/?${params.toString()}`);
       const data = Array.isArray(res.data) ? res.data : res.data.results || [];
       setGigs(data);
+            await cacheFeatureData('gigs', res.data.results || res.data || []);
       const completed = data.filter((g: Gig) => g.status === 'completed');
       setStats({
         totalGigs: data.length,

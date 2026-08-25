@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import { cacheFeatureData, loadCachedFeature, queueOfflineAction } from '../services/offlineDB';
 import toast from 'react-hot-toast';
 import { 
   Sparkles, DollarSign, TrendingUp, Video, Image, Send, Loader2, Users, Star, PlusCircle,
@@ -11,9 +12,10 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../contexts/AuthContext';
 import { useMesh } from '../hooks/useMesh';
 import { db } from '../services/offlineDB';
-
 import { uploadFile } from '../services/uploadService';
-import { queueOfflineAction } from '../services/offlineSync';
+
+
+
 
 export default function CreatorStudio() {
   const { user } = useAuth();

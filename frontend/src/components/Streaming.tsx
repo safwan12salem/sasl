@@ -7,6 +7,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import api from '../services/api';
+import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import {
@@ -191,12 +192,20 @@ useEffect(() => {
   const fetchStreams = useCallback(async () => {
     setLoading(true);
     setError(null);
+
+        if (!navigator.onLine) {
+      const cached = await loadCachedFeature('streams');
+      if (cached) { setStreams(cached); return; }
+    }
+
+
     try {
       const params = new URLSearchParams();
 params.set('is_live', 'true');  // Only show live streams
 if (activeCategory) params.set('category', activeCategory);
 const res = await api.get(`/streaming/streams/?${params.toString()}`);
       setStreams(res.data.results || []);
+      await cacheFeatureData('streams', res.data.results || res.data || []);
     } catch (err) {
       setError(t('Failed to load streams.'));
     } finally {
@@ -303,6 +312,25 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
     const interval = setInterval(checkLiveStreams, 30000);
     return () => clearInterval(interval);
   }, [subscribedStreamers, streams]);
+
+
+  useEffect(() => {
+    const handleOnline = async () => {
+      const actions = await getPendingActions();
+      for (const action of actions) {
+        try {
+          if (action.type === 'create_stream') {
+            await api.post('/streaming/streams/', action.data);
+          }
+          if (action.id) await clearOfflineAction(action.id);
+        } catch {}
+      }
+      fetchStreams();
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, []);
+
 
   // ============================================================
   // VIRAL: Connect to chat WebSocket when in call

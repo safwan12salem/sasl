@@ -19,6 +19,7 @@ import { Image as ImageIcon } from 'lucide-react';
 import { db } from '../services/offlineDB';
 import { useMesh } from '../contexts/MeshContext';
 import { uploadFile } from '../services/uploadService';
+import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
 
 
 interface Group {
@@ -134,10 +135,18 @@ const handleDeleteMessage = async (messageId: string) => {
   }, [messages]);
 
     const fetchGroups = useCallback(async () => {
+
+          if (!navigator.onLine) {
+      const cached = await loadCachedFeature('groups');
+      if (cached) { setGroups(cached); return; }
+    }
+
+
     try {
       const res = await api.get('/groupchat/groups/');
       const data = res.data.results || res.data || [];
       setGroups(data);
+      await cacheFeatureData('groups', res.data.results || res.data || []);
       // Auto-show sidebar on mobile if there are groups and no active group
       if (data.length > 0 && !activeGroup) {
         setShowSidebar(true);

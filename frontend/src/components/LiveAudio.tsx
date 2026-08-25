@@ -17,6 +17,9 @@ import PaymentModal from './PaymentModal';
 import { uploadFile } from '../services/uploadService';
 import { db } from '../services/offlineDB';
 
+import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
+
+
 interface AudioRoom {
   id: string;
   host: { username: string; avatar_url?: string };
@@ -89,6 +92,11 @@ const [chatInput, setChatInput] = useState('');
 
       const fetchRooms = useCallback(async () => {
     // Show cached rooms instantly
+    if (!navigator.onLine) {
+      const cached = await loadCachedFeature('audio_rooms');
+      if (cached) { setRooms(cached); return; }
+    }
+
     const cached = localStorage.getItem('sasl_liveaudio_rooms');
     if (cached) {
       try { setRooms(JSON.parse(cached)); setLoading(false); } catch {}
@@ -104,6 +112,7 @@ const [chatInput, setChatInput] = useState('');
       const data = await res.json();
       const roomsData = data.results || data || [];
       setRooms(roomsData);
+      await cacheFeatureData('audio_rooms', roomsData);
       localStorage.setItem('sasl_liveaudio_rooms', JSON.stringify(roomsData));
     } catch (err) {
       console.log('LiveAudio fetch error:', err);
