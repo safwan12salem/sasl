@@ -446,21 +446,40 @@ useEffect(() => {
     }
   };
 
+
+
   const uploadMaterial = async (sessionId: string) => {
     if (!uploadFile || !materialTitle) return toast.error(t('Title and file required'));
-    const formData = new FormData();
-    formData.append('title', materialTitle);
-    formData.append('description', materialDesc);
-    formData.append('file', uploadFile);
-
+    
     try {
-      await api.post(`/tutoring/sessions/${sessionId}/upload_material/`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      // Upload to Supabase Storage
+      const { supabase } = await import('../services/supabase');
+      const fileExt = uploadFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${uploadFile.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('media')
+        .upload(`materials/${fileName}`, uploadFile);
+      
+      if (uploadError) throw uploadError;
+      
+      const { data: urlData } = supabase.storage
+        .from('media')
+        .getPublicUrl(`materials/${fileName}`);
+      
+      const fileUrl = urlData.publicUrl;
+      
+      // Save to backend with the Supabase URL
+      await api.post(`/tutoring/sessions/${sessionId}/upload_material/`, {
+        title: materialTitle,
+        description: materialDesc,
+        file_url: fileUrl
       });
+      
       toast.success(t('Material uploaded!'));
       setMaterialTitle(''); setMaterialDesc(''); setUploadFile(null);
       fetchSessions();
     } catch (err: any) {
+      console.log('Upload error:', err);
       toast.error(t('Failed to upload'));
     }
   };
@@ -982,7 +1001,7 @@ useEffect(() => {
                     <FileText size={14} /> Notes
                   </button>
                 )}
-                <button onClick={() => setShowMaterials(!showMaterials)}
+                <button onClick={() => { setShowMaterials(!showMaterials); if (!showMaterials) fetchSessions(); }}
                   className="px-3 py-1.5 rounded-full bg-gray-700 hover:bg-gray-600 text-sm flex items-center gap-1">
                   <FileText size={14} /> Materials
                 </button>
