@@ -53,6 +53,7 @@ class TutoringSession(models.Model):
         return f"{self.subject} by {self.tutor.username}"
 
 
+
 class SessionMaterial(models.Model):
     """Study materials uploaded for sessions"""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
@@ -60,6 +61,7 @@ class SessionMaterial(models.Model):
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True, default='')
     file = models.FileField(upload_to='tutoring/materials/', blank=True, null=True)
+    file_url = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -67,7 +69,6 @@ class SessionMaterial(models.Model):
 
     def __str__(self):
         return f"Material: {self.title}"
-
 
 class WhiteboardSession(models.Model):
     """Interactive whiteboard data for sessions"""

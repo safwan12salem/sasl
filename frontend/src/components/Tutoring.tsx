@@ -51,6 +51,7 @@ interface Session {
 interface Material {
   id: string;
   title: string;
+  file?: string;
   file_url?: string;
   description?: string;
   created_at: string;
@@ -1104,7 +1105,7 @@ useEffect(() => {
                         📤 Upload Material
                       </button>
                       {sessions.find(s => s.id === inCall)?.materials?.map(m => (
-                        <a key={m.id} href={m.file_url} target="_blank" 
+                        <a key={m.id} href={m.file_url || m.file} target="_blank"
                           className="block text-xs text-green-400 hover:text-green-300 mb-1">
                           📄 {m.title}
                         </a>

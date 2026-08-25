@@ -18,8 +18,7 @@ class TutorProfileSerializer(serializers.ModelSerializer):
 class SessionMaterialSerializer(serializers.ModelSerializer):
     class Meta:
         model = SessionMaterial
-        fields = ['id', 'title', 'description', 'file', 'created_at']
-
+        fields = ['id', 'title', 'description', 'file', 'file_url', 'created_at']
 
 class WhiteboardSerializer(serializers.ModelSerializer):
     class Meta:

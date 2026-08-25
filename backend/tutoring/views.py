@@ -290,7 +290,7 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
             return Response({'status': 'cancelled'})
         return Response({'error': 'Not authorized'}, status=403)
 
-    @action(detail=True, methods=['post'])
+
     def upload_material(self, request, pk=None):
         session = self.get_object()
         if session.tutor != request.user:
@@ -300,6 +300,7 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
             session=session,
             title=request.data.get('title', 'Material'),
             file=request.FILES.get('file'),
+            file_url=request.data.get('file_url', ''),
             description=request.data.get('description', '')
         )
         return Response(SessionMaterialSerializer(material).data, status=201)
