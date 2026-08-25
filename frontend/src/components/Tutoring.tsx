@@ -346,23 +346,42 @@ useEffect(() => {
   }
 }, [inCall]);
 
-// Auto-rejoin on mount
+
+
+
 useEffect(() => {
   const savedSession = localStorage.getItem('sasl_in_call_session');
   const savedRole = localStorage.getItem('sasl_in_call_role');
-  if (savedSession && savedRole) {
-    toast('📞 Rejoining session...');
-    setTimeout(() => {
-      startVideoCall(savedSession, savedRole as 'tutor' | 'student');
-    }, 1000);
-    localStorage.removeItem('sasl_in_call_session');
-    localStorage.removeItem('sasl_in_call_role');
+  if (savedSession && savedRole && savedRole === 'tutor') {
+    const session = sessions.find(s => s.id === savedSession);
+    if (session && session.status === 'ongoing') {
+      toast('📞 Rejoining session...');
+      setTimeout(() => {
+        startVideoCall(savedSession, 'tutor');
+      }, 1000);
+    }
   }
+  localStorage.removeItem('sasl_in_call_session');
+  localStorage.removeItem('sasl_in_call_role');
 }, []);
+
+
+
+// Auto-refresh whiteboard for students
+useEffect(() => {
+  if (!inCall || !showWhiteboard) return;
+  const interval = setInterval(() => {
+    fetchWhiteboard(inCall);
+  }, 3000);
+  return () => clearInterval(interval);
+}, [inCall, showWhiteboard]);
   // ============================================================
   // ACTIONS
   // ============================================================
  
+
+
+
 
   const createSession = async () => {
     if (!subject || !price || !scheduledAt) return toast.error(t('Fill all required fields'));
@@ -690,6 +709,11 @@ const peer = new Peer(uniqueId, {
       remoteVideoRef.current.srcObject = null;
       callingRef.current = false;
       
+    }
+
+        if (peerRef.current) {
+      peerRef.current.destroy();
+      peerRef.current = null;
     }
   };
 
