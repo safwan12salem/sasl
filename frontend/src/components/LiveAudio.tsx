@@ -64,7 +64,7 @@ export default function LiveAudio() {
   const [maxListeners, setMaxListeners] = useState('100');
   const [bgImage, setBgImage] = useState<File | null>(null);
   const [bgImageUrl, setBgImageUrl] = useState('');
-
+  const [newCountry, setNewCountry] = useState('default');
   const [inRoom, setInRoom] = useState<string | null>(null);
   const [isSpeaker, setIsSpeaker] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -149,7 +149,7 @@ export default function LiveAudio() {
         is_public: isPublic, max_listeners: parseInt(maxListeners),
         background_url: bgImageUrl,
         price: roomPrice || null,
-        country: countryFilter,
+        country: newCountry,
       });
       toast.success(t('room_created'));
       setShowCreate(false);
@@ -812,7 +812,7 @@ const requestSpeak = () => {
             <input className="input-field" placeholder="Room title *" value={roomTitle} onChange={e => setRoomTitle(e.target.value)} />
             <textarea className="input-field" placeholder="Description..." value={roomDesc} onChange={e => setRoomDesc(e.target.value)} rows={2} />
             <input className="input-field" placeholder="Topics (comma separated)" value={roomTopics} onChange={e => setRoomTopics(e.target.value)} />
-                          <select className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" value={countryFilter} onChange={e => setCountryFilter(e.target.value)}>
+                                            <select className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" value={newCountry} onChange={e => setNewCountry(e.target.value)}>
                 <option value="default">🌍 All Countries</option>
                 <option value="US">🇺🇸 United States</option>
                 <option value="GB">🇬🇧 United Kingdom</option>

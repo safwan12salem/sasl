@@ -17,7 +17,6 @@ import { uploadLargeVideo } from '../services/videoUploader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../services/offlineDB';
 import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
-import CountryFilter from './CountryFilter';
 
 interface Reel {
   id: string;
@@ -64,8 +63,7 @@ export default function Reels() {
   const [tipReelId, setTipReelId] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
- const [countryFilter, setCountryFilter] = useState('default');
-
+ 
 
   const handleDislike = async (reelId: string) => {
     if (reelId === 'demo-reel') return;
@@ -91,7 +89,7 @@ export default function Reels() {
     setLoading(true); setError(null);
     try {
     const params = new URLSearchParams();
-    if (countryFilter !== 'default') params.set('country', countryFilter);
+    
     const res = await api.get(`/content/reels/?${params.toString()}`);
       const raw = res.data.results || res.data || [];
       let videoReels: any[] = raw.filter((r: any) => r.video_url).map((r: any) => ({
@@ -203,7 +201,7 @@ export default function Reels() {
     setUploading(true);
     try {
       const extraFields: Record<string, string> = { caption: reelCaption };
-      extraFields.country = countryFilter;
+     
       if (reelSound) extraFields.sound_track = reelSound;
       if (reelSoundUrl) extraFields.sound_url = reelSoundUrl;
             if (!navigator.onLine) {
@@ -257,9 +255,7 @@ export default function Reels() {
             <span className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent">Reels</span>
           </h1>
           <div className="flex items-center gap-2">
-            <div className="px-3 py-1.5 bg-black/40 backdrop-blur-sm rounded-full">
-              <CountryFilter value={countryFilter} onChange={setCountryFilter} />
-            </div>
+            
             <button onClick={() => setIsMuted(!isMuted)} className="text-white/80 hover:text-white p-2">
               {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
             </button>
@@ -290,7 +286,7 @@ export default function Reels() {
               <input type="file" accept="video/*" onChange={e => setReelFile(e.target.files?.[0] || null)} className="mb-4 w-full text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pink-500 file:text-white hover:file:bg-pink-600" />
               <input className="w-full bg-white/10 text-white px-4 py-3 rounded-xl mb-3 text-sm outline-none focus:ring-2 focus:ring-pink-500 placeholder-white/40"  placeholder={t('Write a caption...')} value={reelCaption} onChange={e => setReelCaption(e.target.value)} />
                             <div className="px-2 py-1 bg-black/40 backdrop-blur-sm rounded-full mb-3 inline-flex">
-                <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+            
               </div>
               <button onClick={() => setShowSoundPicker(true)} className="w-full flex items-center gap-2 text-sm text-purple-400 hover:bg-purple-500/10 px-4 py-3 rounded-xl transition mb-4">
                 <Music size={18} /> {reelSound ? reelSound : t('Add Sound')}

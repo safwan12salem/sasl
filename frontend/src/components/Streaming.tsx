@@ -25,6 +25,8 @@ import { db } from '../services/offlineDB';
 import CountryFilter from './CountryFilter';
 
 
+
+
 interface Stream {
   id: string;
   streamer: { username: string; avatar_url?: string };
@@ -153,7 +155,9 @@ export default function Streaming() {
   const [challengeTitle, setChallengeTitle] = useState('');
   const [activeChallenge, setActiveChallenge] = useState<any>(null);
   const [challenges, setChallenges] = useState<any[]>([]); 
-const [challengeTimer, setChallengeTimer] = useState<number>(0);
+  const [challengeTimer, setChallengeTimer] = useState<number>(0);
+  const [streamCountry, setStreamCountry] = useState('default');
+  const [newCountry, setNewCountry] = useState('default');
 
   // Restore inCall from localStorage on refresh
   useEffect(() => {
@@ -479,7 +483,7 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
       formData.append('category', category);
       formData.append('tags', JSON.stringify(tags.split(',').map(t => t.trim()).filter(Boolean)));
       if (thumbnailFile) formData.append('thumbnail', thumbnailFile);
-            formData.append('country', countryFilter);
+      formData.append('country', newCountry);
               if (!navigator.onLine) {
   await db.offlineActions.put({ type: 'create_stream', data: { title }, created_at: Date.now() });
   toast.success('📦 Stream saved offline');
@@ -1242,7 +1246,29 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
           <h3 className="font-bold flex items-center gap-2"><Video size={18} className="text-red-500" /> {t('Go Live')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                      <div className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center">
-              <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+             <select className="input-field" value={newCountry} onChange={e => setNewCountry(e.target.value)}>
+  <option value="default">🌍 All Countries</option>
+  <option value="US">🇺🇸 United States</option>
+  <option value="GB">🇬🇧 United Kingdom</option>
+  <option value="DE">🇩🇪 Germany</option>
+  <option value="FR">🇫🇷 France</option>
+  <option value="ES">🇪🇸 Spain</option>
+  <option value="IT">🇮🇹 Italy</option>
+  <option value="CA">🇨🇦 Canada</option>
+  <option value="AU">🇦🇺 Australia</option>
+  <option value="JP">🇯🇵 Japan</option>
+  <option value="IN">🇮🇳 India</option>
+  <option value="BR">🇧🇷 Brazil</option>
+  <option value="MX">🇲🇽 Mexico</option>
+  <option value="SA">🇸🇦 Saudi Arabia</option>
+  <option value="AE">🇦🇪 UAE</option>
+  <option value="TR">🇹🇷 Turkey</option>
+  <option value="EG">🇪🇬 Egypt</option>
+  <option value="ZA">🇿🇦 South Africa</option>
+  <option value="NG">🇳🇬 Nigeria</option>
+  <option value="MA">🇲🇦 Morocco</option>
+  
+</select>
             </div>
             <input className="input-field" placeholder={t('Stream title...')} value={title} onChange={e => setTitle(e.target.value)}/>
             <select className="input-field" value={category} onChange={e => setCategory(e.target.value)}>

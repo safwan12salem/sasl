@@ -25,7 +25,6 @@ import EmojiPicker from 'emoji-picker-react';
 import { contentModerator } from '../services/contentModeration';
 import { useTranslation } from 'react-i18next';
 import { uploadFile } from '../services/uploadService';
-import CountryFilter from './CountryFilter';
 
 
 
@@ -102,8 +101,7 @@ const Feed: React.FC = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const isFetching = useRef(false);
   const { t } = useTranslation();
-  const [countryFilter, setCountryFilter] = useState('default'); 
-
+  
   useEffect(() => { cachePosts(posts); }, [posts]);
 
   // ============================================================
@@ -339,7 +337,7 @@ const Feed: React.FC = () => {
       
       });
     }
-        payload.country = countryFilter;
+       
         try {
       console.log('📤 Sending to API:', JSON.stringify(payload));
       const res = await api.post('/content/posts/', payload);
@@ -581,9 +579,7 @@ const Feed: React.FC = () => {
     <div className="max-w-2xl mx-auto p-4">
       <div className="flex justify-between items-center mb-3">
         <h1 className="text-2xl font-bold gradient-text">Sasl Feed</h1>
-        <div className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
-  <CountryFilter value={countryFilter} onChange={setCountryFilter} />
-</div>
+       
         <div className="flex items-center gap-2">
           {!isOnline && <span className="mesh-badge mesh-offline text-xs">Offline</span>}
           {offlineQueue.length > 0 && (
@@ -657,9 +653,7 @@ const Feed: React.FC = () => {
               {visibility === 'public' ? '🌍' : '🔒'}
               {visibility === 'public' ? 'Public' : 'Followers'}
             </button>
-                        <div className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
-              <CountryFilter value={countryFilter} onChange={setCountryFilter} />
-            </div>
+                        
             <button onClick={submitPost} disabled={!composing.trim() && !selectedFile} className="btn-primary text-sm py-2 px-6">
             {t('post')}
           </button>

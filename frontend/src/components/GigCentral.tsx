@@ -151,10 +151,10 @@ export default function GigCentral() {
   const [likedGigs, setLikedGigs] = useState<Set<string>>(new Set());
   const [showPayment, setShowPayment] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
-  
+  const [newCountry, setNewCountry] = useState('default');
+
   const fetchGigs = useCallback(async () => {
-
-
+  
         if (!navigator.onLine) {
       const cached = await loadCachedFeature('gigs');
       if (cached) { setGigs(cached); return; }
@@ -225,7 +225,7 @@ export default function GigCentral() {
         description: newDesc, 
         budget: parseFloat(newBudget), 
         category: newCategory, 
-        country: countryFilter,
+        country: newCountry,
         deadline: newDeadline || null, 
         milestones: milestones.filter(m => m.title && m.amount) 
       });
@@ -420,7 +420,7 @@ export default function GigCentral() {
 
                 {categories.map(cat => <option key={cat} value={cat}>{cat.charAt(0).toUpperCase() + cat.slice(1)}</option>)}
               </select>
-                            <select className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" value={countryFilter} onChange={e => setCountryFilter(e.target.value)}>
+                            <select className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" value={newCountry} onChange={e => setNewCountry(e.target.value)}>
                 <option value="default">🌍 All Countries</option>
                 <option value="US">🇺🇸 United States</option>
                 <option value="GB">🇬🇧 United Kingdom</option>

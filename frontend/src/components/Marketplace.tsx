@@ -100,7 +100,7 @@ export default function Marketplace() {
   const [paymentAmount, setPaymentAmount] = useState(0);
     const [activeTab, setActiveTab] = useState<'shop' | 'orders'>('shop');
   const [orders, setOrders] = useState<any[]>([]);
-  
+  const [newCountry, setNewCountry] = useState('default');
   
   const fetchProducts = useCallback(async () => {
 
@@ -199,7 +199,7 @@ const resetSellForm = () => {
     formData.append('title', newTitle); formData.append('description', newDesc);
     formData.append('price', newPrice); formData.append('stock', newStock || '1');
     if (newCategory) formData.append('category', newCategory);
-        formData.append('country', countryFilter);
+        formData.append('country', newCountry);
     if (newImages.length > 0) {
   formData.append('image', newImages[0]); // Main image
   // Send additional images
@@ -275,7 +275,7 @@ const resetSellForm = () => {
         <div className="flex gap-3">
           <div className="relative flex-1">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+             <CountryFilter value={countryFilter} onChange={setCountryFilter} />
             <input className="input-field pl-10" placeholder={t('search_products')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
           </div>
           <button onClick={() => setShowFilters(!showFilters)} className="btn-ghost flex items-center gap-1">
@@ -323,7 +323,7 @@ const resetSellForm = () => {
                 <option value="">{t('Category')}</option>
                 {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
               </select>
-                            <select className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" value={countryFilter} onChange={e => setCountryFilter(e.target.value)}>
+                            <select className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" value={newCountry} onChange={e => setNewCountry(e.target.value)}>
                 <option value="default">🌍 All Countries</option>
                 <option value="US">🇺🇸 United States</option>
                 <option value="GB">🇬🇧 United Kingdom</option>

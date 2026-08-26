@@ -148,7 +148,9 @@ const STATUS_COLORS: Record<string, string> = {
   const [remoteReady, setRemoteReady] = useState(false);
   const [timer, setTimer] = useState<number>(0);
   const [timerActive, setTimerActive] = useState(false);
-  
+  const [newCountry, setNewCountry] = useState('default');
+
+
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const remoteVideoRef = useRef<HTMLVideoElement>(null);
   const pendingStreamRef = useRef<MediaStream | null>(null);
@@ -286,12 +288,11 @@ const [remainingSheets, setRemainingSheets] = useState(4);
     }
   };
 
-  useEffect(() => { 
+ useEffect(() => { 
     fetchSessions(); 
     fetchTutors(); 
     fetchCertificates(); 
-  }, [activeTab, searchQuery]);
-
+  }, [activeTab, searchQuery, countryFilter]);
      
   // Restore whiteboard from localStorage on mount
   useEffect(() => {
@@ -452,7 +453,7 @@ useEffect(() => {
         duration_minutes: parseInt(duration),
         max_students: parseInt(maxStudents),
         topic_detail: topicDetail,
-        country: countryFilter,
+        country: newCountry,
         is_group_class: isGroupClass,
         background_image: bgImageUrl || null,
       });
@@ -1296,9 +1297,9 @@ useEffect(() => {
             </div>
             <textarea className="input-field" placeholder={t('Description...')} value={description} onChange={e => setDescription(e.target.value)} rows={2} />
                           <input className="input-field" placeholder={t('What specific topic will you teach? (optional)')} value={topicDetail} onChange={e => setTopicDetail(e.target.value)} />
-                          <select className="input-field" value={countryFilter} onChange={e => setCountryFilter(e.target.value)}>
-  <option value="default">🌍 All Countries</option>
-  <option value="US">🇺🇸 United States</option>
+                          <select className="input-field" value={newCountry} onChange={e => setNewCountry(e.target.value)}>
+                            <option value="default">🌍 All Countries</option>
+                             <option value="US">🇺🇸 United States</option>
   <option value="GB">🇬🇧 United Kingdom</option>
   <option value="DE">🇩🇪 Germany</option>
   <option value="FR">🇫🇷 France</option>
