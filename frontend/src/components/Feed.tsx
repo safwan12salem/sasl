@@ -335,9 +335,11 @@ const Feed: React.FC = () => {
       payload.poll = JSON.stringify({
         question: composing,
         options: pollOptions.filter(o => o.trim()),
-        expires_in_days: 1
+        expires_in_days: 1,
+      
       });
     }
+        payload.country = countryFilter;
         try {
       console.log('📤 Sending to API:', JSON.stringify(payload));
       const res = await api.post('/content/posts/', payload);
@@ -579,7 +581,9 @@ const Feed: React.FC = () => {
     <div className="max-w-2xl mx-auto p-4">
       <div className="flex justify-between items-center mb-3">
         <h1 className="text-2xl font-bold gradient-text">Sasl Feed</h1>
-        <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+        <div className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
+  <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+</div>
         <div className="flex items-center gap-2">
           {!isOnline && <span className="mesh-badge mesh-offline text-xs">Offline</span>}
           {offlineQueue.length > 0 && (

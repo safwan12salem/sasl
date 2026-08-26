@@ -225,6 +225,7 @@ export default function GigCentral() {
         description: newDesc, 
         budget: parseFloat(newBudget), 
         category: newCategory, 
+        country: countryFilter,
         deadline: newDeadline || null, 
         milestones: milestones.filter(m => m.title && m.amount) 
       });

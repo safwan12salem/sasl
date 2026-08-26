@@ -199,6 +199,7 @@ const resetSellForm = () => {
     formData.append('title', newTitle); formData.append('description', newDesc);
     formData.append('price', newPrice); formData.append('stock', newStock || '1');
     if (newCategory) formData.append('category', newCategory);
+        formData.append('country', countryFilter);
     if (newImages.length > 0) {
   formData.append('image', newImages[0]); // Main image
   // Send additional images

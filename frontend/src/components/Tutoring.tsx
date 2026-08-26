@@ -452,6 +452,7 @@ useEffect(() => {
         duration_minutes: parseInt(duration),
         max_students: parseInt(maxStudents),
         topic_detail: topicDetail,
+        country: countryFilter,
         is_group_class: isGroupClass,
         background_image: bgImageUrl || null,
       });
@@ -1295,6 +1296,61 @@ useEffect(() => {
             </div>
             <textarea className="input-field" placeholder={t('Description...')} value={description} onChange={e => setDescription(e.target.value)} rows={2} />
                           <input className="input-field" placeholder={t('What specific topic will you teach? (optional)')} value={topicDetail} onChange={e => setTopicDetail(e.target.value)} />
+                          <select className="input-field" value={countryFilter} onChange={e => setCountryFilter(e.target.value)}>
+  <option value="default">🌍 All Countries</option>
+  <option value="US">🇺🇸 United States</option>
+  <option value="GB">🇬🇧 United Kingdom</option>
+  <option value="DE">🇩🇪 Germany</option>
+  <option value="FR">🇫🇷 France</option>
+  <option value="ES">🇪🇸 Spain</option>
+  <option value="IT">🇮🇹 Italy</option>
+  <option value="NL">🇳🇱 Netherlands</option>
+  <option value="SE">🇸🇪 Sweden</option>
+  <option value="NO">🇳🇴 Norway</option>
+  <option value="DK">🇩🇰 Denmark</option>
+  <option value="FI">🇫🇮 Finland</option>
+  <option value="PT">🇵🇹 Portugal</option>
+  <option value="GR">🇬🇷 Greece</option>
+  <option value="PL">🇵🇱 Poland</option>
+  <option value="CZ">🇨🇿 Czech Republic</option>
+  <option value="AT">🇦🇹 Austria</option>
+  <option value="CH">🇨🇭 Switzerland</option>
+  <option value="IE">🇮🇪 Ireland</option>
+  <option value="BE">🇧🇪 Belgium</option>
+  <option value="CA">🇨🇦 Canada</option>
+  <option value="AU">🇦🇺 Australia</option>
+  <option value="NZ">🇳🇿 New Zealand</option>
+  <option value="JP">🇯🇵 Japan</option>
+  <option value="KR">🇰🇷 South Korea</option>
+  <option value="CN">🇨🇳 China</option>
+  <option value="IN">🇮🇳 India</option>
+  <option value="BR">🇧🇷 Brazil</option>
+  <option value="MX">🇲🇽 Mexico</option>
+  <option value="AR">🇦🇷 Argentina</option>
+  <option value="CL">🇨🇱 Chile</option>
+  <option value="CO">🇨🇴 Colombia</option>
+  <option value="PE">🇵🇪 Peru</option>
+  <option value="ZA">🇿🇦 South Africa</option>
+  <option value="NG">🇳🇬 Nigeria</option>
+  <option value="KE">🇰🇪 Kenya</option>
+  <option value="EG">🇪🇬 Egypt</option>
+  <option value="SA">🇸🇦 Saudi Arabia</option>
+  <option value="AE">🇦🇪 UAE</option>
+  <option value="TR">🇹🇷 Turkey</option>
+  <option value="IL">🇮🇱 Israel</option>
+  <option value="TH">🇹🇭 Thailand</option>
+  <option value="VN">🇻🇳 Vietnam</option>
+  <option value="ID">🇮🇩 Indonesia</option>
+  <option value="MY">🇲🇾 Malaysia</option>
+  <option value="SG">🇸🇬 Singapore</option>
+  <option value="PH">🇵🇭 Philippines</option>
+  <option value="PK">🇵🇰 Pakistan</option>
+  <option value="BD">🇧🇩 Bangladesh</option>
+  <option value="MA">🇲🇦 Morocco</option>
+  <option value="DZ">🇩🇿 Algeria</option>
+  <option value="TN">🇹🇳 Tunisia</option>
+  <option value="LY">🇱🇾 Libya</option>
+</select>
                        
                         <div>
               <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-500 hover:text-gray-700">

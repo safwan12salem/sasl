@@ -149,6 +149,7 @@ export default function LiveAudio() {
         is_public: isPublic, max_listeners: parseInt(maxListeners),
         background_url: bgImageUrl,
         price: roomPrice || null,
+        country: countryFilter,
       });
       toast.success(t('room_created'));
       setShowCreate(false);
@@ -838,7 +839,9 @@ const requestSpeak = () => {
 
       {/* Topic Pills */}
       <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
-                <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+            <div className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
+  <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+</div>
         <button onClick={() => setActiveTopic('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${!activeTopic ? 'bg-purple-500 text-white shadow-lg shadow-purple-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
           {t('all')}
         </button>

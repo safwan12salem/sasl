@@ -203,6 +203,7 @@ export default function Reels() {
     setUploading(true);
     try {
       const extraFields: Record<string, string> = { caption: reelCaption };
+      extraFields.country = countryFilter;
       if (reelSound) extraFields.sound_track = reelSound;
       if (reelSoundUrl) extraFields.sound_url = reelSoundUrl;
             if (!navigator.onLine) {
@@ -249,20 +250,23 @@ export default function Reels() {
   return (
     <div ref={containerRef} className="h-screen overflow-y-scroll snap-y snap-mandatory bg-black relative scroll-smooth">
      
-      {/* TOP BAR */}
+    {/* TOP BAR */}
       <div className="fixed top-0 left-0 right-0 z-40 px-4 pt-12 pb-2 bg-gradient-to-b from-black/60 to-transparent">
-                <CountryFilter value={countryFilter} onChange={setCountryFilter} />
         <div className="flex items-center justify-between">
           <h1 className="text-white text-2xl font-bold tracking-tight">
             <span className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent">Reels</span>
           </h1>
           <div className="flex items-center gap-2">
+            <div className="px-3 py-1.5 bg-black/40 backdrop-blur-sm rounded-full">
+              <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+            </div>
             <button onClick={() => setIsMuted(!isMuted)} className="text-white/80 hover:text-white p-2">
               {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
             </button>
           </div>
         </div>
       </div>
+        
 
       {/* UPLOAD BUTTON */}
       <button
