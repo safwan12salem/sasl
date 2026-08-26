@@ -94,7 +94,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
       country = self.request.query_params.get('country', '')
       if country and country != 'default':
-            queryset = queryset.filter(country=country) 
+            qs = qs.filter(country=country) 
     
       return qs
     @action(detail=False, methods=['get'])
@@ -374,11 +374,9 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        country = self.request.query_params.get('country', '')
-        if country and country != 'default':
-            queryset = queryset.filter(country=country)
         return Notification.objects.filter(recipient=self.request.user).order_by('-created_at')
 
+    
     @action(detail=False, methods=['post'])
     def mark_all_read(self, request):
         self.get_queryset().update(is_read=True)

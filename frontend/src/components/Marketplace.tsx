@@ -323,6 +323,29 @@ const resetSellForm = () => {
                 <option value="">{t('Category')}</option>
                 {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
               </select>
+                            <select className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" value={countryFilter} onChange={e => setCountryFilter(e.target.value)}>
+                <option value="default">🌍 All Countries</option>
+                <option value="US">🇺🇸 United States</option>
+                <option value="GB">🇬🇧 United Kingdom</option>
+                <option value="DE">🇩🇪 Germany</option>
+                <option value="FR">🇫🇷 France</option>
+                <option value="ES">🇪🇸 Spain</option>
+                <option value="IT">🇮🇹 Italy</option>
+                <option value="CA">🇨🇦 Canada</option>
+                <option value="AU">🇦🇺 Australia</option>
+                <option value="JP">🇯🇵 Japan</option>
+                <option value="IN">🇮🇳 India</option>
+                <option value="BR">🇧🇷 Brazil</option>
+                <option value="MX">🇲🇽 Mexico</option>
+                <option value="SA">🇸🇦 Saudi Arabia</option>
+                <option value="AE">🇦🇪 UAE</option>
+                <option value="TR">🇹🇷 Turkey</option>
+                <option value="EG">🇪🇬 Egypt</option>
+                <option value="ZA">🇿🇦 South Africa</option>
+                <option value="NG">🇳🇬 Nigeria</option>
+                <option value="MA">🇲🇦 Morocco</option>
+            
+              </select>
             </div>
             <div className="flex items-center gap-3 flex-wrap">
               <label className="btn-ghost cursor-pointer flex items-center gap-1"><ImageIcon size={18} /> Upload Images (max 10)<input type="file" accept="image/*" multiple className="hidden" onChange={handleImageChange} /></label>

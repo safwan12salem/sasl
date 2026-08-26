@@ -657,6 +657,9 @@ const Feed: React.FC = () => {
               {visibility === 'public' ? '🌍' : '🔒'}
               {visibility === 'public' ? 'Public' : 'Followers'}
             </button>
+                        <div className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
+              <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+            </div>
             <button onClick={submitPost} disabled={!composing.trim() && !selectedFile} className="btn-primary text-sm py-2 px-6">
             {t('post')}
           </button>

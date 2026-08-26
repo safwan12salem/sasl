@@ -69,7 +69,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
         country = self.request.query_params.get('country', '')
         if country and country != 'default':
-            queryset = queryset.filter(country=country)
+            qs = qs.filter(country=country)
         
         return qs
 

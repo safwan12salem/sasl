@@ -289,6 +289,9 @@ export default function Reels() {
               </div>
               <input type="file" accept="video/*" onChange={e => setReelFile(e.target.files?.[0] || null)} className="mb-4 w-full text-sm text-white file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pink-500 file:text-white hover:file:bg-pink-600" />
               <input className="w-full bg-white/10 text-white px-4 py-3 rounded-xl mb-3 text-sm outline-none focus:ring-2 focus:ring-pink-500 placeholder-white/40"  placeholder={t('Write a caption...')} value={reelCaption} onChange={e => setReelCaption(e.target.value)} />
+                            <div className="px-2 py-1 bg-black/40 backdrop-blur-sm rounded-full mb-3 inline-flex">
+                <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+              </div>
               <button onClick={() => setShowSoundPicker(true)} className="w-full flex items-center gap-2 text-sm text-purple-400 hover:bg-purple-500/10 px-4 py-3 rounded-xl transition mb-4">
                 <Music size={18} /> {reelSound ? reelSound : t('Add Sound')}
               </button>

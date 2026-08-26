@@ -812,6 +812,29 @@ const requestSpeak = () => {
             <input className="input-field" placeholder="Room title *" value={roomTitle} onChange={e => setRoomTitle(e.target.value)} />
             <textarea className="input-field" placeholder="Description..." value={roomDesc} onChange={e => setRoomDesc(e.target.value)} rows={2} />
             <input className="input-field" placeholder="Topics (comma separated)" value={roomTopics} onChange={e => setRoomTopics(e.target.value)} />
+                          <select className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm outline-none focus:ring-2 focus:ring-green-500" value={countryFilter} onChange={e => setCountryFilter(e.target.value)}>
+                <option value="default">🌍 All Countries</option>
+                <option value="US">🇺🇸 United States</option>
+                <option value="GB">🇬🇧 United Kingdom</option>
+                <option value="DE">🇩🇪 Germany</option>
+                <option value="FR">🇫🇷 France</option>
+                <option value="ES">🇪🇸 Spain</option>
+                <option value="IT">🇮🇹 Italy</option>
+                <option value="CA">🇨🇦 Canada</option>
+                <option value="AU">🇦🇺 Australia</option>
+                <option value="JP">🇯🇵 Japan</option>
+                <option value="IN">🇮🇳 India</option>
+                <option value="BR">🇧🇷 Brazil</option>
+                <option value="MX">🇲🇽 Mexico</option>
+                <option value="SA">🇸🇦 Saudi Arabia</option>
+                <option value="AE">🇦🇪 UAE</option>
+                <option value="TR">🇹🇷 Turkey</option>
+                <option value="EG">🇪🇬 Egypt</option>
+                <option value="ZA">🇿🇦 South Africa</option>
+                <option value="NG">🇳🇬 Nigeria</option>
+                <option value="MA">🇲🇦 Morocco</option>
+                
+              </select>
             <div className="flex gap-3 items-center">
                           <label className="flex items-center gap-2 text-sm cursor-pointer text-gray-500 hover:text-gray-700">
               <ImageIcon size={16} />

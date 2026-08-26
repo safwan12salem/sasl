@@ -1241,33 +1241,10 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass p-5 rounded-2xl mb-6 space-y-3 border-l-4 border-red-500">
           <h3 className="font-bold flex items-center gap-2"><Video size={18} className="text-red-500" /> {t('Go Live')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
-  <CountryFilter value={countryFilter} onChange={setCountryFilter} />
-</div>
-            <input className="input-field" placeholder={t('Stream title...')} value={title} onChange={e => setTitle(e.target.value)} />
-            <select className="input-field" value={countryFilter} onChange={e => setCountryFilter(e.target.value)}>
-  <option value="default">🌍 All Countries</option>
-  <option value="US">🇺🇸 United States</option>
-  <option value="GB">🇬🇧 United Kingdom</option>
-  <option value="DE">🇩🇪 Germany</option>
-  <option value="FR">🇫🇷 France</option>
-  <option value="ES">🇪🇸 Spain</option>
-  <option value="IT">🇮🇹 Italy</option>
-  <option value="CA">🇨🇦 Canada</option>
-  <option value="AU">🇦🇺 Australia</option>
-  <option value="JP">🇯🇵 Japan</option>
-  <option value="IN">🇮🇳 India</option>
-  <option value="BR">🇧🇷 Brazil</option>
-  <option value="MX">🇲🇽 Mexico</option>
-  <option value="SA">🇸🇦 Saudi Arabia</option>
-  <option value="AE">🇦🇪 UAE</option>
-  <option value="TR">🇹🇷 Turkey</option>
-  <option value="EG">🇪🇬 Egypt</option>
-  <option value="ZA">🇿🇦 South Africa</option>
-  <option value="NG">🇳🇬 Nigeria</option>
-  <option value="MA">🇲🇦 Morocco</option>
-
-</select>
+                     <div className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center">
+              <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+            </div>
+            <input className="input-field" placeholder={t('Stream title...')} value={title} onChange={e => setTitle(e.target.value)}/>
             <select className="input-field" value={category} onChange={e => setCategory(e.target.value)}>
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
