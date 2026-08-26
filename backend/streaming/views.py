@@ -44,7 +44,11 @@ class StreamSessionViewSet(viewsets.ModelViewSet):
         category = self.request.query_params.get('category')
         if category:
             qs = qs.filter(category=category)
-        
+
+
+        country = self.request.query_params.get('country', '')
+        if country and country != 'default':
+            queryset = queryset.filter(country=country)
         return qs
 
     def perform_create(self, serializer):

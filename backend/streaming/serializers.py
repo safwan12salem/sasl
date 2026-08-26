@@ -50,7 +50,7 @@ class StreamSessionSerializer(serializers.ModelSerializer):
     class Meta:
         model = StreamSession
         fields = [
-            'id', 'streamer', 'title', 'description', 'category',
+            'id', 'streamer', 'title', 'description', 'category','country',
             'thumbnail', 'thumbnail_url', 'is_live', 'started_at', 'ended_at',
             'viewers_count', 'max_viewers', 'donations', 'total_donations',
             'top_donors','reaction_counts', 'tags', 'streamer_level'

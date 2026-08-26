@@ -29,7 +29,12 @@ class AudioRoomViewSet(viewsets.ModelViewSet):
         topic = self.request.query_params.get('topic')
         if topic:
             qs = qs.filter(topics__icontains=topic)
-        
+
+        country = self.request.query_params.get('country', '')
+        if country and country != 'default':
+            queryset = queryset.filter(country=country)
+
+
         return qs
 
     def perform_create(self, serializer):

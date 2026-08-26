@@ -16,7 +16,7 @@ class StreamSession(models.Model):
     ended_at = models.DateTimeField(null=True, blank=True)
     viewers_count = models.PositiveIntegerField(default=0)
     max_viewers = models.PositiveIntegerField(default=0)
-
+    country = models.CharField(max_length=2, blank=True, default='')
     class Meta:
         ordering = ['-started_at']
 

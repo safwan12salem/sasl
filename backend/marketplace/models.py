@@ -27,7 +27,7 @@ class Product(models.Model):
     average_rating = models.DecimalField(max_digits=3, decimal_places=1, default=0.0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    country = models.CharField(max_length=2, blank=True, default='')
     def __str__(self):
         return self.title
 

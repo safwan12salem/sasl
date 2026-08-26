@@ -41,7 +41,7 @@ class Gig(models.Model):
     liked_by = models.ManyToManyField(settings.AUTH_USER_MODEL, blank=True, related_name='liked_gigs')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    country = models.CharField(max_length=2, blank=True, default='') 
     class Meta:
         ordering = ['-created_at']
 

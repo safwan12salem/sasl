@@ -61,6 +61,11 @@ class GigViewSet(viewsets.ModelViewSet):
         mine = self.request.query_params.get('mine')
         if mine == 'true' and self.request.user.is_authenticated:
             qs = qs.filter(Q(creator=self.request.user) | Q(taker=self.request.user))
+
+
+        country = self.request.query_params.get('country', '')
+        if country and country != 'default':
+            queryset = queryset.filter(country=country) 
         
         return qs.order_by('-created_at')
 

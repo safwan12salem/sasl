@@ -91,6 +91,10 @@ class PostViewSet(viewsets.ModelViewSet):
         qs = qs.filter(is_reported=True).order_by('-created_at')
       else:
         qs = qs.order_by('-created_at')
+
+      country = self.request.query_params.get('country', '')
+      if country and country != 'default':
+            queryset = queryset.filter(country=country) 
     
       return qs
     @action(detail=False, methods=['get'])
@@ -370,6 +374,9 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
+        country = self.request.query_params.get('country', '')
+        if country and country != 'default':
+            queryset = queryset.filter(country=country)
         return Notification.objects.filter(recipient=self.request.user).order_by('-created_at')
 
     @action(detail=False, methods=['post'])

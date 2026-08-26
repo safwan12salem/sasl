@@ -75,6 +75,10 @@ class TutoringSessionViewSet(viewsets.ModelViewSet):
         mine = self.request.query_params.get('mine')
         if mine == 'true':
             qs = qs.filter(Q(tutor=self.request.user) | Q(student=self.request.user))
+
+        country = self.request.query_params.get('country', '')
+        if country and country != 'default':
+            queryset = queryset.filter(country=country)
         
         return qs
     

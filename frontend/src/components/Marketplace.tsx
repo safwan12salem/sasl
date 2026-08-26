@@ -18,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 import AdBanner from './AdBanner';
 import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
-
+import CountryFilter from './CountryFilter';
 
 
 interface Product {
@@ -75,14 +75,15 @@ export default function Marketplace() {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [inStockOnly, setInStockOnly] = useState(false);
-    const [sentRequests, setSentRequests] = useState<Set<string>>(new Set());
-      const [pendingOrders, setPendingOrders] = useState<any[]>([]);
+  const [sentRequests, setSentRequests] = useState<Set<string>>(new Set());
+  const [pendingOrders, setPendingOrders] = useState<any[]>([]);
   const [showSellForm, setShowSellForm] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [newPrice, setNewPrice] = useState('');
   const [newStock, setNewStock] = useState('1');
   const [newCategory, setNewCategory] = useState('');
+  const [countryFilter, setCountryFilter] = useState('default');
   const [newImage, setNewImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -115,6 +116,7 @@ export default function Marketplace() {
      
       const params = new URLSearchParams();
       if (searchQuery) params.set('search', searchQuery);
+            if (countryFilter !== 'default') params.set('country', countryFilter);
       if (selectedCategory) params.set('category', selectedCategory);
       if (minPrice) params.set('min_price', minPrice);
       if (maxPrice) params.set('max_price', maxPrice);
@@ -272,6 +274,7 @@ const resetSellForm = () => {
         <div className="flex gap-3">
           <div className="relative flex-1">
             <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <CountryFilter value={countryFilter} onChange={setCountryFilter} />
             <input className="input-field pl-10" placeholder={t('search_products')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
           </div>
           <button onClick={() => setShowFilters(!showFilters)} className="btn-ghost flex items-center gap-1">

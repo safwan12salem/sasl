@@ -20,7 +20,7 @@ import { db } from '../services/offlineDB';
 import { useMesh } from '../contexts/MeshContext';
 import { uploadFile } from '../services/uploadService';
 import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
-
+import CountryFilter from './CountryFilter';
 
 interface Group {
   id: string;
@@ -53,7 +53,7 @@ interface Message {
 
 export default function GroupChat() {
   const { user } = useAuth();
-    const { isOnline } = useMesh();
+  const { isOnline } = useMesh();
   const { t } = useTranslation();
   const [groups, setGroups] = useState<Group[]>([]);
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
@@ -76,7 +76,7 @@ export default function GroupChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showSidebar, setShowSidebar] = useState(true);
-    
+  const [countryFilter, setCountryFilter] = useState('default');  
 
 
 const handleEditMessage = async (messageId: string, oldText: string) => {
@@ -325,6 +325,7 @@ useEffect(() => {
                   <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex lg:w-80 border-r border-gray-200 dark:border-gray-700 flex-col absolute lg:relative z-20 bg-white dark:bg-gray-900 h-full w-[85%] max-w-[300px]`}>
                      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between lg:hidden">
                     <h2 className="font-bold">{t('groups')}</h2>
+                    <CountryFilter value={countryFilter} onChange={setCountryFilter} />
           <div className="flex items-center gap-1">
             <button onClick={() => setShowCreate(prev => !prev)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-green-600" title={t('new_group')}>
               <Plus size={18} />

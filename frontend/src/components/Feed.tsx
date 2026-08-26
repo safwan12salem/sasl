@@ -25,6 +25,10 @@ import EmojiPicker from 'emoji-picker-react';
 import { contentModerator } from '../services/contentModeration';
 import { useTranslation } from 'react-i18next';
 import { uploadFile } from '../services/uploadService';
+import CountryFilter from './CountryFilter';
+
+
+
 // ---------- TYPES ----------
 interface Post {
   id: string;
@@ -98,7 +102,7 @@ const Feed: React.FC = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const isFetching = useRef(false);
   const { t } = useTranslation();
- 
+  const [countryFilter, setCountryFilter] = useState('default'); 
 
   useEffect(() => { cachePosts(posts); }, [posts]);
 
@@ -575,6 +579,7 @@ const Feed: React.FC = () => {
     <div className="max-w-2xl mx-auto p-4">
       <div className="flex justify-between items-center mb-3">
         <h1 className="text-2xl font-bold gradient-text">Sasl Feed</h1>
+        <CountryFilter value={countryFilter} onChange={setCountryFilter} />
         <div className="flex items-center gap-2">
           {!isOnline && <span className="mesh-badge mesh-offline text-xs">Offline</span>}
           {offlineQueue.length > 0 && (

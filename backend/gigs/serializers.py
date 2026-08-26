@@ -77,7 +77,7 @@ class GigSerializer(serializers.ModelSerializer):
         model = Gig
         fields = [
             'id', 'creator', 'creator_name', 'creator_avatar',
-            'title', 'description', 'budget', 'currency',
+            'title', 'description','country', 'budget', 'currency',
             'status', 'category', 'skills_required',
             'taker', 'taker_name', 'taker_avatar','proposal_message', 'proposed_budget','proposals',
             'milestones', 'reviews', 'average_rating', 'review_count',

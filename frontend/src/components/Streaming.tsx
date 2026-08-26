@@ -22,7 +22,7 @@ import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 import AdBanner from './AdBanner';
 import { db } from '../services/offlineDB';
-
+import CountryFilter from './CountryFilter';
 
 
 interface Stream {
@@ -101,7 +101,7 @@ export default function Streaming() {
   const [tags, setTags] = useState('');
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
-
+  const [countryFilter, setCountryFilter] = useState('default');
   // Donation
   const [amount, setAmount] = useState<{ [key: string]: number }>({});
   const [donationMessage, setDonationMessage] = useState<{ [key: string]: string }>({});
@@ -201,9 +201,10 @@ useEffect(() => {
 
     try {
       const params = new URLSearchParams();
-params.set('is_live', 'true');  // Only show live streams
-if (activeCategory) params.set('category', activeCategory);
-const res = await api.get(`/streaming/streams/?${params.toString()}`);
+      params.set('is_live', 'true');  // Only show live streams
+     if (activeCategory) params.set('category', activeCategory);
+     if (countryFilter !== 'default') params.set('country', countryFilter);
+     const res = await api.get(`/streaming/streams/?${params.toString()}`);
       setStreams(res.data.results || []);
       await cacheFeatureData('streams', res.data.results || res.data || []);
     } catch (err) {
@@ -1239,6 +1240,7 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="glass p-5 rounded-2xl mb-6 space-y-3 border-l-4 border-red-500">
           <h3 className="font-bold flex items-center gap-2"><Video size={18} className="text-red-500" /> {t('Go Live')}</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <CountryFilter value={countryFilter} onChange={setCountryFilter} />
             <input className="input-field" placeholder={t('Stream title...')} value={title} onChange={e => setTitle(e.target.value)} />
             <select className="input-field" value={category} onChange={e => setCategory(e.target.value)}>
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}

@@ -16,7 +16,7 @@ class TutorProfile(models.Model):
     experience_years = models.PositiveIntegerField(default=0)
     linkedin_url = models.URLField(blank=True, default='')
     website_url = models.URLField(blank=True, default='')
-
+    
     def __str__(self):
         return f"Tutor: {self.user.username}"
 
@@ -45,7 +45,7 @@ class TutoringSession(models.Model):
     views_count = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=20, default='scheduled', choices=STATUS_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+    country = models.CharField(max_length=2, blank=True, default='')
     class Meta:
         ordering = ['scheduled_at']
 

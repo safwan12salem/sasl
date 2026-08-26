@@ -28,7 +28,7 @@ import DiscussionBoard from './DiscussionBoard';
 import { useOfflineSync } from '../services/useOfflineSync';
 import { cacheFeatureData, loadCachedFeature, queueOfflineAction } from '../services/offlineDB';
 import { getPendingActions, clearOfflineAction } from '../services/offlineDB';
-
+import CountryFilter from './CountryFilter';
 
 interface Session {
   id: string;
@@ -126,10 +126,11 @@ const STATUS_COLORS: Record<string, string> = {
   // Create session form
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [subject, setSubject] = useState('');
-    const [topicDetail, setTopicDetail] = useState('');
+  const [topicDetail, setTopicDetail] = useState('');
   const [price, setPrice] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [maxStudents, setMaxStudents] = useState('10');
+  const [countryFilter, setCountryFilter] = useState('default');
   const [description, setDescription] = useState('');
   const [isGroupClass, setIsGroupClass] = useState(false);
   const [duration, setDuration] = useState('60');
@@ -227,6 +228,7 @@ const [remainingSheets, setRemainingSheets] = useState(4);
       if (activeTab === 'mine') params.set('mine', 'true');
       // Don't filter by status for upcoming — show all non-completed
       if (searchQuery) params.set('search', searchQuery);
+      if (countryFilter !== 'default') params.set('country', countryFilter);
       const res = await api.get(`/tutoring/sessions/?${params.toString()}`);
       let data = res.data.results || [];
       // Filter on frontend
@@ -1434,6 +1436,7 @@ useEffect(() => {
       <div className="flex flex-col md:flex-row gap-3 mb-4">
         <div className="relative flex-1">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <CountryFilter value={countryFilter} onChange={setCountryFilter} />
           <input className="input-field pl-10" placeholder={t('Search sessions by subject or tutor...')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
          <div className="flex gap-1 bg-gray-100 rounded-xl p-1 overflow-x-auto">

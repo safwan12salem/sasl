@@ -60,7 +60,7 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'seller', 'seller_name', 'seller_avatar', 'seller_rating',
             'title', 'description', 'price', 'currency',
-            'category', 'category_name', 'image', 'image_url','images',
+            'category', 'category_name','country', 'image', 'image_url','images',
             'stock','views_count', 'sales_count', 'is_active', 'is_wishlisted',
             'average_rating', 'review_count', 'reviews',
             'created_at', 'updated_at'

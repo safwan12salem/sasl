@@ -45,7 +45,7 @@ class TutoringSessionSerializer(serializers.ModelSerializer):
         model = TutoringSession
         fields = [
             'id', 'tutor', 'student', 'subject', 'description',
-            'is_offline', 'is_group_class', 'max_students',
+            'is_offline', 'is_group_class', 'max_students', 'country',
             'price', 'scheduled_at', 'duration_minutes',
             'status', 'materials', 'students_enrolled', 'created_at', 'background_image'
         ]

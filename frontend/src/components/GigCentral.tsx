@@ -21,7 +21,7 @@ import AdBanner from './AdBanner';
 import { db } from '../services/offlineDB';
 import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
 
-
+import CountryFilter from './CountryFilter';
 
 
 interface Gig {
@@ -106,19 +106,21 @@ export default function GigCentral() {
   const [gigs, setGigs] = useState<Gig[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'open' | 'in_progress' | 'completed' | 'mine' | 'workers'>('open');
+  const [activeTab, setActiveTab] = useState<'open' | 'in_progress' | 'completed' | 'mine' | 'workers'>('open');
   const [searchQuery, setSearchQuery] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [expandedGig, setExpandedGig] = useState<string | null>(null);
   const [chatRoom, setChatRoom] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
-
+  
   const [newTitle, setNewTitle] = useState('');
+  
+  const [countryFilter, setCountryFilter] = useState('default');
   const [newDesc, setNewDesc] = useState('');
   const [newBudget, setNewBudget] = useState('');
   const [newCategory, setNewCategory] = useState('design');
   const [newDeadline, setNewDeadline] = useState('');
-    const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [milestones, setMilestones] = useState<{ title: string; amount: string }[]>([{ title: '', amount: '' }]);
 
@@ -130,7 +132,7 @@ export default function GigCentral() {
   const [disputeReason, setDisputeReason] = useState('');
 
   const [portfolio, setPortfolio] = useState<Portfolio[]>([]);
-    const [workers, setWorkers] = useState<any[]>([]);
+  const [workers, setWorkers] = useState<any[]>([]);
   const [showPortfolioForm, setShowPortfolioForm] = useState(false);
   const [pfTitle, setPfTitle] = useState('');
   const [pfDesc, setPfDesc] = useState('');
@@ -164,6 +166,7 @@ export default function GigCentral() {
       if (activeTab !== 'mine') params.set('status', activeTab);
       if (activeTab === 'mine') params.set('mine', 'true');
       if (searchQuery) params.set('search', searchQuery);
+      if (countryFilter !== 'default') params.set('country', countryFilter);
       const res = await api.get(`/gigs/gigs/?${params.toString()}`);
       const data = Array.isArray(res.data) ? res.data : res.data.results || [];
       setGigs(data);
@@ -445,6 +448,7 @@ export default function GigCentral() {
       <div className="flex flex-col md:flex-row gap-3 mb-6">
         <div className="relative flex-1">
           <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+          <CountryFilter value={countryFilter} onChange={setCountryFilter} />
           <input className="w-full pl-11 pr-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm outline-none focus:ring-2 focus:ring-green-500 shadow-sm" placeholder={t('Search gigs...')} value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
         </div>
         <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-2xl p-1.5 overflow-x-auto">

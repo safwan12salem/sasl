@@ -17,7 +17,7 @@ import { uploadLargeVideo } from '../services/videoUploader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../services/offlineDB';
 import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
-
+import CountryFilter from './CountryFilter';
 
 interface Reel {
   id: string;
@@ -64,6 +64,8 @@ export default function Reels() {
   const [tipReelId, setTipReelId] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isPlaying, setIsPlaying] = useState(true);
+ const [countryFilter, setCountryFilter] = useState('default');
+
 
   const handleDislike = async (reelId: string) => {
     if (reelId === 'demo-reel') return;
@@ -88,7 +90,9 @@ export default function Reels() {
 
     setLoading(true); setError(null);
     try {
-      const res = await api.get('/content/reels/');
+    const params = new URLSearchParams();
+    if (countryFilter !== 'default') params.set('country', countryFilter);
+    const res = await api.get(`/content/reels/?${params.toString()}`);
       const raw = res.data.results || res.data || [];
       let videoReels: any[] = raw.filter((r: any) => r.video_url).map((r: any) => ({
         id: r.id, user: r.user || { username: 'unknown' }, video_url: r.video_url,
@@ -247,6 +251,7 @@ export default function Reels() {
      
       {/* TOP BAR */}
       <div className="fixed top-0 left-0 right-0 z-40 px-4 pt-12 pb-2 bg-gradient-to-b from-black/60 to-transparent">
+                <CountryFilter value={countryFilter} onChange={setCountryFilter} />
         <div className="flex items-center justify-between">
           <h1 className="text-white text-2xl font-bold tracking-tight">
             <span className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent">Reels</span>

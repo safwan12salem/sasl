@@ -66,6 +66,10 @@ class ProductViewSet(viewsets.ModelViewSet):
         in_stock = self.request.query_params.get('in_stock')
         if in_stock == 'true':
             qs = qs.filter(stock__gt=0)
+
+        country = self.request.query_params.get('country', '')
+        if country and country != 'default':
+            queryset = queryset.filter(country=country)
         
         return qs
 

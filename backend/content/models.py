@@ -29,7 +29,7 @@ class Post(models.Model):
     is_reported = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
+    country = models.CharField(max_length=2, blank=True, default='')
     class Meta:
         ordering = ['-created_at']
         indexes = [models.Index(fields=['author', '-created_at'])]
@@ -124,6 +124,7 @@ class Reel(models.Model):
     likes_count = models.PositiveIntegerField(default=0)
     comments_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
+    country = models.CharField(max_length=2, blank=True, default='')
     # For offline caching, we store the media URL
 
 class Sound(models.Model):

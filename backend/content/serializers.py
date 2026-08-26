@@ -36,7 +36,7 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = [
             'id', 'author', 'text', 'media', 'media_url', 'media_type',
-            'location', 'is_offline_created', 'mesh_reach','visibility',
+            'location','country', 'is_offline_created', 'mesh_reach','visibility',
             'likes_count', 'comments_count', 'shares_count',
             'created_at', 'updated_at', 'liked_by_me', 'comments_preview',
             'poll', 'is_hidden', 'is_reported'
@@ -105,7 +105,7 @@ class ReelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reel
-        fields = ['id', 'user', 'video', 'video_url', 'caption', 'sound_track', 'sound_url', 'duration', 'playback_speed', 'likes_count', 'comments_count', 'created_at', 'liked_by_me', 'is_reported']
+        fields = ['id', 'user', 'video', 'video_url','country', 'caption', 'sound_track', 'sound_url', 'duration', 'playback_speed', 'likes_count', 'comments_count', 'created_at', 'liked_by_me', 'is_reported']
         read_only_fields = ['user', 'likes_count', 'comments_count']
 
     def get_video_url(self, obj):

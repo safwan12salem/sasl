@@ -16,9 +16,8 @@ import { useTranslation } from 'react-i18next';
 import PaymentModal from './PaymentModal';
 import { uploadFile } from '../services/uploadService';
 import { db } from '../services/offlineDB';
-
 import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
-
+import CountryFilter from './CountryFilter';
 
 interface AudioRoom {
   id: string;
@@ -59,11 +58,12 @@ export default function LiveAudio() {
   const [roomDesc, setRoomDesc] = useState('');
   const [roomTopics, setRoomTopics] = useState('');
   const [isPublic, setIsPublic] = useState(true);
+  const [countryFilter, setCountryFilter] = useState('default');
   const [roomPrice, setRoomPrice] = useState('');
   const [roomDuration, setRoomDuration] = useState('30');
   const [maxListeners, setMaxListeners] = useState('100');
-const [bgImage, setBgImage] = useState<File | null>(null);
-const [bgImageUrl, setBgImageUrl] = useState('');
+  const [bgImage, setBgImage] = useState<File | null>(null);
+  const [bgImageUrl, setBgImageUrl] = useState('');
 
   const [inRoom, setInRoom] = useState<string | null>(null);
   const [isSpeaker, setIsSpeaker] = useState(false);
@@ -73,12 +73,12 @@ const [bgImageUrl, setBgImageUrl] = useState('');
   const [listenerCount, setListenerCount] = useState(0);
   const localStreamRef = useRef<MediaStream | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
-const wsRef = useRef<WebSocket | null>(null);
-const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
-const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
-const [showChat, setShowChat] = useState(false);
-const [chatMessages, setChatMessages] = useState<any[]>([]);
-const [chatInput, setChatInput] = useState('');
+  const wsRef = useRef<WebSocket | null>(null);
+  const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
+  const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [showChat, setShowChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [chatInput, setChatInput] = useState('');
   const [showReactions, setShowReactions] = useState(false);
   const [floatingReactions, setFloatingReactions] = useState<{ id: number; emoji: string; x: number }[]>([]);
   const [showInvite, setShowInvite] = useState(false);
@@ -106,7 +106,9 @@ const [chatInput, setChatInput] = useState('');
     setError(null);
     try {
       const token = localStorage.getItem('sasl_token');
-      const res = await fetch(`https://sasl-api-i34r.onrender.com/api/liveaudio/rooms/`, {
+            const params = new URLSearchParams();
+      if (countryFilter !== 'default') params.set('country', countryFilter);
+      const res = await fetch(`https://sasl-api-i34r.onrender.com/api/liveaudio/rooms/?${params.toString()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       const data = await res.json();
@@ -836,6 +838,7 @@ const requestSpeak = () => {
 
       {/* Topic Pills */}
       <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
+                <CountryFilter value={countryFilter} onChange={setCountryFilter} />
         <button onClick={() => setActiveTopic('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${!activeTopic ? 'bg-purple-500 text-white shadow-lg shadow-purple-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
           {t('all')}
         </button>

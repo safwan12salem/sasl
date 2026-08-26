@@ -16,7 +16,7 @@ class AudioRoom(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     ended_at = models.DateTimeField(null=True, blank=True)
-
+    country = models.CharField(max_length=2, blank=True, default='')
     class Meta:
         ordering = ['-current_listeners', '-created_at']
 

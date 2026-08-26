@@ -43,7 +43,7 @@ class AudioRoomSerializer(serializers.ModelSerializer):
         model = AudioRoom
         fields = [
             'id', 'host', 'title', 'description', 'topics',
-            'is_live', 'is_public', 'current_listeners', 'max_listeners',
+            'is_live', 'is_public','country', 'current_listeners', 'max_listeners',
             'speakers', 'listeners_count', 'reactions',
             'created_at', 'ended_at', 'background_url', 'price'
         ]
