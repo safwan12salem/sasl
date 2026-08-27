@@ -796,7 +796,7 @@ const requestSpeak = () => {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <div>
           <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-            <Radio className="text-purple-500" /> {t('live_audio')}
+                       <Radio className="text-orange-500" /> <span className="text-orange-500">Live</span><span className="text-green-500">Audio</span>
           </h2>
           <p className="text-gray-500 text-sm mt-1">{t('join_conversations_share_ideas_connect_with_voices')}</p>
         </div>
@@ -916,7 +916,7 @@ const requestSpeak = () => {
               whileHover={{ y: -2 }}
              className="bg-white dark:bg-gray-800 rounded-2xl border-l-4 border-orange-500 shadow-lg shadow-orange-500/10 hover:shadow-green-500/20 transition relative overflow-hidden p-5"
               style={room.background_url ? { backgroundImage: `url(${room.background_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
-              {room.background_url && <div className="absolute inset-0 bg-black/50" />}
+            {room.background_url && <div className="absolute inset-0 bg-black/70" />}
               <div className="relative z-10 flex items-start justify-between gap-4 flex-wrap">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                   <div className="relative flex-shrink-0">
