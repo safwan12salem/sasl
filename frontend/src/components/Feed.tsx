@@ -578,8 +578,7 @@ const Feed: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto p-4">
       <div className="flex justify-between items-center mb-3">
-        <h1 className="text-2xl font-bold gradient-text">Sasl Feed</h1>
-       
+       <h1 className="text-2xl font-bold text-transparent bg-gradient-to-r from-green-400 to-orange-400 bg-clip-text">Sasl Feed</h1>
         <div className="flex items-center gap-2">
           {!isOnline && <span className="mesh-badge mesh-offline text-xs">Offline</span>}
           {offlineQueue.length > 0 && (
@@ -654,7 +653,7 @@ const Feed: React.FC = () => {
               {visibility === 'public' ? 'Public' : 'Followers'}
             </button>
                         
-            <button onClick={submitPost} disabled={!composing.trim() && !selectedFile} className="btn-primary text-sm py-2 px-6">
+           <button onClick={submitPost} disabled={!composing.trim() && !selectedFile} className="bg-gradient-to-r from-green-500 to-orange-500 text-white text-sm py-2 px-6 rounded-full font-bold shadow-lg shadow-green-500/25 hover:shadow-xl transition">
             {t('post')}
           </button>
           </div>

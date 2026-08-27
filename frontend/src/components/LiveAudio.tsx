@@ -798,7 +798,7 @@ const requestSpeak = () => {
           </h2>
           <p className="text-gray-500 text-sm mt-1">{t('join_conversations_share_ideas_connect_with_voices')}</p>
         </div>
-        <button onClick={() => setShowCreate(!showCreate)} className="btn-primary flex items-center gap-2">
+        <button onClick={() => setShowCreate(!showCreate)} className="bg-gradient-to-r from-green-500 to-orange-500 text-white rounded-full font-bold shadow-lg shadow-green-500/25 hover:shadow-xl transition flex items-center gap-2">
           <Plus size={18} /> {showCreate ? t('cancel') : t('host_room')}
         </button>
       </div>
@@ -865,7 +865,7 @@ const requestSpeak = () => {
             <div className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
   <CountryFilter value={countryFilter} onChange={setCountryFilter} />
 </div>
-        <button onClick={() => setActiveTopic('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${!activeTopic ? 'bg-purple-500 text-white shadow-lg shadow-purple-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+        <button onClick={() => setActiveTopic('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${!activeTopic ? 'bg-gradient-to-r from-green-500 to-orange-500 text-white shadow-lg shadow-green-500/25' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
           {t('all')}
         </button>
         {['Tech', 'Music', 'Business', 'Health', 'Education', 'Entertainment', 'Sports'].map(topic => (

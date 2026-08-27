@@ -436,7 +436,7 @@ const resetSellForm = () => {
                 <div className="flex items-center gap-1 mt-1">{p.average_rating ? renderStars(p.average_rating) : null}{p.review_count ? <span className="text-xs text-gray-400">({p.review_count})</span> : null}</div>
                 <p className="text-xs text-gray-500 mt-1">by {p.seller_name}</p>
                 <div className="flex items-center justify-between mt-3">
-                  <span className="text-xl font-bold text-green-600"><DollarSign size={16} />{p.price}</span>
+                <span className="text-xl font-bold text-transparent bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text"><DollarSign size={16} />{p.price}</span>
                                                      {p.seller_name === user?.username ? (
                     <span className="text-xs text-gray-400 italic">Your product</span>
                   ) : sentRequests.has(p.id) ? (
@@ -464,7 +464,7 @@ const resetSellForm = () => {
                 {p.image_url ? <img src={p.image_url} alt={p.title} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-400"><Package size={24} /></div>}
               </div>
               <div className="flex-1"><h3 className="font-semibold">{p.title}</h3><p className="text-sm text-gray-500">by {p.seller_name} · {p.stock} {t('in_stock')}</p></div>
-              <div className="text-right"><p className="text-xl font-bold text-green-600">${p.price}</p><button onClick={(e) => { e.stopPropagation(); requestBuy(p.id); }} disabled={p.stock === 0} className="btn-primary text-xs mt-1"> Request to Buy</button></div>
+              <div className="text-right"><p className="text-xl font-bold text-transparent bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text">${p.price}</p><button onClick={(e) => { e.stopPropagation(); requestBuy(p.id); }} disabled={p.stock === 0} className="btn-primary text-xs mt-1"> Request to Buy</button></div>
                         </div>
           ))}
         </div>
@@ -544,7 +544,7 @@ const resetSellForm = () => {
                 <h2 className="text-2xl font-bold">{selectedProduct.title}</h2>
                 <p className="text-gray-500 mt-1">{selectedProduct.description || 'No description'}</p>
                 <div className="flex items-center gap-3 mt-3">
-                  <span className="text-3xl font-bold text-green-600"><DollarSign size={16} />{selectedProduct.price}</span>
+                  <span className="text-3xl font-bold text-transparent bg-gradient-to-r from-green-500 to-orange-500 bg-clip-text"><DollarSign size={16} />{selectedProduct.price}</span>
                   <span className={`text-sm px-3 py-1 rounded-full ${selectedProduct.stock > 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{selectedProduct.stock > 0 ? `${selectedProduct.stock} ${t('in_stock')}` : t('sold_out')}</span>
                                    </div>
                 {/* Delete button for product owner */}

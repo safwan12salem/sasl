@@ -462,7 +462,7 @@ export default function GigCentral() {
                 </div>
               ))}
             </div>
-            <button onClick={createGig} className="w-full py-3.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-bold text-lg shadow-lg shadow-green-500/25 hover:shadow-xl transition">
+            <button onClick={createGig} className="w-full py-3.5 bg-gradient-to-r from-green-500 to-orange-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-orange-500/25 hover:shadow-xl transition">
               🚀 {t('Post Gig')}
             </button>
           </motion.div>

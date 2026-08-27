@@ -989,7 +989,7 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
 
                 {/* Stream Info Overlay */}
                 <div className="absolute top-4 right-4 flex items-center gap-2">
-                  <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
+                  <span className="bg-gradient-to-r from-green-500 to-orange-500 text-white text-xs px-2 py-0.5 rounded-full flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> LIVE
                   </span>
                   <button onClick={() => setShowChat(!showChat)} className="bg-black/40 text-white p-2 rounded-full hover:bg-black/60 transition">
@@ -1295,7 +1295,7 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
           </div>
 
           <div className="flex gap-2">
-            <button onClick={startStream} className="btn-primary bg-red-500 hover:bg-red-600 flex items-center gap-2">
+            <button onClick={startStream} className="bg-gradient-to-r from-green-500 to-orange-500 text-white rounded-full font-bold shadow-lg shadow-green-500/25 hover:shadow-xl transition flex items-center gap-2">
               <span className="w-2 h-2 bg-white rounded-full animate-pulse" /> {t('Go Live Now')}
             </button>
             <button onClick={scheduleStream} className="btn-ghost flex items-center gap-1">
