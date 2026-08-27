@@ -717,7 +717,7 @@ const requestSpeak = () => {
                   onKeyDown={e => e.key === 'Enter' && sendChat()} 
                   placeholder="Message..." 
                   className="flex-1 bg-white/10 rounded-full px-4 py-2 text-xs text-white outline-none border border-white/10 placeholder-white/40" />
-                <button onClick={sendChat} className="bg-purple-500 text-white p-2 rounded-full hover:bg-purple-600 transition flex-shrink-0">
+                <button onClick={sendChat} className="bg-gradient-to-r from-green-500 to-orange-500 text-white p-2 rounded-full hover:shadow-lg transition flex-shrink-0">
                   <Send size={14} />
                 </button>
               </div>
@@ -768,7 +768,7 @@ const requestSpeak = () => {
                 <motion.button 
                   whileTap={{ scale: 0.9 }} 
                   onClick={() => setShowChat(!showChat)} 
-                  className={`p-4 rounded-full transition-all shadow-lg ${showChat ? 'bg-purple-500 text-white shadow-purple-500/30' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                  className={`p-4 rounded-full transition-all shadow-lg ${showChat ? 'bg-gradient-to-r from-green-500 to-orange-500 text-white shadow-green-500/30' : 'bg-white/10 text-white hover:bg-white/20'}`}
                 >
                   <MessageCircle size={24} />
                 </motion.button>
@@ -871,7 +871,7 @@ const requestSpeak = () => {
           {t('all')}
         </button>
         {['Tech', 'Music', 'Business', 'Health', 'Education', 'Entertainment', 'Sports'].map(topic => (
-          <button key={topic} onClick={() => setActiveTopic(topic)} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${activeTopic === topic ? 'bg-purple-500 text-white shadow-lg shadow-purple-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+          <button key={topic} onClick={() => setActiveTopic(topic)} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${activeTopic === topic ? 'bg-gradient-to-r from-green-500 to-orange-500 text-white shadow-lg shadow-green-500/25' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
             {topic}
           </button>
         ))}

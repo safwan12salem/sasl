@@ -115,10 +115,9 @@ export default function EarningsDashboard() {
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
-      <h2 className="text-3xl font-bold gradient-text mb-6 flex items-center gap-2">
-        <DollarSign /> {t('my_earnings')}
+            <h2 className="text-3xl font-bold mb-6 flex items-center gap-2">
+        <DollarSign className="text-green-500" /> <span className="text-green-500">Earn</span><span className="text-orange-500">ings</span>
       </h2>
-
       {/* Privacy Controls */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

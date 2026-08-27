@@ -112,10 +112,10 @@ export default function Analytics() {
         className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4"
       >
         <div>
-          <h2 className="text-3xl font-bold flex items-center gap-2">
-  <span className="text-orange-500">Analytics</span>
+                   <h2 className="text-3xl font-bold flex items-center gap-2">
+  <span className="text-green-500">Analytics</span> <span className="text-orange-500">Dashboard</span>
 
-            <TrendingUp size={32} className="text-blue-500" /> {t('analytics_dashboard')}
+         
           </h2>
           <p className="text-gray-500 mt-1">{t('Deep insights into your growth')}</p>
         </div>

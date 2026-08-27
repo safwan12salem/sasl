@@ -138,10 +138,10 @@ export default function Wallet() {
     <div className="p-6 max-w-2xl mx-auto">
             <AdBanner />
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <h2 className="text-3xl font-bold gradient-text mb-6 flex items-center gap-2"><WalletIcon /> {t('Wallet')}</h2>
+       <h2 className="text-3xl font-bold mb-6 flex items-center gap-2"><WalletIcon className="text-green-500" /> <span className="text-orange-500">Wallet</span></h2>
       </motion.div>
 
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card p-6 rounded-2xl mb-6 text-center">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-gray-800 p-6 rounded-2xl mb-6 text-center border-l-4 border-green-500 shadow-lg shadow-green-500/10 hover:shadow-orange-500/20 transition-all duration-300">
         <p className="text-gray-500 mb-1">{t('Current Balance')}</p>
         <p className="text-5xl font-extrabold text-green-600">${Number(wallet?.balance ?? cachedBalance).toFixed(2)}</p>
         <p className="text-gray-400 mt-1">{t('Total earned')}: <span className="font-semibold">${Number(wallet?.total_earned || 0).toFixed(2)}</span></p>
@@ -162,7 +162,7 @@ export default function Wallet() {
 
       {showTopUpModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4" onClick={() => setShowTopUpModal(false)}>
-          <div className="glass-card p-6 rounded-2xl max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl max-w-sm w-full shadow-2xl border-t-4 border-orange-500" onClick={e => e.stopPropagation()}>
             <h3 className="font-bold text-lg mb-4">💳 Top Up Wallet</h3>
             <p className="text-sm text-gray-500 mb-3">Enter amount to add to your wallet</p>
             <div className="flex gap-2 mb-4">
@@ -186,7 +186,7 @@ export default function Wallet() {
       )}
 
       {categoryTotals.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="glass-card p-4 rounded-2xl mb-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-gray-800 p-4 rounded-2xl mb-6 border-l-4 border-green-500 shadow-lg shadow-green-500/10">
           <h3 className="font-semibold mb-3 flex items-center gap-2"><TrendingUp size={18} /> {t('Earnings Breakdown')}</h3>
           <div className="space-y-2">
             {categoryTotals.map((cat, idx) => (
@@ -215,7 +215,7 @@ export default function Wallet() {
         <div className="space-y-2">
           {filteredTransactions.map((tx, idx) => (
             <motion.div key={tx.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.02 }}
-              className="glass-card p-3 rounded-xl flex justify-between items-center">
+              className="bg-white dark:bg-gray-800 p-3 rounded-xl flex justify-between items-center border-l-4 border-orange-500 shadow-lg shadow-orange-500/10">
               <div>
                 <p className="font-semibold text-sm capitalize">{t(tx.transaction_type.replace(/_/g, ' '))}</p>
                 <p className="text-xs text-gray-500">{t(tx.description)}</p>

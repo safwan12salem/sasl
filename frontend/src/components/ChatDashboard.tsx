@@ -236,8 +236,8 @@ export default function ChatDashboard() {
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-        <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-          <MessageCircle className="text-green-500" /> {t('Messages')}
+                <h2 className="text-3xl font-bold flex items-center gap-2">
+          <MessageCircle className="text-green-500" /> <span className="text-green-500">Mes</span><span className="text-orange-500">sages</span>
         </h2>
         <p className="text-gray-500 text-sm mt-1">{t('All your conversations in one place')}</p>
       </motion.div>
