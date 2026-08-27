@@ -513,9 +513,9 @@ const requestSpeak = () => {
                   <Phone size={18} className="rotate-[135deg]" />
                 </button>
                 <div>
-                  <h3 className="text-white font-bold text-lg">
-  <span className="text-orange-500">Live</span><span className="text-green-500">Audio</span>
-
+                                  <h3 className="text-white font-bold text-lg">
+                    <span className="text-orange-500">Live</span><span className="text-green-500">Audio</span>
+                  
                     
                   </h3>
                   <p className="text-purple-300 text-xs flex items-center gap-1">
