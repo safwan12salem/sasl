@@ -216,7 +216,7 @@ useEffect(() => {
     } finally {
       setLoading(false);
     }
-  }, [activeCategory]);
+    }, [activeCategory, countryFilter]);
 
   const fetchSchedules = async () => {
     try {
