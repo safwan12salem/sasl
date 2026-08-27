@@ -552,7 +552,7 @@ export default function WaveMesh() {
                 <div className="min-w-0"><h3 className="font-bold text-xs sm:text-sm truncate">@{activeRoom.name}</h3><p className="text-[10px] sm:text-xs text-green-600 flex items-center gap-1"><span className="w-1.5 h-1.5 bg-green-500 rounded-full" />{activeRoom.connectionType === 'relay' ? 'Echo Relay' : 'Direct P2P'}{activeRoom.distance > 0 && ` · ~${activeRoom.distance}m`}</p></div>
               </div>
               <div className="flex items-center gap-1">
-                <button onClick={toggleAudioMesh} className={`p-1.5 sm:p-2 rounded-xl transition ${audioMeshActive ? "bg-green-100 dark:bg-green-900/30 text-green-500" : "hover:bg-purple-50 dark:hover:bg-purple-900/30 text-purple-500"}`} title={audioMeshActive ? "AudioMesh Active — Tap to Deactivate" : "Activate AudioMesh for extended range"}><Radio size={14} className={audioMeshActive ? "animate-pulse" : ""} /></button>
+                <button onClick={toggleAudioMesh} className={`p-1.5 sm:p-2 rounded-xl transition ${audioMeshActive ? "bg-green-100 dark:bg-green-900/30 text-green-500" : "hover:bg-orange-50 dark:hover:bg-orange-900/30 text-orange-500"}`}  title={audioMeshActive ? "AudioMesh Active — Tap to Deactivate" : "Activate AudioMesh for extended range"}><Radio size={14} className={audioMeshActive ? "animate-pulse" : ""} /></button>
                 <button onClick={() => leaveRoom(activeRoom.id)} className="p-1.5 sm:p-2.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition text-red-400"><LogOut size={16} /></button>
               </div>
             </div>

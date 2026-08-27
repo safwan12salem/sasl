@@ -317,8 +317,10 @@ export default function GigCentral() {
       {/* HEADER */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent flex items-center gap-2">
-            <Briefcase className="text-green-500" size={28} /> {t('Gig Central')}
+         <h2 className="text-3xl font-bold flex items-center gap-2">
+  <span className="text-green-500">Gig</span> <span className="text-orange-500">Central</span>
+
+           
           </h2>
           <p className="text-gray-500 text-sm mt-1 flex items-center gap-2">
             <Zap size={14} className="text-amber-500" /> {t('Find work, hire talent, earn money')}

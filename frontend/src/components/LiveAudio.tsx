@@ -514,7 +514,9 @@ const requestSpeak = () => {
                 </button>
                 <div>
                   <h3 className="text-white font-bold text-lg">
-                    {rooms.find(r => r.id === inRoom)?.title || 'Live Audio'}
+  <span className="text-orange-500">Live</span><span className="text-green-500">Audio</span>
+
+                    
                   </h3>
                   <p className="text-purple-300 text-xs flex items-center gap-1">
                     <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />

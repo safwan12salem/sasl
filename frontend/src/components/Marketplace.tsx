@@ -237,10 +237,9 @@ const resetSellForm = () => {
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <div>
-          <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-            <ShoppingBag className="text-green-500" /> {t('marketplace')}
+                    <h2 className="text-3xl font-bold flex items-center gap-2">
+            <ShoppingBag className="text-green-500" /> <span className="text-green-500">Market</span><span className="text-orange-500">place</span>
           </h2>
-
           <p className="text-gray-500 text-sm mt-1">{t('buy_sell_tagline')}</p>
 
         </div>

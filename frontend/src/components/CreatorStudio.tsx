@@ -271,8 +271,7 @@ export default function CreatorStudio() {
            <h2 className="text-3xl font-bold flex items-center gap-2">
   <span className="text-green-500">Creator</span> <span className="text-orange-500">Studio</span>
 
-              <Crown className="text-yellow-500" size={32} />
-              {t('Creator Studio')}
+              
             </h2>
             <p className="text-sm text-gray-500 mt-1">{t('Your creative empire, monetized')}</p>
           </div>

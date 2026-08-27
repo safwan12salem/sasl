@@ -294,10 +294,9 @@ export default function SnapSender() {
   return (
     <div className="max-w-md mx-auto p-4">
    
-      <h2 className="text-3xl font-bold gradient-text mb-4 flex items-center gap-2">
-        <Camera className="text-yellow-500" /> {t('Snap')}
+            <h2 className="text-3xl font-bold mb-4 flex items-center gap-2">
+        <Camera className="text-orange-500" /> <span className="text-orange-500">Snap</span>
       </h2>
-
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 rounded-xl p-1 mb-4 overflow-x-auto">
         {tabs.map(tab => (

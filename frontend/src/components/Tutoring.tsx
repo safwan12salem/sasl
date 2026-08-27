@@ -1175,7 +1175,7 @@ useEffect(() => {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <div>
           <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-            <GraduationCap className="text-blue-500" /> {t('Tutoring')}
+                       <GraduationCap className="text-green-500" /> <span className="text-green-500">Tutor</span><span className="text-orange-500">ing</span>
           </h2>
           <p className="text-gray-500 text-sm mt-1">{t('Learn from experts, teach your skills, earn money')}</p>
         </div>
