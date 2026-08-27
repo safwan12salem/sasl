@@ -34,7 +34,7 @@ class AudioReactionSerializer(serializers.ModelSerializer):
 class AudioRoomSerializer(serializers.ModelSerializer):
     host = UserProfileSerializer(read_only=True)
     speakers = AudioRoomSpeakerSerializer(many=True, read_only=True)
-    background_url = serializers.URLField(required=False, allow_null=True)
+    background_url = serializers.URLField(required=False, allow_null=True, allow_blank=True)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
     listeners_count = serializers.SerializerMethodField()
     reactions = AudioReactionSerializer(many=True, read_only=True)

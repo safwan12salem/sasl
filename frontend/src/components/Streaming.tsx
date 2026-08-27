@@ -232,8 +232,7 @@ useEffect(() => {
     } catch {}
   };
 
-useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchChallenges(); }, []);
-
+useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchChallenges(); }, [fetchStreams]);
   // Challenge auto-complete timer
   useEffect(() => {
     if (activeChallenge && activeChallenge.status === 'active' && activeChallenge.started_at) {
