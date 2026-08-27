@@ -1217,7 +1217,7 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <div>
           <h2 className="text-3xl font-bold gradient-text flex items-center gap-2">
-            <Radio className="text-red-500" /> {t('Live Streams')}
+            <Radio className="text-orange-500" /> <span className="text-orange-500">Live</span> <span className="text-green-500">Streams</span>
           </h2>
           <p className="text-gray-500 text-sm mt-1">{t('Watch, stream, and earn from anywhere')}</p>
         </div>
@@ -1364,7 +1364,7 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {streams && streams.length > 0 && streams.map((s, idx) => (
             <motion.div key={s.id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: idx * 0.05 }}
-              className="glass rounded-2xl overflow-hidden hover:shadow-xl transition group">
+             className="rounded-2xl overflow-hidden border border-green-200 dark:border-green-800 shadow-lg shadow-green-500/10 hover:shadow-xl hover:shadow-orange-500/20 transition group bg-white dark:bg-gray-800">
                            {/* Thumbnail */}
               <div className="h-40 bg-gradient-to-br from-gray-800 to-gray-900 relative overflow-hidden cursor-pointer" 
      onClick={() => {

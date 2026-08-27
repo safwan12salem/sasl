@@ -268,7 +268,9 @@ export default function CreatorStudio() {
       <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
           <div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-orange-400 bg-clip-text text-transparent flex items-center gap-2">
+           <h2 className="text-3xl font-bold flex items-center gap-2">
+  <span className="text-green-500">Creator</span> <span className="text-orange-500">Studio</span>
+
               <Crown className="text-yellow-500" size={32} />
               {t('Creator Studio')}
             </h2>
@@ -330,7 +332,7 @@ export default function CreatorStudio() {
       {tab === 'dashboard' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="glass-card p-5 rounded-2xl">
+            <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl border-l-4 border-orange-500 shadow-lg shadow-orange-500/10 hover:shadow-green-500/20 transition-all duration-300">
               <h3 className="font-bold mb-3 flex items-center gap-2"><Zap size={18} className="text-yellow-500" /> {t('Recent Earnings')}</h3>
               {earnings?.recent_earnings?.length > 0 ? (
                 <div className="space-y-2 max-h-48 overflow-y-auto">

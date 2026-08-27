@@ -346,7 +346,7 @@ export default function GigCentral() {
           { icon: <Star size={20} />, label: t('Avg Rating'), value: stats.avgRating.toFixed(1), gradient: 'from-violet-500 to-purple-500' },
         ].map((stat, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.08 }}
-            className="relative overflow-hidden rounded-2xl p-4 bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+            className="relative overflow-hidden rounded-2xl p-4 bg-white dark:bg-gray-800 shadow-lg shadow-green-500/10 hover:shadow-orange-500/20 border-l-4 border-green-500 transition-all duration-300">
             <div className={`absolute top-0 right-0 w-16 h-16 bg-gradient-to-br ${stat.gradient} opacity-10 rounded-bl-full`} />
             <div className="relative">
               <div className={`inline-flex p-2 rounded-xl bg-gradient-to-br ${stat.gradient} text-white mb-2`}>{stat.icon}</div>

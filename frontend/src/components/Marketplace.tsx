@@ -362,7 +362,7 @@ const resetSellForm = () => {
         <div className="space-y-4">
           <h3 className="font-bold text-lg">{t('my_orders')}</h3>
           {orders.length === 0 ? (
-            <div className="glass-card p-12 rounded-2xl text-center">
+           <div className="bg-white dark:bg-gray-800 p-12 rounded-2xl border-t-4 border-green-500 shadow-lg shadow-green-500/10 text-center">
               <Package size={48} className="mx-auto mb-3 text-gray-300" />
               <p className="text-xl text-gray-500">{t('no_orders_yet')}</p>
             </div>
@@ -413,7 +413,7 @@ const resetSellForm = () => {
                 setSelectedProduct(p); setSelectedImageIndex(0);
                 try { await api.post(`/marketplace/products/${p.id}/increment_view/`); } catch {}
               }}
-              className="glass-card rounded-2xl overflow-hidden group cursor-pointer">
+            className="bg-white dark:bg-gray-800 rounded-2xl overflow-hidden group cursor-pointer border-t-4 border-green-500 shadow-lg shadow-green-500/10 hover:shadow-orange-500/20 transition-all duration-300">
               <div className="h-48 bg-gray-100 overflow-hidden relative">
                 {p.image_url ? (
 

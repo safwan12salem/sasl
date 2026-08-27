@@ -404,7 +404,7 @@ export default function WaveMesh() {
             {/* Header */}
             <div className="p-5 border-b border-gray-100 dark:border-gray-800">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-green-400 to-orange-400 bg-clip-text text-transparent flex items-center gap-2"><Radio size={24} className="text-green-500" />WaveMesh</h2>
+                <h2 className="text-2xl font-bold bg-gradient-to-r from-green-400 to-orange-400 bg-clip-text text-transparent flex items-center gap-2"><Radio size={24} className="text-orange-500" /><span className="text-orange-500">Wave</span><span className="text-green-500">Mesh</span></h2>
                 <button onClick={() => setShowSidebar(false)} className="md:hidden p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><X size={18} /></button>
               </div>
 

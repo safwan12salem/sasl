@@ -112,7 +112,9 @@ export default function Analytics() {
         className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4"
       >
         <div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-green-400 to-orange-400 bg-clip-text text-transparent flex items-center gap-2">
+          <h2 className="text-3xl font-bold flex items-center gap-2">
+  <span className="text-orange-500">Analytics</span>
+
             <TrendingUp size={32} className="text-blue-500" /> {t('analytics_dashboard')}
           </h2>
           <p className="text-gray-500 mt-1">{t('Deep insights into your growth')}</p>

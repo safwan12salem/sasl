@@ -798,7 +798,7 @@ const requestSpeak = () => {
           </h2>
           <p className="text-gray-500 text-sm mt-1">{t('join_conversations_share_ideas_connect_with_voices')}</p>
         </div>
-        <button onClick={() => setShowCreate(!showCreate)} className="bg-gradient-to-r from-green-500 to-orange-500 text-white rounded-full font-bold shadow-lg shadow-green-500/25 hover:shadow-xl transition flex items-center gap-2">
+        <button onClick={() => setShowCreate(!showCreate)} className="bg-gradient-to-r from-green-500 to-orange-500 text-white rounded-full font-bold shadow-lg shadow-green-500/25 hover:shadow-xl transition flex items-center gap-2 whitespace-nowrap px-4 py-2 text-sm">
           <Plus size={18} /> {showCreate ? t('cancel') : t('host_room')}
         </button>
       </div>
@@ -912,7 +912,7 @@ const requestSpeak = () => {
           {rooms.map(room => (
                        <motion.div key={room.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               whileHover={{ y: -2 }}
-              className="glass-card rounded-2xl p-5 transition relative overflow-hidden"
+             className="bg-white dark:bg-gray-800 rounded-2xl border-l-4 border-orange-500 shadow-lg shadow-orange-500/10 hover:shadow-green-500/20 transition relative overflow-hidden p-5"
               style={room.background_url ? { backgroundImage: `url(${room.background_url})`, backgroundSize: 'cover', backgroundPosition: 'center' } : undefined}>
               {room.background_url && <div className="absolute inset-0 bg-black/50" />}
               <div className="relative z-10 flex items-start justify-between gap-4 flex-wrap">

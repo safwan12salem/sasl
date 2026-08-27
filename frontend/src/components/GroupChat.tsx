@@ -319,12 +319,13 @@ useEffect(() => {
 
 
   return (
-     <div className="flex h-[calc(100vh-120px)] max-w-5xl mx-auto glass rounded-2xl overflow-hidden shadow-xl m-4 w-full">
-            
+     <div className="flex h-[calc(100vh-120px)] max-w-5xl mx-auto bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-xl border border-green-200 dark:border-green-800 m-4 w-full">
       {/* Sidebar */}
                   <div className={`${showSidebar ? 'flex' : 'hidden'} lg:flex lg:w-80 border-r border-gray-200 dark:border-gray-700 flex-col absolute lg:relative z-20 bg-white dark:bg-gray-900 h-full w-[85%] max-w-[300px]`}>
                      <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between lg:hidden">
-                    <h2 className="font-bold">{t('groups')}</h2>
+                    <h2 className="font-bold">
+  <span className="text-green-500">Group</span> <span className="text-orange-500">Chat</span>
+</h2>
                     <CountryFilter value={countryFilter} onChange={setCountryFilter} />
           <div className="flex items-center gap-1">
             <button onClick={() => setShowCreate(prev => !prev)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-green-600" title={t('new_group')}>

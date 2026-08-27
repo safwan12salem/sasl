@@ -454,7 +454,7 @@ const Feed: React.FC = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -2 }}
-        className="glass-card p-5 mb-4 transition-all duration-300"
+        className="bg-white dark:bg-gray-800 p-5 mb-4 transition-all duration-300 rounded-2xl border-l-4 border-green-500 shadow-lg shadow-green-500/10 hover:shadow-orange-500/20"
       >
         <div className="flex items-center gap-3 mb-3">
           <div className="relative">
@@ -578,7 +578,10 @@ const Feed: React.FC = () => {
   return (
     <div className="max-w-2xl mx-auto p-4">
       <div className="flex justify-between items-center mb-3">
-       <h1 className="text-2xl font-bold text-transparent bg-gradient-to-r from-green-400 to-orange-400 bg-clip-text">Sasl Feed</h1>
+       <h1 className="text-2xl font-bold">
+  <span className="text-orange-500">Sasl</span>{' '}
+  <span className="text-green-500">Feed</span>
+</h1>
         <div className="flex items-center gap-2">
           {!isOnline && <span className="mesh-badge mesh-offline text-xs">Offline</span>}
           {offlineQueue.length > 0 && (
