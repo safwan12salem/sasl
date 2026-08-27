@@ -122,7 +122,7 @@ export default function LiveAudio() {
     } finally {
       setLoading(false);
     }
-  }, [activeTopic]);
+  }, [activeTopic, countryFilter]);
 
 
 
@@ -148,7 +148,7 @@ export default function LiveAudio() {
         title: roomTitle, description: roomDesc, topics: roomTopics,
         is_public: isPublic, max_listeners: parseInt(maxListeners),
         background_url: bgImageUrl,
-        price: roomPrice || null,
+        price: roomPrice || '0',
         country: newCountry,
       });
       toast.success(t('room_created'));

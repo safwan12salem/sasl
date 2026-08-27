@@ -180,7 +180,7 @@ export default function GigCentral() {
       });
     } catch (err) { setError(t('Could not load gigs.')); }
     finally { setLoading(false); }
-  }, [activeTab, searchQuery]);
+  }, [activeTab, searchQuery, countryFilter]);
 
   useEffect(() => { fetchGigs(); }, [fetchGigs]);
   useEffect(() => { if (activeTab === 'workers') fetchWorkers(); }, [activeTab]);

@@ -132,7 +132,7 @@ export default function Marketplace() {
       await cacheFeatureData('products', results);
     } catch { setError('Could not load marketplace.'); }
     finally { setLoading(false); }
-  }, [searchQuery, selectedCategory, sortBy, minPrice, maxPrice, inStockOnly]);
+  }, [searchQuery, selectedCategory, sortBy, minPrice, maxPrice, inStockOnly, countryFilter]);
 
   const fetchOrders = async () => {
     try {

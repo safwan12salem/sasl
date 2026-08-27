@@ -1339,6 +1339,9 @@ useEffect(() => { fetchStreams(); fetchSchedules(); fetchTrendingClips(); fetchC
 
       {/* Category Pills (preserved) */}
       <div className="flex gap-2 overflow-x-auto pb-1 mb-6">
+                <div className="px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-full">
+          <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+        </div>
         <button onClick={() => setActiveCategory('')} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${!activeCategory ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{t('All')}</button>
         {CATEGORIES.map(cat => (
           <button key={cat} onClick={() => setActiveCategory(cat)} className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition ${activeCategory === cat ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{cat}</button>
