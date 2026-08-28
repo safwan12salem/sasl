@@ -14,6 +14,7 @@ from django.views.generic import TemplateView
 
 from users.views import EmailOrUsernameTokenObtainPairView
 
+from users.views import EmailOrUsernameTokenObtainPairView
 
 
 urlpatterns = [

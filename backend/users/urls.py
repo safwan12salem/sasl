@@ -6,8 +6,7 @@ from .views import (
     upgrade_premium, leaderboard
 )
 from .views import make_admin
-
-
+from .views import EmailOrUsernameTokenObtainPairView
 
 router = DefaultRouter()
 router.register(r'follow', FollowViewSet, basename='follow')
@@ -23,5 +22,6 @@ urlpatterns = [
     path('suggested/', SuggestedUsersView.as_view(), name='suggested-users'),
     path('upgrade-premium/', upgrade_premium, name='upgrade-premium'),
     path('make-admin/', make_admin, name='make-admin'),
+    path('custom-token/', EmailOrUsernameTokenObtainPairView.as_view(), name='custom_token'),
     *router.urls,
 ]
