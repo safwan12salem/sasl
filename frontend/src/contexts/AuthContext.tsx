@@ -5,6 +5,8 @@ export interface User {
   id: string;
   username: string;
   email: string;
+  is_staff?: boolean;
+  
   display_name?: string;
   bio?: string;
   avatar?: string;
