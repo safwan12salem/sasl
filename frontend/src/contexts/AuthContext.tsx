@@ -62,6 +62,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [token]);
 
+  
+
   const login = async (email: string, password: string) => {
     // Get token from backend
     const res = await api.post('/auth/token/', { email, password });
@@ -76,13 +78,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const profileRes = await api.get('/users/profile/');
       setUser(profileRes.data);
-       localStorage.setItem('sasl_user', JSON.stringify(profileRes.data));
+      localStorage.setItem('sasl_user', JSON.stringify(profileRes.data));
     } catch (profileErr) {
       console.warn('Profile fetch failed, but token is set');
     }
-    
-    setLoading(false);
-  };
+};
 
   const register = async (email: string, username: string, password: string) => {
     await api.post('/users/register/', { email, username, password, password2: password });
