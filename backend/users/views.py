@@ -23,6 +23,34 @@ User = get_user_model()
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
+
+
+
+from rest_framework_simplejwt.views import TokenObtainPairView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from django.contrib.auth import get_user_model
+
+
+class EmailOrUsernameTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        # The frontend sends 'email', but we check both email and username
+        email_or_username = attrs.get('email') or attrs.get('username')
+        if not email_or_username:
+            raise ValidationError('No login provided')
+        
+        # Find user by email or username
+        user = User.objects.filter(email=email_or_username).first() or User.objects.filter(username=email_or_username).first()
+        if not user:
+            raise ValidationError('No active account found')
+        
+        attrs['username'] = user.username
+        return super().validate(attrs)
+
+class EmailOrUsernameTokenObtainPairView(TokenObtainPairView):
+    serializer_class = EmailOrUsernameTokenObtainPairSerializer
+
+
+
 class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
     serializer_class = RegisterSerializer
