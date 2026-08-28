@@ -38,10 +38,17 @@ import urllib.parse
 
 # Force UUID primary keys for Postgres
 import os
+SUPABASE_DB_URL = os.environ.get('SUPABASE_DB_URL', '')
+
+
 if os.environ.get('RENDER') or os.environ.get('SASL_DB') == 'postgres':
     DEBUG = False
     ALLOWED_HOSTS = ['*']
-    db_url = os.environ.get('SUPABASE_DB_URL') or os.environ.get('DATABASE_URL', '')
+    # Force Supabase connection, ignore DATABASE_URL
+    db_url = os.environ.get('SUPABASE_DB_URL', '')
+    if not db_url or 'postgres' not in db_url:
+        # Fallback to DATABASE_URL only if Supabase is not set
+        db_url = os.environ.get('DATABASE_URL', '')
     if db_url and 'postgres' in db_url:
         url = urllib.parse.urlparse(db_url)
         DATABASES = {
