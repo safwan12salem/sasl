@@ -41,7 +41,7 @@ import os
 if os.environ.get('RENDER') or os.environ.get('SASL_DB') == 'postgres':
     DEBUG = False
     ALLOWED_HOSTS = ['*']
-    db_url = os.environ.get('DATABASE_URL', '')
+    db_url = os.environ.get('SUPABASE_DB_URL') or os.environ.get('DATABASE_URL', '')
     if db_url and 'postgres' in db_url:
         url = urllib.parse.urlparse(db_url)
         DATABASES = {
