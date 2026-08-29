@@ -947,7 +947,7 @@ const requestSpeak = () => {
                   <div className="flex items-center gap-2 flex-wrap">
                     <button onClick={() => setShowInvite(true)} className="btn-primary text-xs flex items-center gap-1 px-2 py-1"><UserPlus size={12} /> {t('invite')}</button>
                     <motion.button whileTap={{ scale: 0.95 }} onClick={() => {
-                      if (room.price) { setPaymentAmount(parseFloat(room.price)); setShowPayment(true); }
+                     if (room.price && parseFloat(room.price) > 0) { setPaymentAmount(parseFloat(room.price)); setShowPayment(true); }
                                            else { 
                         if (room.is_public) {
                           joinRoom(room.id); 
@@ -956,7 +956,7 @@ const requestSpeak = () => {
                           toast.success('Join request sent to host');
                         }
                       }
-                    }} className="btn-primary text-xs px-3 py-1 min-w-[50px] text-center">{room.price ? `$${room.price}` : t('join')}</motion.button>
+                    }} className="btn-primary text-xs px-3 py-1 min-w-[50px] text-center">{room.price && parseFloat(room.price) > 0 ? `$${room.price}` : t('join')}</motion.button>
                     <button onClick={(e) => { e.stopPropagation(); tipHost(room.id); }} 
   className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-semibold hover:bg-yellow-200 transition">
   💰 Tip
