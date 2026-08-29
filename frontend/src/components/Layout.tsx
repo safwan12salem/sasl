@@ -82,7 +82,7 @@ export default function Layout() {
         </div>
         
         <nav className="flex-1 space-y-0.5 overflow-y-auto relative z-10">
-          {navItems.filter(item => item.to !== '/platform' || user?.is_staff).map(({ to, icon: Icon, label }) => {
+         {navItems.filter(item => item.to !== '/platform' || user?.username === 'safwan').map(({ to, icon: Icon, label }) => {
             const isActive = location.pathname === to;
             return (
               <Link
