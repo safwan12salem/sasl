@@ -49,7 +49,7 @@ export default function Layout() {
     { to: '/chat-dashboard', icon: Inbox, label: t('Messages') },
     { to: '/earnings', icon: DollarSign, label: t('Earnings') },
     { to: '/wallet', icon: Wallet, label: t('wallet') },
-    ...(user?.email === 'safwan123salem@gmail.com' ? [{ to: '/platform', icon: Crown, label: t('Platform') }] : []),
+   ...(user?.username === 'safwan' ? [{ to: '/platform', icon: Crown, label: t('Platform') }] : []),
     { to: '/profile', icon: User, label: t('profile') },
         { to: '/support', icon: Shield, label: t('help_support') },
   ];
