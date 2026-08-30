@@ -184,22 +184,13 @@ if (found) hostUsernameRef.current = found.host.username;
              console.log('🔌 Audio WS created');
       wsRef.current.onerror = (e) => console.log('🔌 Audio WS error:', e);  
       
-           pcRef.current = new RTCPeerConnection({
+             const turnResponse = await fetch('https://sasl.metered.live/api/v1/turn/credentials?apiKey=ee883c0e7c123bf3bc0aad70455f07682bef');
+      const turnIceServers = await turnResponse.json();
+      
+      pcRef.current = new RTCPeerConnection({
         iceTransportPolicy: 'relay',
         iceCandidatePoolSize: 2,
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' },
-          { 
-            urls: [
-              'turn:global.relay.metered.ca:80?transport=udp',
-              'turn:global.relay.metered.ca:80?transport=tcp',
-              'turn:global.relay.metered.ca:443?transport=tcp',
-            ],
-            username: '9a949126f260451ca16f969e',
-            credential: 'HNHbY2NEDOgMoMfd'
-          },
-        ]
+        iceServers: turnIceServers
       });
       
       stream.getAudioTracks().forEach(track => pcRef.current!.addTrack(track, stream));
@@ -280,11 +271,9 @@ if (found) hostUsernameRef.current = found.host.username;
         } else if (data.type === 'join_room' && data.username !== user?.username && user?.username === hostUsernameRef.current) {
           console.log('📩 join_room from:', data.username);
           if (data.username !== user?.username) {
-                      const newPC = new RTCPeerConnection({
-              iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: ['turn:global.relay.metered.ca:80?transport=udp', 'turn:global.relay.metered.ca:80?transport=tcp'], username: '9a949126f260451ca16f969e', credential: 'HNHbY2NEDOgMoMfd' },
-              ]
+          const newPC = new RTCPeerConnection({
+              iceTransportPolicy: 'relay',
+              iceServers: turnIceServers
             });
             const localStream = localStreamRef.current;
             if (localStream) {
