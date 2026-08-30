@@ -165,7 +165,8 @@ export default function LiveAudio() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       localStreamRef.current = stream;
-      stream.getAudioTracks()[0].enabled = !isMuted;
+     const currentUserIsHost = rooms.find(r => r.id === roomId)?.host?.username === user?.username;
+stream.getAudioTracks()[0].enabled = currentUserIsHost ? true : false;
       await api.post(`/liveaudio/rooms/${roomId}/join/`);
       setInRoom(roomId);
       const found = rooms.find(r => r.id === roomId);
@@ -259,6 +260,15 @@ if (found) hostUsernameRef.current = found.host.username;
         } else if (data.type === 'speak_request') {
           setSpeakRequests(prev => [...prev, data.username]);
           toast(`${data.username} wants to speak!`, { icon: '🎤' });
+          } else if (data.type === 'unmute_speaker' && data.username === user?.username) {
+  if (localStreamRef.current) {
+    localStreamRef.current.getAudioTracks().forEach(track => {
+      track.enabled = true;
+    });
+  }
+  setIsMuted(false);
+  toast.success('🎤 You are now live!');
+
         } else if (data.type === 'user_joined') {
           setListenerCount(prev => prev + 1);
           toast(`${data.username} joined`, { icon: '👋' });
@@ -526,6 +536,7 @@ const requestSpeak = () => {
                     <div key={i} className="flex items-center gap-2 mb-1">
                                            <button onClick={() => {
                         api.post(`/liveaudio/rooms/${inRoom}/invite_speaker/`, { username });
+                          wsRef.current?.send(JSON.stringify({ type: 'unmute_speaker', username }));
                         setSpeakRequests(prev => prev.filter(u => u !== username));
                         toast.success(`@${username} is now a speaker for ${roomDuration || 30} mins!`);
                         
