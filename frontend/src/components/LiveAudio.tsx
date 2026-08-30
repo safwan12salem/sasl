@@ -266,7 +266,7 @@ export default function LiveAudio() {
                     
               } else if (data.type === 'user_left') {
           setListenerCount(prev => Math.max(0, prev - 1));
-        } else if (data.type === 'join_room') {
+        } else if (data.type === 'join_room' && user?.username === rooms.find(r => r.id === inRoom)?.host?.username) {
           console.log('📩 join_room from:', data.username);
           if (data.username !== user?.username) {
                       const newPC = new RTCPeerConnection({
@@ -316,6 +316,9 @@ export default function LiveAudio() {
             }, 1000);
           }
                 } else if (data.type === 'answer') {
+                      if (pcRef.current && pcRef.current.signalingState !== 'have-local-offer') {
+      return;
+    }
           const targetPC = peerConnections.current.get(data.target) || pcRef.current;
           if (targetPC) await targetPC!.setRemoteDescription(new RTCSessionDescription(data.answer));
         } else if (data.type === 'offer') {
