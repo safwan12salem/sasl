@@ -73,6 +73,7 @@ export default function LiveAudio() {
   const [listenerCount, setListenerCount] = useState(0);
   const localStreamRef = useRef<MediaStream | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
+  const hostUsernameRef = useRef<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -167,6 +168,10 @@ export default function LiveAudio() {
       stream.getAudioTracks()[0].enabled = !isMuted;
       await api.post(`/liveaudio/rooms/${roomId}/join/`);
       setInRoom(roomId);
+      const found = rooms.find(r => r.id === roomId);
+if (found) hostUsernameRef.current = found.host.username;
+
+
       localStorage.setItem('sasl_live_room', roomId);
       // Connect WebRTC for real audio (August backend: WebSocket signaling)
 
@@ -222,11 +227,10 @@ export default function LiveAudio() {
           toast('👆 Tap anywhere to hear speaker', { duration: 5000, icon: '🔊' });
         });
       };
-                 wsRef.current.onopen = async () => {
-        console.log('🔌 Audio WS onopen FIRED');
-        wsRef.current!.send(JSON.stringify({ type: 'join_room', username: user?.username }));
-      };
-      
+             wsRef.current.onopen = async () => {
+  console.log('🔌 Audio WS onopen FIRED');
+  wsRef.current!.send(JSON.stringify({ type: 'join_room', username: user?.username }));
+};
 
           wsRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
@@ -263,7 +267,7 @@ export default function LiveAudio() {
                     
               } else if (data.type === 'user_left') {
           setListenerCount(prev => Math.max(0, prev - 1));
-        } else if (data.type === 'join_room' && data.username !== user?.username && user?.username === rooms.find(r => r.id === inRoom)?.host?.username) {
+        } else if (data.type === 'join_room' && data.username !== user?.username && user?.username === hostUsernameRef.current) {
           console.log('📩 join_room from:', data.username);
           if (data.username !== user?.username) {
                       const newPC = new RTCPeerConnection({
