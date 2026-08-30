@@ -291,7 +291,12 @@ if (found) hostUsernameRef.current = found.host.username;
               audio.setAttribute('playsinline', '');
               document.body.appendChild(audio);
               audio.play().catch(() => {});
-              
+               // Show tap prompt if autoplay blocked
+document.addEventListener('click', () => {
+  if (remoteAudioRef.current && remoteAudioRef.current.paused) {
+    remoteAudioRef.current.play().catch(() => {});
+  }
+}, { once: true });    
               // Relay this speaker's audio to ALL other listeners
               peerConnections.current.forEach((pc, username) => {
                 if (username !== data.username) {
