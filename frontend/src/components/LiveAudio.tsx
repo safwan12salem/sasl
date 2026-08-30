@@ -231,10 +231,7 @@ export default function LiveAudio() {
           wsRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
          console.log('📩 Audio WS message:', data.type);
-        if (data.type === 'answer') {
-          await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.answer));
-               } else if (data.type === 'offer') {
-          
+       if (data.type === 'offer') {
           if (pcRef.current!.signalingState !== 'stable') {
             console.log('⚠️ Ignoring offer - not in stable state:', pcRef.current!.signalingState);
             return;
@@ -315,22 +312,7 @@ export default function LiveAudio() {
               } catch(e) { console.log('Offer failed:', e); }
             }, 1000);
           }
-                } else if (data.type === 'answer') {
-                      if (pcRef.current && pcRef.current.signalingState !== 'have-local-offer') {
-      return;
-    }
-          const targetPC = peerConnections.current.get(data.target) || pcRef.current;
-          if (targetPC) await targetPC!.setRemoteDescription(new RTCSessionDescription(data.answer));
-        } else if (data.type === 'offer') {
-          if (pcRef.current!.signalingState !== 'stable') {
-            console.log('⚠️ Ignoring offer - state:', pcRef.current!.signalingState);
-            return;
-          }
-          await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.offer));
-          const answer = await pcRef.current!.createAnswer();
-          await pcRef.current!.setLocalDescription(answer);
-          wsRef.current!.send(JSON.stringify({ type: 'answer', answer: pcRef.current!.localDescription, target: data.username }));
-                } else if (data.type === 'candidate') {
+           } else if (data.type === 'candidate') {
           try {
             if (data.target) {
               const targetPC = peerConnections.current.get(data.target);
