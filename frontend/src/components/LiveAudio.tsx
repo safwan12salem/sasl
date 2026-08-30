@@ -266,7 +266,7 @@ export default function LiveAudio() {
                     
               } else if (data.type === 'user_left') {
           setListenerCount(prev => Math.max(0, prev - 1));
-        } else if (data.type === 'join_room' && user?.username === rooms.find(r => r.id === inRoom)?.host?.username) {
+        } else if (data.type === 'join_room' && data.username !== user?.username && user?.username === rooms.find(r => r.id === inRoom)?.host?.username) {
           console.log('📩 join_room from:', data.username);
           if (data.username !== user?.username) {
                       const newPC = new RTCPeerConnection({
