@@ -251,16 +251,33 @@ if (found) hostUsernameRef.current = found.host.username;
         } else if (data.type === 'speak_request') {
           setSpeakRequests(prev => [...prev, data.username]);
           toast(`${data.username} wants to speak!`, { icon: '🎤' });
-          } else if (data.type === 'unmute_speaker' && data.username === user?.username) {
-  if (localStreamRef.current) {
-    localStreamRef.current.getAudioTracks().forEach(track => {
-      track.enabled = true;
+           } else if (data.type === 'unmute_speaker' && data.username === user?.username) {
+  try {
+    // Re-acquire microphone to ensure fresh unmuted track
+    const freshStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    localStreamRef.current = freshStream;
+    
+    // Replace track in existing peer connection
+    const audioTrack = freshStream.getAudioTracks()[0];
+    const sender = pcRef.current?.getSenders().find(s => s.track?.kind === 'audio');
+    if (sender && audioTrack) {
+      await sender.replaceTrack(audioTrack);
+    }
+    
+    // Also add to all peer connections
+    peerConnections.current.forEach(pc => {
+      const pcSender = pc.getSenders().find(s => s.track?.kind === 'audio');
+      if (pcSender && audioTrack) {
+        pcSender.replaceTrack(audioTrack);
+      }
     });
+    
+    setIsMuted(false);
+    toast.success('🎤 You are now live!');
+  } catch(e) {
+    console.log('Unmute failed:', e);
   }
-  setIsMuted(false);
-  toast.success('🎤 You are now live!');
-
-        } else if (data.type === 'user_joined') {
+ } else if (data.type === 'user_joined') {
           setListenerCount(prev => prev + 1);
           toast(`${data.username} joined`, { icon: '👋' });
         } else if (data.type === 'user_left') {
