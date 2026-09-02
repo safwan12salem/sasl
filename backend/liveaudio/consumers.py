@@ -76,6 +76,12 @@ class AudioConsumer(AsyncWebsocketConsumer):
                     'raised': data.get('raised', True)
                 }}
             )
+
+        elif msg_type == 'unmute_speaker':
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {'type': 'unmute_speaker_broadcast', 'data': data}
+            )    
         
         elif msg_type == 'join_room':
             # Someone joined the room — broadcast to trigger WebRTC offer
@@ -102,6 +108,9 @@ class AudioConsumer(AsyncWebsocketConsumer):
     async def hand_raise_broadcast(self, event):
         await self.send(text_data=json.dumps(event['data']))    
 
+    async def unmute_speaker_broadcast(self, event):
+        await self.send(text_data=json.dumps(event['data']))
+    
     async def join_room_broadcast(self, event):
         await self.send(text_data=json.dumps(event['data']))
     
