@@ -73,7 +73,6 @@ export default function LiveAudio() {
   const [listenerCount, setListenerCount] = useState(0);
   const localStreamRef = useRef<MediaStream | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
-  const hostUsernameRef = useRef<string | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
   const peerConnections = useRef<Map<string, RTCPeerConnection>>(new Map());
   const remoteAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -165,84 +164,202 @@ export default function LiveAudio() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       localStreamRef.current = stream;
-     const currentUserIsHost = rooms.find(r => r.id === roomId)?.host?.username === user?.username;
-stream.getAudioTracks()[0].enabled = currentUserIsHost ? true : false;
+      stream.getAudioTracks()[0].enabled = !isMuted;
       await api.post(`/liveaudio/rooms/${roomId}/join/`);
       setInRoom(roomId);
-      const found = rooms.find(r => r.id === roomId);
-if (found) hostUsernameRef.current = found.host.username;
-
-
       localStorage.setItem('sasl_live_room', roomId);
       // Connect WebRTC for real audio (August backend: WebSocket signaling)
-       const token = localStorage.getItem('sasl_token');
+
+            // Connect WebSocket for signaling
+      const token = localStorage.getItem('sasl_token');
       const wsUrl = `wss://sasl-api-i34r.onrender.com/ws/audio/${roomId}/?token=${token}`;
+            console.log('🔌 Connecting audio WS:', wsUrl);
       wsRef.current = new WebSocket(wsUrl);
+             console.log('🔌 Audio WS created');
+      wsRef.current.onerror = (e) => console.log('🔌 Audio WS error:', e);  
       
-      wsRef.current.onopen = () => {
+           pcRef.current = new RTCPeerConnection({
+        iceTransportPolicy: 'relay',
+        iceCandidatePoolSize: 2,
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { 
+            urls: [
+              'turn:global.relay.metered.ca:80?transport=udp',
+              'turn:global.relay.metered.ca:80?transport=tcp',
+              'turn:global.relay.metered.ca:443?transport=tcp',
+            ],
+            username: '9a949126f260451ca16f969e',
+            credential: 'HNHbY2NEDOgMoMfd'
+          },
+        ]
+      });
+      
+      stream.getAudioTracks().forEach(track => pcRef.current!.addTrack(track, stream));
+      
+           pcRef.current!.ontrack = (event) => {
+        console.log('🎵 ONTRACK FIRED! Track kind:', event.track.kind, 'Streams:', event.streams.length);
+        
+        if (remoteAudioRef.current) {
+          remoteAudioRef.current.srcObject = null;
+          remoteAudioRef.current.remove();
+        }
+        
+        const audio = document.createElement('audio');
+        audio.srcObject = event.streams[0];
+        audio.setAttribute('playsinline', '');
+        audio.setAttribute('webkit-playsinline', '');
+        audio.autoplay = true;
+        audio.controls = false;
+        document.body.appendChild(audio);
+        remoteAudioRef.current = audio;
+        
+        audio.play().then(() => {
+          console.log('🔊 Remote audio playing, volume:', audio.volume);
+        }).catch(e => {
+          console.log('🔇 Autoplay blocked:', e.name);
+          toast('👆 Tap anywhere to hear speaker', { duration: 5000, icon: '🔊' });
+        });
+      };
+                 wsRef.current.onopen = async () => {
         console.log('🔌 Audio WS onopen FIRED');
         wsRef.current!.send(JSON.stringify({ type: 'join_room', username: user?.username }));
       };
       
-      wsRef.current.onmessage = (event) => {
+
+          wsRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
-        if (data.type === 'speak_request') {
-          setSpeakRequests(prev => [...prev, data.username]);
-          toast(`${data.username} wants to speak!`, { icon: '🎤' });
-        } else if (data.type === 'hand_raise') {
-          toast(`${data.username} raised their hand ✋`);
+         console.log('📩 Audio WS message:', data.type);
+        if (data.type === 'answer') {
+          await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.answer));
+               } else if (data.type === 'offer') {
+          
+          if (pcRef.current!.signalingState !== 'stable') {
+            console.log('⚠️ Ignoring offer - not in stable state:', pcRef.current!.signalingState);
+            return;
+          }
+          
+          await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.offer));
+          const answer = await pcRef.current!.createAnswer();
+          await pcRef.current!.setLocalDescription(answer);
+          wsRef.current!.send(JSON.stringify({ type: 'answer', answer: pcRef.current!.localDescription }));
+        
+        } else if (data.type === 'candidate') {
+          await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
         } else if (data.type === 'reaction') {
           setFloatingReactions(prev => [...prev, { id: Date.now(), emoji: data.emoji, x: Math.random() * 80 + 10 }]);
-        } else if (data.type === 'unmute_speaker' && data.username === user?.username) {
-          if (localStreamRef.current) {
-            localStreamRef.current.getAudioTracks().forEach(track => { track.enabled = true; });
-          }
-          setIsMuted(false);
-          toast.success('🎤 You are now live!');
-        }
-      };
-          
-      // Connect WebSocket for signaling
-      const { Peer } = await import('peerjs');
-      const uniqueId = `sasl-audio-${roomId}-${user?.username}`;
-      const peer = new Peer(uniqueId, {
-        host: 'sasl-peerjs.onrender.com',
-        port: 443,
-        path: '/sasl-peerjs',
-        secure: true
-      });
-
-      peer.on('open', () => {
-        console.log('🟢 PeerJS connected:', peer.id);
-        wsRef.current = peer as any;
+          setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== Date.now())), 3000);
+        } else if (data.type === 'hand_raise') {
+          toast(`${data.username} ${data.raised ? 'raised' : 'lowered'} their hand ✋`);
+        } else if (data.type === 'chat') {
+          setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username }]);
         
-        // If listener, call the host
-        if (hostUsernameRef.current !== user?.username) {
-          setTimeout(() => {
-            const call = peer.call(`sasl-audio-${roomId}-${hostUsernameRef.current}`, stream);
-            call.on('stream', (remoteStream) => {
+        } else if (data.type === 'speak_request') {
+          setSpeakRequests(prev => [...prev, data.username]);
+          toast(`${data.username} wants to speak!`, { icon: '🎤' });
+        } else if (data.type === 'user_joined') {
+          setListenerCount(prev => prev + 1);
+          toast(`${data.username} joined`, { icon: '👋' });
+        } else if (data.type === 'user_left') {
+          setListenerCount(prev => Math.max(0, prev - 1));
+                    
+              } else if (data.type === 'user_left') {
+          setListenerCount(prev => Math.max(0, prev - 1));
+        } else if (data.type === 'join_room') {
+          console.log('📩 join_room from:', data.username);
+          if (data.username !== user?.username) {
+                      const newPC = new RTCPeerConnection({
+              iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: ['turn:global.relay.metered.ca:80?transport=udp', 'turn:global.relay.metered.ca:80?transport=tcp'], username: '9a949126f260451ca16f969e', credential: 'HNHbY2NEDOgMoMfd' },
+              ]
+            });
+            const localStream = localStreamRef.current;
+            if (localStream) {
+              localStream.getTracks().forEach(track => newPC.addTrack(track, localStream));
+            }
+            newPC.ontrack = (event) => {
+              console.log('🎵 ONTRACK from:', data.username);
+              const remoteStream = event.streams[0];
+              
+              // Play for the host
               const audio = document.createElement('audio');
               audio.srcObject = remoteStream;
               audio.autoplay = true;
-              audio.play().catch(() => {});
+              audio.setAttribute('playsinline', '');
               document.body.appendChild(audio);
-              remoteAudioRef.current = audio;
-            });
-          }, 2000);
+              audio.play().catch(() => {});
+              
+              // Relay this speaker's audio to ALL other listeners
+              peerConnections.current.forEach((pc, username) => {
+                if (username !== data.username) {
+                  remoteStream.getTracks().forEach(track => {
+                    pc.addTrack(track, remoteStream);
+                  });
+                }
+              });
+            };
+            newPC.onicecandidate = (event) => {
+              if (event.candidate) {
+                wsRef.current!.send(JSON.stringify({ type: 'candidate', candidate: event.candidate, target: data.username }));
+              }
+            };
+            peerConnections.current.set(data.username, newPC);
+            setTimeout(async () => {
+              try {
+                const offer = await newPC.createOffer();
+                await newPC.setLocalDescription(offer);
+                wsRef.current!.send(JSON.stringify({ type: 'offer', offer: newPC.localDescription, target: data.username }));
+                console.log('📤 Offer sent to:', data.username);
+              } catch(e) { console.log('Offer failed:', e); }
+            }, 1000);
+          }
+                } else if (data.type === 'answer') {
+          const targetPC = peerConnections.current.get(data.target) || pcRef.current;
+          if (targetPC) await targetPC!.setRemoteDescription(new RTCSessionDescription(data.answer));
+        } else if (data.type === 'offer') {
+          if (pcRef.current!.signalingState !== 'stable') {
+            console.log('⚠️ Ignoring offer - state:', pcRef.current!.signalingState);
+            return;
+          }
+          await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.offer));
+          const answer = await pcRef.current!.createAnswer();
+          await pcRef.current!.setLocalDescription(answer);
+          wsRef.current!.send(JSON.stringify({ type: 'answer', answer: pcRef.current!.localDescription, target: data.username }));
+                } else if (data.type === 'candidate') {
+          try {
+            if (data.target) {
+              const targetPC = peerConnections.current.get(data.target);
+              if (targetPC) await targetPC.addIceCandidate(new RTCIceCandidate(data.candidate));
+            } else {
+              await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
+            }
+          } catch(e) {}
+        } else if (data.type === 'reaction') {
+          setFloatingReactions(prev => [...prev, { id: Date.now(), emoji: data.emoji, x: Math.random() * 80 + 10 }]);
+          setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== Date.now())), 3000);
+        } else if (data.type === 'hand_raise') {
+          toast(`${data.username} ${data.raised ? 'raised' : 'lowered'} their hand ✋`);
+        } else if (data.type === 'chat') {
+          setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username}]);
+        } else if (data.type === 'speak_request') {
+          setSpeakRequests(prev => [...prev, data.username]);
+          toast(`${data.username} wants to speak!`, { icon: '🎤' });
+        } else if (data.type === 'user_joined') {
+          setListenerCount(prev => prev + 1);
+          toast(`${data.username} joined`, { icon: '👋' });
+        } else if (data.type === 'user_left') {
+          setListenerCount(prev => Math.max(0, prev - 1));
         }
-      });
+      };
 
-      peer.on('call', (call) => {
-        call.answer(stream);
-        call.on('stream', (remoteStream) => {
-          const audio = document.createElement('audio');
-          audio.srcObject = remoteStream;
-          audio.autoplay = true;
-          audio.play().catch(() => {});
-          document.body.appendChild(audio);
-          remoteAudioRef.current = audio;
-        });
-      });
+      
+      pcRef.current!.onicecandidate = (event) => {
+        if (event.candidate) {
+          wsRef.current!.send(JSON.stringify({ type: 'candidate', candidate: event.candidate }));
+        }
+      };
 
 
       const foundRoom = rooms.find(r => r.id === roomId);
@@ -261,10 +378,8 @@ if (found) hostUsernameRef.current = found.host.username;
     localStreamRef.current = null;
         pcRef.current?.close();
     pcRef.current = null;
-    if (wsRef.current) {
-  (wsRef.current as any)?.destroy?.();
-  wsRef.current = null;
-}
+    wsRef.current?.close();
+    wsRef.current = null;
         peerConnections.current.forEach(pc => pc.close());
     peerConnections.current.clear();
     setInRoom(null);
@@ -417,7 +532,6 @@ const requestSpeak = () => {
                     <div key={i} className="flex items-center gap-2 mb-1">
                                            <button onClick={() => {
                         api.post(`/liveaudio/rooms/${inRoom}/invite_speaker/`, { username });
-                          wsRef.current?.send(JSON.stringify({ type: 'unmute_speaker', username }));
                         setSpeakRequests(prev => prev.filter(u => u !== username));
                         toast.success(`@${username} is now a speaker for ${roomDuration || 30} mins!`);
                         

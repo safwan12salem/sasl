@@ -67,14 +67,6 @@ class AudioConsumer(AsyncWebsocketConsumer):
                     'username': data.get('username', 'User')
                 }}
             )
-
-        elif msg_type == 'unmute_speaker':
-         await self.channel_layer.group_send(
-        self.room_group_name,
-        {'type': 'unmute_speaker_broadcast', 'data': data}
-    ) 
-
-         
         elif msg_type == 'hand_raise':
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -104,8 +96,6 @@ class AudioConsumer(AsyncWebsocketConsumer):
     async def speak_request(self, event):
         await self.send(text_data=json.dumps(event['data']))
 
-    async def unmute_speaker_broadcast(self, event):
-       await self.send(text_data=json.dumps(event['data']))
     async def reaction_broadcast(self, event):
         await self.send(text_data=json.dumps(event['data']))
 
