@@ -222,10 +222,10 @@ export default function LiveAudio() {
           wsRef.current.onmessage = async (event) => {
         const data = JSON.parse(event.data);
          console.log('📩 Audio WS message:', data.type);
-        if (data.type === 'answer') {
-          await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.answer));
-               } else if (data.type === 'offer') {
-          
+               if (data.type === 'offer') {
+
+
+                
           if (pcRef.current!.signalingState !== 'stable') {
             console.log('⚠️ Ignoring offer - not in stable state:', pcRef.current!.signalingState);
             return;
