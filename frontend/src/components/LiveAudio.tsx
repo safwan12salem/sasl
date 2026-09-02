@@ -178,13 +178,24 @@ export default function LiveAudio() {
              console.log('🔌 Audio WS created');
       wsRef.current.onerror = (e) => console.log('🔌 Audio WS error:', e);  
       
-           pcRef.current = new RTCPeerConnection({
-        iceTransportPolicy: 'relay',
-        iceCandidatePoolSize: 2,
+                    pcRef.current = new RTCPeerConnection({
+        iceTransportPolicy: 'all',
+        iceCandidatePoolSize: 10,
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:stun1.l.google.com:19302' },
-          { 
+          { urls: 'stun:stun2.l.google.com:19302' },
+          {
+            urls: [
+              'turn:openrelay.metered.ca:80',
+              'turn:openrelay.metered.ca:443',
+              'turn:openrelay.metered.ca:80?transport=tcp',
+              'turn:openrelay.metered.ca:443?transport=tcp',
+            ],
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          },
+          {
             urls: [
               'turn:global.relay.metered.ca:80?transport=udp',
               'turn:global.relay.metered.ca:80?transport=tcp',
@@ -195,7 +206,8 @@ export default function LiveAudio() {
           },
         ]
       });
-      
+
+
       stream.getAudioTracks().forEach(track => pcRef.current!.addTrack(track, stream));
       
            pcRef.current!.ontrack = (event) => {
@@ -269,12 +281,34 @@ export default function LiveAudio() {
         } else if (data.type === 'join_room') {
           console.log('📩 join_room from:', data.username);
           if (data.username !== user?.username) {
-                      const newPC = new RTCPeerConnection({
-              iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: ['turn:global.relay.metered.ca:80?transport=udp', 'turn:global.relay.metered.ca:80?transport=tcp'], username: '9a949126f260451ca16f969e', credential: 'HNHbY2NEDOgMoMfd' },
-              ]
-            });
+                                     const newPC = new RTCPeerConnection({
+        iceTransportPolicy: 'all',
+        iceCandidatePoolSize: 10,
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' },
+          {
+            urls: [
+              'turn:openrelay.metered.ca:80',
+              'turn:openrelay.metered.ca:443',
+              'turn:openrelay.metered.ca:80?transport=tcp',
+              'turn:openrelay.metered.ca:443?transport=tcp',
+            ],
+            username: 'openrelayproject',
+            credential: 'openrelayproject'
+          },
+          {
+            urls: [
+              'turn:global.relay.metered.ca:80?transport=udp',
+              'turn:global.relay.metered.ca:80?transport=tcp',
+              'turn:global.relay.metered.ca:443?transport=tcp',
+            ],
+            username: '9a949126f260451ca16f969e',
+            credential: 'HNHbY2NEDOgMoMfd'
+          },
+        ]
+      });
             const localStream = localStreamRef.current;
             if (localStream) {
               localStream.getTracks().forEach(track => newPC.addTrack(track, localStream));
