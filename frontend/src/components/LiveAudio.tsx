@@ -175,9 +175,35 @@ if (found) hostUsernameRef.current = found.host.username;
 
       localStorage.setItem('sasl_live_room', roomId);
       // Connect WebRTC for real audio (August backend: WebSocket signaling)
-
-            // Connect WebSocket for signaling
-           const { Peer } = await import('peerjs');
+       const token = localStorage.getItem('sasl_token');
+      const wsUrl = `wss://sasl-api-i34r.onrender.com/ws/audio/${roomId}/?token=${token}`;
+      wsRef.current = new WebSocket(wsUrl);
+      
+      wsRef.current.onopen = () => {
+        console.log('🔌 Audio WS onopen FIRED');
+        wsRef.current!.send(JSON.stringify({ type: 'join_room', username: user?.username }));
+      };
+      
+      wsRef.current.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.type === 'speak_request') {
+          setSpeakRequests(prev => [...prev, data.username]);
+          toast(`${data.username} wants to speak!`, { icon: '🎤' });
+        } else if (data.type === 'hand_raise') {
+          toast(`${data.username} raised their hand ✋`);
+        } else if (data.type === 'reaction') {
+          setFloatingReactions(prev => [...prev, { id: Date.now(), emoji: data.emoji, x: Math.random() * 80 + 10 }]);
+        } else if (data.type === 'unmute_speaker' && data.username === user?.username) {
+          if (localStreamRef.current) {
+            localStreamRef.current.getAudioTracks().forEach(track => { track.enabled = true; });
+          }
+          setIsMuted(false);
+          toast.success('🎤 You are now live!');
+        }
+      };
+          
+      // Connect WebSocket for signaling
+      const { Peer } = await import('peerjs');
       const uniqueId = `sasl-audio-${roomId}-${user?.username}`;
       const peer = new Peer(uniqueId, {
         host: 'sasl-peerjs.onrender.com',
