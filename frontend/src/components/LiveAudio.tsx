@@ -174,14 +174,14 @@ export default function LiveAudio() {
       const token = localStorage.getItem('sasl_token');
       const wsUrl = `wss://sasl-api-i34r.onrender.com/ws/audio/${roomId}/?token=${token}`;
             console.log('🔌 Connecting audio WS:', wsUrl);
-      wsRef.current = new WebSocket(wsUrl);
+      wsRef.current! = new WebSocket(wsUrl);
              console.log('🔌 Audio WS created');
-      wsRef.current.onerror = (e) => console.log('🔌 Audio WS error:', e);  
+      wsRef.current!.onerror = (e) => console.log('🔌 Audio WS error:', e);  
       
                     const response = await fetch("https://sasl23.metered.live/api/v1/turn/credentials?apiKey=9aafb683fde320b53e50f4c61ae22c572a0d");
       const iceServers = await response.json();
       
-      pcRef.current = new RTCPeerConnection({
+      pcRef.current! = new RTCPeerConnection({
         iceTransportPolicy: 'relay',
         iceCandidatePoolSize: 2,
         iceServers: iceServers
@@ -213,137 +213,100 @@ export default function LiveAudio() {
           toast('👆 Tap anywhere to hear speaker', { duration: 5000, icon: '🔊' });
         });
       };
-                 wsRef.current.onopen = async () => {
+                 wsRef.current!.onopen = async () => {
         console.log('🔌 Audio WS onopen FIRED');
         wsRef.current!.send(JSON.stringify({ type: 'join_room', username: user?.username }));
       };
       
 
-          wsRef.current.onmessage = async (event) => {
+                wsRef.current!.onmessage = async (event) => {
         const data = JSON.parse(event.data);
-         console.log('📩 Audio WS message:', data.type);
-               if (data.type === 'offer') {
-
-
-                
-          if (pcRef.current!.signalingState !== 'stable') {
-            console.log('⚠️ Ignoring offer - not in stable state:', pcRef.current!.signalingState);
-            return;
-          }
-          
-          await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.offer));
-          const answer = await pcRef.current!.createAnswer();
-          await pcRef.current!.setLocalDescription(answer);
-          wsRef.current!.send(JSON.stringify({ type: 'answer', answer: pcRef.current!.localDescription }));
+        console.log('📩 Audio WS message:', data.type);
         
-        } else if (data.type === 'candidate') {
-          await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
-        } else if (data.type === 'reaction') {
-          setFloatingReactions(prev => [...prev, { id: Date.now(), emoji: data.emoji, x: Math.random() * 80 + 10 }]);
-          setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== Date.now())), 3000);
-        } else if (data.type === 'hand_raise') {
-          toast(`${data.username} ${data.raised ? 'raised' : 'lowered'} their hand ✋`);
-        } else if (data.type === 'chat') {
-          setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username }]);
-        
-        } else if (data.type === 'speak_request') {
-          setSpeakRequests(prev => [...prev, data.username]);
-          toast(`${data.username} wants to speak!`, { icon: '🎤' });
-        } else if (data.type === 'user_joined') {
-          setListenerCount(prev => prev + 1);
-          toast(`${data.username} joined`, { icon: '👋' });
-        } else if (data.type === 'user_left') {
-          setListenerCount(prev => Math.max(0, prev - 1));
-                    
-              } else if (data.type === 'user_left') {
-          setListenerCount(prev => Math.max(0, prev - 1));
-        } else if (data.type === 'join_room') {
-          console.log('📩 join_room from:', data.username);
-          if (data.username !== user?.username) {
-                                                                       const newPC = new RTCPeerConnection({
-        iceTransportPolicy: 'relay',
-        iceCandidatePoolSize: 2,
-        iceServers: iceServers
-      });
-            const localStream = localStreamRef.current;
-            if (localStream) {
-              localStream.getTracks().forEach(track => newPC.addTrack(track, localStream));
-            }
-            newPC.ontrack = (event) => {
-              console.log('🎵 ONTRACK from:', data.username);
-              const remoteStream = event.streams[0];
-              
-              // Play for the host
-              const audio = document.createElement('audio');
-              audio.srcObject = remoteStream;
-              audio.autoplay = true;
-              audio.setAttribute('playsinline', '');
-              document.body.appendChild(audio);
-              audio.play().catch(() => {});
-              
-              // Relay this speaker's audio to ALL other listeners
-              peerConnections.current.forEach((pc, username) => {
-                if (username !== data.username) {
-                  remoteStream.getTracks().forEach(track => {
-                    pc.addTrack(track, remoteStream);
-                  });
-                }
-              });
-            };
-            newPC.onicecandidate = (event) => {
-              if (event.candidate) {
-                wsRef.current!.send(JSON.stringify({ type: 'candidate', candidate: event.candidate, target: data.username }));
-              }
-            };
-            peerConnections.current.set(data.username, newPC);
-            setTimeout(async () => {
-              try {
-                const offer = await newPC.createOffer();
-                await newPC.setLocalDescription(offer);
-                wsRef.current!.send(JSON.stringify({ type: 'offer', offer: newPC.localDescription, target: data.username }));
-                console.log('📤 Offer sent to:', data.username);
-              } catch(e) { console.log('Offer failed:', e); }
-            }, 1000);
-          }
-                } else if (data.type === 'answer') {
-          const targetPC = peerConnections.current.get(data.target) || pcRef.current;
-          if (targetPC) await targetPC!.setRemoteDescription(new RTCSessionDescription(data.answer));
-        } else if (data.type === 'offer') {
-          if (pcRef.current!.signalingState !== 'stable') {
+        if (data.type === 'offer') {
+          if (pcRef.current! && pcRef.current!.signalingState !== 'stable') {
             console.log('⚠️ Ignoring offer - state:', pcRef.current!.signalingState);
             return;
           }
           await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.offer));
           const answer = await pcRef.current!.createAnswer();
           await pcRef.current!.setLocalDescription(answer);
-          wsRef.current!.send(JSON.stringify({ type: 'answer', answer: pcRef.current!.localDescription, target: data.username }));
-                } else if (data.type === 'candidate') {
+          wsRef.current!.send(JSON.stringify({ type: 'answer', answer: pcRef.current!.localDescription }));
+        } 
+        else if (data.type === 'answer') {
+          if (pcRef.current! && pcRef.current!.signalingState !== 'have-local-offer') {
+            return;
+          }
+          await pcRef.current!.setRemoteDescription(new RTCSessionDescription(data.answer));
+        } 
+        else if (data.type === 'candidate') {
           try {
-            if (data.target) {
-              const targetPC = peerConnections.current.get(data.target);
-              if (targetPC) await targetPC.addIceCandidate(new RTCIceCandidate(data.candidate));
-            } else {
-              await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
-            }
+            await pcRef.current!.addIceCandidate(new RTCIceCandidate(data.candidate));
           } catch(e) {}
-        } else if (data.type === 'reaction') {
+        } 
+        else if (data.type === 'join_room' && data.username !== user?.username) {
+          console.log('📩 join_room from:', data.username);
+          const newPC = new RTCPeerConnection({
+            iceTransportPolicy: 'relay',
+            iceCandidatePoolSize: 2,
+            iceServers: iceServers
+          });
+          
+          const localStream = localStreamRef.current;
+          if (localStream) {
+            localStream.getTracks().forEach(track => newPC.addTrack(track, localStream));
+          }
+          
+          newPC.ontrack = (event) => {
+            console.log('🎵 ONTRACK from:', data.username);
+            const remoteStream = event.streams[0];
+            const audio = document.createElement('audio');
+            audio.srcObject = remoteStream;
+            audio.autoplay = true;
+            audio.setAttribute('playsinline', '');
+            document.body.appendChild(audio);
+            audio.play().catch(() => {});
+          };
+          
+          newPC.onicecandidate = (event) => {
+            if (event.candidate) {
+              wsRef.current!.send(JSON.stringify({ type: 'candidate', candidate: event.candidate, target: data.username }));
+            }
+          };
+          
+          peerConnections.current.set(data.username, newPC);
+          
+          setTimeout(async () => {
+            try {
+              const offer = await newPC.createOffer();
+              await newPC.setLocalDescription(offer);
+              wsRef.current!.send(JSON.stringify({ type: 'offer', offer: newPC.localDescription, target: data.username }));
+              console.log('📤 Offer sent to:', data.username);
+            } catch(e) { console.log('Offer failed:', e); }
+          }, 1000);
+        } 
+        else if (data.type === 'reaction') {
           setFloatingReactions(prev => [...prev, { id: Date.now(), emoji: data.emoji, x: Math.random() * 80 + 10 }]);
           setTimeout(() => setFloatingReactions(prev => prev.filter(r => r.id !== Date.now())), 3000);
-        } else if (data.type === 'hand_raise') {
+        } 
+        else if (data.type === 'hand_raise') {
           toast(`${data.username} ${data.raised ? 'raised' : 'lowered'} their hand ✋`);
-        } else if (data.type === 'chat') {
-          setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username}]);
-        } else if (data.type === 'speak_request') {
+        } 
+        else if (data.type === 'chat') {
+          setChatMessages(prev => [...prev, { username: data.username, message: data.message, isMe: data.username === user?.username }]);
+        } 
+        else if (data.type === 'speak_request') {
           setSpeakRequests(prev => [...prev, data.username]);
           toast(`${data.username} wants to speak!`, { icon: '🎤' });
-        } else if (data.type === 'user_joined') {
+        } 
+        else if (data.type === 'user_joined') {
           setListenerCount(prev => prev + 1);
           toast(`${data.username} joined`, { icon: '👋' });
-        } else if (data.type === 'user_left') {
+        } 
+        else if (data.type === 'user_left') {
           setListenerCount(prev => Math.max(0, prev - 1));
         }
       };
-
       
       pcRef.current!.onicecandidate = (event) => {
         if (event.candidate) {
@@ -367,7 +330,7 @@ export default function LiveAudio() {
     localStreamRef.current?.getTracks().forEach(t => t.stop());
     localStreamRef.current = null;
         pcRef.current?.close();
-    pcRef.current = null;
+   pcRef.current = null;
     wsRef.current?.close();
     wsRef.current = null;
         peerConnections.current.forEach(pc => pc.close());
@@ -398,7 +361,7 @@ export default function LiveAudio() {
         const res = await api.post(`/liveaudio/rooms/${inRoom}/raise_hand/`);
         setHandRaised(res.data.status === 'hand_raised');
         if (wsRef.current?.readyState === WebSocket.OPEN) {
-            wsRef.current.send(JSON.stringify({ type: 'hand_raise', username: user?.username, raised: res.data.status === 'hand_raised' }));
+            wsRef.current!.send(JSON.stringify({ type: 'hand_raise', username: user?.username, raised: res.data.status === 'hand_raised' }));
         }
     } catch {}
 };
@@ -417,7 +380,7 @@ export default function LiveAudio() {
     try { await api.post(`/liveaudio/rooms/${inRoom}/react/`, { reaction: emoji }); } catch {}
     // Also send via WebSocket for real-time
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: 'reaction', emoji, username: user?.username }));
+        wsRef.current!.send(JSON.stringify({ type: 'reaction', emoji, username: user?.username }));
     }
     const id = Date.now();
     setFloatingReactions(prev => [...prev, { id, emoji, x: Math.random() * 80 + 10 }]);
@@ -428,7 +391,7 @@ const sendChat = () => {
     if (!chatInput.trim()) return;
     const msg = chatInput;
     if (wsRef.current?.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: 'chat', message: msg, username: user?.username, timestamp: Date.now() }));
+        wsRef.current!.send(JSON.stringify({ type: 'chat', message: msg, username: user?.username, timestamp: Date.now() }));
     } else if (inRoom) {
         api.post(`/liveaudio/rooms/${inRoom}/react/`, { reaction: `💬 ${msg}` }).catch(() => {});
     }
@@ -438,7 +401,7 @@ const sendChat = () => {
 
 const requestSpeak = () => {
     if (!wsRef.current) return;
-    wsRef.current.send(JSON.stringify({ type: 'request_speak', username: user?.username }));
+    wsRef.current!.send(JSON.stringify({ type: 'request_speak', username: user?.username }));
     toast.success('Requested to speak!');
 };
 
