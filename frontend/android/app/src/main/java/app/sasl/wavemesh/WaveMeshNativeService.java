@@ -192,6 +192,16 @@ public class WaveMeshNativeService {
                 .setPhy(ScanSettings.PHY_LE_ALL_SUPPORTED).build();
         }
         
+               // Enable BLE 5 Long Range (Coded PHY)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            try {
+                bluetoothAdapter.getClass().getMethod("setPreferredPhy", Integer.TYPE, Integer.TYPE, Integer.TYPE)
+                    .invoke(bluetoothAdapter, 2, 2, 0);
+            } catch (Exception e) {
+                android.util.Log.d("WaveMesh", "BLE 5 PHY not supported: " + e.getMessage());
+            }
+        }
+        
         bleScanner.startScan(null, settings, new ScanCallback() {
             @Override
             public void onScanResult(int callbackType, ScanResult result) {

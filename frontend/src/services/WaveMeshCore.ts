@@ -329,8 +329,14 @@ class WaveMeshCore {
           this.commandQueue = [];
         }
       } catch (e) {
-        this.log(`⚠️ BLE send failed, removing device`);
+               this.log(`⚠️ BLE send failed, attempting reconnect`);
         this.connectedDevices.delete(deviceId);
+        await this.startScanning();
+        setTimeout(async () => {
+          await this.stopScanning();
+          await this.connectToPeer(deviceId);
+          this.log(`🔄 Reconnected to ${deviceId}`);
+        }, 5000);
       }
     }
   }
