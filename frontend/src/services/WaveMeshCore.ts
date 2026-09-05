@@ -456,12 +456,22 @@ class WaveMeshCore {
     return JSON.stringify({ type: 'sasl_connect', version: 3, nodeId: this.identity.id, username: this.identity.username, timestamp: Date.now() });
   }
 
-   processConnectionCode(code: string): { username: string; peerId: string } | null {
+ async processConnectionCode(code: string): Promise<{ username: string; peerId: string } | null> {
     try {
       const data = JSON.parse(code); if (data.type !== 'sasl_connect') return null;
       if (Date.now() - data.timestamp > 300000) { this.log('⚠️ Code expired'); return null; }
       this.peers.set(data.nodeId, { id: data.nodeId, username: data.username, distance: 0, connectionType: 'ble4', lastSeen: Date.now(), signalStrength: 100, connected: true, nodeId: data.nodeId });
-      this.connectedDevices.add(data.nodeId);
+            // Don't add nodeId — start a scan to find the actual BLE MAC
+      this.log('🔍 QR handshake complete — scanning for BLE MAC');
+      await this.startScanning();
+      setTimeout(async () => {
+        await this.stopScanning();
+        const foundPeer = this.peers.get(data.nodeId);
+        if (foundPeer) {
+          this.connectedDevices.add(foundPeer.id);
+          this.log(`✅ BLE MAC found: ${foundPeer.id}`);
+        }
+      }, 4000);
       this.onPeerConnected?.({ peerId: data.nodeId, username: data.username });
       this.onRoomCreated?.({ peerId: data.nodeId, username: data.username });
       this.saveRooms();

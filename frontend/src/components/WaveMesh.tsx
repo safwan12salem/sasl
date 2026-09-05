@@ -248,10 +248,10 @@ export default function WaveMesh() {
 
 
 
-    const pasteCode = () => {
+    const pasteCode = async () => {
     if (!pasteInput.trim()) return toast.error('Enter invitation code');
-    const result = waveMeshCore.processConnectionCode(pasteInput.trim());
-    if (result) {
+    const result = await waveMeshCore.processConnectionCode(pasteInput.trim());
+if (result) {
       setPasteInput('');
       setShowQR(false);
       setQrConnected(false);
@@ -260,9 +260,9 @@ export default function WaveMesh() {
   };
 
 
-  const completeHandshake = () => {
+  const completeHandshake = async () => {
     if (!pasteInput.trim()) return toast.error('Enter invitation code');
-    const result = waveMeshCore.processConnectionCode(pasteInput.trim());
+    const result = await waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) { 
       setPasteInput(''); 
       setShowQR(false); 

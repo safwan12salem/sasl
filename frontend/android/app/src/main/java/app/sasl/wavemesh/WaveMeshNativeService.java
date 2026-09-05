@@ -207,7 +207,7 @@ public class WaveMeshNativeService {
             public void onScanResult(int callbackType, ScanResult result) {
                 BluetoothDevice device = result.getDevice();
                 String name = device.getName() != null ? device.getName() : "";
-                if (name.isEmpty()) return;
+                if (name.isEmpty()) name = "Sasl Peer";
                 int rssi = result.getRssi();
                 int distance = calculateDistance(rssi);
                 if (callback != null) callback.onPeerDiscovered(device.getAddress(), name, "ble", distance);

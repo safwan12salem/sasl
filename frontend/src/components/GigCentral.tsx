@@ -312,8 +312,7 @@ export default function GigCentral() {
   }
 
   return (
-    <div className="p-4 md:p-6 max-w-6xl mx-auto">
-           
+    <div className="p-4 md:p-6 max-w-6xl mx-auto w-full overflow-x-hidden">
       {/* HEADER */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
         <div>
@@ -340,7 +339,7 @@ export default function GigCentral() {
       </div>
 
       {/* STATS CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {[
           { icon: <Briefcase size={20} />, label: t('Total Gigs'), value: stats.totalGigs, gradient: 'from-blue-500 to-cyan-500' },
           { icon: <CheckCircle size={20} />, label: t('Completed'), value: stats.completedGigs, gradient: 'from-emerald-500 to-green-500' },
