@@ -128,7 +128,8 @@ export default function WaveMesh() {
     });
 
     waveMeshCore.setOnPeerConnected((data: any) => {
-      const name = (data.username && !/^\d+$/.test(data.username)) ? data.username : 'Peer';
+      const foundPeer = peers.find(p => p.id === data.peerId);
+      const name = (data.username && !/^\d+$/.test(data.username)) ? data.username : (foundPeer?.username || 'Peer');
       const room: ChatRoom = {
         id: data.peerId, name, avatar: null,
         lastMessage: `Connected via ${data.connectionType || 'BLE'}`,
@@ -187,10 +188,12 @@ export default function WaveMesh() {
         }
         if (cmd.type === 'file_chunk') { return; }
       } catch {}
-      setMessages(prev => {
+           setMessages(prev => {
         if (prev.find(m => m.id === msg.id)) return prev;
+        if (prev.find(m => m.from === msg.from && m.text === (msg.text || msg.content) && Math.abs((m.timestamp || 0) - (msg.timestamp || 0)) < 30000)) return prev;
         return [...prev, {
-          id: msg.id, from: msg.from, text: msg.text || msg.content || '',
+          id: msg.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2,6)}`, 
+          from: msg.from, text: msg.text || msg.content || '',
           timestamp: msg.timestamp || Date.now(), isMe: msg.from === myUsername,
           status: msg.relayed ? 'relayed' : 'delivered', relayPath: msg.relayPath,
         }];
