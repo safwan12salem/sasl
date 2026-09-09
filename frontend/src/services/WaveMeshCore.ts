@@ -299,8 +299,12 @@ class WaveMeshCore {
       // Generate ONE message ID for all transports
     const msgId = `msg_${Date.now()}_${Math.random().toString(36).substr(2,6)}`;
     
+       // Echo to sender so their own message appears immediately
+    this.onMessageReceived?.({ id: msgId, from: this.identity.username, text, type: 'text', timestamp: Date.now() });
+    
     // Store in Echo Relay with the SAME msgId
     echoRelay.storeMessage('broadcast', encrypted, this.identity?.username || 'me').catch(() => {});
+
     
     // Send via DirectP2P with the SAME msgId
     directP2P.sendMessage(text);
