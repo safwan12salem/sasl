@@ -20,7 +20,6 @@ import { db } from '../services/offlineDB';
 import { useMesh } from '../contexts/MeshContext';
 import { uploadFile } from '../services/uploadService';
 import { cacheFeatureData, loadCachedFeature, getPendingActions, clearOfflineAction, queueOfflineAction } from '../services/offlineDB';
-import CountryFilter from './CountryFilter';
 
 interface Group {
   id: string;
@@ -76,9 +75,7 @@ export default function GroupChat() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [countryFilter, setCountryFilter] = useState('default');  
-
-
+  
 const handleEditMessage = async (messageId: string, oldText: string) => {
   const newText = prompt('Edit message:', oldText);
   if (!newText || newText === oldText) return;
@@ -326,7 +323,7 @@ useEffect(() => {
                     <h2 className="font-bold">
   <span className="text-green-500">Group</span> <span className="text-orange-500">Chat</span>
 </h2>
-                    <CountryFilter value={countryFilter} onChange={setCountryFilter} />
+              
           <div className="flex items-center gap-1">
             <button onClick={() => setShowCreate(prev => !prev)} className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-green-600" title={t('new_group')}>
               <Plus size={18} />

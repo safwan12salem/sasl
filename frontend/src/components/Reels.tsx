@@ -234,20 +234,19 @@ export default function Reels() {
   };
 
   if (loading) return (
-    <div className="flex justify-center items-center h-screen bg-black">
+    <div className="flex justify-center items-center h-[calc(100vh-80px)] bg-black">
       <Loader2 className="animate-spin text-white" size={48} />
     </div>
   );
 
   if (error) return (
-    <div className="flex justify-center items-center h-screen bg-black text-white">
+    <div className="flex justify-center items-center h-[calc(100vh-80px)] bg-black text-white">
       <div className="text-center"><p className="mb-4">{error}</p><button onClick={fetchReels} className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 rounded-full font-semibold">Retry</button></div>
     </div>
   );
 
   return (
-    <div ref={containerRef} className="h-screen overflow-y-scroll snap-y snap-mandatory bg-black relative scroll-smooth">
-     
+    <div ref={containerRef} className="h-[calc(100vh-80px)] overflow-y-scroll snap-y snap-mandatory bg-black relative scroll-smooth">
     {/* TOP BAR */}
       <div className="fixed top-0 left-0 right-0 z-40 px-4 pt-12 pb-2 bg-gradient-to-b from-black/60 to-transparent">
         <div className="flex items-center justify-between">
