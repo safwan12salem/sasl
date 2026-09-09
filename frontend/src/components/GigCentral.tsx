@@ -463,7 +463,7 @@ export default function GigCentral() {
                 </div>
               ))}
             </div>
-            <button onClick={createGig} className="w-full py-3.5 bg-gradient-to-r from-green-500 to-orange-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-orange-500/25 hover:shadow-xl transition">
+           <button onClick={createGig} className="w-full max-w-full py-3.5 bg-gradient-to-r from-green-500 to-orange-500 text-white rounded-xl font-bold text-lg shadow-lg shadow-orange-500/25 hover:shadow-xl transition break-words">
               🚀 {t('Post Gig')}
             </button>
           </motion.div>
@@ -568,7 +568,7 @@ export default function GigCentral() {
             const catGradient = CATEGORY_GRADIENTS[gig.category || 'other'] || CATEGORY_GRADIENTS.other;
             return (
               <motion.div key={gig.id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}
-                className={`bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700 transition-all ${
+                className={`bg-white dark:bg-gray-800 rounded-2xl overflow-hidden max-w-full break-words shadow-sm border border-gray-100 dark:border-gray-700 transition-all ${
                   expandedGig === gig.id ? 'ring-2 ring-green-300 dark:ring-green-700 shadow-lg' : 'hover:shadow-md'
                 }`}>
                 
@@ -596,7 +596,7 @@ export default function GigCentral() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <h3 className="font-bold text-lg leading-snug">{gig.title}</h3>
+                          <h3 className="font-bold text-lg leading-snug break-words max-w-full">{gig.title}</h3>
                           <p className="text-sm text-gray-500 flex items-center gap-2 flex-wrap mt-0.5">
                             <span>@{gig.creator_name}</span>
                                                                      {/* Show ALL pending proposals */}
@@ -659,8 +659,7 @@ export default function GigCentral() {
                         </div>
                       </div>
 
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{gig.description}</p>
-
+                     <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2 break-words max-w-full">{gig.description}</p>
                       {/* Meta Row */}
                       <div className="flex items-center gap-4 mt-3 flex-wrap">
                         <span className="text-green-600 font-bold flex items-center gap-1 text-lg"><DollarSign size={16} />${gig.budget}</span>
@@ -801,7 +800,7 @@ export default function GigCentral() {
                             </div>
                             <textarea className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-600 text-sm outline-none" placeholder="Write your review..." value={reviewComment} onChange={e => setReviewComment(e.target.value)} rows={2} />
                             <div className="flex gap-2">
-                              <button onClick={() => submitReview(gig.id)} className="px-5 py-2 bg-green-500 text-white rounded-xl text-sm font-semibold"> {t('Submit')}</button>
+                  <button onClick={() => submitReview(gig.id)} className="px-5 py-2 bg-green-500 text-white rounded-xl text-sm font-semibold whitespace-nowrap max-w-full"> {t('Submit')}</button>
                               <button onClick={() => setShowReview(null)} className="px-5 py-2 bg-gray-200 dark:bg-gray-600 rounded-xl text-sm"> {t('Cancel')}</button>
                             </div>
                           </motion.div>

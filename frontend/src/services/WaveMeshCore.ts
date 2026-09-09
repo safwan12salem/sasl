@@ -296,16 +296,16 @@ class WaveMeshCore {
     
     // Encrypt message
         const encrypted = text;
+      // Generate ONE message ID for all transports
+    const msgId = `msg_${Date.now()}_${Math.random().toString(36).substr(2,6)}`;
     
-    // Echo to sender
-   
-       // Store in Echo Relay for mesh forwarding
-   
+    // Store in Echo Relay with the SAME msgId
     echoRelay.storeMessage('broadcast', encrypted, this.identity?.username || 'me').catch(() => {});
-    // Send via DirectP2P
+    
+    // Send via DirectP2P with the SAME msgId
     directP2P.sendMessage(text);
     
-    // Send to ALL connected devices via BLE GATT
+    // Send to ALL connected devices via BLE GATT with the SAME msgId
     for (const deviceId of this.connectedDevices) {
       try {
         const { BleClient } = await import('@capacitor-community/bluetooth-le');
@@ -463,13 +463,27 @@ class WaveMeshCore {
       this.peers.set(data.nodeId, { id: data.nodeId, username: data.username, distance: 0, connectionType: 'ble4', lastSeen: Date.now(), signalStrength: 100, connected: true, nodeId: data.nodeId });
             // Don't add nodeId — start a scan to find the actual BLE MAC
       this.log('🔍 QR handshake complete — scanning for BLE MAC');
-      await this.startScanning();
+           await this.startScanning();
       setTimeout(async () => {
         await this.stopScanning();
-        const foundPeer = this.peers.get(data.nodeId);
-        if (foundPeer) {
-          this.connectedDevices.add(foundPeer.id);
-          this.log(`✅ BLE MAC found: ${foundPeer.id}`);
+        // Find the peer by nodeId match or username match
+        const foundPeer = Array.from(this.peers.values()).find(
+          p => p.id === data.nodeId || p.nodeId === data.nodeId || p.username === data.username
+        );
+        if (foundPeer && foundPeer.id !== data.nodeId) {
+          // Only if we found a REAL BLE MAC (contains colons)
+          if (foundPeer.id.includes(':')) {
+            this.connectedDevices.add(foundPeer.id);
+            this.log(`✅ BLE MAC found: ${foundPeer.id}`);
+            try {
+              await this.connectToPeer(foundPeer.id);
+              this.log(`🔗 Direct BLE connected for QR room`);
+            } catch(e) {
+              this.log(`⚠️ Direct BLE failed, Echo Relay will handle`);
+            }
+          }
+        } else {
+          this.log('📡 No BLE MAC found — Echo Relay will handle via mesh');
         }
       }, 4000);
       this.onPeerConnected?.({ peerId: data.nodeId, username: data.username });

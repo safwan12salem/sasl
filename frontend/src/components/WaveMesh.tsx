@@ -189,7 +189,7 @@ export default function WaveMesh() {
         if (cmd.type === 'file_chunk') { return; }
       } catch {}
            setMessages(prev => {
-        if (prev.find(m => m.id === msg.id)) return prev;
+      if (prev.find(m => m.id === msg.id || m.id === msg.msgId)) return prev;
         if (prev.find(m => m.from === msg.from && m.text === (msg.text || msg.content) && Math.abs((m.timestamp || 0) - (msg.timestamp || 0)) < 30000)) return prev;
         return [...prev, {
           id: msg.id || `msg_${Date.now()}_${Math.random().toString(36).substr(2,6)}`, 
