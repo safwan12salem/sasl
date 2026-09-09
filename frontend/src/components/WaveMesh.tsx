@@ -282,6 +282,8 @@ if (result) {
       waveMeshCore.sendControlCommand(JSON.stringify({ type: 'edit', msgId: editingMsgId, text: input }));
       setEditingMsgId(null); setEditText(""); toast.success("Message updated");
     } else {
+      const msgId = `msg_${Date.now()}_${Math.random().toString(36).substr(2,6)}`;
+      setMessages(prev => [...prev, { id: msgId, from: myUsername, text: input, timestamp: Date.now(), isMe: true, status: 'delivered' }]);
       waveMeshCore.sendMessage(input);
     }
     setInput('');
