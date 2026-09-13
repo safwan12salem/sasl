@@ -148,10 +148,22 @@ export default function WaveMesh() {
       toast.success(`🔗 Connected with ${name}!`);
     });
 
-    waveMeshCore.setOnRequestReceived((data: any) => {
-      setIncomingRequest({ from: data.username || "User", peerId: data.peerId || data.deviceId, message: "Wants to connect via WaveMesh" });
+        waveMeshCore.setOnRequestReceived(async (data: any) => {
+      // Auto-accept: connect back to the sender and open room
+      toast.success(`🔗 @${data.username} wants to connect — accepting...`);
+      const peerId = data.peerId || data.deviceId;
+      const peer = peers.find(p => p.username === data.username && p.id.includes(':'));
+      if (peer) {
+        await waveMeshCore.connectToPeer(peer.id);
+        waveMeshCore.sendMessage('__SASL_CONNECT_BACK__');
+      } else {
+        await waveMeshCore.connectToPeer(peerId);
+        waveMeshCore.sendMessage('__SASL_CONNECT_BACK__');
+      }
     });
 
+
+    
     waveMeshCore.setOnRoomCreated((data: any) => {
       const room: ChatRoom = {
         id: data.peerId, name: data.username || 'Peer', avatar: null,
@@ -472,7 +484,7 @@ if (result) {
                           <div className="flex-1 min-w-0"><p className="font-semibold text-sm">{peer.username}</p><p className="text-xs flex items-center gap-1"><LayerIcon size={10} className={peer.connectionType === 'ble5' ? 'text-purple-500' : peer.connectionType === 'wifidirect' ? 'text-orange-500' : peer.connectionType === 'relay' ? 'text-blue-500' : 'text-green-500'} /><span className="text-gray-500">{peer.connectionType.toUpperCase()} · ~{peer.distance}m · {peer.signalStrength}%</span></p></div>
                           <div className="flex items-center gap-1">
                             {peer.connected ? <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full">{t('Connected')}</span> : (
-                              <button onClick={async () => { toast.success("🔗 Connecting..."); await waveMeshCore.connectToPeer(peer.id); }} className="p-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"><Send size={14} /></button>
+                              <button onClick={async () => { toast.success("⏳ Waiting for other side to accept..."); await waveMeshCore.sendConnectionRequest(peer.id); }} className="p-2.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition" title="Tap to request connection"><Send size={14} /></button>
                             )}
                           </div>
                         </motion.div>
