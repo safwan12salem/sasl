@@ -111,8 +111,7 @@ export default function WaveMesh() {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  
   // ============================================================
   // INITIALIZATION
   // ============================================================
