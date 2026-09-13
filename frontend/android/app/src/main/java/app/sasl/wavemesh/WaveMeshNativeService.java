@@ -187,10 +187,9 @@ public class WaveMeshNativeService {
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
                 .setConnectable(true).build();
             
-                       AdvertiseData data = new AdvertiseData.Builder()
+                                  AdvertiseData data = new AdvertiseData.Builder()
                 .setIncludeDeviceName(true)
                 .addServiceUuid(new ParcelUuid(UUID.fromString(SASL_SERVICE_UUID)))
-                .addServiceData(new ParcelUuid(UUID.fromString(SASL_SERVICE_UUID)), advName.getBytes(StandardCharsets.UTF_8))
                 .build();
 
 
@@ -250,19 +249,9 @@ public class WaveMeshNativeService {
         
         bleScanner.startScan(null, settings, new ScanCallback() {
             @Override
-                     public void onScanResult(int callbackType, ScanResult result) {
+                              public void onScanResult(int callbackType, ScanResult result) {
                 BluetoothDevice device = result.getDevice();
                 String name = device.getName() != null ? device.getName() : "";
-                
-                // Try to read username from service data
-                if (result.getScanRecord() != null) {
-                    byte[] serviceData = result.getScanRecord().getServiceData(new ParcelUuid(UUID.fromString(SASL_SERVICE_UUID)));
-                    if (serviceData != null && serviceData.length > 0) {
-                        String fromServiceData = new String(serviceData, StandardCharsets.UTF_8);
-                        if (!fromServiceData.isEmpty()) name = fromServiceData;
-                    }
-                }
-                
                 if (name.isEmpty()) name = "Sasl Peer";
                 int rssi = result.getRssi();
                 int distance = calculateDistance(rssi);
