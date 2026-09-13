@@ -120,17 +120,27 @@ export default function WaveMesh() {
     waveMeshCore.start(myUsername, myAvatar);
     waveMeshCore.onDebug(() => setDebugLog(waveMeshCore.getDebugLog()));
 
-    waveMeshCore.setOnPeerDiscovered((p: any) => {
+       waveMeshCore.setOnPeerDiscovered((p: any) => {
       setPeers(prev => {
         const exists = prev.find(x => x.id === p.id);
         if (exists) return prev.map(x => x.id === p.id ? p : x);
         return [...prev, p];
       });
+      // If we have a room with this peer but name is generic, update it
+      if (p.username && p.username !== 'Sasl Peer' && !/^\d+$/.test(p.username) && !p.username.includes(':')) {
+        setRooms(prev => prev.map(r => 
+          (r.id === p.id && (r.name === 'Peer' || r.name === 'Sasl Peer' || !r.name)) 
+            ? { ...r, name: p.username } 
+            : r
+        ));
+      }
     });
 
-    waveMeshCore.setOnPeerConnected((data: any) => {
-      const foundPeer = peers.find(p => p.id === data.peerId);
-      const name = (data.username && !/^\d+$/.test(data.username)) ? data.username : (foundPeer?.username || 'Peer');
+       waveMeshCore.setOnPeerConnected((data: any) => {
+      const foundPeer = peers.find(p => p.id === data.peerId) || peers.find(p => p.username === data.username);
+      const rawName = foundPeer?.username || data.username || '';
+      const isValidName = rawName && !/^\d+$/.test(rawName) && rawName.length > 1 && !rawName.includes(':') && rawName !== 'Sasl Peer';
+      const name = isValidName ? rawName : 'Peer';
       const room: ChatRoom = {
         id: data.peerId, name, avatar: null,
         lastMessage: `Connected via ${data.connectionType || 'BLE'}`,
@@ -162,11 +172,11 @@ export default function WaveMesh() {
       toast.success(`🔗 Connected with ${name}!`);
     });
 
-        waveMeshCore.setOnRequestReceived(async (data: any) => {
-      // Auto-accept: connect back to the sender and open room
+             waveMeshCore.setOnRequestReceived(async (data: any) => {
       toast.success(`🔗 @${data.username} wants to connect — accepting...`);
       const peerId = data.peerId || data.deviceId;
-      const peer = peers.find(p => p.username === data.username && p.id.includes(':'));
+      const peer = peers.find(p => p.username === data.username && p.id.includes(':')) 
+                || peers.find(p => p.id === data.deviceId);
       if (peer) {
         await waveMeshCore.connectToPeer(peer.id);
         waveMeshCore.sendMessage('__SASL_CONNECT_BACK__');
@@ -230,18 +240,17 @@ export default function WaveMesh() {
                 if (chunk) { fullData.set(chunk, offset); offset += chunk.length; }
               }
               
-              // Convert to data URL
-              const blob = new Blob([fullData], { type: 'image/jpeg' });
-              const reader = new FileReader();
-              reader.onload = () => {
-                const dataUrl = reader.result as string;
-                setMessages(prev => {
-                  // Replace the "Receiving..." placeholder with the actual image
-                  const filtered = prev.filter(m => !m.text.startsWith('📎 Receiving:'));
+                            // SYNC base64 — no async FileReader
+              let binary_str = '';
+              const CHUNK_STR = 8192;
+              for (let i = 0; i < fullData.length; i += CHUNK_STR) {
+                binary_str += String.fromCharCode.apply(null, Array.from(fullData.subarray(i, i + CHUNK_STR)));
+              }
+              const dataUrl = `data:image/jpeg;base64,${btoa(binary_str)}`;
+              setMessages(prev => {
+                  const filtered = prev.filter(m => !m.text?.startsWith('📎 Receiving:'));
                   return [...filtered, { id: `img_${Date.now()}`, from: msg.from, text: dataUrl, timestamp: Date.now(), isMe: false, status: 'delivered' }];
-                });
-              };
-              reader.readAsDataURL(blob);
+                            });
               fileBufferRef.current = null;
             }
           }
@@ -643,9 +652,23 @@ if (result) {
                           if (msg.text?.startsWith('📎 http')) {
                             return <img src={msg.text.replace('📎 ', '')} alt="shared" className="max-w-full rounded-lg" />;
                           }
-                          if (msg.text?.startsWith('data:image')) {
-                            return <img src={msg.text} alt="received" className="max-w-[200px] rounded-lg" />;
-                          }
+                         if (msg.text?.startsWith('data:image')) {
+  return (
+    <img 
+      src={msg.text} 
+      alt="received" 
+      className="max-w-[200px] rounded-lg cursor-pointer hover:opacity-90" 
+      onClick={() => {
+        const a = document.createElement('a');
+        a.href = msg.text;
+        a.download = `sasl-photo-${Date.now()}.jpg`;
+        a.click();
+        toast.success('📥 Photo downloading...');
+      }}
+      title="Tap to download"
+    />
+  );
+}
                           return msg.text;
                         })()}
                       </span>

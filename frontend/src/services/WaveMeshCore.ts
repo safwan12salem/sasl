@@ -148,21 +148,16 @@ class WaveMeshCore {
       const { value } = await Preferences.get({ key: 'sasl_wavemesh_rooms' });
       if (value) {
         const rooms = JSON.parse(value);
-        const recentRooms = rooms.filter((r: any) => r.lastSeen && (Date.now() - r.lastSeen < 86400000));
-        if (recentRooms.length === 0) {
-          await Preferences.remove({ key: 'sasl_wavemesh_rooms' });
-          return;
-        }
-        for (const room of recentRooms) {
+        // Keep ALL saved rooms — no time filter, no deletion
+        for (const room of rooms) {
           this.peers.set(room.id, room);
           this.connectedDevices.add(room.id);
           this.onRoomCreated?.({ peerId: room.id, username: room.username });
         }
-        this.log(`📂 Restored ${recentRooms.length} rooms`);
+        this.log(`📂 Restored ${rooms.length} rooms`);
       }
     } catch {}
   }
-
 
 
 
