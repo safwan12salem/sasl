@@ -4,7 +4,7 @@
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  ImageIcon, QrCode, Radio, WifiOff, Shield, Send, LogOut, Copy, Menu, X, Edit3, Trash2,
+    QrCode, Radio, WifiOff, Shield, Send, LogOut, Copy, Menu, X,
   ArrowLeft, MessageCircle, Link, Smile, Bluetooth, Terminal,
   Wifi, Zap, TrendingUp, Users, Activity, BarChart3, Globe,
   Smartphone, RadioTower, Satellite, Heart, Share2, MoreVertical,
@@ -386,49 +386,8 @@ if (result) {
     setInput('');
   };
 
-
-  const deleteMessage = (msgId: string) => {
-    setMessages(prev => prev.filter(m => m.id !== msgId));
-    waveMeshCore.sendControlCommand(JSON.stringify({ type: 'delete', msgId }));
-    toast.success("Message deleted");
-  };
-
-  const startEditMessage = (msgId: string, currentText: string) => { 
-    setEditingMsgId(msgId); setEditText(currentText); setInput(currentText); inputRef.current?.focus(); 
-  };
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]; if (!file) return;
-    toast.success(`📎 Processing ${file.name}...`);
-    
-    // Try online Cloudinary first
-    try {
-      const formData = new FormData(); formData.append("file", file); formData.append("upload_preset", "sasl_upload");
-      const res = await fetch("https://api.cloudinary.com/v1_1/dwem1chqc/upload", { method: "POST", body: formData });
-      const data = await res.json();
-      if (data.secure_url) { waveMeshCore.sendMessage(`📎 ${data.secure_url}`); toast.success("File uploaded to cloud!"); return; }
-    } catch {}
-    
-    // Offline: compress image then BLE chunk transfer
-    try {
-      if (file.type.startsWith('image/')) {
-        const canvas = document.createElement('canvas');
-        const img = new Image();
-        img.src = URL.createObjectURL(file);
-        await new Promise<void>(r => { img.onload = () => r(); });
-        const ratio = Math.min(1, 300 / img.width);
-        canvas.width = img.width * ratio; canvas.height = img.height * ratio;
-        canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const blob = await new Promise<Blob>(r => canvas.toBlob(b => r(b!), 'image/jpeg', 0.5));
-        const buf = await blob.arrayBuffer();
-        await waveMeshCore.sendFile(new Uint8Array(buf), file.name);
-      } else {
-        const buf = await file.arrayBuffer();
-        await waveMeshCore.sendFile(new Uint8Array(buf), file.name);
-      }
-      toast.success(`📎 ${file.name} sent via BLE!`);
-    } catch { toast.error("File transfer failed"); }
-  };
+ 
+   
 
   const toggleAudioMesh = async () => {
     if (audioMeshActive) {
@@ -694,12 +653,7 @@ if (result) {
                         })()}
                       </span>
                       <div className="flex items-center gap-1 mt-1 justify-end">
-                        {msg.isMe && (
-                          <>
-                            <button onClick={() => startEditMessage(msg.id, msg.text)} className="text-[9px] text-white/70 hover:text-white mr-2" title="Edit"><Edit3 size={10} /></button>
-                            <button onClick={() => deleteMessage(msg.id)} className="text-[9px] text-white/70 hover:text-white" title="Delete"><Trash2 size={10} /></button>
-                          </>
-                        )}
+                       
                         {msg.status === 'relayed' && <Globe size={8} className="text-blue-400" />}
                         <span className="text-[9px] sm:text-[10px] opacity-60">{formatTime(msg.timestamp)}</span>
                       </div>
@@ -715,15 +669,17 @@ if (result) {
             <div className="p-2 sm:p-4 border-t border-gray-200/50 dark:border-gray-800/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex-shrink-0">
               <div className="flex items-end gap-1.5 sm:gap-2">
                 <button onClick={() => setShowEmoji(!showEmoji)} className="p-2 sm:p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 flex-shrink-0"><Smile size={18} /></button>
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleFileUpload} />
-                <button onClick={() => fileInputRef.current?.click()} className="p-2 sm:p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 flex-shrink-0"><ImageIcon size={18} /></button>
+              
                 <input ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }} placeholder="Message via WaveMesh..." className="flex-1 min-w-0 px-3 sm:px-5 py-2 sm:py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-green-400/50 transition-all" />
                 <button onClick={async () => { if (!input.trim()) return; await waveMeshCore.sendViaAudioMesh(input); toast.success('🔊 Sent via AudioMesh + BLE'); setInput(''); }} disabled={!input.trim()} className="p-2 sm:p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl disabled:opacity-40 shadow-lg flex-shrink-0" title="Send via AudioMesh (long range)"><Radio size={18} /></button>
                 <button onClick={sendMessage} disabled={!input.trim()} className="p-2 sm:p-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl disabled:opacity-40 shadow-lg flex-shrink-0"><Send size={18} /></button>
               </div>
               {showEmoji && (
                 <div className="absolute bottom-16 sm:bottom-20 left-2 sm:left-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border p-2 sm:p-3 z-50 max-w-[90vw]">
-                  <div className="grid grid-cols-7 sm:grid-cols-8 gap-1 sm:gap-1.5">{EMOJIS.map(emoji => <button key={emoji} onClick={() => { setInput(prev => prev + emoji); setShowEmoji(false); inputRef.current?.focus(); }} className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm sm:text-lg transition transform hover:scale-125">{emoji}</button>)}</div>
+                                  <div className="flex justify-end mb-1">
+                    <button onClick={() => setShowEmoji(false)} className="text-gray-400 hover:text-gray-600 text-xs px-2">✕</button>
+                  </div>
+                  <div className="grid grid-cols-7 sm:grid-cols-8 gap-1 sm:gap-1.5">{EMOJIS.map(emoji => <button key={emoji} onClick={() => { setInput(prev => prev + emoji); inputRef.current?.focus(); }} className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm sm:text-lg transition transform hover:scale-125">{emoji}</button>)}</div>
                 </div>
               )}
             </div>

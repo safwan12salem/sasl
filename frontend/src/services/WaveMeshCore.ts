@@ -161,15 +161,17 @@ class WaveMeshCore {
 
 
 
-      async saveRooms(): Promise<void> {
+          async saveRooms(): Promise<void> {
     try {
+      // Save ALL peers — never filter by `connected`
       const rooms = Array.from(this.peers.values())
-        .filter(p => p.connected)
+        .filter(p => p.username && p.username !== 'Sasl Peer' && !/^\d+$/.test(p.username) && !p.username.includes(':'))
         .map(p => ({ ...p, lastSeen: Date.now() }));
       await Preferences.set({ key: 'sasl_wavemesh_rooms', value: JSON.stringify(rooms) });
     } catch {}
   }
 
+  
   async startScanning(): Promise<void> {
     if (this.scanning) return;
     try { const { BleClient } = await import('@capacitor-community/bluetooth-le'); await BleClient.stopLEScan(); } catch {}
