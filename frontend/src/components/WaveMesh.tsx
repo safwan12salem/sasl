@@ -996,8 +996,7 @@ export default function WaveMesh() {
                   className={`p-1.5 sm:p-2 rounded-xl transition ${audioMeshActive ? "bg-green-100 dark:bg-green-900/30 text-green-500" : "hover:bg-purple-50 dark:hover:bg-purple-900/30 text-purple-500"}`}
                   title={audioMeshActive ? "AudioMesh Active — Tap to Deactivate" : "Activate AudioMesh for extended range"}
                 >
-                  <Radio size={14} className={audioMeshActive ? "animate-pulse" : ""} />
-                </button>
+                                    <Radio size={14} className={audioMeshActive ? "animate-pulse" : ""} />
                 </button>
                 <button
                   onClick={() => leaveRoom(activeRoom.id)}
