@@ -240,13 +240,15 @@ export default function WaveMesh() {
                 if (chunk) { fullData.set(chunk, offset); offset += chunk.length; }
               }
               
-                            // SYNC base64 — no async FileReader
+              // Safe base64 — char-by-char loop, no apply() overflow
               let binary_str = '';
-              const CHUNK_STR = 8192;
-              for (let i = 0; i < fullData.length; i += CHUNK_STR) {
-                binary_str += String.fromCharCode.apply(null, Array.from(fullData.subarray(i, i + CHUNK_STR)));
+              for (let i = 0; i < fullData.length; i++) {
+                binary_str += String.fromCharCode(fullData[i]);
               }
               const dataUrl = `data:image/jpeg;base64,${btoa(binary_str)}`;
+
+
+
               setMessages(prev => {
                   const filtered = prev.filter(m => !m.text?.startsWith('📎 Receiving:'));
                   return [...filtered, { id: `img_${Date.now()}`, from: msg.from, text: dataUrl, timestamp: Date.now(), isMe: false, status: 'delivered' }];
@@ -279,6 +281,25 @@ export default function WaveMesh() {
     }, 1000);
 
     return () => { clearInterval(interval); waveMeshCore.stop(); };
+  }, []);
+
+
+  // Save rooms when app goes to background or closes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        waveMeshCore.saveRooms();
+      }
+    };
+    const handleBeforeUnload = () => {
+      waveMeshCore.saveRooms();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, []);
 
   // Message persistence

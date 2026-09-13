@@ -161,7 +161,7 @@ class WaveMeshCore {
 
 
 
-   private async saveRooms(): Promise<void> {
+      async saveRooms(): Promise<void> {
     try {
       const rooms = Array.from(this.peers.values())
         .filter(p => p.connected)
@@ -396,10 +396,11 @@ class WaveMeshCore {
       } catch (e) {}
     }
     
-    if (!sent) {
+        if (!sent) {
       this.commandQueue.push({ command, timestamp: Date.now() });
       this.log(`📥 Command queued (${this.commandQueue.length} pending)`);
     }
+    this.log(`📤 Control command sent: ${command.substring(0, 50)} — ${sent ? 'SUCCESS' : 'QUEUED'}`);
   }
 
 
@@ -411,20 +412,40 @@ class WaveMeshCore {
 
 
 
-  async sendFile(fileData: Uint8Array, fileName: string): Promise<void> {
+   async sendFile(fileData: Uint8Array, fileName: string): Promise<void> {
     if (!this.identity) return;
     const CHUNK_SIZE = 512;
     const totalChunks = Math.ceil(fileData.length / CHUNK_SIZE);
     this.log(`📎 Sending file: ${fileName} (${fileData.length} bytes, ${totalChunks} chunks)`);
     
+    // Send header directly via BLE (bypass sendMessage to avoid triple transport)
     const header = JSON.stringify({ type: 'file_start', name: fileName, size: fileData.length, chunks: totalChunks });
-    await this.sendMessage(header);
+    for (const deviceId of this.connectedDevices) {
+      try {
+        const { BleClient } = await import('@capacitor-community/bluetooth-le');
+        const encoded = new TextEncoder().encode(header);
+        await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
+      } catch {}
+    }
+    await new Promise(r => setTimeout(r, 200));
     
+    // Send chunks directly via BLE with delay between each
     for (let i = 0; i < totalChunks; i++) {
       const chunk = fileData.slice(i * CHUNK_SIZE, (i + 1) * CHUNK_SIZE);
-      const chunkB64 = btoa(String.fromCharCode(...chunk));
+      let chunkB64 = '';
+      for (let j = 0; j < chunk.length; j++) chunkB64 += String.fromCharCode(chunk[j]);
+      chunkB64 = btoa(chunkB64);
       const chunkMsg = JSON.stringify({ type: 'file_chunk', name: fileName, index: i, total: totalChunks, data: chunkB64 });
-      await this.sendMessage(chunkMsg);
+      
+      for (const deviceId of this.connectedDevices) {
+        try {
+          const { BleClient } = await import('@capacitor-community/bluetooth-le');
+          const encoded = new TextEncoder().encode(chunkMsg);
+          await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
+        } catch {}
+      }
+      // Delay 50ms between chunks to prevent BLE overflow
+      await new Promise(r => setTimeout(r, 50));
     }
     this.log(`✅ File sent: ${fileName}`);
   }
@@ -444,10 +465,10 @@ class WaveMeshCore {
     await this.sendMessage(text);
   }
 
-  async disconnectPeer(peerId: string): Promise<void> {
+    async disconnectPeer(peerId: string): Promise<void> {
     this.connectedDevices.delete(peerId);
     this.peers.delete(peerId);
-    await this.saveRooms();
+    // Don't save — room stays in Preferences for restore
   }
 
   generateConnectionCode(): string {
