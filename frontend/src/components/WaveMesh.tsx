@@ -85,6 +85,7 @@ export default function WaveMesh() {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [activeRoom, setActiveRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const fileBufferRef = useRef<{ name: string; size: number; chunks: number; received: Uint8Array[] } | null>(null);
   const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
   const [incomingRequest, setIncomingRequest] = useState<{ from: string; peerId: string; message: string } | null>(null);
   const [editText, setEditText] = useState("");
@@ -145,6 +146,19 @@ export default function WaveMesh() {
       restoreMessages(room.id);
       setShowSidebar(false);
       setShowWelcome(false);
+            // Auto-start AudioMesh for sonic backup
+      (async () => {
+        try {
+          const { audioMesh } = await import('../services/AudioMesh');
+          await audioMesh.start();
+          await audioMesh.startListening((text: string) => {
+            if (text && text.length > 0) {
+              setMessages(prev => [...prev, { id: `sonic_${Date.now()}`, from: data.username || 'AudioMesh', text, timestamp: Date.now(), isMe: false, status: 'delivered' }]);
+            }
+          });
+          console.log('🎵 AudioMesh auto-started for room');
+        } catch (e) { console.log('AudioMesh auto-start failed:', e); }
+      })();
       toast.success(`🔗 Connected with ${name}!`);
     });
 
@@ -163,7 +177,7 @@ export default function WaveMesh() {
     });
 
 
-    
+
     waveMeshCore.setOnRoomCreated((data: any) => {
       const room: ChatRoom = {
         id: data.peerId, name: data.username || 'Peer', avatar: null,
@@ -194,12 +208,46 @@ export default function WaveMesh() {
         const cmd = JSON.parse(msg.text);
         if (cmd.type === 'delete') { setMessages(prev => prev.filter(m => m.id !== cmd.msgId)); return; }
         if (cmd.type === 'edit') { setMessages(prev => prev.map(m => m.id === cmd.msgId ? { ...m, text: cmd.text } : m)); return; }
-        if (cmd.type === 'file_start') {
-          setMessages(prev => [...prev, { id: msg.id, from: msg.from, text: `📎 Receiving: ${cmd.name}...`, timestamp: Date.now(), isMe: false, status: 'delivered' }]);
+                if (cmd.type === 'file_start') {
+          fileBufferRef.current = { name: cmd.name, size: cmd.size, chunks: cmd.chunks, received: [] };
+          setMessages(prev => [...prev, { id: `file_${Date.now()}`, from: msg.from, text: `📎 Receiving: ${cmd.name}...`, timestamp: Date.now(), isMe: false, status: 'delivered' }]);
           return;
         }
-        if (cmd.type === 'file_chunk') { return; }
-      } catch {}
+        if (cmd.type === 'file_chunk') {
+          if (fileBufferRef.current && cmd.index !== undefined) {
+            const binary = atob(cmd.data);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+            fileBufferRef.current.received[cmd.index] = bytes;
+            
+            // Check if all chunks received
+            if (fileBufferRef.current.received.filter(Boolean).length === fileBufferRef.current.chunks) {
+              // Reconstruct full file
+              const totalLen = fileBufferRef.current.received.reduce((sum, b) => sum + (b?.length || 0), 0);
+              const fullData = new Uint8Array(totalLen);
+              let offset = 0;
+              for (const chunk of fileBufferRef.current.received) {
+                if (chunk) { fullData.set(chunk, offset); offset += chunk.length; }
+              }
+              
+              // Convert to data URL
+              const blob = new Blob([fullData], { type: 'image/jpeg' });
+              const reader = new FileReader();
+              reader.onload = () => {
+                const dataUrl = reader.result as string;
+                setMessages(prev => {
+                  // Replace the "Receiving..." placeholder with the actual image
+                  const filtered = prev.filter(m => !m.text.startsWith('📎 Receiving:'));
+                  return [...filtered, { id: `img_${Date.now()}`, from: msg.from, text: dataUrl, timestamp: Date.now(), isMe: false, status: 'delivered' }];
+                });
+              };
+              reader.readAsDataURL(blob);
+              fileBufferRef.current = null;
+            }
+          }
+          return;
+        }
+            } catch (e) { console.log('Not a JSON command:', msg.text?.substring(0, 50)); }
            setMessages(prev => {
       if (prev.find(m => m.id === msg.id || m.id === msg.msgId)) return prev;
         if (prev.find(m => m.from === msg.from && m.text === (msg.text || msg.content) && Math.abs((m.timestamp || 0) - (msg.timestamp || 0)) < 30000)) return prev;
@@ -591,9 +639,12 @@ if (result) {
                             if (cmd.type === 'delete') return '🗑️ Message deleted';
                             if (cmd.type === 'edit') return cmd.text;
                             if (cmd.type === 'file_start') return `📎 ${cmd.name} (${(cmd.size/1024).toFixed(1)}KB)`;
-                          } catch {}
+                                                    } catch {}
                           if (msg.text?.startsWith('📎 http')) {
                             return <img src={msg.text.replace('📎 ', '')} alt="shared" className="max-w-full rounded-lg" />;
+                          }
+                          if (msg.text?.startsWith('data:image')) {
+                            return <img src={msg.text} alt="received" className="max-w-[200px] rounded-lg" />;
                           }
                           return msg.text;
                         })()}
