@@ -152,16 +152,14 @@ public class WaveMeshNativeService {
         BluetoothGattService saslService = new BluetoothGattService(
             UUID.fromString(SASL_SERVICE_UUID), BluetoothGattService.SERVICE_TYPE_PRIMARY);
         
-        BluetoothGattCharacteristic idChar = new BluetoothGattCharacteristic(
+                BluetoothGattCharacteristic idChar = new BluetoothGattCharacteristic(
             UUID.fromString(SASL_CHAR_IDENTITY_UUID),
-            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE,
+            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE,
             BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);
-        
-        BluetoothGattCharacteristic msgChar = new BluetoothGattCharacteristic(
+                BluetoothGattCharacteristic msgChar = new BluetoothGattCharacteristic(
             UUID.fromString(SASL_CHAR_MESSAGE_UUID),
-            BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+            BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
             BluetoothGattCharacteristic.PERMISSION_WRITE);
-        
         saslService.addCharacteristic(idChar);
         saslService.addCharacteristic(msgChar);
         gattServer.addService(saslService);
