@@ -195,17 +195,17 @@ export default function WaveMesh() {
       setShowWelcome(false);
     });
 
-    waveMeshCore.setOnMessageReceived((msg: any) => {
+      waveMeshCore.setOnMessageReceived((msg: any) => {
        if (msg.text === '__SASL_CONNECT_BACK__') {
-        // Find the sender in our peers and connect back
         const peer = peers.find(p => p.username === msg.from && p.id.includes(':'));
         if (peer) {
           waveMeshCore.connectToPeer(peer.id).catch(() => {});
         }
         return;
       }
+      const rawText = (msg.text || '').trim().replace(/\0/g, '');
       try {
-        const cmd = JSON.parse(msg.text);
+        const cmd = JSON.parse(rawText);
         if (cmd.type === 'delete') { setMessages(prev => prev.filter(m => m.id !== cmd.msgId)); return; }
         if (cmd.type === 'edit') { setMessages(prev => prev.map(m => m.id === cmd.msgId ? { ...m, text: cmd.text } : m)); return; }
                 if (cmd.type === 'file_start') {

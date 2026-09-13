@@ -22,7 +22,7 @@ public class MainActivity extends BridgeActivity {
 
         getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
 // Enable camera/mic in WebView
-getBridge().getWebView().setWebChromeClient(new android.webkit.WebChromeClient() {
+getBridge().getWebView().setWebChromeClient(new com.getcapacitor.BridgeWebChromeClient(getBridge()) {
     @Override
     public void onPermissionRequest(android.webkit.PermissionRequest request) {
         request.grant(request.getResources());

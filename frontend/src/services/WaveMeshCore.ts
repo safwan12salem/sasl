@@ -490,9 +490,12 @@ class WaveMeshCore {
           this.log('📡 No BLE MAC found — Echo Relay will handle via mesh');
         }
       }, 4000);
+                this.connectedDevices.add(data.nodeId);
       this.onPeerConnected?.({ peerId: data.nodeId, username: data.username });
       this.onRoomCreated?.({ peerId: data.nodeId, username: data.username });
       this.saveRooms();
+      // QR room uses Echo Relay — queue messages for the mesh
+      this.log('📡 QR room active via Echo Relay — messages will hop through mesh');
             // Send confirmation back so the OTHER phone also creates the room
       if (this.identity) {
         const confirmPayload = JSON.stringify({ 
