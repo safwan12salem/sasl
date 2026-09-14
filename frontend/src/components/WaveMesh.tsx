@@ -1115,15 +1115,17 @@ export default function WaveMesh() {
                   <Send size={18} />
                 </button>
               </div>
-              {showEmoji && (
+                          {showEmoji && (
                 <div className="absolute bottom-16 sm:bottom-20 left-2 sm:left-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border p-2 sm:p-3 z-50 max-w-[90vw]">
+                  <div className="flex justify-end mb-1">
+                    <button onClick={() => setShowEmoji(false)} className="text-gray-400 hover:text-gray-600 text-xs px-2 py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700">✕ Close</button>
+                  </div>
                   <div className="grid grid-cols-7 sm:grid-cols-8 gap-1 sm:gap-1.5">
                     {EMOJIS.map(emoji => (
                       <button
                         key={emoji}
                         onClick={() => {
                           setInput(prev => prev + emoji);
-                          setShowEmoji(false);
                           inputRef.current?.focus();
                         }}
                         className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm sm:text-lg transition transform hover:scale-125"

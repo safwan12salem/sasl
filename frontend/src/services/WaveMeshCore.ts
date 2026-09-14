@@ -4,6 +4,9 @@
  */
 import WaveMeshPlugin from '../plugins/WaveMeshPlugin';
 import { Preferences } from '@capacitor/preferences';
+import { echoRelay } from './EchoRelay';
+
+
 export interface MeshPeer {
   id: string; username: string; distance: number;
   connectionType: 'ble4' | 'ble5' | 'wifidirect' | 'relay';
@@ -65,7 +68,22 @@ class WaveMeshCore {
         this.onMessageReceived?.(event.data);
       }
     };
-    } catch (e: any) { this.log(`❌ BLE not available: ${e.message}`); return; }
+        } catch (e: any) { this.log(`❌ BLE not available: ${e.message}`); return; }
+    
+    // Start Echo Relay for store-and-forward (QR rooms, bridges, long distance)
+    echoRelay.start(this.identity.id);
+    echoRelay.onMessage((relayMsg) => {
+      this.log(`📬 Relay delivered: ${relayMsg.from}`);
+      this.onMessageReceived?.({
+        id: relayMsg.id,
+        from: relayMsg.from,
+        text: relayMsg.text,
+        type: 'text',
+        timestamp: relayMsg.timestamp,
+      });
+    });
+    
+    // Try native plugin for advertising + GATT server
     
     // Try native plugin for advertising + GATT server
     try {
@@ -85,7 +103,32 @@ class WaveMeshCore {
         this.log(`✅ Connected to ${name}`);
       });
       
-      plugin.addListener('messageReceived', (msg: any) => {
+           plugin.addListener('messageReceived', (msg: any) => {
+        try {
+          const envelope = JSON.parse(msg.text);
+          if (envelope.type === 'relay_hop') {
+            // Check if this message is for us
+            if (envelope.to === this.identity?.id || envelope.to === this.identity?.username || envelope.to === 'broadcast') {
+              // DELIVERED — show in UI
+              this.log(`📬 Relay delivered from ${envelope.from}`);
+              this.onMessageReceived?.({
+                id: envelope.msgId,
+                from: envelope.from,
+                text: envelope.text,
+                type: 'text',
+                timestamp: Date.now(),
+                relayPath: envelope.relayPath,
+              });
+            } else {
+              // We're a middleman — store silently for later forwarding
+              echoRelay.storeRelayEnvelope(envelope);
+              this.log(`🦠 Bridging message from ${envelope.from}`);
+            }
+            return;
+          }
+        } catch {}
+        
+        // Regular message
         this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: msg.from, text: msg.text, type: 'text', timestamp: Date.now() });
       });
       
@@ -208,14 +251,19 @@ class WaveMeshCore {
       const { BleClient } = await import('@capacitor-community/bluetooth-le');
       await BleClient.connect(deviceId);
       const peer = this.peers.get(deviceId); const name = peer?.username || 'Device';
-      this.connectedDevices.add(deviceId);
+            this.connectedDevices.add(deviceId);
       if (peer) { peer.connected = true; peer.lastSeen = Date.now(); }
       this.onPeerConnected?.({ peerId: deviceId, username: name });
       this.onRoomCreated?.({ peerId: deviceId, username: name });
-      this.saveRooms();
+            this.saveRooms();
       this.log(`✅ Connected to ${name}`);
       
+      // Forward stored relay messages to this new peer (bridge propagation)
+      echoRelay.forwardToPeer(deviceId);
+      this.propagateRelayMessages(deviceId).catch(() => {});
+      
       // Send identity via BLE
+      
       if (this.identity) {
         try {
           const payload = JSON.stringify({ type: 'identity', nodeId: this.identity.id, username: this.identity.username });
@@ -231,15 +279,19 @@ class WaveMeshCore {
   // MESSAGING — Via BLE GATT (CROSS-DEVICE)
   // ============================================================
   
-    async sendMessage(text: string): Promise<void> {
+         async sendMessage(text: string): Promise<void> {
     if (!this.identity) return;
     
-    const msgId = `msg_${Date.now()}`;
+    const msgId = `msg_${Date.now()}_${Math.random().toString(36).substr(2,6)}`;
     const msg = { id: msgId, from: this.identity.username, text, type: 'text', timestamp: Date.now() };
     
     // Echo to sender's UI
     this.onMessageReceived?.(msg);
     
+    // Store in Echo Relay for bridging through intermediate Sasl users
+    echoRelay.storeMessage('broadcast', text, this.identity.username).catch(() => {});
+    // Store in Echo Relay for forwarding to peers not yet connected
+   
     // Send to ALL connected devices via BLE GATT
     for (const deviceId of this.connectedDevices) {
       try {
@@ -425,6 +477,45 @@ class WaveMeshCore {
   isScanning(): boolean { return this.scanning; }
   getDebugLog(): string[] { return [...this.debugLog]; }
   getConnectedDevices(): string[] { return Array.from(this.connectedDevices); }
+
+
+
+  /**
+   * VIRUS RELAY: Forward undelivered messages to a connected peer via BLE
+   * Middlemen store encrypted envelopes — they see nothing.
+   */
+  private async propagateRelayMessages(deviceId: string): Promise<void> {
+    const undelivered = echoRelay.getUndeliveredMessages();
+    if (undelivered.length === 0) return;
+    
+    for (const msg of undelivered) {
+      if (msg.relayPath.includes(deviceId)) continue;
+      
+      const envelope = JSON.stringify({
+        type: 'relay_hop',
+        msgId: msg.id,
+        from: msg.from,
+        to: msg.to,
+        text: msg.text,
+        hopCount: msg.hopCount + 1,
+        relayPath: [...msg.relayPath, deviceId],
+        ttl: msg.ttl - 1,
+      });
+      
+      try {
+        const { BleClient } = await import('@capacitor-community/bluetooth-le');
+        const encoded = new TextEncoder().encode(envelope);
+        await BleClient.writeWithoutResponse(
+          deviceId,
+          '4fafc201-1fb5-459e-8fcc-c5c9c331914b',
+          'beb5483e-36e1-4688-b7f5-ea07361b26a8',
+          new DataView(encoded.buffer)
+        );
+        echoRelay.markRelayed(msg.id, deviceId);
+        this.log(`🦠 Relay hop: ${msg.id.substring(0,8)} → ${deviceId}`);
+      } catch (e) { this.log(`⚠️ Relay hop failed: ${e}`); }
+    }
+  }
 
   async stop(): Promise<void> { await this.stopScanning(); this.saveRooms(); this.peers.clear(); this.connectedDevices.clear(); }
 
