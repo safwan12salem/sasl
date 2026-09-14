@@ -14,7 +14,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-  ImageIcon, QrCode, Radio, WifiOff, Shield, Send, LogOut, Copy, Menu, X, Edit3, Trash2,
+   QrCode, Radio, WifiOff, Shield, Send, LogOut, Copy, Menu, X,
   ArrowLeft, MessageCircle, Link, Smile, Bluetooth, Terminal,
   Wifi, Zap, TrendingUp, Users, Activity, BarChart3, Globe,
   Smartphone, RadioTower, Satellite, Heart, Share2, MoreVertical,
@@ -138,10 +138,10 @@ export default function WaveMesh() {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [activeRoom, setActiveRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
+  
   const [incomingRequest, setIncomingRequest] = useState<{ from: string; peerId: string; message: string } | null>(null);
   const [pendingRequestSent, setPendingRequestSent] = useState(false);
-  const [editText, setEditText] = useState("");
+  
   const [input, setInput] = useState('');
 
   // Tabs
@@ -175,8 +175,7 @@ export default function WaveMesh() {
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
+  
   // ============================================================
   // INITIALIZATION
   // ============================================================
@@ -196,7 +195,8 @@ export default function WaveMesh() {
 
     // Peer connected
         // Peer connected
-    waveMeshCore.setOnPeerConnected((data: any) => {
+        waveMeshCore.setOnPeerConnected((data: any) => {
+      try {
       const name = (data.username && !/^\d+$/.test(data.username)) ? data.username : 'Peer';
       const room: ChatRoom = {
         id: data.peerId,
@@ -221,7 +221,8 @@ export default function WaveMesh() {
       } catch {}
       setShowSidebar(false);
       setShowWelcome(false);
-      toast.success(`🔗 Connected with ${name}!`);
+            toast.success(`🔗 Connected with ${name}!`);
+      } catch (e) { console.error('onPeerConnected error:', e); }
     });
 
     // Incoming request
@@ -230,7 +231,8 @@ export default function WaveMesh() {
     });
 
     // Room created
-    waveMeshCore.setOnRoomCreated((data: any) => {
+       waveMeshCore.setOnRoomCreated((data: any) => {
+      try {
       const room: ChatRoom = {
         id: data.peerId,
         name: data.username || 'Peer',
@@ -247,39 +249,43 @@ export default function WaveMesh() {
         return [room, ...prev];
       });
       setActiveRoom(room);
-      setShowSidebar(false);
+           setShowSidebar(false);
       setShowWelcome(false);
+      } catch (e) { console.error('onRoomCreated error:', e); }
     });
 
     // Message received
-       waveMeshCore.setOnMessageReceived((msg: any) => {
-              // Handle edit/delete commands
+        
+        waveMeshCore.setOnMessageReceived((msg: any) => {
       try {
-        const cmd = JSON.parse(msg.text);
-        if (cmd.type === 'delete') {
-          setMessages(prev => prev.filter(m => m.id !== cmd.msgId));
-          return;
+      // Handle accept confirmation from peer
+      if (msg.type === 'accept') {
+        console.log('✅ Accept received from ' + msg.from);
+        if (msg.peerId) {
+          waveMeshCore.connectToPeer(msg.peerId).catch(() => {});
         }
-        if (cmd.type === 'edit') {
-          setMessages(prev => prev.map(m => m.id === cmd.msgId ? { ...m, text: cmd.text } : m));
-          return;
-        }
-      } catch {}
+        toast.success(`✅ @${msg.from} accepted!`);
+        return;
+      }
+      const msgId = msg.id || 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+      const msgText = msg.text || msg.content || '';
+      const msgTime = msg.timestamp || Date.now();
       setMessages(prev => {
-        if (prev.find(m => m.id === msg.id)) return prev;
+        if (prev.find(m => m.id === msgId)) return prev;
+        if (prev.find(m => m.from === msg.from && m.text === msgText && Math.abs((m.timestamp || 0) - msgTime) < 30000)) return prev;
         return [...prev, {
-          id: msg.id,
+          id: msgId,
           from: msg.from,
-          text: msg.text || msg.content || '',
-          timestamp: msg.timestamp || Date.now(),
+          text: msgText,
+          timestamp: msgTime,
           isMe: msg.from === myUsername,
           status: msg.relayed ? 'relayed' : 'delivered',
           relayPath: msg.relayPath,
         }];
-
       });
 
-           setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+            setTimeout(() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+      } catch (e) { console.error('onMessageReceived error:', e); }
     });
 
     // Periodic updates   
@@ -295,6 +301,24 @@ export default function WaveMesh() {
     return () => {
       clearInterval(interval);
       waveMeshCore.stop();
+        };
+  }, []);
+
+  // Save rooms when app goes to background or closes
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        waveMeshCore.saveRooms();
+      }
+    };
+    const handleBeforeUnload = () => {
+      waveMeshCore.saveRooms();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
 
@@ -364,97 +388,12 @@ export default function WaveMesh() {
 
     const sendMessage = () => {
     if (!input.trim()) return;
-    if (editingMsgId) {
-      // Save edit
-      setMessages(prev => prev.map(m => m.id === editingMsgId ? { ...m, text: input } : m));
-      waveMeshCore.sendMessage(JSON.stringify({ type: 'edit', msgId: editingMsgId, text: input }));
-      setEditingMsgId(null);
-      setEditText("");
-      toast.success("Message updated");
-    } else {
-      waveMeshCore.sendMessage(input);
-    }
+        waveMeshCore.sendMessage(input);
     setInput('');
   };
-   const deleteMessage = (msgId: string) => {
-    setMessages(prev => prev.filter(m => m.id !== msgId));
-    waveMeshCore.sendMessage(JSON.stringify({ type: 'delete', msgId }));
-    toast.success("Message deleted");
-  };
+   
 
 
-  const startEditMessage = (msgId: string, currentText: string) => {
-    setEditingMsgId(msgId);
-    setEditText(currentText);
-    setInput(currentText);
-    inputRef.current?.focus();
-  };
-
-   const saveEditMessage = (msgId: string) => {
-    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, text: editText } : m));
-    waveMeshCore.sendMessage(JSON.stringify({ type: 'edit', msgId, text: editText }));
-    setEditingMsgId(null);
-    setEditText("");
-    toast.success("Message updated");
-  };
-
-
-const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement('canvas');
-      const ratio = Math.min(1, maxWidth / img.width);
-      canvas.width = img.width * ratio;
-      canvas.height = img.height * ratio;
-      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
-      canvas.toBlob(blob => {
-        if (blob) blob.arrayBuffer().then(resolve).catch(reject);
-        else reject(new Error('compress failed'));
-      }, 'image/jpeg', 0.6);
-    };
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
-};
-
-
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    // Try online Cloudinary first
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", "sasl_upload");
-      const res = await fetch("https://api.cloudinary.com/v1_1/dwem1chqc/upload", { method: "POST", body: formData });
-      const data = await res.json();
-      if (data.secure_url) {
-        waveMeshCore.sendMessage(`📎 ${data.secure_url}`);
-        toast.success("File uploaded to cloud!");
-        return;
-      }
-    } catch {}
-    
-    // Offline: compress image then BLE transfer
-    try {
-      // If image, compress to max 200px wide
-      if (file.type.startsWith('image/')) {
-        const compressed = await compressImage(file, 200);
-        await waveMeshCore.sendFile(new Uint8Array(compressed), file.name);
-      } else {
-        const arrayBuffer = await file.arrayBuffer();
-        await waveMeshCore.sendFile(new Uint8Array(arrayBuffer), file.name);
-      }
-      toast.success("File sent via BLE!");
-    } catch {
-      toast.error("File transfer failed");
-    }
-  };
-    const sendRelayMessage = async () => {
-    toast.success('📤 Relay mode coming soon');
-  };
 
 
   const [audioMeshActive, setAudioMeshActive] = useState(false);
@@ -1061,20 +1000,14 @@ const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
                 </div>
               </div>
               <div className="flex items-center gap-1">
-                <button
-                  onClick={() => sendRelayMessage()}
-                  className="p-1.5 sm:p-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl text-blue-500"
-                  title="Send via Echo Relay"
-                >
-                  <Globe size={14} />
-                <button
+                             <button
                   onClick={toggleAudioMesh}
                   className={`p-1.5 sm:p-2 rounded-xl transition ${audioMeshActive ? "bg-green-100 dark:bg-green-900/30 text-green-500" : "hover:bg-purple-50 dark:hover:bg-purple-900/30 text-purple-500"}`}
                   title={audioMeshActive ? "AudioMesh Active — Tap to Deactivate" : "Activate AudioMesh for extended range"}
                 >
                   <Radio size={14} className={audioMeshActive ? "animate-pulse" : ""} />
                 </button>
-                </button>
+                
                 <button
                   onClick={() => leaveRoom(activeRoom.id)}
                   className="p-1.5 sm:p-2.5 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition text-red-400"
@@ -1124,16 +1057,7 @@ const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
                         })()}
                       </span>
                       <div className="flex items-center gap-1 mt-1 justify-end">
-                        {msg.isMe && (
-                          <>
-                                                        <button onClick={() => startEditMessage(msg.id, msg.text)} className="text-[9px] text-white/70 hover:text-white mr-2" title="Edit">
-                              <Edit3 size={10} />
-                            </button>
-                            <button onClick={() => deleteMessage(msg.id)} className="text-[9px] text-white/70 hover:text-white" title="Delete">
-                              <Trash2 size={10} />
-                            </button>
-                          </>
-                        )}
+                     
                         {msg.status === 'relayed' && (
                           <Globe size={8} className="text-blue-400" />
                         )}
@@ -1156,10 +1080,7 @@ const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
                 >
                   <Smile size={18} />
                 </button>
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleFileUpload} />
-                <button onClick={() => fileInputRef.current?.click()} className="p-2 sm:p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 flex-shrink-0">
-                  <ImageIcon size={18} />
-                </button>
+                
                 <input
                   ref={inputRef}
                   value={input}

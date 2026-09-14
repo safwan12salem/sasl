@@ -93,17 +93,19 @@ class WaveMeshCore {
       this.log('📡 Native GATT server + advertising active');
     } catch (e: any) { this.log(`⚠️ Native plugin unavailable: ${e.message || e}`); }
     
-    this.restoreRooms();
+        await this.restoreRooms();
     this.log(`✅ WaveMesh ready for @${username}`);
   }
 
-    private async restoreRooms(): Promise<void> {
+        async restoreRooms(): Promise<void> {
     try {
       const { value } = await Preferences.get({ key: 'sasl_wavemesh_rooms' });
       if (value) {
         const rooms = JSON.parse(value);
         for (const room of rooms) {
-          this.peers.set(room.id, room);
+          // Mark as connected so messages can flow after restart
+          const restored = { ...room, connected: true, lastSeen: Date.now() };
+          this.peers.set(room.id, restored);
           this.connectedDevices.add(room.id);
           this.onRoomCreated?.({ peerId: room.id, username: room.username });
         }
@@ -111,9 +113,11 @@ class WaveMeshCore {
       }
     } catch {}
   }
-   private async saveRooms(): Promise<void> {
+      async saveRooms(): Promise<void> {
     try {
-      const rooms = Array.from(this.peers.values()).filter(p => p.connected);
+      // Save ALL peers — never filter by `connected`
+      const rooms = Array.from(this.peers.values())
+        .filter(p => p.username && p.username !== 'Peer' && p.username !== 'Sasl Peer');
       await Preferences.set({ key: 'sasl_wavemesh_rooms', value: JSON.stringify(rooms) });
     } catch {}
   }
@@ -171,13 +175,30 @@ class WaveMeshCore {
     return Array.from(this.pendingRequests.entries()).map(([deviceId, username]) => ({ deviceId, username }));
   }
 
-  acceptRequest(deviceId: string): void {
+  async acceptRequest(deviceId: string): Promise<void> {
     const username = this.pendingRequests.get(deviceId) || 'Peer';
     this.pendingRequests.delete(deviceId);
     this.log(`✅ Request accepted from ${username}`);
-    this.connectToPeer(deviceId);
+    
+    // Connect to peer (this opens OUR room via onPeerConnected)
+    await this.connectToPeer(deviceId);
+    
+    // Send confirmation back so the SENDER also opens their room
+    if (this.identity) {
+      try {
+        const { BleClient } = await import('@capacitor-community/bluetooth-le');
+        const payload = JSON.stringify({ 
+          type: 'accept', 
+          from: this.identity.username, 
+          peerId: this.identity.id, 
+          message: '✅ Accepted!' 
+        });
+        const encoded = new TextEncoder().encode(payload);
+        await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', '6e400001-b5a3-f393-e0a9-e50e24dcca9e', new DataView(encoded.buffer));
+        this.log(`📤 Accept confirmation sent to ${username}`);
+      } catch (e) { this.log(`⚠️ Accept confirmation failed`); }
+    }
   }
-
   // ============================================================
   // BLE CONNECT
   // ============================================================
