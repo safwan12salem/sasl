@@ -14,7 +14,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
-   QrCode, Radio, WifiOff, Shield, Send, LogOut, Copy, Menu, X,
+  ImageIcon, QrCode, Radio, WifiOff, Shield, Send, LogOut, Copy, Menu, X, Edit3, Trash2,
   ArrowLeft, MessageCircle, Link, Smile, Bluetooth, Terminal,
   Wifi, Zap, TrendingUp, Users, Activity, BarChart3, Globe,
   Smartphone, RadioTower, Satellite, Heart, Share2, MoreVertical,
@@ -22,7 +22,7 @@ import {
   Clock, MapPin, Navigation, Signal, Battery, Layers, GitBranch,
   ArrowUpRight, ArrowDownRight, Filter, SlidersHorizontal
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../contexts/AuthContext';
@@ -129,7 +129,8 @@ export default function WaveMesh() {
   const { user } = useAuth();
   const myUsername = user?.username || 'Me';
   const { t } = useTranslation();
-  
+  const controls = useAnimation();
+
   // Identity
   const [myAvatar, setMyAvatar] = useState<string | null>(null);
 
@@ -137,9 +138,10 @@ export default function WaveMesh() {
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
   const [activeRoom, setActiveRoom] = useState<ChatRoom | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  
+  const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
   const [incomingRequest, setIncomingRequest] = useState<{ from: string; peerId: string; message: string } | null>(null);
-  
+  const [pendingRequestSent, setPendingRequestSent] = useState(false);
+  const [editText, setEditText] = useState("");
   const [input, setInput] = useState('');
 
   // Tabs
@@ -161,10 +163,10 @@ export default function WaveMesh() {
 
   // Relay
     // Relay
-  
+  const [showRelayDetail, setShowRelayDetail] = useState(false);
   // UI State
   const [showEmoji, setShowEmoji] = useState(false);
-  
+  const [showStats, setShowStats] = useState(false);
   const [filterLayer, setFilterLayer] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'distance' | 'name' | 'type'>('distance');
   const [debugLog, setDebugLog] = useState<string[]>([]);
@@ -173,7 +175,8 @@ export default function WaveMesh() {
   // Refs
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // ============================================================
   // INITIALIZATION
   // ============================================================
@@ -222,11 +225,10 @@ export default function WaveMesh() {
     });
 
     // Incoming request
-        waveMeshCore.setOnRequestReceived((data: any) => {
-      const peerId = data.peerId || data.deviceId;
-      waveMeshCore.acceptRequest(peerId);
-      toast.success(`🔗 @${data.username} wants to connect — accepting...`);
+    waveMeshCore.setOnRequestReceived((data: any) => {
+      setIncomingRequest({ from: data.username || "User", peerId: data.peerId || data.deviceId, message: "Wants to connect via WaveMesh" });
     });
+
     // Room created
     waveMeshCore.setOnRoomCreated((data: any) => {
       const room: ChatRoom = {
@@ -360,15 +362,101 @@ export default function WaveMesh() {
     }
   };
 
-       const sendMessage = () => {
+    const sendMessage = () => {
     if (!input.trim()) return;
-    waveMeshCore.sendMessage(input);
+    if (editingMsgId) {
+      // Save edit
+      setMessages(prev => prev.map(m => m.id === editingMsgId ? { ...m, text: input } : m));
+      waveMeshCore.sendMessage(JSON.stringify({ type: 'edit', msgId: editingMsgId, text: input }));
+      setEditingMsgId(null);
+      setEditText("");
+      toast.success("Message updated");
+    } else {
+      waveMeshCore.sendMessage(input);
+    }
     setInput('');
+  };
+   const deleteMessage = (msgId: string) => {
+    setMessages(prev => prev.filter(m => m.id !== msgId));
+    waveMeshCore.sendMessage(JSON.stringify({ type: 'delete', msgId }));
+    toast.success("Message deleted");
   };
 
 
+  const startEditMessage = (msgId: string, currentText: string) => {
+    setEditingMsgId(msgId);
+    setEditText(currentText);
+    setInput(currentText);
+    inputRef.current?.focus();
+  };
 
- 
+   const saveEditMessage = (msgId: string) => {
+    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, text: editText } : m));
+    waveMeshCore.sendMessage(JSON.stringify({ type: 'edit', msgId, text: editText }));
+    setEditingMsgId(null);
+    setEditText("");
+    toast.success("Message updated");
+  };
+
+
+const compressImage = (file: File, maxWidth: number): Promise<ArrayBuffer> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ratio = Math.min(1, maxWidth / img.width);
+      canvas.width = img.width * ratio;
+      canvas.height = img.height * ratio;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(blob => {
+        if (blob) blob.arrayBuffer().then(resolve).catch(reject);
+        else reject(new Error('compress failed'));
+      }, 'image/jpeg', 0.6);
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+};
+
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    // Try online Cloudinary first
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "sasl_upload");
+      const res = await fetch("https://api.cloudinary.com/v1_1/dwem1chqc/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.secure_url) {
+        waveMeshCore.sendMessage(`📎 ${data.secure_url}`);
+        toast.success("File uploaded to cloud!");
+        return;
+      }
+    } catch {}
+    
+    // Offline: compress image then BLE transfer
+    try {
+      // If image, compress to max 200px wide
+      if (file.type.startsWith('image/')) {
+        const compressed = await compressImage(file, 200);
+        await waveMeshCore.sendFile(new Uint8Array(compressed), file.name);
+      } else {
+        const arrayBuffer = await file.arrayBuffer();
+        await waveMeshCore.sendFile(new Uint8Array(arrayBuffer), file.name);
+      }
+      toast.success("File sent via BLE!");
+    } catch {
+      toast.error("File transfer failed");
+    }
+  };
+    const sendRelayMessage = async () => {
+    toast.success('📤 Relay mode coming soon');
+  };
+
+
   const [audioMeshActive, setAudioMeshActive] = useState(false);
 
   const toggleAudioMesh = async () => {
@@ -715,13 +803,12 @@ export default function WaveMesh() {
                             {peer.connected ? (
                               <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full">Connected</span>
                             ) : (
-                                                     <button
-                                onClick={async () => { 
-                                  toast.success("⏳ Waiting for other side to tap Connect...");
-                                  await waveMeshCore.sendConnectionRequest(peer.id);
-                                }}
-                                className="p-2.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition"
-                                title="Tap to send connection request"
+                              <button
+                                                               onClick={async () => { 
+  toast.success("🔗 Connecting...");
+  await waveMeshCore.connectToPeer(peer.id);
+}}
+                                className="p-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
                               >
                                 <Send size={14} />
                               </button>
@@ -734,7 +821,7 @@ export default function WaveMesh() {
                 </div>
               )}
 
-                         {/* RELAY TAB */}
+              {/* RELAY TAB */}
               {tab === 'relay' && (
                 <div>
                   <div className="p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 mb-3">
@@ -748,34 +835,18 @@ export default function WaveMesh() {
                     </div>
                     <p className="text-[10px] text-gray-500">
                       Messages hop through Sasl users until they reach the destination.
+                      {rangeInfo && rangeInfo.usersNeeded > 0
+                        ? ` Need ${rangeInfo.usersNeeded} more users for 50km mesh.`
+                        : ' Global mesh active!'}
                     </p>
-                  </div>
-
-                  {/* Relay Stats Grid */}
-                  <div className="grid grid-cols-3 gap-2 mb-3">
-                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center">
-                      <p className="text-[10px] text-gray-500">Stored</p>
-                      <p className="text-lg font-bold">{stats?.relayMessages || 0}</p>
-                    </div>
-                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center">
-                      <p className="text-[10px] text-gray-500">Pending</p>
-                      <p className="text-lg font-bold text-orange-500">{stats?.pendingDelivery || 0}</p>
-                    </div>
-                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center">
-                      <p className="text-[10px] text-gray-500">Delivered</p>
-                      <p className="text-lg font-bold text-green-500">{stats?.delivered || 0}</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2 mb-3">
-                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center">
-                      <p className="text-[10px] text-gray-500">Peers</p>
-                      <p className="text-lg font-bold">{stats?.totalPeers || 0}</p>
-                    </div>
-                    <div className="p-2 rounded-xl bg-white dark:bg-gray-700 text-center">
-                      <p className="text-[10px] text-gray-500">Connected</p>
-                      <p className="text-lg font-bold">{stats?.connectedPeers || 0}</p>
-                    </div>
+                    {rangeInfo && (
+                      <div className="mt-2 bg-gray-200 dark:bg-gray-600 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className="bg-gradient-to-r from-blue-400 to-purple-500 h-full rounded-full transition-all"
+                          style={{ width: `${getRangePercentage()}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* Range Progress */}
@@ -803,7 +874,7 @@ export default function WaveMesh() {
                   )}
 
                   <p className="text-[10px] text-gray-400 text-center">
-                    Each Sasl user extends the mesh by ~200m
+                    Messages relay through {stats?.totalPeers || 0} nearby Sasl users
                   </p>
                 </div>
               )}
@@ -990,13 +1061,19 @@ export default function WaveMesh() {
                 </div>
               </div>
               <div className="flex items-center gap-1">
-              
+                <button
+                  onClick={() => sendRelayMessage()}
+                  className="p-1.5 sm:p-2 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-xl text-blue-500"
+                  title="Send via Echo Relay"
+                >
+                  <Globe size={14} />
                 <button
                   onClick={toggleAudioMesh}
                   className={`p-1.5 sm:p-2 rounded-xl transition ${audioMeshActive ? "bg-green-100 dark:bg-green-900/30 text-green-500" : "hover:bg-purple-50 dark:hover:bg-purple-900/30 text-purple-500"}`}
                   title={audioMeshActive ? "AudioMesh Active — Tap to Deactivate" : "Activate AudioMesh for extended range"}
                 >
-                                    <Radio size={14} className={audioMeshActive ? "animate-pulse" : ""} />
+                  <Radio size={14} className={audioMeshActive ? "animate-pulse" : ""} />
+                </button>
                 </button>
                 <button
                   onClick={() => leaveRoom(activeRoom.id)}
@@ -1047,7 +1124,16 @@ export default function WaveMesh() {
                         })()}
                       </span>
                       <div className="flex items-center gap-1 mt-1 justify-end">
-                       
+                        {msg.isMe && (
+                          <>
+                                                        <button onClick={() => startEditMessage(msg.id, msg.text)} className="text-[9px] text-white/70 hover:text-white mr-2" title="Edit">
+                              <Edit3 size={10} />
+                            </button>
+                            <button onClick={() => deleteMessage(msg.id)} className="text-[9px] text-white/70 hover:text-white" title="Delete">
+                              <Trash2 size={10} />
+                            </button>
+                          </>
+                        )}
                         {msg.status === 'relayed' && (
                           <Globe size={8} className="text-blue-400" />
                         )}
@@ -1070,7 +1156,10 @@ export default function WaveMesh() {
                 >
                   <Smile size={18} />
                 </button>
-                
+                <input type="file" ref={fileInputRef} className="hidden" accept="image/*,video/*" onChange={handleFileUpload} />
+                <button onClick={() => fileInputRef.current?.click()} className="p-2 sm:p-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-gray-500 flex-shrink-0">
+                  <ImageIcon size={18} />
+                </button>
                 <input
                   ref={inputRef}
                   value={input}
@@ -1106,16 +1195,14 @@ export default function WaveMesh() {
                 </button>
               </div>
               {showEmoji && (
-                               <div className="absolute bottom-16 sm:bottom-20 left-2 sm:left-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border p-2 sm:p-3 z-50 max-w-[90vw]">
-                  <div className="flex justify-end mb-1">
-                    <button onClick={() => setShowEmoji(false)} className="text-gray-400 hover:text-gray-600 text-xs px-2">✕</button>
-                  </div>
+                <div className="absolute bottom-16 sm:bottom-20 left-2 sm:left-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border p-2 sm:p-3 z-50 max-w-[90vw]">
                   <div className="grid grid-cols-7 sm:grid-cols-8 gap-1 sm:gap-1.5">
                     {EMOJIS.map(emoji => (
                       <button
                         key={emoji}
-                                               onClick={() => {
+                        onClick={() => {
                           setInput(prev => prev + emoji);
+                          setShowEmoji(false);
                           inputRef.current?.focus();
                         }}
                         className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm sm:text-lg transition transform hover:scale-125"

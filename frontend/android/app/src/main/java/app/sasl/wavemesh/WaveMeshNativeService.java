@@ -17,24 +17,6 @@ public class WaveMeshNativeService {
     public static final String SASL_CHAR_IDENTITY_UUID = "6e400001-b5a3-f393-e0a9-e50e24dcca9e";
     public static final String SASL_CHAR_MESSAGE_UUID = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
     
-        // Native relay buffer for messages when app is closed
-    private static final int MAX_BUFFER_SIZE = 200;
-    private static final int RELAY_TTL = 5;  // max hops
-    private final java.util.Map<String, java.util.List<NativeRelayMessage>> relayBuffer = new java.util.concurrent.ConcurrentHashMap<>();
-    
-    // Simple native relay message holder
-    private static class NativeRelayMessage {
-        String id;
-        String from;
-        String payload;
-        int ttl;
-        long timestamp;
-        NativeRelayMessage(String id, String from, String payload, int ttl) {
-            this.id = id; this.from = from; this.payload = payload; this.ttl = ttl; this.timestamp = System.currentTimeMillis();
-        }
-    }
-
-
     private Context context;
     private BluetoothManager bluetoothManager;
     private BluetoothAdapter bluetoothAdapter;
@@ -80,13 +62,10 @@ public class WaveMeshNativeService {
         
         gattServer = bluetoothManager.openGattServer(context, new BluetoothGattServerCallback() {
             @Override
-                        public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
+            public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     Log.d(TAG, "GATT client connected: " + device.getAddress());
                     if (callback != null) callback.onPeerConnected(device.getAddress(), device.getName() != null ? device.getName() : "Sasl Peer");
-                    // Forward buffered relay messages to this new peer
-                    BluetoothGatt peerGatt = connectedGatts.get(device.getAddress());
-                    if (peerGatt != null) forwardRelayToPeer(device, peerGatt);
                 }
             }
             
@@ -97,29 +76,7 @@ public class WaveMeshNativeService {
                 String message = new String(value, StandardCharsets.UTF_8);
                 Log.d(TAG, "Received: " + message);
                 
-                              if (characteristic.getUuid().toString().equalsIgnoreCase(SASL_CHAR_MESSAGE_UUID)) {
-                    // Native buffer: store message for forwarding to future peers
-                    try {
-                        org.json.JSONObject json = new org.json.JSONObject(message);
-                        String msgType = json.optString("type", "message");
-                        // Only buffer non-control messages
-                        if (!"delete".equals(msgType) && !"edit".equals(msgType) && !"file_chunk".equals(msgType)) {
-                            String msgId = json.optString("id", "msg_" + System.currentTimeMillis());
-                            String from = json.optString("from", device.getName() != null ? device.getName() : "Peer");
-                            NativeRelayMessage rmsg = new NativeRelayMessage(msgId, from, message, RELAY_TTL);
-                            relayBuffer.computeIfAbsent(from, k -> new java.util.ArrayList<>()).add(rmsg);
-                            // Trim buffer
-                            java.util.List<NativeRelayMessage> buf = relayBuffer.get(from);
-                            if (buf != null && buf.size() > MAX_BUFFER_SIZE) buf.remove(0);
-                            Log.d(TAG, "Buffered message from " + from + " (relay TTL " + RELAY_TTL + ")");
-                        }
-                    } catch (Exception e) {
-                        // Plain text — buffer it
-                        String from = device.getName() != null ? device.getName() : "Peer";
-                        NativeRelayMessage rmsg = new NativeRelayMessage("msg_" + System.currentTimeMillis(), from, message, RELAY_TTL);
-                        relayBuffer.computeIfAbsent(from, k -> new java.util.ArrayList<>()).add(rmsg);
-                    }
-                    
+                if (characteristic.getUuid().toString().equalsIgnoreCase(SASL_CHAR_MESSAGE_UUID)) {
                     if (callback != null) callback.onMessageReceived(device.getAddress(), message);
                               } else if (characteristic.getUuid().toString().equalsIgnoreCase(SASL_CHAR_IDENTITY_UUID)) {
                     // Check if it's a request or identity
@@ -152,14 +109,16 @@ public class WaveMeshNativeService {
         BluetoothGattService saslService = new BluetoothGattService(
             UUID.fromString(SASL_SERVICE_UUID), BluetoothGattService.SERVICE_TYPE_PRIMARY);
         
-                BluetoothGattCharacteristic idChar = new BluetoothGattCharacteristic(
+        BluetoothGattCharacteristic idChar = new BluetoothGattCharacteristic(
             UUID.fromString(SASL_CHAR_IDENTITY_UUID),
-            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE,
+            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE,
             BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);
-                BluetoothGattCharacteristic msgChar = new BluetoothGattCharacteristic(
+        
+        BluetoothGattCharacteristic msgChar = new BluetoothGattCharacteristic(
             UUID.fromString(SASL_CHAR_MESSAGE_UUID),
-            BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+            BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
             BluetoothGattCharacteristic.PERMISSION_WRITE);
+        
         saslService.addCharacteristic(idChar);
         saslService.addCharacteristic(msgChar);
         gattServer.addService(saslService);
@@ -173,7 +132,12 @@ public class WaveMeshNativeService {
     // ============================================================
     
     public void startAdvertising(String username) {
-        if (!bleReady || advertising) return;
+                if (advertising) return;
+        if (!bleReady) {
+            Log.w(TAG, "BLE not ready yet, retrying in 1s...");
+            new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> startAdvertising(username), 1000);
+            return;
+        }
         this.myUsername = username;
         String advName = username;
         if (advName.length() > 25) advName = advName.substring(0, 25);
@@ -185,12 +149,10 @@ public class WaveMeshNativeService {
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
                 .setConnectable(true).build();
             
-                                  AdvertiseData data = new AdvertiseData.Builder()
+            AdvertiseData data = new AdvertiseData.Builder()
                 .setIncludeDeviceName(true)
-                .addServiceUuid(new ParcelUuid(UUID.fromString(SASL_SERVICE_UUID)))
-                .build();
-
-
+                .addServiceUuid(new ParcelUuid(UUID.fromString(SASL_SERVICE_UUID))).build();
+            
             bluetoothAdapter.setName(advName);
             bluetoothAdapter.getBluetoothLeAdvertiser().startAdvertising(settings, data, new AdvertiseCallback() {
                 @Override
@@ -235,22 +197,12 @@ public class WaveMeshNativeService {
                 .setPhy(ScanSettings.PHY_LE_ALL_SUPPORTED).build();
         }
         
-               // Enable BLE 5 Long Range (Coded PHY)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            try {
-                bluetoothAdapter.getClass().getMethod("setPreferredPhy", Integer.TYPE, Integer.TYPE, Integer.TYPE)
-                    .invoke(bluetoothAdapter, 2, 2, 0);
-            } catch (Exception e) {
-                android.util.Log.d("WaveMesh", "BLE 5 PHY not supported: " + e.getMessage());
-            }
-        }
-        
         bleScanner.startScan(null, settings, new ScanCallback() {
             @Override
-                              public void onScanResult(int callbackType, ScanResult result) {
+            public void onScanResult(int callbackType, ScanResult result) {
                 BluetoothDevice device = result.getDevice();
                 String name = device.getName() != null ? device.getName() : "";
-                if (name.isEmpty()) name = "Sasl Peer";
+                if (name.isEmpty()) return;
                 int rssi = result.getRssi();
                 int distance = calculateDistance(rssi);
                 if (callback != null) callback.onPeerDiscovered(device.getAddress(), name, "ble", distance);
@@ -277,16 +229,15 @@ public class WaveMeshNativeService {
         
         BluetoothGatt gatt = device.connectGatt(context, false, new BluetoothGattCallback() {
             @Override
-                       public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
                     connectedGatts.put(deviceAddress, gatt);
                     gatt.discoverServices();
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                         gatt.requestConnectionPriority(BluetoothGatt.CONNECTION_PRIORITY_HIGH);
+                        gatt.requestMtu(512);
                     }
                     if (callback != null) callback.onPeerConnected(deviceAddress, device.getName() != null ? device.getName() : "Sasl Peer");
-                    // Forward buffered relay messages to this new peer
-                    forwardRelayToPeer(device, gatt);
                 } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                     connectedGatts.remove(deviceAddress);
                     gatt.close();
@@ -351,43 +302,11 @@ public class WaveMeshNativeService {
     public boolean isAdvertising() { return advertising; }
     public boolean isScanning() { return scanning; }
     
-       public void stop() {
+    public void stop() {
         stopAdvertising();
         stopBLEScan();
         for (BluetoothGatt gatt : connectedGatts.values()) gatt.close();
         connectedGatts.clear();
         if (gattServer != null) gattServer.close();
-    }
-    
-    /**
-     * Forward buffered relay messages to a newly connected peer.
-     * Called when a peer connects — sends all buffered messages with TTL > 0.
-     */
-    public void forwardRelayToPeer(BluetoothDevice peer, BluetoothGatt gatt) {
-        if (peer == null || gatt == null) return;
-        try {
-            BluetoothGattService svc = gatt.getService(java.util.UUID.fromString(SASL_SERVICE_UUID));
-            if (svc == null) return;
-            BluetoothGattCharacteristic chr = svc.getCharacteristic(java.util.UUID.fromString(SASL_CHAR_MESSAGE_UUID));
-            if (chr == null) return;
-            
-            int forwarded = 0;
-            for (java.util.Map.Entry<String, java.util.List<NativeRelayMessage>> entry : relayBuffer.entrySet()) {
-                java.util.Iterator<NativeRelayMessage> it = entry.getValue().iterator();
-                while (it.hasNext()) {
-                    NativeRelayMessage m = it.next();
-                    if (m.ttl <= 0) { it.remove(); continue; }
-                    try {
-                        chr.setValue(m.payload.getBytes(StandardCharsets.UTF_8));
-                        gatt.writeCharacteristic(chr);
-                        m.ttl--;
-                        forwarded++;
-                    } catch (Exception e) { break; }
-                }
-            }
-            Log.d(TAG, "Forwarded " + forwarded + " buffered messages to " + peer.getAddress());
-        } catch (Exception e) {
-            Log.e(TAG, "Forward relay failed: " + e.getMessage());
-        }
     }
 }
