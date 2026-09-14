@@ -109,16 +109,16 @@ public class WaveMeshNativeService {
         BluetoothGattService saslService = new BluetoothGattService(
             UUID.fromString(SASL_SERVICE_UUID), BluetoothGattService.SERVICE_TYPE_PRIMARY);
         
-        BluetoothGattCharacteristic idChar = new BluetoothGattCharacteristic(
+               BluetoothGattCharacteristic idChar = new BluetoothGattCharacteristic(
             UUID.fromString(SASL_CHAR_IDENTITY_UUID),
-            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE,
+            BluetoothGattCharacteristic.PROPERTY_READ | BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE,
             BluetoothGattCharacteristic.PERMISSION_READ | BluetoothGattCharacteristic.PERMISSION_WRITE);
-        
-        BluetoothGattCharacteristic msgChar = new BluetoothGattCharacteristic(
+                BluetoothGattCharacteristic msgChar = new BluetoothGattCharacteristic(
             UUID.fromString(SASL_CHAR_MESSAGE_UUID),
-            BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
+            BluetoothGattCharacteristic.PROPERTY_WRITE | BluetoothGattCharacteristic.PROPERTY_WRITE_NO_RESPONSE | BluetoothGattCharacteristic.PROPERTY_NOTIFY,
             BluetoothGattCharacteristic.PERMISSION_WRITE);
-        
+
+
         saslService.addCharacteristic(idChar);
         saslService.addCharacteristic(msgChar);
         gattServer.addService(saslService);
@@ -143,7 +143,7 @@ public class WaveMeshNativeService {
         if (advName.length() > 25) advName = advName.substring(0, 25);
         final String finalName = advName;
         
-        try {
+                try {
             AdvertiseSettings settings = new AdvertiseSettings.Builder()
                 .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
                 .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_HIGH)
@@ -151,6 +151,7 @@ public class WaveMeshNativeService {
             
             AdvertiseData data = new AdvertiseData.Builder()
                 .setIncludeDeviceName(true)
+                .setIncludeTxPowerLevel(true)
                 .addServiceUuid(new ParcelUuid(UUID.fromString(SASL_SERVICE_UUID))).build();
             
             bluetoothAdapter.setName(advName);
@@ -158,12 +159,21 @@ public class WaveMeshNativeService {
                 @Override
                 public void onStartSuccess(AdvertiseSettings s) {
                     advertising = true;
-                    Log.d(TAG, "Advertising as: " + finalName);
+                    Log.d(TAG, "✅ Advertising as: " + finalName);
                     if (callback != null) callback.onStatusChanged("advertising_started");
                 }
                 @Override
                 public void onStartFailure(int errorCode) {
-                    Log.e(TAG, "Advertising failed: " + errorCode);
+                    Log.e(TAG, "❌ Advertising failed: " + errorCode);
+                    // Retry with legacy mode for old phones
+                    if (errorCode == AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE) {
+                        try {
+                            AdvertiseData simpleData = new AdvertiseData.Builder()
+                                .setIncludeDeviceName(true)
+                                .addServiceUuid(new ParcelUuid(UUID.fromString(SASL_SERVICE_UUID))).build();
+                            bluetoothAdapter.getBluetoothLeAdvertiser().startAdvertising(settings, simpleData, this);
+                        } catch (Exception e) {}
+                    }
                 }
             });
         } catch (Exception e) {
@@ -187,13 +197,14 @@ public class WaveMeshNativeService {
         if (!bleReady || scanning || bleScanner == null) return;
         scanning = true;
         
-        ScanSettings settings = new ScanSettings.Builder()
+               ScanSettings settings = new ScanSettings.Builder()
             .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build();
         
+        // Legacy scan (not BLE 5 extended) for compatibility with older phones like A50
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             settings = new ScanSettings.Builder()
                 .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-                .setLegacy(false)
+                .setLegacy(true)
                 .setPhy(ScanSettings.PHY_LE_ALL_SUPPORTED).build();
         }
         

@@ -156,11 +156,11 @@ class WaveMeshCore {
       }
     } catch {}
   }
-      async saveRooms(): Promise<void> {
+            async saveRooms(): Promise<void> {
     try {
-      // Save ALL peers — never filter by `connected`
+      // Save ONLY connected peers — not discovered ones
       const rooms = Array.from(this.peers.values())
-        .filter(p => p.username && p.username !== 'Peer' && p.username !== 'Sasl Peer');
+        .filter(p => p.connected && p.username && p.username !== 'Peer' && p.username !== 'Sasl Peer');
       await Preferences.set({ key: 'sasl_wavemesh_rooms', value: JSON.stringify(rooms) });
     } catch {}
   }
