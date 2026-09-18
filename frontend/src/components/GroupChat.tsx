@@ -332,6 +332,7 @@ useEffect(() => {
               <X size={18} />
             </button>
           </div>
+        
                   {/* Desktop header — always visible on lg+ */}
         <div className="hidden lg:flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="font-bold text-lg">{t('groups')}</h2>
@@ -339,9 +340,6 @@ useEffect(() => {
             <Plus size={20} />
           </button>
         </div>
-        <button onClick={() => setShowSidebar(false)} onTouchEnd={(e) => { e.preventDefault(); setShowSidebar(false); }} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
-            <X size={18} />
-          </button>
         </div>
         <AnimatePresence>
           {showCreate && (

@@ -309,7 +309,7 @@ export default function Reels() {
         </div>
       ) : (
         reels.map((reel, idx) => (
-          <div key={reel.id} className="relative h-screen w-full snap-start">
+         <div key={reel.id} className="relative h-[calc(100vh-80px)] w-full snap-start">
             {/* VIDEO */}
             <video
               ref={el => { videoRefs.current[idx] = el; }}
