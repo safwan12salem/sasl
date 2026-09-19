@@ -248,7 +248,7 @@ export default function Reels() {
   return (
     <div ref={containerRef} className="h-[calc(100vh-80px)] overflow-y-scroll snap-y snap-mandatory bg-black relative scroll-smooth">
     {/* TOP BAR */}
-      <div className="fixed top-0 left-0 right-0 z-40 px-4 pt-12 pb-2 bg-gradient-to-b from-black/60 to-transparent">
+      <div className="absolute top-0 left-0 right-0 z-10 px-4 pt-4 pb-2 bg-gradient-to-b from-black/60 to-transparent">
         <div className="flex items-center justify-between">
           <h1 className="text-white text-2xl font-bold tracking-tight">
             <span className="bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 bg-clip-text text-transparent">Reels</span>
@@ -266,7 +266,7 @@ export default function Reels() {
       {/* UPLOAD BUTTON */}
       <button
         onClick={() => setShowUpload(true)}
-        className="fixed bottom-28 right-5 z-40 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white p-4 rounded-full shadow-2xl shadow-pink-500/30 hover:scale-110 transition-all duration-300 active:scale-95"
+       className="absolute bottom-28 right-5 z-10 bg-gradient-to-r from-pink-500 via-red-500 to-yellow-500 text-white p-4 rounded-full shadow-2xl shadow-pink-500/30 hover:scale-110 transition-all duration-300 active:scale-95"
       >
         <Plus size={26} />
       </button>
