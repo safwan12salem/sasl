@@ -213,7 +213,8 @@ export default function WaveMesh() {
         if (exists) return prev.map(r => r.id === room.id ? { ...r, name: room.name, connectionType: room.connectionType } : r);
         return [room, ...prev];
       });
-      setActiveRoom(room);
+            setActiveRoom(room);
+      waveMeshCore.setActiveRoomId(room.id);
             // Restore messages for this room from localStorage
       try {
         const saved = JSON.parse(localStorage.getItem('sasl_mesh_messages') || '{}');
@@ -248,7 +249,8 @@ export default function WaveMesh() {
         if (exists) return prev.map(r => r.id === room.id ? { ...r, name: room.name } : r);
         return [room, ...prev];
       });
-      setActiveRoom(room);
+            setActiveRoom(room);
+      waveMeshCore.setActiveRoomId(room.id);
            setShowSidebar(false);
       setShowWelcome(false);
       } catch (e) { console.error('onRoomCreated error:', e); }
@@ -256,7 +258,7 @@ export default function WaveMesh() {
 
     // Message received
         
-        waveMeshCore.setOnMessageReceived((msg: any) => {
+                                waveMeshCore.setOnMessageReceived((msg: any) => {
       try {
       // Handle accept confirmation from peer
       if (msg.type === 'accept') {
@@ -264,7 +266,30 @@ export default function WaveMesh() {
         if (msg.peerId) {
           waveMeshCore.connectToPeer(msg.peerId).catch(() => {});
         }
-        toast.success(`✅ @${msg.from} accepted!`);
+             toast.success(`✅ @${msg.from} accepted!`);
+        return;
+      }
+      // If no room is open, persist silently — don't touch UI state
+      if (!activeRoom) {
+        const roomId = msg.peerId || msg.from;
+        if (roomId) {
+          try {
+            const saved = JSON.parse(localStorage.getItem('sasl_mesh_messages') || '{}');
+            if (!saved[roomId]) saved[roomId] = [];
+            const msgId = msg.id || 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+            if (!saved[roomId].find((m: any) => m.id === msgId)) {
+              saved[roomId].push({
+                id: msgId,
+                from: msg.from,
+                text: msg.text || msg.content || '',
+                timestamp: msg.timestamp || Date.now(),
+                isMe: false,
+                status: msg.relayed ? 'relayed' : 'delivered',
+              });
+              localStorage.setItem('sasl_mesh_messages', JSON.stringify(saved));
+            }
+          } catch {}
+        }
         return;
       }
       const msgId = msg.id || 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
@@ -303,6 +328,17 @@ export default function WaveMesh() {
       waveMeshCore.stop();
         };
   }, []);
+
+
+  // Restore rooms from WaveMeshCore whenever sidebar opens or activeRoom closes
+  useEffect(() => {
+    if (showSidebar) {
+      const coreRooms = waveMeshCore.getRooms();
+      if (coreRooms.length > 0) {
+        setRooms(coreRooms);
+      }
+    }
+  }, [showSidebar]);
 
   // Save rooms when app goes to background or closes
   useEffect(() => {
@@ -347,22 +383,22 @@ export default function WaveMesh() {
     }
   };
 
-      const generateQR = () => {
+           const generateQR = async () => {
     setShowQR(true);
-    setQrCode(waveMeshCore.generateConnectionCode());
+    setQrCode(await waveMeshCore.generateConnectionCode());
     setQrConnected(false);
     setPasteInput('');
   };
 
 
 
-    const pasteCode = () => {
+        const pasteCode = async () => {
     if (!pasteInput.trim()) return toast.error('Enter connection code');
-    const result = waveMeshCore.processConnectionCode(pasteInput.trim());
+    const result = await waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
       // FIRST PASTE: Phone B just connected to Phone A
       // Now generate a RESPONSE code for Phone A to paste back
-      const responseCode = waveMeshCore.generateConnectionCode();
+      const responseCode = await waveMeshCore.generateConnectionCode();
       setQrCode(responseCode);
       setQrConnected(true);
       setPasteInput('');
@@ -373,9 +409,9 @@ export default function WaveMesh() {
   };
 
 
-  const completeHandshake = () => {
+    const completeHandshake = async () => {
     if (!pasteInput.trim()) return toast.error('Enter the response code from other phone');
-    const result = waveMeshCore.processConnectionCode(pasteInput.trim());
+    const result = await waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
       setPasteInput('');
       setShowQR(false);
@@ -421,8 +457,9 @@ export default function WaveMesh() {
 
     const leaveRoom = (roomId: string) => {
     setRooms(prev => prev.filter(r => r.id !== roomId));
-    if (activeRoom?.id === roomId) {
+        if (activeRoom?.id === roomId) {
       setActiveRoom(null);
+      waveMeshCore.setActiveRoomId(null);
       setMessages([]);
         waveMeshCore.disconnectPeer(roomId);
     }
@@ -626,7 +663,7 @@ export default function WaveMesh() {
                     rooms.map(room => (
                       <button
                         key={room.id}
-                        onClick={() => { setActiveRoom(room); setShowSidebar(false); }}
+                                                onClick={() => { setActiveRoom(room); waveMeshCore.setActiveRoomId(room.id); setShowSidebar(false); }}
                         className={`w-full flex items-center gap-3 p-3.5 rounded-2xl transition-all text-left ${
                           activeRoom?.id === room.id
                             ? 'bg-green-50 dark:bg-green-900/20 border-2 border-green-200'
@@ -983,8 +1020,16 @@ export default function WaveMesh() {
             {/* Chat Header */}
             <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-200/50 dark:border-gray-800/50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                <button
-                  onClick={() => { setActiveRoom(null); setShowSidebar(true); }}
+                                                        <button
+                                   onClick={() => {
+                    try {
+                      waveMeshCore.saveRooms();
+                      setActiveRoom(null);
+                      waveMeshCore.setActiveRoomId(null);
+                      setMessages([]);
+                      setShowSidebar(true);
+                    } catch (e) { console.error('close error:', e); }
+                  }}
                   className="md:hidden p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl flex-shrink-0"
                 >
                   <ArrowLeft size={18} />
