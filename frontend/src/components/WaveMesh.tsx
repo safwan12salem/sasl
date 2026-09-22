@@ -213,7 +213,8 @@ export default function WaveMesh() {
         if (exists) return prev.map(r => r.id === room.id ? { ...r, name: room.name, connectionType: room.connectionType } : r);
         return [room, ...prev];
       });
-      setActiveRoom(room);
+           setActiveRoom(room);
+      waveMeshCore.setActiveRoomId(room.id, false);   // ← scan room = direct = plaintext
             // Restore messages for this room from localStorage
       try {
         const saved = JSON.parse(localStorage.getItem('sasl_mesh_messages') || '{}');
@@ -248,7 +249,11 @@ export default function WaveMesh() {
         if (exists) return prev.map(r => r.id === room.id ? { ...r, name: room.name } : r);
         return [room, ...prev];
       });
-      setActiveRoom(room);
+          setActiveRoom(room);
+      // Only set as direct if not already in a relay room
+      if (!waveMeshCore['isRelayRoom']) {
+        waveMeshCore.setActiveRoomId(room.id, false);
+      }
            setShowSidebar(false);
       setShowWelcome(false);
       } catch (e) { console.error('onRoomCreated error:', e); }
@@ -347,44 +352,43 @@ export default function WaveMesh() {
     }
   };
 
-      const generateQR = () => {
+          const generateQR = async () => {
     setShowQR(true);
-    setQrCode(waveMeshCore.generateConnectionCode());
+    setQrCode(await waveMeshCore.generateConnectionCode());
     setQrConnected(false);
     setPasteInput('');
   };
 
-
-
-    const pasteCode = () => {
+    const pasteCode = async () => {
     if (!pasteInput.trim()) return toast.error('Enter connection code');
-    const result = waveMeshCore.processConnectionCode(pasteInput.trim());
+    const result = await waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
-      // FIRST PASTE: Phone B just connected to Phone A
-      // Now generate a RESPONSE code for Phone A to paste back
-      const responseCode = waveMeshCore.generateConnectionCode();
+      const responseCode = await waveMeshCore.generateConnectionCode();
       setQrCode(responseCode);
       setQrConnected(true);
       setPasteInput('');
+      // Mark this as a RELAY room so messages encrypt
+      waveMeshCore.setActiveRoomId(result.peerId, true);
       toast.success(`📱 Now copy THIS code and send it back to the other phone!`);
     } else {
       toast.error('Invalid or expired code');
     }
   };
-
-
-  const completeHandshake = () => {
+  const completeHandshake = async () => {
     if (!pasteInput.trim()) return toast.error('Enter the response code from other phone');
-    const result = waveMeshCore.processConnectionCode(pasteInput.trim());
+    const result = await waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
       setPasteInput('');
       setShowQR(false);
       setQrConnected(false);
+      // Mark this as a RELAY room
+      waveMeshCore.setActiveRoomId(result.peerId, true);
       toast.success(`🤝 Handshake complete! Both rooms open!`);
     } else {
       toast.error('Invalid response code');
     }
-  };
+
+    };
 
     const sendMessage = () => {
     if (!input.trim()) return;
@@ -421,8 +425,9 @@ export default function WaveMesh() {
 
     const leaveRoom = (roomId: string) => {
     setRooms(prev => prev.filter(r => r.id !== roomId));
-    if (activeRoom?.id === roomId) {
+       if (activeRoom?.id === roomId) {
       setActiveRoom(null);
+      waveMeshCore.setActiveRoomId(null, false);
       setMessages([]);
         waveMeshCore.disconnectPeer(roomId);
     }
@@ -626,7 +631,7 @@ export default function WaveMesh() {
                     rooms.map(room => (
                       <button
                         key={room.id}
-                        onClick={() => { setActiveRoom(room); setShowSidebar(false); }}
+            onClick={() => { setActiveRoom(room); waveMeshCore.setActiveRoomId(room.id, false); setShowSidebar(false); }}
                         className={`w-full flex items-center gap-3 p-3.5 rounded-2xl transition-all text-left ${
                           activeRoom?.id === room.id
                             ? 'bg-green-50 dark:bg-green-900/20 border-2 border-green-200'

@@ -17,6 +17,7 @@ export interface RelayMessage {
   hopCount: number;
   relayPath: string[];
   delivered: boolean;
+  roomId?: string;
 }
 
 type MessageCallback = (msg: RelayMessage) => void;
@@ -39,7 +40,7 @@ export class EchoRelay {
   /**
    * Store a message for relay to destination
    */
-  async storeMessage(to: string, text: string, from: string): Promise<string> {
+   async storeMessage(to: string, text: string, from: string, roomId?: string): Promise<string> {
     const msg: RelayMessage = {
       id: `echo_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       from,
@@ -50,6 +51,7 @@ export class EchoRelay {
       hopCount: 0,
       relayPath: [this.myNodeId],
       delivered: false,
+      roomId,
     };
     
     this.messages.push(msg);
@@ -146,7 +148,7 @@ export class EchoRelay {
   /**
    * Store a relay envelope received from another phone
    */
-  async storeRelayEnvelope(envelope: any): Promise<void> {
+    async storeRelayEnvelope(envelope: any): Promise<void> {
     const msg: RelayMessage = {
       id: envelope.msgId,
       from: envelope.from,
@@ -157,6 +159,7 @@ export class EchoRelay {
       hopCount: envelope.hopCount,
       relayPath: envelope.relayPath,
       delivered: false,
+      roomId: envelope.roomId,
     };
     // Don't re-store if we already have it
     if (this.processedIds.has(msg.id)) return;

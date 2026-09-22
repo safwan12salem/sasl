@@ -30,7 +30,14 @@ export interface MeshStats {
 type Callback = (data: any) => void;
 
 class WaveMeshCore {
-  private identity: { id: string; username: string; avatar: string | null } | null = null;
+    private identity: { id: string; username: string; avatar: string | null } | null = null;
+  private activeRoomId: string | null = null;
+  private isRelayRoom: boolean = false;
+  
+  setActiveRoomId(roomId: string | null, isRelay: boolean = false): void {
+    this.activeRoomId = roomId;
+    this.isRelayRoom = isRelay;
+  }
   private peers: Map<string, MeshPeer> = new Map();
   private scanning = false;
   private connectedDevices: Set<string> = new Set();
@@ -103,32 +110,48 @@ class WaveMeshCore {
         this.log(`✅ Connected to ${name}`);
       });
       
-           plugin.addListener('messageReceived', (msg: any) => {
+                   plugin.addListener('messageReceived', async (msg: any) => {
         try {
           const envelope = JSON.parse(msg.text);
           if (envelope.type === 'relay_hop') {
-            // Check if this message is for us
-            if (envelope.to === this.identity?.id || envelope.to === this.identity?.username || envelope.to === 'broadcast') {
-              // DELIVERED — show in UI
-              this.log(`📬 Relay delivered from ${envelope.from}`);
+            const isForUs =
+              envelope.to === 'broadcast' ||
+              envelope.to === this.identity?.id ||
+              envelope.to === this.identity?.username;
+            
+            // Do we have the key for this room? (i.e. are we the receiver?)
+            const isReceiver = this.connectedDevices.has(envelope.roomId || '') || 
+                               this.activeRoomId === envelope.roomId;
+            
+            if (isForUs && isReceiver) {
+              // ============ RECEIVER — DECRYPT ============
+              let plaintext = envelope.text;
+              try {
+                const { decryptFromRoom } = await import('./encryption');
+                plaintext = await decryptFromRoom(envelope.text, envelope.roomId);
+              } catch {}
+              this.log(`📬 [relay] Delivered from ${envelope.from}`);
               this.onMessageReceived?.({
                 id: envelope.msgId,
                 from: envelope.from,
-                text: envelope.text,
+                text: plaintext,
                 type: 'text',
                 timestamp: Date.now(),
                 relayPath: envelope.relayPath,
               });
             } else {
-              // We're a middleman — store silently for later forwarding
-              echoRelay.storeRelayEnvelope(envelope);
-              this.log(`🦠 Bridging message from ${envelope.from}`);
+              // ============ BRIDGE — STORE CIPHERTEXT, FORWARD LATER ============
+              await echoRelay.storeRelayEnvelope(envelope);
+              this.log(`🦠 Bridging from ${envelope.from} (encrypted)`);
+              for (const devId of this.connectedDevices) {
+                this.propagateRelayMessages(devId).catch(() => {});
+              }
             }
             return;
           }
         } catch {}
         
-        // Regular message
+        // ============ DIRECT SCAN — PLAINTEXT (DO NOT TOUCH) ============
         this.onMessageReceived?.({ id: `msg_${Date.now()}`, from: msg.from, text: msg.text, type: 'text', timestamp: Date.now() });
       });
       
@@ -279,33 +302,64 @@ class WaveMeshCore {
   // MESSAGING — Via BLE GATT (CROSS-DEVICE)
   // ============================================================
   
-         async sendMessage(text: string): Promise<void> {
+    async sendMessage(text: string): Promise<void> {
     if (!this.identity) return;
     
     const msgId = `msg_${Date.now()}_${Math.random().toString(36).substr(2,6)}`;
     const msg = { id: msgId, from: this.identity.username, text, type: 'text', timestamp: Date.now() };
     
-    // Echo to sender's UI
+    // Echo to sender's UI (always plaintext for ourselves)
     this.onMessageReceived?.(msg);
     
-    // Store in Echo Relay for bridging through intermediate Sasl users
-    echoRelay.storeMessage('broadcast', text, this.identity.username).catch(() => {});
-    // Store in Echo Relay for forwarding to peers not yet connected
-   
-    // Send to ALL connected devices via BLE GATT
-    for (const deviceId of this.connectedDevices) {
+    if (this.isRelayRoom && this.activeRoomId) {
+      // ============ RELAY ROOM — ENCRYPTED ============
+      let ciphertext = text;
       try {
-        const { BleClient } = await import('@capacitor-community/bluetooth-le');
-        const encoded = new TextEncoder().encode(text);
-        await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
-        const peer = this.peers.get(deviceId);
-        this.log(`📤 Sent to ${peer?.username || deviceId}`);
-      } catch (e) { this.log(`⚠️ BLE send failed`); }
-    }
-    
-    // Also broadcast via BroadcastChannel with SAME msgId
-    if (this.broadcastChannel) {
-      this.broadcastChannel.postMessage(msg);
+        const { encryptForRoom } = await import('./encryption');
+        ciphertext = await encryptForRoom(text, this.activeRoomId);
+      } catch (e) { this.log('⚠️ Encrypt failed, sending plaintext'); }
+      
+      // Store ciphertext in EchoRelay — bridge sees only ciphertext
+      echoRelay.storeMessage('broadcast', ciphertext, this.identity.username, this.activeRoomId).catch(() => {});
+      
+      // Build relay envelope and BLE-broadcast to all connected devices (potential bridges)
+      const envelope = JSON.stringify({
+        type: 'relay_hop',
+        msgId,
+        from: this.identity.username,
+        fromId: this.identity.id,
+        to: 'broadcast',
+        text: ciphertext,
+        roomId: this.activeRoomId,
+        hopCount: 0,
+        relayPath: [this.identity.id],
+        ttl: 100,
+      });
+      
+      for (const deviceId of this.connectedDevices) {
+        try {
+          const { BleClient } = await import('@capacitor-community/bluetooth-le');
+          const encoded = new TextEncoder().encode(envelope);
+          await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
+          this.log(`📤 [relay] Sent to ${this.peers.get(deviceId)?.username || deviceId}`);
+        } catch (e) { this.log(`⚠️ BLE send failed`); }
+      }
+      
+    } else {
+      // ============ DIRECT SCAN — PLAINTEXT (DO NOT TOUCH) ============
+      for (const deviceId of this.connectedDevices) {
+        try {
+          const { BleClient } = await import('@capacitor-community/bluetooth-le');
+          const encoded = new TextEncoder().encode(text);
+          await BleClient.writeWithoutResponse(deviceId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', 'beb5483e-36e1-4688-b7f5-ea07361b26a8', new DataView(encoded.buffer));
+          const peer = this.peers.get(deviceId);
+          this.log(`📤 Sent to ${peer?.username || deviceId}`);
+        } catch (e) { this.log(`⚠️ BLE send failed`); }
+      }
+      
+      if (this.broadcastChannel) {
+        this.broadcastChannel.postMessage(msg);
+      }
     }
   }
 
@@ -313,19 +367,42 @@ class WaveMeshCore {
   // QR HANDSHAKE
   // ============================================================
   
-  generateConnectionCode(): string {
+   async generateConnectionCode(): Promise<string> {
     if (!this.identity) return '';
-    return JSON.stringify({ type: 'sasl_connect', version: 3, nodeId: this.identity.id, username: this.identity.username, timestamp: Date.now() });
+    const { getRoomKey, exportKey } = await import('./encryption');
+    const roomId = this.identity.id;
+    const key = await getRoomKey(roomId);
+    const publicKey = await exportKey(key);
+    return JSON.stringify({
+      type: 'sasl_connect',
+      version: 4,
+      nodeId: this.identity.id,
+      username: this.identity.username,
+      roomId,
+      publicKey,
+      timestamp: Date.now(),
+    });
   }
-
-  processConnectionCode(code: string): { username: string; peerId: string } | null {
+   async processConnectionCode(code: string): Promise<{ username: string; peerId: string } | null> {
     try {
       const data = JSON.parse(code); if (data.type !== 'sasl_connect') return null;
       if (Date.now() - data.timestamp > 300000) { this.log('⚠️ Code expired'); return null; }
-      this.peers.set(data.nodeId, { id: data.nodeId, username: data.username, distance: 0, connectionType: 'ble4', lastSeen: Date.now(), signalStrength: 100, connected: true, nodeId: data.nodeId });
-      this.connectedDevices.add(data.nodeId);
-      this.onPeerConnected?.({ peerId: data.nodeId, username: data.username });
-      this.onRoomCreated?.({ peerId: data.nodeId, username: data.username });
+      
+      const sharedRoomId = data.roomId || data.nodeId;
+      
+      // Adopt the QR generator's room key
+      if (data.publicKey && sharedRoomId) {
+        try {
+          const { adoptRoomKey } = await import('./encryption');
+          await adoptRoomKey(sharedRoomId, data.publicKey);
+          this.log(`🔐 Adopted key for ${sharedRoomId.substring(0,8)}...`);
+        } catch (e) { this.log('⚠️ Key adoption failed'); }
+      }
+      
+      this.peers.set(sharedRoomId, { id: sharedRoomId, username: data.username, distance: 0, connectionType: 'ble4', lastSeen: Date.now(), signalStrength: 100, connected: true, nodeId: data.nodeId });
+      this.connectedDevices.add(sharedRoomId);
+      this.onPeerConnected?.({ peerId: sharedRoomId, username: data.username });
+      this.onRoomCreated?.({ peerId: sharedRoomId, username: data.username });
       this.saveRooms();
       
       // Send QR confirmation via BLE so the other phone also creates the room
@@ -336,7 +413,7 @@ class WaveMeshCore {
         BleClient.writeWithoutResponse(data.nodeId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', '6e400001-b5a3-f393-e0a9-e50e24dcca9e', new DataView(encoded.buffer)).catch(() => {});
       }
       
-      return { username: data.username, peerId: data.nodeId };
+           return { username: data.username, peerId: sharedRoomId };
     } catch { return null; }
   }
 
@@ -484,7 +561,7 @@ class WaveMeshCore {
    * VIRUS RELAY: Forward undelivered messages to a connected peer via BLE
    * Middlemen store encrypted envelopes — they see nothing.
    */
-  private async propagateRelayMessages(deviceId: string): Promise<void> {
+   private async propagateRelayMessages(deviceId: string): Promise<void>{
     const undelivered = echoRelay.getUndeliveredMessages();
     if (undelivered.length === 0) return;
     
@@ -497,11 +574,11 @@ class WaveMeshCore {
         from: msg.from,
         to: msg.to,
         text: msg.text,
+        roomId: msg.roomId,
         hopCount: msg.hopCount + 1,
         relayPath: [...msg.relayPath, deviceId],
         ttl: msg.ttl - 1,
       });
-      
       try {
         const { BleClient } = await import('@capacitor-community/bluetooth-le');
         const encoded = new TextEncoder().encode(envelope);
