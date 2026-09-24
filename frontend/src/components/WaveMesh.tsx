@@ -261,8 +261,32 @@ export default function WaveMesh() {
 
     // Message received
         
-        waveMeshCore.setOnMessageReceived((msg: any) => {
+             waveMeshCore.setOnMessageReceived((msg: any) => {
       try {
+      // Handle QR confirmation — the other phone scanned our QR
+      if (msg.type === 'qr_confirm') {
+        console.log('🤝 QR confirm from ' + msg.from);
+        // Register the room on our side too
+        const roomId = msg.peerId || msg.from;
+        const room = {
+          id: roomId,
+          name: msg.from,
+          avatar: null,
+          lastMessage: 'Connected via QR',
+          lastMessageTime: new Date().toISOString(),
+          unread: 0,
+          connectionType: 'relay' as const,
+          distance: 0,
+        };
+        setRooms(prev => {
+          if (prev.find(r => r.id === room.id)) return prev;
+          return [room, ...prev];
+        });
+        waveMeshCore.setActiveRoomId(roomId, true);   // relay room = encrypted
+        toast.success(`🤝 QR connected with @${msg.from}`);
+        return;
+      }
+      
       // Handle accept confirmation from peer
       if (msg.type === 'accept') {
         console.log('✅ Accept received from ' + msg.from);

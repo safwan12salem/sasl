@@ -38,6 +38,14 @@ class WaveMeshCore {
     this.activeRoomId = roomId;
     this.isRelayRoom = isRelay;
   }
+
+  private hasKeyForRoom(roomId: string | null | undefined): boolean {
+    if (!roomId) return false;
+    try {
+      return !!localStorage.getItem(`sasl_key_${roomId}`);
+    } catch { return false; }
+  }
+
   private peers: Map<string, MeshPeer> = new Map();
   private scanning = false;
   private connectedDevices: Set<string> = new Set();
@@ -119,10 +127,10 @@ class WaveMeshCore {
               envelope.to === this.identity?.id ||
               envelope.to === this.identity?.username;
             
-            // Do we have the key for this room? (i.e. are we the receiver?)
-            const isReceiver = this.connectedDevices.has(envelope.roomId || '') || 
-                               this.activeRoomId === envelope.roomId;
-            
+                        // Receiver = we have the room key (from QR). Otherwise we're a bridge.
+            const isReceiver = this.hasKeyForRoom(envelope.roomId);
+
+
             if (isForUs && isReceiver) {
               // ============ RECEIVER — DECRYPT ============
               let plaintext = envelope.text;
@@ -408,9 +416,9 @@ class WaveMeshCore {
       // Send QR confirmation via BLE so the other phone also creates the room
       if (this.identity) {
         const { BleClient } = require('@capacitor-community/bluetooth-le');
-        const payload = JSON.stringify({ type: 'qr_confirm', from: this.identity.username, peerId: this.identity.id, username: this.identity.username });
+        const payload = JSON.stringify({ type: 'qr_confirm', from: this.identity.username, peerId: sharedRoomId, username: this.identity.username });
         const encoded = new TextEncoder().encode(payload);
-        BleClient.writeWithoutResponse(data.nodeId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', '6e400001-b5a3-f393-e0a9-e50e24dcca9e', new DataView(encoded.buffer)).catch(() => {});
+                    BleClient.writeWithoutResponse(data.nodeId, '4fafc201-1fb5-459e-8fcc-c5c9c331914b', '6e400001-b5a3-f393-e0a9-e50e24dcca9e', new DataView(encoded.buffer)).catch(() => {});
       }
       
            return { username: data.username, peerId: sharedRoomId };
