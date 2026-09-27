@@ -458,10 +458,10 @@ useEffect(() => {
           
 
       {/* Chat Area */}
-            <div className="flex-1 flex flex-col w-full absolute inset-0 lg:relative lg:inset-auto pb-14 lg:pb-0">
+                     <div className="flex-1 flex flex-col w-full min-h-0 overflow-hidden lg:relative">   
         {activeGroup && activeGroupData ? (
           <>
-                       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2 min-w-0">           
+                           <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2 min-w-0 flex-shrink-0">         
               <div className="flex items-center gap-3">
                 <button onClick={() => { setActiveGroup(null); setShowSidebar(true); }} className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                   <ArrowLeft size={18} />
@@ -607,7 +607,7 @@ useEffect(() => {
                 )}
                 <button
   onClick={() => setShowVoiceRecorder(!showVoiceRecorder)}
-  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 flex-shrink-0"
 >
   <Mic size={18} />
 </button>
@@ -652,20 +652,20 @@ useEffect(() => {
     </div>
   )}
 </AnimatePresence>
-                        <div className="p-3 border-t border-gray-200 dark:border-gray-700 flex items-center gap-2 relative">
+                              <div className="p-3 border-t border-gray-200 dark:border-gray-700 flex items-center gap-1 sm:gap-2 relative flex-shrink-0">
               <input type="file" accept="image/*,video/*" ref={fileInputRef} className="hidden" onChange={handleImageSelect} />
               {/* Voice Message Button */}
 <button
   onClick={() => setShowVoiceRecorder(!showVoiceRecorder)}
-  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"
+  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 flex-shrink-0"
   title={t('Voice Message')}
 >
   <Mic size={18} />
 </button>
-              <button onClick={() => fileInputRef.current?.click()} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"><Image size={18} /></button>
-              <button onClick={() => setShowEmoji(!showEmoji)} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500"><Smile size={18} /></button>
-              <input className="input-field flex-1 text-sm" placeholder="Type a message..." value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} />
-              <button onClick={sendMessage} disabled={sending || (!input.trim() && !selectedImage)} className="btn-primary p-2 rounded-full disabled:opacity-50">
+                   <button onClick={() => fileInputRef.current?.click()} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 flex-shrink-0"><Image size={18} /></button>
+              <button onClick={() => setShowEmoji(!showEmoji)} className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 flex-shrink-0"><Smile size={18} /></button>
+                       <input className="input-field flex-1 min-w-0 text-sm" placeholder={t('type_a_message') || 'Type a message...'} value={input} onChange={e => setInput(e.target.value)} onKeyDown={handleKeyDown} />
+                         <button onClick={sendMessage} disabled={sending || (!input.trim() && !selectedImage)} className="btn-primary p-2 rounded-full disabled:opacity-50 flex-shrink-0">
                 {sending ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
               </button>
               {showEmoji && (
