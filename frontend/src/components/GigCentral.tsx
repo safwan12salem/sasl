@@ -458,7 +458,7 @@ export default function GigCentral() {
               {milestones.map((m, idx) => (
                 <div key={idx} className="flex gap-2 items-center">
                   <input className="flex-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-600 text-sm outline-none" placeholder={t('Milestone title')} value={m.title} onChange={e => updateMilestone(idx, 'title', e.target.value)} />
-                  <input className="w-28 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-600 text-sm outline-none" type="number" placeholder={t('Amount')} value={m.amount} onChange={e => updateMilestone(idx, 'amount', e.target.value)} />
+            <input className="w-28 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-600 text-sm outline-none placeholder:text-xs" type="number" placeholder={t('Amount')} value={m.amount} onChange={e => updateMilestone(idx, 'amount', e.target.value)} />
                   {milestones.length > 1 && <button onClick={() => removeMilestone(idx)} className="text-red-500 hover:text-red-700 p-1">✕</button>}
                 </div>
               ))}

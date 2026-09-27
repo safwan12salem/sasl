@@ -642,21 +642,21 @@ const Feed: React.FC = () => {
             <button onClick={() => setComposingWithPoll(!composingWithPoll)} className="hover:text-purple-500"><BarChart2 size={20} /></button>
                        <button onClick={() => setShowEmojiPicker(!showEmojiPicker)} className="hover:text-yellow-500 relative"><Smile size={20}/></button>
           </div>
-          <div className="flex items-center gap-2">
+                   <div className="flex items-center gap-2 flex-shrink-0">
             <button
               type="button"
               onClick={() => setVisibility(visibility === 'public' ? 'followers' : 'public')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition whitespace-nowrap flex-shrink-0 ${
                 visibility === 'public' 
                   ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' 
                   : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
               }`}
             >
-              {visibility === 'public' ? '🌍' : '🔒'}
-              {visibility === 'public' ? 'Public' : 'Followers'}
+              <span>{visibility === 'public' ? '🌍' : '🔒'}</span>
+              <span className="whitespace-nowrap">{visibility === 'public' ? 'Public' : 'Followers'}</span>
             </button>
                         
-           <button onClick={submitPost} disabled={!composing.trim() && !selectedFile} className="bg-gradient-to-r from-green-500 to-orange-500 text-white text-sm py-2 px-6 rounded-full font-bold shadow-lg shadow-green-500/25 hover:shadow-xl transition">
+           <button onClick={submitPost} disabled={!composing.trim() && !selectedFile} className="bg-gradient-to-r from-green-500 to-orange-500 text-white text-sm py-2 px-6 rounded-full font-bold shadow-lg shadow-green-500/25 hover:shadow-xl transition whitespace-nowrap flex-shrink-0">
             {t('post')}
           </button>
           </div>

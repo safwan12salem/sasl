@@ -187,7 +187,7 @@ export default function Wallet() {
 
       {categoryTotals.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-white dark:bg-gray-800 p-4 rounded-2xl mb-6 border-l-4 border-green-500 shadow-lg shadow-green-500/10">
-          <h3 className="font-semibold mb-3 flex items-center gap-2"><TrendingUp size={18} /> {t('Earnings Breakdown')}</h3>
+        <h3 className="font-semibold mb-3 flex items-center gap-2 min-w-0"><TrendingUp size={18} className="flex-shrink-0" /> <span className="truncate">{t('Earnings Breakdown')}</span></h3>
           <div className="space-y-2">
             {categoryTotals.map((cat, idx) => (
               <div key={idx} className="flex items-center justify-between text-sm">

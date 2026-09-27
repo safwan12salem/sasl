@@ -383,11 +383,11 @@ useEffect(() => {
 
         {/* Groups List */}
         <div className="flex-1 overflow-y-auto">
-          {groups.length === 0 && (
-            <div className="text-center text-gray-400 p-8">
+                   {groups.length === 0 && (
+            <div className="text-center text-gray-400 p-6 max-w-full">
               <Users size={32} className="mx-auto mb-2 opacity-50" />
-              <p className="text-sm">{t('no_groups_yet')}</p>
-              <p className="text-xs">{t('create_group_to_chat')}</p>
+              <p className="text-sm break-words px-2">{t('no_groups_yet')}</p>
+              <p className="text-xs break-words px-2 mt-1">{t('create_group_to_chat')}</p>
             </div>
           )}
           {groups.map(group => (
@@ -461,7 +461,7 @@ useEffect(() => {
             <div className="flex-1 flex flex-col w-full absolute inset-0 lg:relative lg:inset-auto pb-14 lg:pb-0">
         {activeGroup && activeGroupData ? (
           <>
-                       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                       <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between gap-2 min-w-0">           
               <div className="flex items-center gap-3">
                 <button onClick={() => { setActiveGroup(null); setShowSidebar(true); }} className="lg:hidden p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
                   <ArrowLeft size={18} />
@@ -473,16 +473,16 @@ useEffect(() => {
                     {activeGroupData.name[0]?.toUpperCase() || 'G'}
                   </div>
                 )}
-                <div>
-                  <h3 className="font-bold">{activeGroupData.name}</h3>
-                  <p className="text-xs text-gray-500">
+                               <div className="min-w-0 flex-1">
+                  <h3 className="font-bold truncate">{activeGroupData.name}</h3>
+                  <p className="text-xs text-gray-500 truncate">
                     {activeGroupData.members_count || 0}  {t('members')}
                     {activeGroupData.is_mesh && ' · Mesh Enabled'}
                   </p>
                 </div>
               </div>
-              <button onClick={() => setShowInvite(!showInvite)} className="btn-ghost text-sm flex items-center gap-1">
-                <UserPlus size={14} /> {t('invite')}
+              <button onClick={() => setShowInvite(!showInvite)} className="btn-ghost text-sm flex items-center gap-1 flex-shrink-0 whitespace-nowrap">
+                <UserPlus size={14} className="flex-shrink-0" /> <span>{t('invite')}</span>
               </button>
             </div>
 
