@@ -38,7 +38,7 @@ class FeeCollector:
     @staticmethod
     def subscription_fee(amount, creator):
         """30% fee on subscriptions"""
-        fee = Decimal(str(amount)) * Decimal2('0.30')
+        fee = Decimal(str(amount)) * Decimal('0.30')
         creator_earns = Decimal(str(amount)) - fee
         
         return creator_earns, fee

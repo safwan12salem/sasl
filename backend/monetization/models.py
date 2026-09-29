@@ -24,7 +24,6 @@ class AdImpression(models.Model):
     clicked = models.BooleanField(default=False)
     timestamp = models.DateTimeField(auto_now_add=True)
     rewarded = models.BooleanField(default=False)
-
 class Transaction(models.Model):
     TYPE = (
         ('purchase', 'Purchase'),

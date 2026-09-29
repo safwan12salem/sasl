@@ -4,6 +4,7 @@ Complete payment processing endpoints
 """
 import stripe
 import logging
+
 from decimal import Decimal
 from rest_framework.permissions import IsAuthenticated
 from django.conf import settings
@@ -22,6 +23,8 @@ from .serializers import PaymentSerializer, PayoutSerializer
 from users.models import Wallet
 from monetization.models import Transaction
 
+from django.contrib.auth import get_user_model
+User = get_user_model()
 logger = logging.getLogger(__name__)
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -88,15 +91,33 @@ class PaymentViewSet(viewsets.GenericViewSet):
 
     @action(detail=False, methods=['post'])
     def withdraw(self, request):
-        amount = float(request.data.get('amount', 0))
+        from decimal import Decimal as D
+        amount = D(str(request.data.get('amount', 0)))
+        if amount <= 0:
+            return Response({'error': 'Invalid amount'}, status=400)
+
         wallet = request.user.wallet
-        if float(wallet.balance) < amount:
+        if wallet.balance < amount:
             return Response({'error': 'Insufficient balance'}, status=400)
 
-        wallet.balance -= amount
-        wallet.save()
-        return Response({'status': 'withdrawal_initiated'})
+        with db_transaction.atomic():
+            wallet.balance -= amount
+            wallet.save()
 
+            Transaction.objects.create(
+                user=request.user,
+                amount=-amount,
+                transaction_type='withdrawal',
+                description=f'Withdrawal request (${amount})'
+            )
+
+            Payout.objects.create(
+                user=request.user,
+                amount=amount,
+                status='pending'
+            )
+
+        return Response({'status': 'withdrawal_initiated', 'amount': str(amount)})
     @action(detail=False, methods=['post'])
     def confirm_topup(self, request):
         payment_intent_id = request.data.get('payment_intent_id')
@@ -192,27 +213,8 @@ class PaymentViewSet(viewsets.GenericViewSet):
         payouts = Payout.objects.filter(user=request.user).order_by('-created_at')[:50]
         return Response(PayoutSerializer(payouts, many=True).data)
 
-    @action(detail=False, methods=['get'])
-    def fee_calculator(self, request):
-        amount = float(request.query_params.get('amount', 0))
-        fee_type = request.query_params.get('type', 'marketplace')
 
-        fee_percentages = {
-            'marketplace': 5.0,
-            'gig': 5.0,
-            'donation': 5.0,
-            'tutoring': 10.0,
-            'subscription': 30.0,
-        }
-
-        fee_pct = fee_percentages.get(fee_type, 5.0)
-        result = calculate_platform_fee(amount, fee_pct)
-        result['fee_type'] = fee_type
-        result['fee_percentage'] = fee_pct
-
-        return Response(result)
-
-
+       
 @csrf_exempt
 @api_view(['POST'])
 @permission_classes([])
