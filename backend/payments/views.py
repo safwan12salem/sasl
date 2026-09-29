@@ -4,7 +4,7 @@ Complete payment processing endpoints
 """
 import stripe
 import logging
-
+from django.db import transaction as db_transaction
 from decimal import Decimal
 from rest_framework.permissions import IsAuthenticated
 from django.conf import settings
