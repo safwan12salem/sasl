@@ -1,4 +1,4 @@
-const CACHE_NAME = 'sasl-shell-v1';
+const CACHE_NAME = 'sasl-shell-v2';
 const APP_SHELL = [
   '/',
   '/index.html',
@@ -38,11 +38,13 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return response;
-      }).catch(() => {
+           }).catch(() => {
         // Offline fallback — return index.html for navigation requests
         if (event.request.mode === 'navigate') {
-          return caches.match('/');
+          return caches.match('/') || caches.match('/index.html');
         }
+        // Non-navigation request that failed — return a proper empty Response
+        return new Response('', { status: 503, statusText: 'Offline' });
       });
     })
   );
