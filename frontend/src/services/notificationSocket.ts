@@ -121,18 +121,23 @@ export function subscribeNotifications(callback: (data: any) => void) {
       .subscribe();
   } catch {}
   
-  // Polling last resort
+  
+    // Polling last resort (only if authenticated)
   const pollInterval = setInterval(async () => {
+    const token = localStorage.getItem('sasl_token');
+    if (!token) return;  // skip if not logged in
+    
     try {
-      const res = await fetch('/api/content/notifications/', {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('sasl_token')}` }
+      const res = await fetch('https://sasl-api-i34r.onrender.com/api/content/notifications/', {
+        headers: { 'Authorization': `Bearer ${token}` }
       });
+      if (!res.ok) return;  // skip if 401/500
       const data = await res.json();
       const notifications = data.results || data || [];
       const unreadCount = notifications.filter((n: any) => !n.is_read).length;
       callback({ type: 'unread_count', count: unreadCount });
     } catch {}
-  }, 30000);
+  }, 60000);  // 60s instead of 30s
   
   return () => {
     listeners = listeners.filter(cb => cb !== callback);
