@@ -440,7 +440,7 @@ sasl/
 | Arabic | `ar` | ✅ Complete (RTL) |
 | Spanish | `es` | ✅ Complete |
 | French | `fr` | ✅ Complete |
-| German | `de` | ⏳ Coming |
+| German | `de` | ✅ Complete |
 | Greek | `gr` | ✅ Complete |
 | Hindi | `hi` | ✅ Complete |
 | Italian | `it` | ✅ Complete |
