@@ -168,7 +168,7 @@ export default function Layout() {
             </motion.button>
           </div>
           
-          <button 
+                   <button 
             onClick={() => setShowReferral(true)} 
             className={`flex items-center gap-2 w-full py-2.5 px-4 rounded-xl transition text-sm ${
               isDark 
@@ -178,6 +178,19 @@ export default function Layout() {
           >
             <Users size={16} /> {t('invite')}
           </button>
+          
+          {/* Legal Footer */}
+          <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+            <div className="flex flex-wrap gap-x-3 gap-y-1 px-4 py-2 text-[10px] text-gray-400 dark:text-gray-500">
+              <Link to="/terms" className="hover:text-green-500 transition">Terms</Link>
+              <span className="text-gray-300 dark:text-gray-600">·</span>
+              <Link to="/privacy" className="hover:text-green-500 transition">Privacy</Link>
+              <span className="text-gray-300 dark:text-gray-600">·</span>
+              <Link to="/legal/safety" className="hover:text-green-500 transition">Safety</Link>
+              <span className="text-gray-300 dark:text-gray-600">·</span>
+              <Link to="/legal/guidelines" className="hover:text-green-500 transition">Guidelines</Link>
+            </div>
+          </div>
           
           <button 
             onClick={logout} 

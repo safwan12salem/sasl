@@ -466,9 +466,11 @@ Sasl is currently a **private project**. If you'd like to contribute in the futu
 
 ## 📄 Legal
 
-- **Terms of Service:** `/legal/terms` (coming soon)
-- **Privacy Policy:** `/legal/privacy` (coming soon)
-- **Device Safety Disclaimer:** `/legal/safety` (coming soon)
+- **Terms of Service:** [/legal/terms](https://sasl.vercel.app/legal/terms)
+- **Privacy Policy:** [/legal/privacy](https://sasl.vercel.app/legal/privacy)
+- **Device Safety Disclaimer:** [/legal/safety](https://sasl.vercel.app/legal/safety)
+- **Community Guidelines:** [/legal/guidelines](https://sasl.vercel.app/legal/guidelines)
+
 
 > ⚠️ **WaveMesh uses Bluetooth Low Energy.** Do not use while driving or in situations requiring full attention. See safety disclaimer for details.
 

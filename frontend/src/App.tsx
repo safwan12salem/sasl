@@ -46,6 +46,13 @@ import PlatformDashboard from './components/PlatformDashboard';
 import { preCacheAllFeatures } from './services/preCache';
 
 
+import Terms from './pages/Legal/Terms';
+import Privacy from './pages/Legal/Privacy';
+import Safety from './pages/Legal/Safety';
+import Guidelines from './pages/Legal/Guidelines';
+
+
+
 // ✅ FIXED: Added loading check
 function PrivateRoute({ children }: { children: JSX.Element }) {
   const token = localStorage.getItem('sasl_token');
@@ -180,7 +187,9 @@ useEffect(() => {
           <Route path="/events" element={<PrivateRoute><Events /></PrivateRoute>} />
           <Route path="/referral" element={<PrivateRoute><ReferralModal referralCode={user?.username || ''} onClose={() => window.history.back()} /></PrivateRoute>} />
           <Route path="/qr-profile" element={<PrivateRoute><QRProfile username={user?.username || ''} /></PrivateRoute>} />
-          <Route path="/advertise" element={<AdvertisePage />} />
+                    <Route path="/advertise" element={<AdvertisePage />} />
+          <Route path="/legal/safety" element={<Safety />} />
+          <Route path="/legal/guidelines" element={<Guidelines />} />
           
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
