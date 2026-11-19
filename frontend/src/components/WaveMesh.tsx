@@ -222,7 +222,7 @@ export default function WaveMesh() {
       } catch {}
       setShowSidebar(false);
       setShowWelcome(false);
-            toast.success(`🔗 Connected with ${name}!`);
+           toast.success(t('toast_connected_with', { name }));
       } catch (e) { console.error('onPeerConnected error:', e); }
     });
 
@@ -283,7 +283,7 @@ export default function WaveMesh() {
           return [room, ...prev];
         });
         waveMeshCore.setActiveRoomId(roomId, true);   // relay room = encrypted
-        toast.success(`🤝 QR connected with @${msg.from}`);
+        toast.success(t('toast_qr_connected', { name: msg.from }));
         return;
       }
       
@@ -293,7 +293,7 @@ export default function WaveMesh() {
         if (msg.peerId) {
           waveMeshCore.connectToPeer(msg.peerId).catch(() => {});
         }
-        toast.success(`✅ @${msg.from} accepted!`);
+        toast.success(t('toast_accepted', { name: msg.from }));
         return;
       }
       const msgId = msg.id || 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
@@ -384,7 +384,7 @@ export default function WaveMesh() {
   };
 
     const pasteCode = async () => {
-    if (!pasteInput.trim()) return toast.error('Enter connection code');
+    if (!pasteInput.trim()) return toast.error(t('error_enter_code'));
     const result = await waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
       const responseCode = await waveMeshCore.generateConnectionCode();
@@ -393,13 +393,13 @@ export default function WaveMesh() {
       setPasteInput('');
       // Mark this as a RELAY room so messages encrypt
       waveMeshCore.setActiveRoomId(result.peerId, true);
-      toast.success(`📱 Now copy THIS code and send it back to the other phone!`);
+     toast.success(t('toast_copy_response_code'));
     } else {
-      toast.error('Invalid or expired code');
+      toast.error(t('error_invalid_code'));
     }
   };
   const completeHandshake = async () => {
-    if (!pasteInput.trim()) return toast.error('Enter the response code from other phone');
+    if (!pasteInput.trim()) return toast.error(t('error_enter_response'));
     const result = await waveMeshCore.processConnectionCode(pasteInput.trim());
     if (result) {
       setPasteInput('');
@@ -407,9 +407,9 @@ export default function WaveMesh() {
       setQrConnected(false);
       // Mark this as a RELAY room
       waveMeshCore.setActiveRoomId(result.peerId, true);
-      toast.success(`🤝 Handshake complete! Both rooms open!`);
+      toast.success(t('toast_handshake_complete'));
     } else {
-      toast.error('Invalid response code');
+     toast.error(t('error_invalid_response'));
     }
 
     };
@@ -431,7 +431,7 @@ export default function WaveMesh() {
       const { audioMesh } = await import("../services/AudioMesh");
       audioMesh.stop();
       setAudioMeshActive(false);
-      toast.success("🔊 AudioMesh deactivated");
+      toast.success(t('toast_audiomesh_off'));
     } else {
       const { audioMesh } = await import("../services/AudioMesh");
       await audioMesh.start();
@@ -439,7 +439,7 @@ export default function WaveMesh() {
         setMessages(prev => [...prev, { id: `msg_${Date.now()}`, from: "AudioMesh Peer", text, timestamp: Date.now(), isMe: false, status: "delivered" }]);
       });
       setAudioMeshActive(true);
-      toast.success("🔊 AudioMesh activated — extended range mode");
+      toast.success(t('toast_audiomesh_on'));
     }
   };
   const connectToPeer = async (deviceId: string) => {
@@ -522,7 +522,7 @@ export default function WaveMesh() {
               <h3 className="font-bold text-xl mb-1">@{incomingRequest.from}</h3>
               <p className="text-gray-500 text-sm mb-4">{incomingRequest.message}</p>
               <div className="flex gap-2">
-                <button onClick={() => { waveMeshCore.acceptRequest(incomingRequest.peerId); setIncomingRequest(null); toast.success("✅ Accepted!"); }}
+              <button onClick={() => { waveMeshCore.acceptRequest(incomingRequest.peerId); setIncomingRequest(null); toast.success(t('toast_request_accepted')); }}
                   className="flex-1 py-3 bg-green-500 text-white rounded-xl font-bold">✅ Accept</button>
                 <button onClick={() => setIncomingRequest(null)}
                   className="flex-1 py-3 bg-gray-200 dark:bg-gray-700 rounded-xl font-medium">❌ Decline</button>
@@ -642,8 +642,8 @@ export default function WaveMesh() {
                   {rooms.length === 0 ? (
                     <div className="text-center py-16 px-4 text-gray-400">
                       <MessageCircle size={36} className="mx-auto mb-2 opacity-50" />
-                      <p className="font-semibold">No conversations yet</p>
-                      <p className="text-sm">Start scanning to find peers</p>
+                     <p className="font-semibold">{t('no_conversations')}</p>
+                     <p className="text-sm">{t('start_scanning_hint')}</p>
                       <button
                         onClick={toggleScan}
                         className="mt-4 px-4 py-2 bg-green-500 text-white rounded-xl text-sm"
@@ -718,9 +718,9 @@ export default function WaveMesh() {
                       onChange={e => setSortBy(e.target.value as any)}
                       className="text-[10px] bg-transparent text-gray-500"
                     >
-                      <option value="distance">Sort by Distance</option>
-                      <option value="name">Sort by Name</option>
-                      <option value="type">Sort by Type</option>
+                      <option value="distance">{t('sort_by_distance')}</option>
+                        <option value="name">{t('sort_by_name')}</option>
+                        <option value="type">{t('sort_by_type')}</option>
                     </select>
                   </div>
 
@@ -769,13 +769,13 @@ export default function WaveMesh() {
                           </div>
                           <div className="flex items-center gap-1">
                             {peer.connected ? (
-                              <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full">Connected</span>
+                     <span className="text-[10px] bg-green-100 text-green-600 px-2 py-0.5 rounded-full">{t('status_connected')}</span>
                             ) : (
                               <button
-                                                               onClick={async () => { 
-  toast.success("🔗 Connecting...");
-  await waveMeshCore.connectToPeer(peer.id);
-}}
+                              onClick={async () => { 
+                                  toast.success(t('toast_connecting'));
+                                  await waveMeshCore.connectToPeer(peer.id);
+                                       }}
                                 className="p-2.5 bg-green-500 text-white rounded-xl hover:bg-green-600 transition"
                               >
                                 <Send size={14} />
@@ -851,14 +851,14 @@ export default function WaveMesh() {
               {tab === 'connect' && (
                 <div className="space-y-4 p-2">
                   <div className="glass p-4 rounded-2xl text-center">
-                    <p className="text-xs text-gray-500 mb-1">Your Sasl Mesh ID</p>
+                 <p className="text-xs text-gray-500 mb-1">{t('your_mesh_id')}</p>
                     <code className="text-xs bg-gray-100 dark:bg-gray-700 px-3 py-1.5 rounded-lg break-all">
                       {waveMeshCore.getIdentity()?.id || 'Initializing...'}
                     </code>
                     <button
                       onClick={() => {
                         navigator.clipboard.writeText(waveMeshCore.getIdentity()?.id || '');
-                        toast.success('ID copied!');
+                        toast.success(t('toast_id_copied'));
                       }}
                       className="mt-2 text-[10px] text-green-500 flex items-center gap-1 mx-auto"
                     >
@@ -877,7 +877,7 @@ export default function WaveMesh() {
                     <input
                       value={pasteInput}
                       onChange={e => setPasteInput(e.target.value)}
-                      placeholder="Paste connection code..."
+                      placeholder={t('placeholder_paste_code')}
                       className="flex-1 px-4 py-2.5 rounded-xl border text-sm dark:bg-gray-700 dark:border-gray-600"
                     />
                     <button
@@ -891,22 +891,22 @@ export default function WaveMesh() {
                   {/* Stats Card */}
                   {stats && (
                     <div className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800">
-                      <h4 className="text-xs font-bold mb-3">Mesh Statistics</h4>
+                      <h4 className="text-xs font-bold mb-3">{t('mesh_statistics')}</h4>
                       <div className="grid grid-cols-2 gap-2">
                         <div className="p-2 rounded-xl bg-white dark:bg-gray-700">
-                          <p className="text-[10px] text-gray-500">Peers</p>
+                         <p className="text-[10px] text-gray-500">{t('stat_peers')}</p>
                           <p className="text-lg font-bold">{stats.totalPeers}</p>
                         </div>
                         <div className="p-2 rounded-xl bg-white dark:bg-gray-700">
-                          <p className="text-[10px] text-gray-500">Connected</p>
+                         <p className="text-[10px] text-gray-500">{t('stat_connected')}</p>
                           <p className="text-lg font-bold">{stats.connectedPeers}</p>
                         </div>
                         <div className="p-2 rounded-xl bg-white dark:bg-gray-700">
-                          <p className="text-[10px] text-gray-500">Relay Msgs</p>
+                         <p className="text-[10px] text-gray-500">{t('stat_relay_msgs')}</p>
                           <p className="text-lg font-bold">{stats.relayMessages}</p>
                         </div>
                         <div className="p-2 rounded-xl bg-white dark:bg-gray-700">
-                          <p className="text-[10px] text-gray-500">Delivered</p>
+                          <p className="text-[10px] text-gray-500">{t('stat_delivered')}</p>
                           <p className="text-lg font-bold">{stats.delivered}</p>
                         </div>
                       </div>
@@ -1051,7 +1051,7 @@ export default function WaveMesh() {
               {messages.length === 0 ? (
                 <div className="text-center text-gray-400 py-16 sm:py-20">
                   <MessageCircle size={36} className="mx-auto mb-2 opacity-30" />
-                  <p className="text-sm sm:text-base">Connected via WaveMesh</p>
+                  <p className="text-sm sm:text-base">{t('connected_via_wavemesh')}</p>
                   <p className="text-xs sm:text-sm">Say hello! 👋</p>
                 </div>
               ) : (
@@ -1120,19 +1120,19 @@ export default function WaveMesh() {
                       sendMessage();
                     }
                   }}
-                  placeholder="Message via WaveMesh..."
+                     placeholder={t('placeholder_message_wavemesh')}
                   className="flex-1 min-w-0 px-3 sm:px-5 py-2 sm:py-3 rounded-2xl bg-gray-100 dark:bg-gray-800 text-xs sm:text-sm outline-none focus:ring-2 focus:ring-green-400/50 transition-all"
                 />
                                 <button
                                    onClick={async () => {
                     if (!input.trim()) return;
                     await waveMeshCore.sendViaAudioMesh(input);
-                    toast.success('🔊 Sent via AudioMesh');
+                   toast.success(t('toast_sent_audiomesh'));
                     setInput('');
                   }}
                   disabled={!input.trim()}
                   className="p-2 sm:p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl disabled:opacity-40 shadow-lg flex-shrink-0"
-                  title="Send via AudioMesh (long range)"
+                  title={t('title_send_audiomesh')}
                 >
                   <Radio size={18} />
                 </button>
@@ -1204,7 +1204,7 @@ export default function WaveMesh() {
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(qrCode);
-                      toast.success('Copied!');
+                     toast.success(t('toast_copied'));
                     }}
                     className="p-2 bg-purple-500 text-white rounded-xl"
                   >
@@ -1217,7 +1217,7 @@ export default function WaveMesh() {
                 <input
                   value={pasteInput}
                   onChange={e => setPasteInput(e.target.value)}
-                  placeholder="Paste peer's code..."
+                  placeholder={t('placeholder_paste_peer_code')}
                   className="flex-1 px-4 py-2.5 rounded-xl border text-sm dark:bg-gray-700 dark:border-gray-600"
                 />
                 <button

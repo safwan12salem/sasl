@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
@@ -21,6 +21,8 @@ import ReferralModal from './ReferralModal';
 import { motion } from 'framer-motion';
 
 
+
+
 export default function Layout() {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
@@ -28,7 +30,12 @@ export default function Layout() {
   const location = useLocation();
   const { isDark, toggleTheme } = useTheme();
   const [showReferral, setShowReferral] = useState(false);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [location.pathname]);
+
   const navItems = [
     { to: '/', icon: Home, label: t('feed') },
     { to: '/meshchat', icon: MessageCircle, label: t('meshchat') },
@@ -53,6 +60,8 @@ export default function Layout() {
     { to: '/profile', icon: User, label: t('profile') },
         { to: '/support', icon: Shield, label: t('help_support') },
   ];
+
+
 
     return (
     <div className="flex h-screen overflow-hidden">
