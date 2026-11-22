@@ -397,7 +397,7 @@
   "zero_internet": "无需互联网",
   "global_mesh_50km": "100 位用户 = 50 公里全球网状网络",
   "no_log_entries": "暂无日志。开始扫描以查看活动。",
-  "start_scan": "Start Scan",
+  "start_scan": "开始扫描",
   "stop_scanning": "停止扫描",
   "start_mesh_scan": "开始网状网络扫描",
   "say_hello": "打个招呼吧！👋",
@@ -1265,13 +1265,12 @@
   "more for 50km": "50公里范围内更多",
   "Complete": "完成",
   "wavemesh_title": "WaveMesh",
-  "scanning_status": "正在扫描",
-  "start_scan_btn": "开始网络扫描",
+  "scanning_status": "扫描中",
+  "start_scan_btn": "开始网格扫描",
   "tab_chats": "聊天",
   "tab_nearby": "附近",
   "tab_relay": "中继",
   "tab_code": "代码",
   "tab_log": "日志",
-  "start_scan": "开始扫描",
-  "discover_peers_btn": "发现设备"
+  "discover_peers_btn": "发现节点"
 }

@@ -396,7 +396,7 @@
   "zero_internet": "Sans Internet",
   "global_mesh_50km": "100 utilisateurs = mesh mondiale de 50 km",
   "no_log_entries": "Aucune entrée dans le journal. Lancez un scan pour voir l’activité.",
-  "start_scan": "Start Scan",
+  "start_scan": "Démarrer le scan",
   "stop_scanning": "ARRÊTER LE SCAN",
   "start_mesh_scan": "LANCER LE SCAN MESH",
   "say_hello": "Dites bonjour ! 👋",
@@ -1240,14 +1240,13 @@
   "+ Add Milestone": "+ Ajouter un jalon",
   "more for 50km": "de plus pour 50km",
   "Complete": "Terminer",
- "wavemesh_title": "WaveMesh",
+  "wavemesh_title": "WaveMesh",
   "scanning_status": "Scan en cours",
-  "start_scan_btn": "Lancer le scan du réseau",
+  "start_scan_btn": "DÉMARRER LE SCAN",
   "tab_chats": "Discussions",
   "tab_nearby": "À proximité",
   "tab_relay": "Relais",
   "tab_code": "Code",
   "tab_log": "Journal",
-  "start_scan": "Lancer le scan",
-  "discover_peers_btn": "Découvrir des appareils"
+  "discover_peers_btn": "Découvrir des pairs"
 }

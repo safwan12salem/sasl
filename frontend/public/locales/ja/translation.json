@@ -397,7 +397,7 @@
   "zero_internet": "インターネット不要",
   "global_mesh_50km": "ユーザー100人で50kmのグローバルメッシュ",
   "no_log_entries": "ログはありません。スキャンを開始するとアクティビティが表示されます。",
-  "start_scan": "Start Scan",
+  "start_scan": "スキャン開始",
   "stop_scanning": "スキャンを停止",
   "start_mesh_scan": "メッシュスキャンを開始",
   "say_hello": "あいさつしましょう！👋",
@@ -1218,14 +1218,13 @@
   "+ Add Milestone": "+ マイルストーンを追加",
   "more for 50km": "50km範囲でさらに",
   "Complete": "完了",
-   "wavemesh_title": "WaveMesh",
+  "wavemesh_title": "WaveMesh",
   "scanning_status": "スキャン中",
-  "start_scan_btn": "ネットワークスキャンを開始",
+  "start_scan_btn": "メッシュスキャン開始",
   "tab_chats": "チャット",
   "tab_nearby": "近く",
-  "tab_relay": "中継",
+  "tab_relay": "リレー",
   "tab_code": "コード",
   "tab_log": "ログ",
-  "start_scan": "スキャンを開始",
-  "discover_peers_btn": "デバイスを検出"
+  "discover_peers_btn": "ピアを発見"
 }

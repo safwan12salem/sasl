@@ -1101,7 +1101,6 @@
   "zero_internet": "İnternet Gerektirmez",
   "global_mesh_50km": "100 kullanıcı = 50 km küresel mesh",
   "no_log_entries": "Günlük kaydı yok. Etkinliği görmek için taramayı başlatın.",
-  "start_scan": "Start Scan",
   "stop_scanning": "TARAMAYI DURDUR",
   "start_mesh_scan": "MESH TARAMASINI BAŞLAT",
   "say_hello": "Merhaba deyin! 👋",
@@ -1204,12 +1203,12 @@
   "Complete": "Tamamla",
   "wavemesh_title": "WaveMesh",
   "scanning_status": "Taranıyor",
-  "start_scan_btn": "Ağ taramasını başlat",
+  "start_scan_btn": "MESH TARAMAYI BAŞLAT",
   "tab_chats": "Sohbetler",
-  "tab_nearby": "Yakındakiler",
-  "tab_relay": "Aktarım",
+  "tab_nearby": "Yakında",
+  "tab_relay": "Aktarma",
   "tab_code": "Kod",
   "tab_log": "Günlük",
-  "start_scan": "Taramayı başlat",
-  "discover_peers_btn": "Cihazları bul"
+  "start_scan": "Taramayı Başlat",
+  "discover_peers_btn": "Eşleri Keşfet"
 }

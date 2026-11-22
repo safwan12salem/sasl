@@ -396,7 +396,7 @@
   "zero_internet": "Sin necesidad de Internet",
   "global_mesh_50km": "100 usuarios = mesh global de 50 km",
   "no_log_entries": "No hay entradas en el registro. Inicia el escaneo para ver la actividad.",
-  "start_scan": "Start Scan",
+  "start_scan": "Iniciar Escaneo",
   "stop_scanning": "DETENER ESCANEO",
   "start_mesh_scan": "INICIAR ESCANEO DE MESH",
   "say_hello": "¡Saluda! 👋",
@@ -1252,12 +1252,11 @@
   "Complete": "Completar",
   "wavemesh_title": "WaveMesh",
   "scanning_status": "Escaneando",
-  "start_scan_btn": "Iniciar escaneo de red",
+  "start_scan_btn": "INICIAR ESCANEO",
   "tab_chats": "Chats",
   "tab_nearby": "Cerca",
-  "tab_relay": "Retransmisión",
+  "tab_relay": "Relé",
   "tab_code": "Código",
   "tab_log": "Registro",
-  "start_scan": "Iniciar escaneo",
-  "discover_peers_btn": "Buscar dispositivos"
+  "discover_peers_btn": "Descubrir Pares"
 }

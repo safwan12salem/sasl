@@ -1216,13 +1216,13 @@
   "more for 50km": "50公里范围内更多",
   "Complete": "完成",
   "wavemesh_title": "WaveMesh",
-  "scanning_status": "Scanning",
-  "start_scan_btn": "START MESH SCAN",
-  "tab_chats": "Chats",
-  "tab_nearby": "Nearby",
-  "tab_relay": "Relay",
-  "tab_code": "Code",
-  "tab_log": "Log",
-  "start_scan": "Start Scan",
-  "discover_peers_btn": "Discover Peers"
+  "scanning_status": "扫描中",
+  "start_scan_btn": "开始网格扫描",
+  "tab_chats": "聊天",
+  "tab_nearby": "附近",
+  "tab_relay": "中继",
+  "tab_code": "代码",
+  "tab_log": "日志",
+  "start_scan": "开始扫描",
+  "discover_peers_btn": "发现节点"
 }

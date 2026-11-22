@@ -1170,13 +1170,13 @@
   "more for 50km": "50km範囲でさらに",
   "Complete": "完了",
   "wavemesh_title": "WaveMesh",
-  "scanning_status": "Scanning",
-  "start_scan_btn": "START MESH SCAN",
-  "tab_chats": "Chats",
-  "tab_nearby": "Nearby",
-  "tab_relay": "Relay",
-  "tab_code": "Code",
-  "tab_log": "Log",
-  "start_scan": "Start Scan",
-  "discover_peers_btn": "Discover Peers"
+  "scanning_status": "スキャン中",
+  "start_scan_btn": "メッシュスキャン開始",
+  "tab_chats": "チャット",
+  "tab_nearby": "近く",
+  "tab_relay": "リレー",
+  "tab_code": "コード",
+  "tab_log": "ログ",
+  "start_scan": "スキャン開始",
+  "discover_peers_btn": "ピアを発見"
 }
