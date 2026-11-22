@@ -50,7 +50,7 @@ import Terms from './pages/Legal/Terms';
 import Privacy from './pages/Legal/Privacy';
 import Safety from './pages/Legal/Safety';
 import Guidelines from './pages/Legal/Guidelines';
-
+import i18n from './i18n';
 
 
 // ✅ FIXED: Added loading check
@@ -174,7 +174,7 @@ useEffect(() => {
           <Route path="/snap" element={<PrivateRoute><SnapSender /></PrivateRoute>} />
           <Route path="/progress" element={<PrivateRoute><ProgressHub /></PrivateRoute>} />
           <Route path="/gigs" element={<PrivateRoute><GigCentral /></PrivateRoute>} />
-           <Route path="/meshchat" element={<PrivateRoute><WaveMesh /></PrivateRoute>} />
+          <Route path="/meshchat" element={<PrivateRoute><WaveMesh key={i18n.language} /></PrivateRoute>} /> 
           <Route path="/earnings" element={<PrivateRoute><EarningsDashboard /></PrivateRoute>} />
           <Route path="/analytics" element={<PrivateRoute><Analytics /></PrivateRoute>} />
           
