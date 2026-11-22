@@ -732,7 +732,7 @@ export default function WaveMesh() {
                         {scanning ? t('scanning_status', { defaultValue: 'Scanning' }) + '...' : 'Press ' + t('start_scan_btn', { defaultValue: 'START MESH SCAN' })}
                       </p>
                       <p className="text-sm text-gray-400 mt-1">
-                        BLE 4 (100m) · BLE 5 (500m) · WiFi Direct (200m) · Relay (∞)
+                        {t('ble_range_info', { defaultValue: 'BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + Relay (∞)' })}
                       </p>
                       {scanning && (
                         <div className="flex justify-center gap-1 mt-3">
@@ -935,7 +935,7 @@ export default function WaveMesh() {
             {/* Footer */}
             <div className="p-4 border-t border-gray-100 dark:border-gray-800 text-center">
               <p className="text-[10px] text-gray-400">
-                🌊 WaveMesh · BLE 5 (500m) + Relay · 100 users = 50km
+                  🌊 {t('wavemesh_title', { defaultValue: 'WaveMesh' })} · {t('ble_range_info', { defaultValue: 'BLE 5 (500m) + Relay' })} · {t('users_50km_mesh', { defaultValue: '100 users = 50km' })}
               </p>
             </div>
           </motion.div>
@@ -969,12 +969,12 @@ export default function WaveMesh() {
                  {t('wavemesh_title', { defaultValue: 'WaveMesh' })}
               </h2>
               <p className="text-gray-500 mb-1 sm:mb-2 text-sm sm:text-lg">
-                <span className="font-semibold text-green-600">Multi-Layer P2P</span> · Zero Internet
+                     <span className="font-semibold text-green-600">{t('multi_layer_p2p', { defaultValue: 'Multi-Layer P2P' })}</span> · {t('zero_internet', { defaultValue: 'Zero Internet' })}  
               </p>
               <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-8">
-                BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + Relay (∞)
+                  {t('ble_range_info', { defaultValue: 'BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + Relay (∞)' })}   
                 <br />
-                <span className="font-semibold">100 users = 50km Global Mesh</span>
+                  <span className="font-semibold">{t('users_50km_mesh', { defaultValue: '100 users = 50km Global Mesh' })}</span> 
               </p>
 
               <button
@@ -995,14 +995,14 @@ export default function WaveMesh() {
                   onClick={generateQR}
                   className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-semibold shadow-lg flex items-center gap-2 text-xs sm:text-base"
                 >
-                  <QrCode size={16} /> Share Code
+                 <QrCode size={16} /> {t('share_code', { defaultValue: 'Share Code' })}
                 </button>
               </div>
 
               <div className="mt-6 sm:mt-8 flex items-center justify-center gap-3 sm:gap-6 text-[10px] sm:text-xs text-gray-400 flex-wrap">
-                <span className="flex items-center gap-1"><WifiOff size={10} /> No Internet</span>
-                <span className="flex items-center gap-1"><Shield size={10} /> Encrypted</span>
-                <span className="flex items-center gap-1"><Globe size={10} /> Global Relay</span>
+                <span className="flex items-center gap-1"><WifiOff size={10} /> {t('no_internet', { defaultValue: 'No Internet' })}</span>  
+                 <span className="flex items-center gap-1"><Shield size={10} /> {t('encrypted', { defaultValue: 'Encrypted' })}</span>
+                 <span className="flex items-center gap-1"><Globe size={10} /> {t('global_relay', { defaultValue: 'Global Relay' })}</span>
               </div>
             </div>
           </div>

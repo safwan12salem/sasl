@@ -877,5 +877,6 @@
   "tab_relay": "Relay",
   "tab_code": "Code",
   "tab_log": "Log",
-  "discover_peers_btn": "Discover Peers"
+  "discover_peers_btn": "Discover Peers",
+  "users_50km_mesh": "100 users = 50km Global Mesh"
 }

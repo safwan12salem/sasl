@@ -390,9 +390,9 @@
   "share_code": "コードを共有",
   "share_connection_code": "接続コードを共有",
   "copy_id": "IDをコピー",
-  "no_internet": "インターネット未接続",
+  "no_internet": "インターネットなし",
   "encrypted": "暗号化済み",
-  "global_relay": "グローバル中継",
+  "global_relay": "グローバルリレー",
   "multi_layer_p2p": "マルチレイヤーP2P",
   "zero_internet": "インターネット不要",
   "global_mesh_50km": "ユーザー100人で50kmのグローバルメッシュ",
@@ -430,7 +430,7 @@
   "connected_via": "WaveMesh経由で接続",
   "sasl_wavemesh_connect": "📡 Sasl WaveMesh接続",
   "sasl_wavemesh_title": "Sasl WaveMesh",
-  "ble_range_info": "BLE 4（100m）+ BLE 5（500m）+ WiFi Direct（200m）+ 中継（∞）",
+  "ble_range_info": "BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + リレー (∞)",
   "message_deleted": "🗑️ メッセージを削除しました",
   "initializing": "初期化中...",
   "discovering_more_users": "さらにユーザーを検索中...",
@@ -1226,5 +1226,6 @@
   "tab_relay": "リレー",
   "tab_code": "コード",
   "tab_log": "ログ",
-  "discover_peers_btn": "ピアを発見"
+  "discover_peers_btn": "ピアを発見",
+  "users_50km_mesh": "100ユーザー = 50kmグローバルメッシュ"
 }

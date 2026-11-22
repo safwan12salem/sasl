@@ -829,5 +829,13 @@
   "tab_code": "Code",
   "tab_log": "Log",
   "start_scan": "Start Scan",
-  "discover_peers_btn": "Discover Peers"
+  "discover_peers_btn": "Discover Peers",
+  "multi_layer_p2p": "Multi-Layer P2P",
+  "zero_internet": "Zero Internet",
+  "ble_range_info": "BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + Relay (∞)",
+  "users_50km_mesh": "100 users = 50km Global Mesh",
+  "share_code": "Share Code",
+  "no_internet": "No Internet",
+  "encrypted": "Encrypted",
+  "global_relay": "Global Relay"
 }

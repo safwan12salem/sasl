@@ -390,11 +390,11 @@
   "share_code": "코드 공유",
   "share_connection_code": "연결 코드 공유",
   "copy_id": "ID 복사",
-  "no_internet": "인터넷 연결 없음",
+  "no_internet": "인터넷 없음",
   "encrypted": "암호화됨",
-  "global_relay": "글로벌 중계",
+  "global_relay": "글로벌 릴레이",
   "multi_layer_p2p": "다중 계층 P2P",
-  "zero_internet": "인터넷 없이 사용",
+  "zero_internet": "인터넷 없음",
   "global_mesh_50km": "사용자 100명 = 50km 글로벌 메시",
   "no_log_entries": "로그 항목이 없습니다. 스캔을 시작하면 활동이 표시됩니다.",
   "start_scan": "스캔 시작",
@@ -430,7 +430,7 @@
   "connected_via": "WaveMesh로 연결됨",
   "sasl_wavemesh_connect": "📡 Sasl WaveMesh 연결",
   "sasl_wavemesh_title": "Sasl WaveMesh",
-  "ble_range_info": "BLE 4(100m) + BLE 5(500m) + WiFi Direct(200m) + 중계(∞)",
+  "ble_range_info": "BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + 릴레이 (∞)",
   "message_deleted": "🗑️ 메시지가 삭제되었습니다",
   "initializing": "초기화 중...",
   "discovering_more_users": "더 많은 사용자를 찾는 중...",
@@ -1235,5 +1235,6 @@
   "tab_relay": "릴레이",
   "tab_code": "코드",
   "tab_log": "로그",
-  "discover_peers_btn": "피어 검색"
+  "discover_peers_btn": "피어 검색",
+  "users_50km_mesh": "100명 = 50km 글로벌 메시"
 }

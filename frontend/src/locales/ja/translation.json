@@ -1178,5 +1178,13 @@
   "tab_code": "コード",
   "tab_log": "ログ",
   "start_scan": "スキャン開始",
-  "discover_peers_btn": "ピアを発見"
+  "discover_peers_btn": "ピアを発見",
+  "multi_layer_p2p": "マルチレイヤーP2P",
+  "zero_internet": "インターネット不要",
+  "ble_range_info": "BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + リレー (∞)",
+  "users_50km_mesh": "100ユーザー = 50kmグローバルメッシュ",
+  "share_code": "コードを共有",
+  "no_internet": "インターネットなし",
+  "encrypted": "暗号化済み",
+  "global_relay": "グローバルリレー"
 }

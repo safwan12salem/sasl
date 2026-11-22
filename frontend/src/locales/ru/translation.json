@@ -1162,5 +1162,13 @@
   "tab_code": "Код",
   "tab_log": "Журнал",
   "start_scan": "Начать сканирование",
-  "discover_peers_btn": "Найти пиров"
+  "discover_peers_btn": "Найти пиров",
+  "multi_layer_p2p": "Многоуровневый P2P",
+  "zero_internet": "Без интернета",
+  "ble_range_info": "BLE 4 (100м) + BLE 5 (500м) + WiFi Direct (200м) + Ретрансляция (∞)",
+  "users_50km_mesh": "100 пользователей = Глобальная сеть 50км",
+  "share_code": "Поделиться кодом",
+  "no_internet": "Нет интернета",
+  "encrypted": "Зашифровано",
+  "global_relay": "Глобальная ретрансляция"
 }

@@ -1210,5 +1210,13 @@
   "tab_code": "Código",
   "tab_log": "Registro",
   "start_scan": "Iniciar Escaneo",
-  "discover_peers_btn": "Descubrir Pares"
+  "discover_peers_btn": "Descubrir Pares",
+  "multi_layer_p2p": "P2P Multicapa",
+  "zero_internet": "Sin Internet",
+  "ble_range_info": "BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + Relé (∞)",
+  "users_50km_mesh": "100 usuarios = Malla global de 50km",
+  "share_code": "Compartir Código",
+  "no_internet": "Sin Internet",
+  "encrypted": "Cifrado",
+  "global_relay": "Relé Global"
 }

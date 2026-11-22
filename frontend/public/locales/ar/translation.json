@@ -389,11 +389,11 @@
   "share_code": "مشاركة الرمز",
   "share_connection_code": "مشاركة رمز الاتصال",
   "copy_id": "نسخ المعرّف",
-  "no_internet": "لا يوجد إنترنت",
-  "encrypted": "مشفّر",
-  "global_relay": "ترحيل عالمي",
-  "multi_layer_p2p": "اتصال P2P متعدد الطبقات",
-  "zero_internet": "لا يحتاج إلى إنترنت",
+  "no_internet": "لا إنترنت",
+  "encrypted": "مُشفّر",
+  "global_relay": "تتابع عالمي",
+  "multi_layer_p2p": "طبقة P2P متعددة",
+  "zero_internet": "بدون إنترنت",
   "global_mesh_50km": "100 مستخدم = شبكة عالمية بمدى 50 كم",
   "no_log_entries": "لا توجد سجلات. ابدأ المسح لعرض النشاط.",
   "start_scan": "بدء المسح",
@@ -429,7 +429,7 @@
   "connected_via": "متصل عبر WaveMesh",
   "sasl_wavemesh_connect": "📡 اتصال Sasl WaveMesh",
   "sasl_wavemesh_title": "Sasl WaveMesh",
-  "ble_range_info": "BLE 4 (100 م) + BLE 5 (500 م) + WiFi Direct (200 م) + الترحيل (∞)",
+  "ble_range_info": "BLE 4 (100م) + BLE 5 (500م) + WiFi Direct (200م) + تتابع (∞)",
   "message_deleted": "🗑️ تم حذف الرسالة",
   "initializing": "جارٍ التهيئة...",
   "discovering_more_users": "جارٍ البحث عن مزيد من المستخدمين...",
@@ -1272,5 +1272,6 @@
   "tab_relay": "التتابع",
   "tab_code": "الرمز",
   "tab_log": "السجل",
-  "discover_peers_btn": "اكتشف الأقران"
+  "discover_peers_btn": "اكتشف الأقران",
+  "users_50km_mesh": "100 مستخدم = شبكة عالمية 50كم"
 }

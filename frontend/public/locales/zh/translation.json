@@ -390,11 +390,11 @@
   "share_code": "分享代码",
   "share_connection_code": "分享连接代码",
   "copy_id": "复制 ID",
-  "no_internet": "无互联网连接",
+  "no_internet": "无互联网",
   "encrypted": "已加密",
   "global_relay": "全球中继",
-  "multi_layer_p2p": "多层 P2P",
-  "zero_internet": "无需互联网",
+  "multi_layer_p2p": "多层点对点",
+  "zero_internet": "无互联网",
   "global_mesh_50km": "100 位用户 = 50 公里全球网状网络",
   "no_log_entries": "暂无日志。开始扫描以查看活动。",
   "start_scan": "开始扫描",
@@ -430,7 +430,7 @@
   "connected_via": "通过 WaveMesh 连接",
   "sasl_wavemesh_connect": "📡 Sasl WaveMesh 连接",
   "sasl_wavemesh_title": "Sasl WaveMesh",
-  "ble_range_info": "BLE 4（100 米）+ BLE 5（500 米）+ WiFi Direct（200 米）+ 中继（∞）",
+  "ble_range_info": "BLE 4 (100米) + BLE 5 (500米) + WiFi Direct (200米) + 中继 (∞)",
   "message_deleted": "🗑️ 消息已删除",
   "initializing": "正在初始化...",
   "discovering_more_users": "正在寻找更多用户...",
@@ -1272,5 +1272,6 @@
   "tab_relay": "中继",
   "tab_code": "代码",
   "tab_log": "日志",
-  "discover_peers_btn": "发现节点"
+  "discover_peers_btn": "发现节点",
+  "users_50km_mesh": "100用户 = 50公里全球网格"
 }

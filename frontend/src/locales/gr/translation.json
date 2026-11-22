@@ -1221,5 +1221,13 @@
   "tab_code": "Κωδικός",
   "tab_log": "Αρχείο",
   "start_scan": "Έναρξη Σάρωσης",
-  "discover_peers_btn": "Ανακάλυψη ομότιμων"
+  "discover_peers_btn": "Ανακάλυψη ομότιμων",
+  "multi_layer_p2p": "Πολυεπίπεδο P2P",
+  "zero_internet": "Χωρίς Internet",
+  "ble_range_info": "BLE 4 (100μ) + BLE 5 (500μ) + WiFi Direct (200μ) + Αναμετάδοση (∞)",
+  "users_50km_mesh": "100 χρήστες = Παγκόσμιο πλέγμα 50χλμ",
+  "share_code": "Κοινοποίηση κωδικού",
+  "no_internet": "Χωρίς Internet",
+  "encrypted": "Κρυπτογραφημένο",
+  "global_relay": "Παγκόσμια αναμετάδοση"
 }

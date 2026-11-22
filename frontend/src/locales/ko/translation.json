@@ -1187,5 +1187,13 @@
   "tab_code": "코드",
   "tab_log": "로그",
   "start_scan": "스캔 시작",
-  "discover_peers_btn": "피어 검색"
+  "discover_peers_btn": "피어 검색",
+  "multi_layer_p2p": "다중 계층 P2P",
+  "zero_internet": "인터넷 없음",
+  "ble_range_info": "BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + 릴레이 (∞)",
+  "users_50km_mesh": "100명 = 50km 글로벌 메시",
+  "share_code": "코드 공유",
+  "no_internet": "인터넷 없음",
+  "encrypted": "암호화됨",
+  "global_relay": "글로벌 릴레이"
 }

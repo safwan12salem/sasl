@@ -389,11 +389,11 @@
   "share_code": "कोड साझा करें",
   "share_connection_code": "कनेक्शन कोड साझा करें",
   "copy_id": "ID कॉपी करें",
-  "no_internet": "इंटरनेट नहीं है",
+  "no_internet": "इंटरनेट नहीं",
   "encrypted": "एन्क्रिप्टेड",
   "global_relay": "वैश्विक रिले",
   "multi_layer_p2p": "बहु-स्तरीय P2P",
-  "zero_internet": "इंटरनेट की आवश्यकता नहीं",
+  "zero_internet": "इंटरनेट नहीं",
   "global_mesh_50km": "100 उपयोगकर्ता = 50 किमी का वैश्विक मेश",
   "no_log_entries": "कोई लॉग प्रविष्टि नहीं है। गतिविधि देखने के लिए स्कैन शुरू करें।",
   "start_scan": "स्कैन शुरू करें",
@@ -429,7 +429,7 @@
   "connected_via": "WaveMesh के ज़रिए कनेक्टेड",
   "sasl_wavemesh_connect": "📡 Sasl WaveMesh कनेक्शन",
   "sasl_wavemesh_title": "Sasl WaveMesh",
-  "ble_range_info": "BLE 4 (100 मीटर) + BLE 5 (500 मीटर) + WiFi Direct (200 मीटर) + रिले (∞)",
+  "ble_range_info": "BLE 4 (100मी) + BLE 5 (500मी) + WiFi Direct (200मी) + रिले (∞)",
   "message_deleted": "🗑️ संदेश हटाया गया",
   "initializing": "शुरू हो रहा है...",
   "discovering_more_users": "और उपयोगकर्ता खोजे जा रहे हैं...",
@@ -1226,5 +1226,6 @@
   "tab_relay": "रिले",
   "tab_code": "कोड",
   "tab_log": "लॉग",
-  "discover_peers_btn": "साथियों को खोजें"
+  "discover_peers_btn": "साथियों को खोजें",
+  "users_50km_mesh": "100 उपयोगकर्ता = 50किमी वैश्विक मेश"
 }

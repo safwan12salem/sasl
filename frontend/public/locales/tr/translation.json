@@ -1095,10 +1095,10 @@
   "share_connection_code": "Bağlantı Kodunu Paylaş",
   "copy_id": "Kimliği Kopyala",
   "no_internet": "İnternet Yok",
-  "encrypted": "Şifrelenmiş",
-  "global_relay": "Küresel Aktarım",
+  "encrypted": "Şifreli",
+  "global_relay": "Küresel Aktarma",
   "multi_layer_p2p": "Çok Katmanlı P2P",
-  "zero_internet": "İnternet Gerektirmez",
+  "zero_internet": "İnternetsiz",
   "global_mesh_50km": "100 kullanıcı = 50 km küresel mesh",
   "no_log_entries": "Günlük kaydı yok. Etkinliği görmek için taramayı başlatın.",
   "stop_scanning": "TARAMAYI DURDUR",
@@ -1132,7 +1132,7 @@
   "connected_via": "WaveMesh üzerinden bağlandı",
   "sasl_wavemesh_connect": "📡 Sasl WaveMesh Bağlantısı",
   "sasl_wavemesh_title": "Sasl WaveMesh",
-  "ble_range_info": "BLE 4 (100 m) + BLE 5 (500 m) + WiFi Direct (200 m) + aktarım (∞)",
+  "ble_range_info": "BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + Aktarma (∞)",
   "message_deleted": "🗑️ Mesaj silindi",
   "initializing": "Başlatılıyor...",
   "discovering_more_users": "Daha fazla kullanıcı aranıyor...",
@@ -1210,5 +1210,6 @@
   "tab_code": "Kod",
   "tab_log": "Günlük",
   "start_scan": "Taramayı Başlat",
-  "discover_peers_btn": "Eşleri Keşfet"
+  "discover_peers_btn": "Eşleri Keşfet",
+  "users_50km_mesh": "100 kullanıcı = 50km Küresel Ağ"
 }

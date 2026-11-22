@@ -1224,5 +1224,13 @@
   "tab_code": "الرمز",
   "tab_log": "السجل",
   "start_scan": "بدء المسح",
-  "discover_peers_btn": "اكتشف الأقران"
+  "discover_peers_btn": "اكتشف الأقران",
+  "multi_layer_p2p": "طبقة P2P متعددة",
+  "zero_internet": "بدون إنترنت",
+  "ble_range_info": "BLE 4 (100م) + BLE 5 (500م) + WiFi Direct (200م) + تتابع (∞)",
+  "users_50km_mesh": "100 مستخدم = شبكة عالمية 50كم",
+  "share_code": "مشاركة الرمز",
+  "no_internet": "لا إنترنت",
+  "encrypted": "مُشفّر",
+  "global_relay": "تتابع عالمي"
 }

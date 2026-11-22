@@ -1162,5 +1162,13 @@
   "tab_code": "Kod",
   "tab_log": "Günlük",
   "start_scan": "Taramayı Başlat",
-  "discover_peers_btn": "Eşleri Keşfet"
+  "discover_peers_btn": "Eşleri Keşfet",
+  "multi_layer_p2p": "Çok Katmanlı P2P",
+  "zero_internet": "İnternetsiz",
+  "ble_range_info": "BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + Aktarma (∞)",
+  "users_50km_mesh": "100 kullanıcı = 50km Küresel Ağ",
+  "share_code": "Kodu Paylaş",
+  "no_internet": "İnternet Yok",
+  "encrypted": "Şifreli",
+  "global_relay": "Küresel Aktarma"
 }

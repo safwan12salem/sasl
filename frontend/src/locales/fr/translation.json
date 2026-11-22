@@ -1200,5 +1200,13 @@
   "tab_code": "Code",
   "tab_log": "Journal",
   "start_scan": "Démarrer le scan",
-  "discover_peers_btn": "Découvrir des pairs"
+  "discover_peers_btn": "Découvrir des pairs",
+  "multi_layer_p2p": "P2P Multicouche",
+  "zero_internet": "Sans Internet",
+  "ble_range_info": "BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + Relais (∞)",
+  "users_50km_mesh": "100 utilisateurs = Maille globale de 50km",
+  "share_code": "Partager le code",
+  "no_internet": "Pas d'Internet",
+  "encrypted": "Chiffré",
+  "global_relay": "Relais Global"
 }

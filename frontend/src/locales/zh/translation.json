@@ -1224,5 +1224,13 @@
   "tab_code": "代码",
   "tab_log": "日志",
   "start_scan": "开始扫描",
-  "discover_peers_btn": "发现节点"
+  "discover_peers_btn": "发现节点",
+  "multi_layer_p2p": "多层点对点",
+  "zero_internet": "无互联网",
+  "ble_range_info": "BLE 4 (100米) + BLE 5 (500米) + WiFi Direct (200米) + 中继 (∞)",
+  "users_50km_mesh": "100用户 = 50公里全球网格",
+  "share_code": "分享代码",
+  "no_internet": "无互联网",
+  "encrypted": "已加密",
+  "global_relay": "全球中继"
 }

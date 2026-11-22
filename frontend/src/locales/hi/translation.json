@@ -1178,5 +1178,13 @@
   "tab_code": "कोड",
   "tab_log": "लॉग",
   "start_scan": "स्कैन शुरू करें",
-  "discover_peers_btn": "साथियों को खोजें"
+  "discover_peers_btn": "साथियों को खोजें",
+  "multi_layer_p2p": "बहु-स्तरीय P2P",
+  "zero_internet": "इंटरनेट नहीं",
+  "ble_range_info": "BLE 4 (100मी) + BLE 5 (500मी) + WiFi Direct (200मी) + रिले (∞)",
+  "users_50km_mesh": "100 उपयोगकर्ता = 50किमी वैश्विक मेश",
+  "share_code": "कोड साझा करें",
+  "no_internet": "इंटरनेट नहीं",
+  "encrypted": "एन्क्रिप्टेड",
+  "global_relay": "वैश्विक रिले"
 }
