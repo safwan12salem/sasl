@@ -604,7 +604,7 @@ export default function WaveMesh() {
                 ) : (
                   <span className="flex items-center justify-center gap-2">
                     <Radio size={14} />
-                    START MESH SCAN
+                                        {t('start_scan_btn', { defaultValue: 'START MESH SCAN' })}
                   </span>
                 )}
               </button>
@@ -613,11 +613,11 @@ export default function WaveMesh() {
             {/* Tabs */}
             <div className="flex mx-4 mt-3 bg-gray-100/80 dark:bg-gray-800/80 rounded-2xl p-1 overflow-x-auto">
               {[
-                { key: 'rooms', label: 'Chats', icon: MessageCircle },
-                { key: 'discover', label: 'Nearby', icon: Bluetooth },
-                { key: 'relay', label: 'Relay', icon: Globe },
-                { key: 'connect', label: 'Code', icon: Link },
-                { key: 'debug', label: 'Log', icon: Terminal },
+                { key: 'rooms', label: t('tab_chats', { defaultValue: 'Chats' }), icon: MessageCircle },
+                { key: 'discover', label: t('tab_nearby', { defaultValue: 'Nearby' }), icon: Bluetooth },
+                { key: 'relay', label: t('tab_relay', { defaultValue: 'Relay' }), icon: Globe },
+                { key: 'connect', label: t('tab_code', { defaultValue: 'Code' }), icon: Link },
+                { key: 'debug', label: t('tab_log', { defaultValue: 'Log' }), icon: Terminal },
               ].map(tb => (
                 <button
                   key={tb.key}
@@ -648,7 +648,7 @@ export default function WaveMesh() {
                         onClick={toggleScan}
                         className="mt-4 px-4 py-2 bg-green-500 text-white rounded-xl text-sm"
                       >
-                        Start Scan
+                       {t('start_scan', { defaultValue: 'Start Scan' })}
                       </button>
                     </div>
                   ) : (
@@ -693,7 +693,7 @@ export default function WaveMesh() {
                       { key: 'ble4', label: 'BLE 4', icon: Bluetooth },
                       { key: 'ble5', label: 'BLE 5', icon: Radio },
                       { key: 'wifidirect', label: 'WiFi Direct', icon: Wifi },
-                      { key: 'relay', label: 'Relay', icon: GitBranch },
+                      { key: 'relay', label: t('tab_relay', { defaultValue: 'Relay' }), icon: GitBranch },
                     ].map(f => (
                       <button
                         key={f.key}
@@ -729,7 +729,7 @@ export default function WaveMesh() {
                     <div className="text-center py-16">
                       <Bluetooth size={36} className="mx-auto mb-3 text-gray-300" />
                       <p className="font-semibold text-gray-500">
-                        {scanning ? 'Scanning all layers...' : 'Press START MESH SCAN'}
+                        {scanning ? t('scanning_status', { defaultValue: 'Scanning' }) + '...' : 'Press ' + t('start_scan_btn', { defaultValue: 'START MESH SCAN' })}
                       </p>
                       <p className="text-sm text-gray-400 mt-1">
                         BLE 4 (100m) · BLE 5 (500m) · WiFi Direct (200m) · Relay (∞)
@@ -966,7 +966,7 @@ export default function WaveMesh() {
               </div>
 
               <h2 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2 sm:mb-3">
-                Sasl WaveMesh
+                 {t('wavemesh_title', { defaultValue: 'WaveMesh' })}
               </h2>
               <p className="text-gray-500 mb-1 sm:mb-2 text-sm sm:text-lg">
                 <span className="font-semibold text-green-600">Multi-Layer P2P</span> · Zero Internet
@@ -989,7 +989,7 @@ export default function WaveMesh() {
                   onClick={() => { setTab('discover'); setShowSidebar(true); }}
                   className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-semibold shadow-lg text-xs sm:text-base"
                 >
-                  🔍 Discover Peers
+                  🔍 {t('discover_peers_btn', { defaultValue: 'Discover Peers' })}
                 </button>
                 <button
                   onClick={generateQR}
@@ -1186,7 +1186,7 @@ export default function WaveMesh() {
               className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
-              <h3 className="font-bold text-xl text-center mb-4">📡 Sasl WaveMesh Connect</h3>
+                     <h3 className="font-bold text-xl text-center mb-4">📡 {t('wavemesh_title', { defaultValue: 'WaveMesh' })} Connect</h3> 
               
               {qrCode && (
                 <div className="flex justify-center mb-4">

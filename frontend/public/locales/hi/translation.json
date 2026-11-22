@@ -436,6 +436,8 @@
   "discovering_more_users": "और उपयोगकर्ता खोजे जा रहे हैं...",
   "no_peers_try_scanning": "कोई डिवाइस नहीं मिला। स्कैन करने का प्रयास करें।",
   "peer_list": "डिवाइस",
+
+
   "_ai": "=== AI हब ===",
   "listening": "सुन रहे हैं",
   "enter_topic": "विषय दर्ज करें...",
@@ -1373,7 +1375,17 @@
 "Relay": "रिले",
 "Code": "कोड",
 "Log": "लॉग",
-"Complete": "पूर्ण"
+"Complete": "पूर्ण",
+"wavemesh_title": "WaveMesh",
+  "scanning_status": "स्कैन हो रहा है",
+  "start_scan_btn": "नेटवर्क स्कैन शुरू करें",
+  "tab_chats": "चैट",
+  "tab_nearby": "आस-पास",
+  "tab_relay": "रिले",
+  "tab_code": "कोड",
+  "tab_log": "लॉग",
+  "start_scan": "स्कैन शुरू करें",
+  "discover_peers_btn": "डिवाइस खोजें"
 }
 
 
