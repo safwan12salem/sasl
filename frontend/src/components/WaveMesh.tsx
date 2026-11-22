@@ -763,7 +763,7 @@ export default function WaveMesh() {
                                 'text-green-500'
                               } />
                               <span className="text-gray-500">
-                            {peer.connectionType.toUpperCase()} · ~{peer.distance}m · {peer.signalStrength}%
+                                {peer.connectionType.toUpperCase()} · ~{peer.distance}m · {peer.signalStrength}%
                               </span>
                             </p>
                           </div>
@@ -884,7 +884,7 @@ export default function WaveMesh() {
                       onClick={qrConnected ? completeHandshake : pasteCode}
                       className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold"
                     >
-                      {t('connect')}
+                      Connect
                     </button>
                   </div>
 
@@ -918,9 +918,9 @@ export default function WaveMesh() {
               {/* DEBUG TAB */}
               {tab === 'debug' && (
                 <div className="space-y-1">
-                  <p className="text-xs font-bold mb-2">{t('system_log')}</p>
+                  <p className="text-xs font-bold mb-2">📋 System Log:</p>
                   {debugLog.length === 0 ? (
-                    <p className="text-xs text-gray-400">{t('no_log_entries')}</p>
+                    <p className="text-xs text-gray-400">No log entries. Start scanning to see activity.</p>
                   ) : (
                     debugLog.map((line, i) => (
                       <p key={i} className="text-[10px] text-gray-600 dark:text-gray-400 font-mono leading-relaxed border-b border-gray-100 dark:border-gray-800 pb-1">
@@ -966,15 +966,15 @@ export default function WaveMesh() {
               </div>
 
               <h2 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2 sm:mb-3">
-               {t('sasl_wavemesh_title')}
+                Sasl WaveMesh
               </h2>
               <p className="text-gray-500 mb-1 sm:mb-2 text-sm sm:text-lg">
-              <span className="font-semibold text-green-600">{t('multi_layer_p2p')}</span> · {t('zero_internet')}
+                <span className="font-semibold text-green-600">Multi-Layer P2P</span> · Zero Internet
               </p>
               <p className="text-gray-400 text-xs sm:text-sm mb-4 sm:mb-8">
-               {t('ble_range_info')}
-                                  <br />
-                  <span className="font-semibold">{t('global_mesh_50km')}</span>
+                BLE 4 (100m) + BLE 5 (500m) + WiFi Direct (200m) + Relay (∞)
+                <br />
+                <span className="font-semibold">100 users = 50km Global Mesh</span>
               </p>
 
               <button
@@ -989,20 +989,20 @@ export default function WaveMesh() {
                   onClick={() => { setTab('discover'); setShowSidebar(true); }}
                   className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-semibold shadow-lg text-xs sm:text-base"
                 >
-                 🔍 {t('discover_peers')}
+                  🔍 Discover Peers
                 </button>
                 <button
                   onClick={generateQR}
                   className="px-4 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl font-semibold shadow-lg flex items-center gap-2 text-xs sm:text-base"
                 >
-                 <QrCode size={16} /> {t('share_code')}
+                  <QrCode size={16} /> Share Code
                 </button>
               </div>
 
               <div className="mt-6 sm:mt-8 flex items-center justify-center gap-3 sm:gap-6 text-[10px] sm:text-xs text-gray-400 flex-wrap">
-                <span className="flex items-center gap-1"><WifiOff size={10} /> {t('no_internet')}</span>
-<span className="flex items-center gap-1"><Shield size={10} /> {t('encrypted')}</span>
-<span className="flex items-center gap-1"><Globe size={10} /> {t('global_relay')}</span>
+                <span className="flex items-center gap-1"><WifiOff size={10} /> No Internet</span>
+                <span className="flex items-center gap-1"><Shield size={10} /> Encrypted</span>
+                <span className="flex items-center gap-1"><Globe size={10} /> Global Relay</span>
               </div>
             </div>
           </div>
@@ -1023,7 +1023,7 @@ export default function WaveMesh() {
                   <h3 className="font-bold text-xs sm:text-sm truncate">@{activeRoom.name}</h3>
                   <p className="text-[10px] sm:text-xs text-green-600 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                {activeRoom.connectionType === 'relay' ? t('echo_relay') : t('direct_p2p')}
+                    {activeRoom.connectionType === 'relay' ? 'Echo Relay' : 'Direct P2P'}
                     {activeRoom.distance > 0 && ` · ~${activeRoom.distance}m`}
                   </p>
                 </div>
@@ -1032,7 +1032,7 @@ export default function WaveMesh() {
                              <button
                   onClick={toggleAudioMesh}
                   className={`p-1.5 sm:p-2 rounded-xl transition ${audioMeshActive ? "bg-green-100 dark:bg-green-900/30 text-green-500" : "hover:bg-purple-50 dark:hover:bg-purple-900/30 text-purple-500"}`}
-                  title={audioMeshActive ? t('audiomesh_active') : t('activate_audiomesh')}
+                  title={audioMeshActive ? "AudioMesh Active — Tap to Deactivate" : "Activate AudioMesh for extended range"}
                 >
                   <Radio size={14} className={audioMeshActive ? "animate-pulse" : ""} />
                 </button>
@@ -1052,7 +1052,7 @@ export default function WaveMesh() {
                 <div className="text-center text-gray-400 py-16 sm:py-20">
                   <MessageCircle size={36} className="mx-auto mb-2 opacity-30" />
                   <p className="text-sm sm:text-base">{t('connected_via_wavemesh')}</p>
-                   <p className="text-xs sm:text-sm">{t('say_hello')}</p>
+                  <p className="text-xs sm:text-sm">Say hello! 👋</p>
                 </div>
               ) : (
                 messages.map(msg => (
@@ -1079,7 +1079,7 @@ export default function WaveMesh() {
                         {(() => {
                           try {
                             const cmd = JSON.parse(msg.text);
-                            if (cmd.type === 'delete') return t('message_deleted');
+                            if (cmd.type === 'delete') return '🗑️ Message deleted';
                             if (cmd.type === 'edit') return cmd.text;
                           } catch {}
                           return msg.text;
@@ -1147,7 +1147,7 @@ export default function WaveMesh() {
                           {showEmoji && (
                 <div className="absolute bottom-16 sm:bottom-20 left-2 sm:left-4 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border p-2 sm:p-3 z-50 max-w-[90vw]">
                   <div className="flex justify-end mb-1">
-                    <button onClick={() => setShowEmoji(false)} className="text-gray-400 hover:text-gray-600 text-xs px-2 py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700">✕ {t('close')}</button>
+                    <button onClick={() => setShowEmoji(false)} className="text-gray-400 hover:text-gray-600 text-xs px-2 py-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700">✕ Close</button>
                   </div>
                   <div className="grid grid-cols-7 sm:grid-cols-8 gap-1 sm:gap-1.5">
                     {EMOJIS.map(emoji => (
@@ -1186,7 +1186,7 @@ export default function WaveMesh() {
               className="bg-white dark:bg-gray-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl"
               onClick={e => e.stopPropagation()}
             >
-            <h3 className="font-bold text-xl text-center mb-4">{t('sasl_wavemesh_connect')}</h3>
+              <h3 className="font-bold text-xl text-center mb-4">📡 Sasl WaveMesh Connect</h3>
               
               {qrCode && (
                 <div className="flex justify-center mb-4">
@@ -1224,7 +1224,7 @@ export default function WaveMesh() {
                   onClick={pasteCode}
                   className="px-4 py-2.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl text-sm font-semibold"
                 >
-                   {t('connect')}
+                  Connect
                 </button>
               </div>
               
@@ -1232,7 +1232,7 @@ export default function WaveMesh() {
                 onClick={() => setShowQR(false)}
                 className="w-full py-2.5 bg-gray-200 dark:bg-gray-700 rounded-xl font-semibold text-sm"
               >
-                {t('close')}
+                Close
               </button>
             </div>
           </motion.div>
