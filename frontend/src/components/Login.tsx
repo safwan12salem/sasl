@@ -7,10 +7,10 @@ import Logo from './Logo';
 import { motion } from 'framer-motion';
 import { Mail, Lock, LogIn, ArrowRight, Eye, EyeOff, Zap } from 'lucide-react';
 import LanguageSwitcher from './LanguageSwitcher';
-
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function Login() {
-  const { login, user } = useAuth();
+  const { login, user, googleLogin } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [email, setEmail] = useState('');
@@ -36,9 +36,16 @@ export default function Login() {
     const onboarded = localStorage.getItem('sasl_onboarded');
     navigate(onboarded ? '/' : '/onboarding', { replace: true });
   } catch (err: any) {
-    toast.error(err.message || t('login_error'));
-    setLoading(false);
+  const detail = err.response?.data?.detail;
+  if (detail === 'email_not_verified' || err.response?.data?.email) {
+    const email = err.response?.data?.email;
+    toast.error('Please verify your email first');
+    if (email) navigate('/verify', { state: { email } });
+    return;
   }
+  toast.error(err.message || t('login_error'));
+  setLoading(false);
+}
 };
 
   return (
@@ -162,6 +169,28 @@ export default function Login() {
               </motion.div>
             </div>
 
+              <div className="my-6 flex items-center gap-2">
+  <div className="flex-1 h-px bg-gray-700" />
+  <span className="text-xs text-gray-500">OR</span>
+  <div className="flex-1 h-px bg-gray-700" />
+  </div>
+
+            <GoogleLogin
+                onSuccess={async (credentialResponse) => {
+              try {
+                 await googleLogin(credentialResponse.credential!);
+                  toast.success('Welcome!');
+                  const onboarded = localStorage.getItem('sasl_onboarded');
+                   navigate(onboarded ? '/' : '/onboarding', { replace: true });
+               } catch {
+                  toast.error('Google login failed');
+                  }
+                  }}
+                  onError={() => toast.error('Google login failed')}
+                   theme="filled_black"
+                  shape="pill"
+                    text="continue_with"
+/>
             {/* Submit */}
             <motion.button
               type="submit"

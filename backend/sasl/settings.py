@@ -344,7 +344,9 @@ LOGGING = {
         },
     },
 }
-
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', '277430532458-pifr85jstorc7s61q2v4d2d27jv2ov44.apps.googleusercontent.com')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@sasl.app')
 
 # ============================================================
 # INTERNATIONALISATION

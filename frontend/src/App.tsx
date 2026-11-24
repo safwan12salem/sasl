@@ -44,8 +44,8 @@ import AppealPage from './components/AppealPage';
 import SupportPage from './components/SupportPage';
 import PlatformDashboard from './components/PlatformDashboard';
 import { preCacheAllFeatures } from './services/preCache';
-
-
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import VerifyEmail from './components/VerifyEmail';
 import Terms from './pages/Legal/Terms';
 import Privacy from './pages/Legal/Privacy';
 import Safety from './pages/Legal/Safety';
@@ -150,6 +150,7 @@ useEffect(() => {
   if (loading) return null;
 
   return (
+
     <ErrorBoundary>
       <OfflineIndicator />
       <SyncProgress />
@@ -157,6 +158,7 @@ useEffect(() => {
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
         <Route path="/register" element={user ? <Navigate to="/" replace /> : <Register />} />
+        <Route path="/verify" element={<VerifyEmail />} />
         <Route path="/onboarding" element={<Onboarding />} />
         <Route element={<Layout />}>
           <Route path="/" element={<PrivateRoute><Feed /></PrivateRoute>} />
@@ -180,7 +182,7 @@ useEffect(() => {
           
           <Route path="/chat-dashboard" element={<PrivateRoute><ChatDashboard /></PrivateRoute>} />
           <Route path="/creator-studio" element={<PrivateRoute><CreatorStudio /></PrivateRoute>} />
-                    <Route path="/platform" element={<PrivateRoute><PlatformDashboard /></PrivateRoute>} />
+          <Route path="/platform" element={<PrivateRoute><PlatformDashboard /></PrivateRoute>} />
           <Route path="/live-audio" element={<PrivateRoute><LiveAudio /></PrivateRoute>} />
           <Route path="/ai-hub" element={<PrivateRoute><SaslAIHub /></PrivateRoute>} />
           <Route path="/group-chat" element={<PrivateRoute><GroupChat /></PrivateRoute>} />
@@ -200,8 +202,10 @@ useEffect(() => {
 
 export default function App() {
   return (
+     <GoogleOAuthProvider clientId={process.env.REACT_APP_GOOGLE_CLIENT_ID || ''}>
     <BrowserRouter>
       <AppContent />
     </BrowserRouter>
+    </GoogleOAuthProvider>
   );
 }

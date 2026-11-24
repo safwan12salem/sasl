@@ -11,11 +11,20 @@ from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.db.models import Q
 
+from django.utils import timezone
+from datetime import timedelta
+from .utils import generate_verification_code, send_verification_email
+from .serializers import VerifyEmailSerializer, ResendCodeSerializer, GoogleLoginSerializer
+
+
 from monetization.models import Transaction
 from .serializers import (
     DailyChallengeSerializer, RegisterSerializer, UserProfileSerializer, WalletSerializer,
-    FollowSerializer, SubscriptionSerializer
+    FollowSerializer, SubscriptionSerializer,
+    VerifyEmailSerializer, ResendCodeSerializer, GoogleLoginSerializer,
 )
+
+
 from .models import DailyChallenge, Wallet, Follow, Subscription
 from notifications.services import create_notification
 User = get_user_model()
@@ -26,26 +35,30 @@ from rest_framework.permissions import AllowAny
 
 
 
+
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 
-
 class EmailOrUsernameTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
-        # The frontend sends 'email', but we check both email and username
         email_or_username = attrs.get('email') or attrs.get('username')
         if not email_or_username:
             raise ValidationError('No login provided')
-        
-        # Find user by email or username
         user = User.objects.filter(email=email_or_username).first() or User.objects.filter(username=email_or_username).first()
         if not user:
             raise ValidationError('No active account found')
-        
+        # BLOCK unverified users
+        if not user.is_verified:
+            raise serializers.ValidationError({
+                'detail': 'email_not_verified',
+                'email': user.email,
+                'message': 'Please verify your email first.'
+            })
         attrs['username'] = user.username
         return super().validate(attrs)
 
+    
 class EmailOrUsernameTokenObtainPairView(TokenObtainPairView):
     serializer_class = EmailOrUsernameTokenObtainPairSerializer
 
@@ -386,4 +399,120 @@ def save_push_subscription(request):
     # Store in user's profile
     request.user.push_subscription = json.dumps(subscription)
     request.user.save(update_fields=['push_subscription'])
-    return Response({'status': 'saved'})
+    return Response({'status': 'saved'}) 
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_email_view(request):
+    serializer = VerifyEmailSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    email = serializer.validated_data['email']
+    code = serializer.validated_data['code']
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        return Response({'error': 'invalid_code'}, status=400)
+
+    if user.is_verified:
+        return Response({'status': 'already_verified'})
+
+    if not user.verification_code or user.verification_code != code:
+        return Response({'error': 'invalid_code'}, status=400)
+
+    if user.verification_code_expires and user.verification_code_expires < timezone.now():
+        return Response({'error': 'code_expired'}, status=400)
+
+    user.is_verified = True
+    user.verification_code = None
+    user.verification_code_expires = None
+    user.save()
+
+    # Issue token now that user is verified
+    from rest_framework_simplejwt.tokens import RefreshToken
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        'status': 'verified',
+        'access': str(refresh.access_token),
+        'refresh': str(refresh),
+    })
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def resend_code_view(request):
+    serializer = ResendCodeSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    email = serializer.validated_data['email']
+
+    try:
+        user = User.objects.get(email=email)
+    except User.DoesNotExist:
+        # Don't leak existence — pretend we sent
+        return Response({'status': 'sent'})
+
+    if user.is_verified:
+        return Response({'error': 'already_verified'}, status=400)
+
+    code = generate_verification_code()
+    user.verification_code = code
+    user.verification_code_expires = timezone.now() + timedelta(minutes=10)
+    user.save()
+    try:
+        send_verification_email(user, code)
+    except Exception as e:
+        return Response({'error': 'email_failed', 'detail': str(e)}, status=500)
+    return Response({'status': 'sent'})
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def google_login_view(request):
+    serializer = GoogleLoginSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    credential = serializer.validated_data['credential']
+
+    try:
+        from google.oauth2 import id_token
+        from google.auth.transport import requests as google_requests
+        from django.conf import settings as dj_settings
+
+        idinfo = id_token.verify_oauth2_token(
+            credential,
+            google_requests.Request(),
+            dj_settings.GOOGLE_CLIENT_ID,
+        )
+    except Exception as e:
+        return Response({'error': 'invalid_google_token', 'detail': str(e)}, status=400)
+
+    email = idinfo.get('email')
+    if not email:
+        return Response({'error': 'no_email'}, status=400)
+
+    user = User.objects.filter(email=email).first()
+    if not user:
+        # Create new user from Google
+        base_username = email.split('@')[0]
+        username = base_username
+        i = 1
+        while User.objects.filter(username=username).exists():
+            username = f'{base_username}{i}'
+            i += 1
+        user = User.objects.create_user(
+            email=email,
+            username=username,
+            password=None,
+            display_name=idinfo.get('name', username),
+        )
+
+    # Google already verified the email
+    user.is_verified = True
+    user.save()
+
+    from rest_framework_simplejwt.tokens import RefreshToken
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        'access': str(refresh.access_token),
+        'refresh': str(refresh),
+    })    

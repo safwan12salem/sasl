@@ -27,6 +27,9 @@ export interface AuthContextType {
   token: string | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  verifyEmail: (email: string, code: string) => Promise<void>;
+resendCode: (email: string) => Promise<any>;
+googleLogin: (credential: string) => Promise<void>;
   register: (email: string, username: string, password: string) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
@@ -86,8 +89,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (email: string, username: string, password: string) => {
     await api.post('/users/register/', { email, username, password, password2: password });
-    await login(email, password);
+    
   };
+
+
+  const verifyEmail = async (email: string, code: string) => {
+  const res = await api.post('/users/verify-email/', { email, code });
+  if (res.data.access) {
+    localStorage.setItem('sasl_token', res.data.access);
+    api.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
+    setToken(res.data.access);
+    const profileRes = await api.get('/users/profile/');
+    setUser(profileRes.data);
+    localStorage.setItem('sasl_user', JSON.stringify(profileRes.data));
+  }
+  return res.data;
+};
+
+const resendCode = async (email: string) => {
+  return api.post('/users/resend-code/', { email });
+};
+
+const googleLogin = async (credential: string) => {
+  const res = await api.post('/users/google-login/', { credential });
+  localStorage.setItem('sasl_token', res.data.access);
+  api.defaults.headers.common['Authorization'] = `Bearer ${res.data.access}`;
+  setToken(res.data.access);
+  const profileRes = await api.get('/users/profile/');
+  setUser(profileRes.data);
+  localStorage.setItem('sasl_user', JSON.stringify(profileRes.data));
+};
 
   const logout = () => {
     localStorage.removeItem('sasl_token');
@@ -106,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register,verifyEmail, resendCode, googleLogin, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

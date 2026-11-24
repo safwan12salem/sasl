@@ -45,8 +45,8 @@ export default function Register() {
   setLoading(true);
   try {
     await register(form.email, form.username, form.password);
-    toast.success(t('registration_success'));
-    navigate('/onboarding', { replace: true });
+    toast.success('Check your email for verification code');
+    navigate('/verify', { state: { email: form.email }, replace: true });
   } catch (err: any) {
     toast.error(err.response?.data?.detail || t('registration_error'));
   } finally {

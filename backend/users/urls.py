@@ -6,7 +6,7 @@ from .views import (
     upgrade_premium, leaderboard
 )
 from .views import make_admin
-from .views import EmailOrUsernameTokenObtainPairView
+from .views import EmailOrUsernameTokenObtainPairView,verify_email_view, resend_code_view, google_login_view
 
 router = DefaultRouter()
 router.register(r'follow', FollowViewSet, basename='follow')
@@ -15,6 +15,9 @@ router.register(r'daily-challenge', DailyChallengeViewSet, basename='daily-chall
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
+    path('verify-email/', verify_email_view, name='verify_email'),
+    path('resend-code/', resend_code_view, name='resend_code'),
+    path('google-login/', google_login_view, name='google_login'),
     path('profile/', UserProfileView.as_view(), name='profile'),
     path('user/<str:username>/', UserDetailView.as_view(), name='user-detail'),
     path('leaderboard/', leaderboard, name='leaderboard'),

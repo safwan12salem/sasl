@@ -4,6 +4,9 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.utils.translation import gettext_lazy as _
 from .models import DailyChallenge, Wallet, Follow, Subscription
+from .utils import generate_verification_code, send_verification_email
+from django.utils import timezone
+from datetime import timedelta
 
 User = get_user_model()
 
@@ -141,12 +144,38 @@ class RegisterSerializer(serializers.Serializer):
         return attrs
 
     def create(self, validated_data):
+        from django.utils import timezone
+        from datetime import timedelta
+        from .utils import generate_verification_code, send_verification_email
+
         user = User.objects.create_user(
             email=validated_data['email'],
             username=validated_data['username'],
             password=validated_data['password']
         )
+        user.is_verified = False
+        code = generate_verification_code()
+        user.verification_code = code
+        user.verification_code_expires = timezone.now() + timedelta(minutes=10)
+        user.save()
+        try:
+            send_verification_email(user, code)
+        except Exception as e:
+            print(f'[email] failed to send to {user.email}: {e}')
         return user
+
+
+class VerifyEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    code = serializers.CharField(max_length=6, min_length=6)
+
+
+class ResendCodeSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class GoogleLoginSerializer(serializers.Serializer):
+    credential = serializers.CharField()
 
 class FollowSerializer(serializers.ModelSerializer):
     follower_name = serializers.ReadOnlyField(source='follower.username')
@@ -212,3 +241,5 @@ class SaslTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['is_staff'] = user.is_staff
         token['is_superuser'] = user.is_superuser
         return token
+    
+

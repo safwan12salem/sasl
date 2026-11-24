@@ -31,6 +31,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     avatar = models.ImageField(upload_to='avatars/', blank=True)
     bio = models.TextField(max_length=500, blank=True)
     is_verified = models.BooleanField(default=False)
+    verification_code = models.CharField(max_length=6, blank=True, null=True)
+    verification_code_expires = models.DateTimeField(null=True, blank=True)
     is_creator = models.BooleanField(default=False)         # influencer/streamer status
     is_teacher = models.BooleanField(default=False)
     is_seller = models.BooleanField(default=False)
