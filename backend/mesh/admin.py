@@ -39,7 +39,7 @@ class ChatRoomAdmin(admin.ModelAdmin):
     list_display = ('room_id', 'name', 'room_type', 'member_count', 'last_message_at', 'is_active')
     search_fields = ('room_id', 'name', 'members__username')
     list_filter = ('room_type', 'is_active')
-    filter_horizontal = ('members',)
+    filter_horizontal = ()
 
     def member_count(self, obj):
         return obj.members.count()
