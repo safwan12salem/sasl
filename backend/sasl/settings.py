@@ -103,6 +103,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'cloudinary_storage',
     'corsheaders',
+    'anymail',    
     'channels',
     'allauth',
     'allauth.account',
@@ -129,7 +130,7 @@ INSTALLED_APPS = [
     'payments',
     'creatorstudio',
     'moderation',
-    
+
 ]
 
 
@@ -430,15 +431,12 @@ SASL_TRENDING_DECAY_FACTOR = 0.8  # time decay for trending
 # ============================================================
 # EMAIL (for production)
 # ============================================================
-if IS_PRODUCTION:
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.sendgrid.net')
-    EMAIL_PORT = 587
-    EMAIL_USE_TLS = True
-    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
-    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
-else:
-    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email configuration — Resend HTTP API (required for Render free tier)
+EMAIL_BACKEND = "anymail.backends.resend.EmailBackend"
+ANYMAIL = {
+    "RESEND_API_KEY": os.environ.get("RESEND_API_KEY"),
+}
+DEFAULT_FROM_EMAIL = "onboarding@resend.dev"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CELERY_RESULT_BACKEND = REDIS_URL + '/2'
 # Celery

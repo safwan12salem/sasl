@@ -515,4 +515,21 @@ def google_login_view(request):
     return Response({
         'access': str(refresh.access_token),
         'refresh': str(refresh),
-    })    
+    })
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def test_email(request):
+    from django.core.mail import send_mail
+    from django.conf import settings
+    try:
+        send_mail(
+            'Sasl Test Email',
+            'If you get this, SendGrid works.',
+            settings.DEFAULT_FROM_EMAIL,
+            ['safwan123salem@gmail.com'],
+            fail_silently=False,
+        )
+        return Response({'status': 'sent'})
+    except Exception as e:
+        return Response({'error': str(e), 'type': type(e).__name__}, status=500)        

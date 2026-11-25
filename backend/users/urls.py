@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     RegisterView, UserProfileView, UserDetailView, WalletView,
     FollowViewSet, SubscriptionViewSet, SuggestedUsersView, DailyChallengeViewSet,
-    upgrade_premium, leaderboard
+    upgrade_premium, leaderboard, test_email
 )
 from .views import make_admin
 from .views import EmailOrUsernameTokenObtainPairView,verify_email_view, resend_code_view, google_login_view
@@ -16,6 +16,7 @@ router.register(r'daily-challenge', DailyChallengeViewSet, basename='daily-chall
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('verify-email/', verify_email_view, name='verify_email'),
+    path('test-email/', test_email, name='test_email'),
     path('resend-code/', resend_code_view, name='resend_code'),
     path('google-login/', google_login_view, name='google_login'),
     path('profile/', UserProfileView.as_view(), name='profile'),
